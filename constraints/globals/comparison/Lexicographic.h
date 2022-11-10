@@ -11,17 +11,16 @@ class Lexicographic : public GlobalConstraint {
     bool            strict;
     Lexicographic(Problem &p, std::string n, vec<Variable *> &X, vec<Variable *> &Y, bool st);
 
-    virtual bool isCorrectlyDefined() override;
+    bool isCorrectlyDefined() override;
 
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
    protected:
-
     vec<int> times;   // times[posx] gives the time at which the variable x has been set (pseudo-assigned)
     vec<int> vals;    // vals[posx] gives the val of the variable x set at time times[posx]
     int      time;

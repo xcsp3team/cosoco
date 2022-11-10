@@ -14,7 +14,7 @@ namespace Cosoco {
 // ------------    Internal Data structures -----------------
 class Interval {
    public:
-    Interval(Variable *xx) : x(xx) { }
+    explicit Interval(Variable *xx) : x(xx) { }
 
 
     int       minrank, maxrank;
@@ -38,10 +38,10 @@ class AllDifferent : public GlobalConstraint {
     AllDifferent(Problem &p, std::string n, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
     int variableConsistency;   // Use basic filtering limited to variable assignment
    protected:

@@ -10,10 +10,10 @@ class NotAllEqual : public GlobalConstraint {
     NotAllEqual(Problem &p, std::string n, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *dummy) override;
+    bool filter(Variable *dummy) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

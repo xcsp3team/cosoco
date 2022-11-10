@@ -23,11 +23,11 @@ class DistinctVectors : public GlobalConstraint {
    public:
     DistinctVectors(Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY);
 
-    virtual bool isCorrectlyDefined() override;
+    bool isCorrectlyDefined() override;
 
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 };
 }   // namespace Cosoco
 

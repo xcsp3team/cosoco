@@ -74,14 +74,12 @@ AllDifferent::AllDifferent(Problem &p, std::string nn, vec<Variable *> &vars)
 
     // Initialisation
     for(int i = 0; i < sz; i++) {
-        Interval *it = new Interval(scope[i]);
+        auto *it = new Interval(scope[i]);
         interval.push(it);
         minsorted.push(it);
         maxsorted.push(it);
     }
 }
-
-
 
 
 //----------------------------------------------------------
