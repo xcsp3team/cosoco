@@ -2,7 +2,10 @@
  
 ### Authors
  Gilles Audemard (audemard@cril.fr)
- 
+
+This work would not have taken place without [Christophe Lecoutre](https://github.com/lecoutre). 
+I  would like to thank him very warmly for his support.
+
 ### Introduction
  Written in C++, cosoco is a small (less than 12,000 lines of code) constraint solver that deals with 
  almost all constraints that forms the [XCSP3 core](http://xcsp.org):
