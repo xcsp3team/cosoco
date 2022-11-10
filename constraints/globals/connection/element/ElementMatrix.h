@@ -9,15 +9,15 @@ class ElementMatrix : public GlobalConstraint {
     ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, int v);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
    protected:
     vec<vec<Variable *> > matrix;
-    Variable *            rindex;
-    Variable *            cindex;
+    Variable             *rindex;
+    Variable             *cindex;
     int                   value;
 
 

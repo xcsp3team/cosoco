@@ -24,15 +24,15 @@ class ElementVariable : public Element {
 
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
    protected:
-    bool         findVectorSentinelFor(int idxIndex);
-    bool         findResultSentinelFor(int idxResult);
-    bool         reduceResultDomain();
+    bool findVectorSentinelFor(int idxIndex);
+    bool findResultSentinelFor(int idxResult);
+    bool reduceResultDomain();
     bool isCorrectlyDefined() override;
 };
 }   // namespace Cosoco

@@ -13,10 +13,10 @@ class ElementConstant : public Element {
     ElementConstant(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, int kk, bool one = false);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

@@ -45,10 +45,10 @@ bool ElementMatrix::filter(Variable *x) {
                 continue;
             bool found = false;
             for(int b : reverse(cindex->domain)) {
-                int cv = cindex->domain.toVal(b);
-                if(matrix[rv][cv]->containsValue(value)) {
+                int cv2 = cindex->domain.toVal(b);
+                if(matrix[rv][cv2]->containsValue(value)) {
                     found          = true;
-                    rsentinels[rv] = cv;
+                    rsentinels[rv] = cv2;
                     break;
                 }
             }
@@ -66,10 +66,10 @@ bool ElementMatrix::filter(Variable *x) {
                 continue;
             bool found = false;
             for(int a : reverse(rindex->domain)) {
-                int rv = rindex->domain.toVal(a);
-                if(matrix[rv][cv]->containsValue(value)) {
+                int rv2 = rindex->domain.toVal(a);
+                if(matrix[rv2][cv]->containsValue(value)) {
                     found          = true;
-                    csentinels[cv] = rv;
+                    csentinels[cv] = rv2;
                     break;
                 }
             }
