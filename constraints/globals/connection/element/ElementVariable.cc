@@ -95,9 +95,10 @@ bool ElementVariable::findResultSentinelFor(int idvResult) {
     int sz = index->size();
     for(int i = 0; i < sz; i++) {
         int idx = index->domain[i];
-        if(getVariableFor(idx)->containsValue(v))
+        if(getVariableFor(idx)->containsValue(v)) {
             resultSentinels[idvResult] = idx;
-        return true;
+            return true;
+        }
     }
     return false;
 }
@@ -127,7 +128,6 @@ ElementVariable::ElementVariable(Problem &p, std::string n, vec<Variable *> &var
     posIndex = vars.firstOccurrenceOf(i);
 
     int posResult = vars.firstOccurrenceOf(r);
-
 
 
     resultSentinels.growTo(result->domain.maxSize(), -1);
