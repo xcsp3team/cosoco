@@ -143,10 +143,10 @@ void MDDNode::display() {
 }
 
 
-int MDDNode::nbChilds() { return directAccessToChilds.size(); }
+int MDDNode::nbChilds() const { return directAccessToChilds.size(); }
 
 
-bool MDDNode::isRoot() { return level == 0; }
+bool MDDNode::isRoot() const { return level == 0; }
 
 
 MDDNode::MDDNode(std::string n, int _id, int lvl, int maxNbChilds) : id(_id), level(lvl), name(n) {

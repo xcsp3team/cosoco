@@ -108,7 +108,7 @@ bool MDDExtension::updateDomains() {
 
 
 bool MDDExtension::manageSuccessfulExploration(Variable *x, int idv, int level) {
-    //assert(toScopePosition(x->idx) == level);
+    // assert(toScopePosition(x->idx) == level);
     if(!gac[level][idv]) {
         nbTotalValuesWithoutSupports--;
         nbValuesWithoutSupports[level]--;
@@ -131,9 +131,9 @@ MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD
     nbValuesWithoutSupports.growTo(vars.size());
     trueNodes.growTo(mdd->nbNodes);
     falseNodes.growTo(mdd->nbNodes);
-    for(int i = 0; i < vars.size(); i++) {
+    for(auto &var : vars) {
         gac.push();
-        gac.last().growTo(vars[i]->domain.maxSize(), false);
+        gac.last().growTo(var->domain.maxSize(), false);
     }
 }
 

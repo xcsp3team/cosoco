@@ -30,9 +30,9 @@ class ShortSTR2 : public Extension, ObserverDeleteDecision {
     // Notifications : restore validTuples when backtrack is performed
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
 
-    virtual void delayedConstruction(int id) override;
-    virtual void attachSolver(Solver *s) override;
-    virtual bool isCorrectlyDefined() override;
+    void delayedConstruction(int id) override;
+    void attachSolver(Solver *s) override;
+    bool isCorrectlyDefined() override;
 };
 }   // namespace Cosoco
 

@@ -21,8 +21,8 @@ class MDDNode {
 
 
     MDDNode(std::string n, int _id, int lvl, int maxNbChilds);
-    int  nbChilds();
-    bool isRoot();
+    int  nbChilds() const;
+    bool isRoot() const;
     void display();
     void addChild(int idv, MDDNode *target);
 };

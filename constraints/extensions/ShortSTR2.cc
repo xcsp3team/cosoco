@@ -6,7 +6,7 @@
 // TODO restore lastsize when backtracking
 
 using namespace Cosoco;
-#define UNKNOWN -1
+#define UNKNOWN (-1)
 
 //----------------------------------------------
 // Check validity and correct definition
@@ -114,7 +114,6 @@ void ShortSTR2::delTuple(int position, int level) {
 //----------------------------------------------
 // Observers methods
 //----------------------------------------------
-
 
 
 void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s) {

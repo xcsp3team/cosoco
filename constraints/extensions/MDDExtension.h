@@ -9,7 +9,7 @@
 namespace Cosoco {
 class MDDExtension : public Extension, ObserverDeleteDecision {
    public:
-    virtual void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
     MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, vec<XCSP3Core::XTransition *> &transitions);
     MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m);
 
