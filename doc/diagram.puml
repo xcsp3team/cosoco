@@ -1,0 +1,33 @@
+@startuml
+
+class Problem
+abstract class Domain
+class DomainRange
+class DomainValues
+class Variable
+abstract class AbstractSolver
+class Solver
+class Optimizer
+class Constraint
+
+abstract class HeuristicVar
+class HeuristicVarWDeg
+class HeuristicVarLC
+
+Domain <|-- DomainRange
+Domain <|-- DomainValues
+Variable --> "1" Domain
+Variable "*" - "*" Constraint
+Variable "*" - "1" Problem
+Constraint "*" - "1" Problem
+Solver "1" - "1" Problem
+
+AbstractSolver <|-- Solver
+AbstractSolver <|-- Optimizer
+Optimizer --> "1" Solver
+
+HeuristicVar <|-- HeuristicVarWDeg
+HeuristicVar <|-- HeuristicVarLC
+HeuristicVarLC --> "1" HeuristicVar
+Solver --> "1" HeuristicVar
+@enduml

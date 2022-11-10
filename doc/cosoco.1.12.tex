@@ -1,0 +1,90 @@
+\documentclass{llncs}
+
+%\usepackage{makeidx}  % allows for indexgeneration
+
+\usepackage{mathrsfs} % for mathscr
+\usepackage{algorithmic}
+\usepackage{algorithm}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks,linkcolor={red!50!black},citecolor={blue!50!black},urlcolor={blue!80!black}}
+
+\newcommand{\f}[1]{\mathtt{#1}} %\tt #1} % field
+\newcommand{\h}[1]{\textit{#1}} % heuristic
+\newcommand{\p}[1]{\textit{#1}} % problem
+
+%\ifx\pdftexversion\undefined
+%  \usepackage[dvips]{graphics}
+%\else
+%  \usepackage[pdftex]{graphics}
+%\fi
+
+%\newcommand{\sub}[1]{\xrightarrow[ _{#1}]{}}
+
+\begin{document}
+
+%\pagestyle{headings}  % switches on printing of running heads
+\pagestyle{empty}
+
+
+\title{CoSoCo 1.12\\ {\small XCSP3 Competition in 2017}}
+
+\author{Gilles Audemard}
+
+\institute{CRIL-CNRS, UMR 8188\\
+Universit\'e d'Artois, F-62307 Lens France\\
+\email{audemard@cril.fr}\\
+}
+%\date{03 September 2017}
+
+%\begin{document}
+
+\maketitle
+
+
+
+
+\bigskip\bigskip\bigskip CoSoCo is a constraint solver written in
+C++. It is the first release of this solver. The main goal is to build
+a simple, but efficient constraint solver. Indeed, the main part of
+the solver contains less than 2,000 lines of code. CoSoCo will be
+available on bitbucket as soon as possible. CoSoCo recognizes XCSP3
+\cite{BLPP_xcsp3} by using the C++ parser that can be downloaded at
+\href{https://github.com/xcsp3team/XCSP3-CPP-Parser}{https://github.com/xcsp3team/XCSP3-CPP-Parser}. It
+can deal with almost all XCSP3 Core constraints. The part related to
+all constraint propagators contains around 4,500 lines of codes.
+
+
+
+\bigskip
+CoSoCo performs backtrack search, enforcing (generalized) arc consistency at each node (when possible).  
+The main components are :
+\begin{itemize}
+\item \h{dom/wdeg} \cite{BHLS_boosting} as variable ordering heuristic;
+\item \h{lexico} as value ordering heuristic;
+\item lc(1), last-conflict reasoning with a collecting parameter $k$ set to $1$, as described in \cite{LSTV_reasonning};
+\item a geometric restart policiy;
+\item a variable-oriented propagation scheme \cite{G_relational}, where a queue $Q$ records all variables with recently reduced domains (see Chapter 4 in \cite{L_constraint}).
+\end{itemize}
+  
+
+
+\section*{Acknowledgements}
+This work would not have taken place without Christophe
+Lecoutre. I  would like to thank him  very warmly for his support.
+
+
+\bibliographystyle{plain} %alpha}
+\bibliography{globalBiblio}
+
+
+\end{document}
+
