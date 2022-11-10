@@ -11,9 +11,9 @@ I  would like to thank him very warmly for his support.
  almost all constraints that forms the [XCSP3 core](http://xcsp.org):
  
   + The main data structures (related to CSP instances) contain around 600 loc.
-  + The solver part contains 1600 loc.
-  + The optimizer part around 265 loc.
-  + The constraint directory is the biggest one with around 4,500 loc.
+  + The solver part contains around 1500 loc.
+  + The optimizer part around 250 loc.
+  + The constraint directory is the biggest one with around 5,500 loc.
  
  As introduced above, cosoco uses the [XCSP3 core](XCSP3 format) and parses  problems using the parser 
  available [https://github.com/xcsp3team/XCSP3-CPP-Parser](here)
@@ -41,7 +41,7 @@ I  would like to thank him very warmly for his support.
   + C++14 
   + CMake (>= 3.3)
   + LibXML2 (for parsing problems)
-  + [https://github.com/xcsp3team/XCSP3-CPP-Parser](XCSP3 C++ parser)
+  + [https://github.com/xcsp3team/XCSP3-CPP-Parser](XCSP3 C++ parser). Put in a directory at the same level than cosoco
   
   That's all.
   
@@ -64,13 +64,13 @@ I  would like to thank him very warmly for his support.
    + scope
 
 ### Directories
-  + constraints: all constraints implemented. Thsi directory contains subdirectories, named follow the name of constraints in XCSP specifications.
+  + constraints: all constraints implemented. This directory contains subdirectories, named follow the name of constraints in XCSP specifications.
   + core: the classes Domain, Problem, Variables  
   + main: contains the XCSP3 Parser callback and the main file
   + mtl: data structures, most of them come from minisat (thanks again to minisat team)
   + optimizer: the optimizer solver
   + solver: the solver, with observer, heuristics, restarts...
-  + utils: options, system, verbose... Some code come from minisat...
+  + utils: options, system, verbose... Some code comes from minisat...
 
 
 
@@ -92,6 +92,3 @@ I  would like to thank him very warmly for his support.
 ### Observers
 + There are several observers. You can attach a component to one of them, in order to be warned
 if one of the event occurs.
-
-### WARNING
-The SAT wrapper is in progress and certainly contains bugs!
