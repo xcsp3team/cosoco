@@ -29,7 +29,6 @@ class Variable {
 
     // Datas used for some algorithms (some heuristics and so on...)
     double wdeg;                   // The wdeg value
-    int    valueForSupportCheck;   // used to check the validity of tuples in generic constraint
 
 
     // Fake data used in some algorithms. Use must be circumscribed to one call of the algorithm
@@ -97,6 +96,6 @@ class Variable {
     inline int maximum() { return domain.maximum(); }
 };
 
-};   // namespace Cosoco
+}   // namespace Cosoco
 
 #endif /* VARIABLE_H */

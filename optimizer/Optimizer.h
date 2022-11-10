@@ -15,15 +15,14 @@ namespace Cosoco {
 
 class Optimizer : public AbstractSolver, ObserverConflict {
    protected:
-    long                          lower, upper;   // The current lower et upper bound
+    long lower, upper;   // The current lower et upper bound
 
     Solution *bestSolution;   // The solution manager (used to avoid problems if the solver is killed during solution storing
     long      best;           // Best value until now
    public:
-    bool                 boundFound;       // One solution has been found?
     bool                 invertBestCost;   // usefull with sum and minimize, we invert the cost due to SumGE implementation only
     int                  callToSolver;     // The nb calls to the SAT solver
-    Solver *             solver;           // The solver used to optimize
+    Solver              *solver;           // The solver used to optimize
     ObjectiveConstraint *objectiveLB;      // ctr >= k
     ObjectiveConstraint *objectiveUB;      // ctr <= k
     OptimisationType     optimtype;        // Minimize or Maximize
@@ -31,7 +30,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     bool                 progressSaving;
     bool                 firstCall;
 
-    Optimizer(Problem &p);
+    explicit Optimizer(Problem &p);
 
     int  solve(vec<RootPropagation> &assumps) override;
     void printFinalStats() override;
@@ -46,8 +45,6 @@ class Optimizer : public AbstractSolver, ObserverConflict {
 
 
     long bestCost() { return bestSolution->bestBound(); }
-
-
 
 
     bool hasSolution() override { return bestSolution->exists(); }

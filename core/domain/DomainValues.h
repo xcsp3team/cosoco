@@ -14,19 +14,19 @@ class DomainValue : public Domain {
 
    public:
     // Constructors
-    DomainValue(const vec<int> &vals) : Domain(vals.size()) {
+    explicit DomainValue(const vec<int> &vals) : Domain(vals.size()) {
         for(int i = 0; i < vals.size(); i++) {
             values.push(vals[i]);
-            map[vals[i]] = i;   // [vals[i]] = i;
+            map[vals[i]] = i;
         }
     }
 
 
     // Virtual Method conversion id to value
-    const int toIdv(int v) override { return map.find(v) == map.end() ? -1 : map[v]; }
+    int toIdv(int v) override { return map.find(v) == map.end() ? -1 : map[v]; }
 
 
-    const int toVal(int idv) override { return values[idv]; }
+    int toVal(int idv) override { return values[idv]; }
 };
-};   // namespace Cosoco
+}   // namespace Cosoco
 #endif

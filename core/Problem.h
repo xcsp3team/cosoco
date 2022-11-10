@@ -38,8 +38,8 @@ class Problem {
 
 
     // Problem Statistics
-    int  nbVariables();
-    int  nbConstraints();
+    int  nbVariables() const;
+    int  nbConstraints() const;
     int  nbConstraintsOfSize(int size);
     int  minimumArity();
     int  maximumArity();
@@ -54,6 +54,6 @@ class Problem {
     void display(bool allDetails = false);
     bool checkSolution();
 };
-};   // namespace Cosoco
+}   // namespace Cosoco
 
 #endif /* PROBLEM_H */

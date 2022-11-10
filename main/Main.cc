@@ -1,12 +1,13 @@
 #include <optimizer/Optimizer.h>
-#include <signal.h>
-#include <string.h>
 #include <sys/resource.h>
 #include <zlib.h>
 
+#include <csignal>
+#include <cstring>
 #include <sstream>
 #include <vector>
 
+#include "HeuristicVarCACD.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
 #include "solver/heuristics/values/HeuristicValLast.h"
@@ -14,14 +15,13 @@
 #include "utils/CosocoCallbacks.h"
 #include "utils/Options.h"
 #include "utils/System.h"
-#include "HeuristicVarCACD.h"
 
 
 using namespace Cosoco;
 using namespace XCSP3Core;
 
 
-AbstractSolver *      solver;
+AbstractSolver       *solver;
 vec<AbstractSolver *> solvers;
 
 bool   optimize = false;
@@ -47,7 +47,7 @@ StringOption warmStart("warmstart", "warmstart", "add a FILE that contains a lis
 BoolOption   pg("OPT", "bs", "Enable progress saving (only after a new solution)", true);
 StringOption removeClasses("PARSE", "removeclasses", "Remove special classes when parsing (symmetryBreaking,redundant...)");
 IntOption    i2e("PARSE", "i2e", "Transform intension to extension. Max size of cartesian product (0 -> disable it", 100000,
-              IntRange(0, INT32_MAX));
+                 IntRange(0, INT32_MAX));
 
 // --------------------------- OPTIONS ----------------------------------------
 
@@ -75,7 +75,7 @@ static void SIGINT_interrupt(int signum) { SIGINT_exit(0); }
 
 int main(int argc, char **argv) {
     realTimeStart = realTime();
-    int nbcores = 1;
+    int nbcores   = 1;
 
     try {
         printf("c\nc This is cosoco 2.00 --  \nc\n");
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
         if(removeClasses != nullptr) {
             std::vector<std::string> classes = split1(std::string(removeClasses), ',');
-            for(std::string c : classes) cb.addClassToDiscard(c);
+            for(const std::string &c : classes) cb.addClassToDiscard(c);
         }
 
         try {
@@ -130,9 +130,9 @@ int main(int argc, char **argv) {
 
         // --------------------------- INIT SOLVERS ----------------------------------------
         solvers.growTo(nbcores);
-        Solution *solution = new Solution(*solvingProblems[0]);
+        auto *solution = new Solution(*solvingProblems[0]);
         for(int core = 0; core < nbcores; core++) {
-            Solver *S                   = new Solver(*solvingProblems[core]);
+            auto *S                     = new Solver(*solvingProblems[core]);
             S->core                     = core;
             S->seed                     = S->seed * (core + 1);
             S->intension2extensionLimit = i2e;
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
                             values.push(std::stoi(v));
                     }
                 }
-                S->warmStart = true;
+                S->warmStart    = true;
                 S->heuristicVal = new ForceIdvs(*S, S->heuristicVal, false, &values);
             }
 
@@ -295,9 +295,9 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
         if(optimize) {
             printf("\n");
             printf("c |               Objective: ");
-            Optimizer *          o         = (Optimizer *)solvers[0];
+            Optimizer           *o         = (Optimizer *)solvers[0];
             ObjectiveConstraint *objective = (o->optimtype == Minimize) ? o->objectiveUB : o->objectiveLB;
-            Constraint *         c         = dynamic_cast<Constraint *>(objective);
+            Constraint          *c         = dynamic_cast<Constraint *>(objective);
             printf("%s %s\n",
                    o->optimtype == Minimize || (o->optimtype == Maximize && o->invertBestCost) ? "Minimize" : "Maximize",
                    c->type.c_str());

@@ -10,7 +10,7 @@ enum OptimisationType { Minimize, Maximize };
 
 class OptimizationProblem : public Problem {   // An optimosation problem is a probem containing at least one
    public:                                     // objectiveLB or objectiveUB
-    OptimizationProblem(const std::string &n);
+    explicit OptimizationProblem(const std::string &n);
 
     ObjectiveConstraint *objectiveLB;   // ctr >= ct
     ObjectiveConstraint *objectiveUB;   // ctr <= ct

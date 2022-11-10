@@ -1,7 +1,6 @@
 #ifndef DOMAIN_H
 #define DOMAIN_H
 
-#include <assert.h>
 
 #include "mtl/LinkedSet.h"
 #include "mtl/LinkedSetIterator.h"
@@ -24,16 +23,16 @@ class Domain {
     using reverse_iterator = LinkedSetIterator;
 
     // Constructors and initialisation
-    Domain(int sz) : idvs(sz, true) { }
+    explicit Domain(int sz) : idvs(sz, true) { }
 
 
     void delayedConstruction(int nbVars) { }
 
 
     // Virtual Method conversion id to value
-    virtual const int toIdv(int v) = 0;
+    virtual int toIdv(int v) = 0;
 
-    virtual const int toVal(int idv) = 0;
+    virtual  int toVal(int idv) = 0;
 
 
     // Methods related to deletion of values
@@ -117,7 +116,7 @@ class Domain {
     inline int size() { return idvs.size(); }
 
 
-    inline const int maxSize() { return idvs.maxSize(); }
+    inline int maxSize() { return idvs.maxSize(); }
 
 
     // Access method
@@ -150,6 +149,6 @@ class Domain {
     }
 };
 
-};   // namespace Cosoco
+}   // namespace Cosoco
 
 #endif

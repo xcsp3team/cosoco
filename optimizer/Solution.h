@@ -21,13 +21,13 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     long              bound;
     bool              invertBestCost;
     std::mutex        mutex;
-    double            realTimeForBestSolution, realTimeStart;
+    double            realTimeForBestSolution{}, realTimeStart;
     OptimisationType  optimType;
-    bool              updateBound;
+    bool              updateBound{};
     Problem &         problem;
 
    public:
-    Solution(Problem &p) : problem(p) {
+    explicit Solution(Problem &p) : problem(p) {
         tmp = preserved = nullptr;
         realTimeStart   = realTime();
     }
@@ -66,8 +66,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
             preserved = tmp;
             // end critical section
             tmp = nullptr;
-            if(del)
-                delete del;
+            delete del;
             realTimeForBestSolution = realTime();
             std::cout << "o " << bestBound() << " " << (realTimeForBestSolution - realTimeStart) << std::endl;
         }
@@ -75,7 +74,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     }
 
 
-    long bestBound() { return (invertBestCost ? -1 : 1) * bound; }
+    long bestBound() const { return (invertBestCost ? -1 : 1) * bound; }
 
     /**
      * return true is a solution was recorded

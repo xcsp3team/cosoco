@@ -17,20 +17,20 @@ class Range {
             max = mn;
         }
     }
-    Range negRange() {
-        return Range(-max, -min);
+    Range negRange() const {
+        return {-max, -min};
     }
 
-    int contains(int v) {
+    int contains(int v) const {
         return min <= v and v <= max;
     }
 
-    Range absRange() {
-        return Range(contains(0) ? 0 : std::min(abs(min), abs(max)), std::max(abs(min), abs(max)));
+    Range absRange() const {
+        return {contains(0) ? 0 : std::min(abs(min), abs(max)), std::max(abs(min), abs(max))};
     }
 
-   Range addRange(Range r2) {
-        return Range(min + r2.min, max + r2.max);
+   Range addRange(Range r2) const {
+        return {min + r2.min, max + r2.max};
     }
 };
 
@@ -44,16 +44,16 @@ class DomainRange : public Domain {
 
     // Virtual Method conversion id to value
 
-    const int toIdv(int v) override {
+    int toIdv(int v) override {
         if(v < min || v > max)
             return -1;
         return v - min;
     }
 
-    const int toVal(int idv) override {
+    int toVal(int idv) override {
         assert(idv >= 0 && idv < idvs.maxSize());
         return min + idv;
     }
 };
-};   // namespace Cosoco
+}   // namespace Cosoco
 #endif

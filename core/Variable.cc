@@ -14,7 +14,7 @@ Variable::Variable(Problem &p, std::string n, Domain &d, int id)
 void Variable::delayedConstruction(int id, int nbVars) {
     domain.delayedConstruction(nbVars);
     if(idx != id)
-        throw string("Problem construction : variable id is not the good one");
+        throw std::runtime_error("Problem construction : variable id is not the good one");
 }
 
 

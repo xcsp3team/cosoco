@@ -10,7 +10,6 @@ using namespace Cosoco;
 
 Optimizer::Optimizer(Problem &p)
     : AbstractSolver(p),
-      boundFound(false),
       invertBestCost(false),
       callToSolver(0),
       solver(nullptr),
@@ -49,7 +48,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     firstCall = true;
     vec<int>             tuple;
     ObjectiveConstraint *objective = (optimtype == Minimize) ? objectiveUB : objectiveLB;
-    Constraint *         c         = dynamic_cast<Constraint *>(objective);
+    auto                 c         = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
     status = RUNNING;
 
@@ -81,7 +80,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 // Store solution in order to avoid a signal
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
-                    bestSolution->appendTo(i,solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
+                    bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
                 bestSolution->end();
 
                 if(progressSaving) {
@@ -119,9 +118,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
 
 void Optimizer::notifyConflict(Constraint *c, int level) { }
-
-
-
 
 
 void Optimizer::displayCurrentSolution() {

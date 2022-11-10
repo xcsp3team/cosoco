@@ -2,8 +2,6 @@
 
 #include "constraints/extensions/Extension.h"
 #include "constraints/genericFiltering/AC3rm.h"
-#include "constraints/globals/GlobalConstraint.h"
-#include "constraints/intension/Intension.h"
 
 using namespace std;
 using namespace Cosoco;
@@ -61,7 +59,7 @@ void Problem::addConstraint(Constraint *c) {
 Variable *Problem::createVariable(std::string n, Domain &d) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add variables");
-    Variable *v = new Variable(*this, n, d, nbVariables());
+    auto *v = new Variable(*this, n, d, nbVariables());
     variables.push(v);
     mapping[v->name()] = v;
     return v;
@@ -88,7 +86,6 @@ bool Problem::checkSolution() {
             c->display();
             fprintf(stderr, "Solution Error : constraint number %d (name %s) is not valid\n", c->idc, c->name.c_str());
             exit(1);
-            return false;
         }
     }
 
@@ -97,10 +94,10 @@ bool Problem::checkSolution() {
 
 // Problem Statistics
 
-int Problem::nbVariables() { return variables.size(); }
+int Problem::nbVariables() const { return variables.size(); }
 
 
-int Problem::nbConstraints() { return constraints.size(); }
+int Problem::nbConstraints() const { return constraints.size(); }
 
 
 int Problem::maximumTuplesInExtension() {
