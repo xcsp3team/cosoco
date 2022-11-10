@@ -18,17 +18,17 @@ class TupleIteratorWithoutOrder : public TupleIterator {
     vec<int> positions;
 
    public:
-    TupleIteratorWithoutOrder(vec<Variable *> &sc) : TupleIterator(sc) { positions.growTo(arity); }
+    explicit TupleIteratorWithoutOrder(vec<Variable *> &sc) : TupleIterator(sc) { positions.growTo(arity); }
 
-    virtual void setFirstTuple(vec<int> &first) override;
+    void setFirstTuple(vec<int> &first) override;
 
-    virtual void setFirstTuple(vec<int> &tuple, int posx, int idv) override;
+    void setFirstTuple(vec<int> &tuple, int posx, int idv) override;
 
-    virtual void setMinimalTuple() override;
+    void setMinimalTuple() override;
 
-    virtual void setMinimalTuple(int posx, int idv) override;
+    void setMinimalTuple(int posx, int idv) override;
 
-    virtual bool computeNextTuple() override;
+    bool computeNextTuple() override;
 };
 }   // namespace Cosoco
 

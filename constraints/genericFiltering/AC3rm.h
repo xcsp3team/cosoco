@@ -16,34 +16,34 @@ namespace Cosoco {
 class AdapterAC3rm : public Constraint, public ObjectiveConstraint {
    public:
     Constraint *constraint;
-    AdapterAC3rm(Constraint *c);
+    explicit AdapterAC3rm(Constraint *c);
 
     // All methods have to be override!
     // The constraint method have to be called
     // The filtering technique changes to perform AC3rm
 
-    virtual bool isCorrectlyDefined() override;
-    virtual void attachSolver(Solver *s) override;
+    bool isCorrectlyDefined() override;
+    void attachSolver(Solver *s) override;
 
     // Filtering method, return false if a conflict occurs
-    virtual bool  filter(Variable *x) override;
-    virtual State status() override;
-    virtual void  reinitialize() override;
+    bool  filter(Variable *x) override;
+    State status() override;
+    void  reinitialize() override;
 
 
     // Check tuple validity
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
 
-    virtual void updateBound(long bound) override;
+    void updateBound(long bound) override;
 
-    virtual long maxUpperBound() override;
+    long maxUpperBound() override;
 
-    virtual long minLowerBound() override;
+    long minLowerBound() override;
 
-    virtual long computeScore(vec<int> &solution) override;
+    long computeScore(vec<int> &solution) override;
 
-    virtual void display(bool allDetails) override;
+    void display(bool allDetails) override;
 
    protected:
     TupleIteratorWithoutOrder tupleIterator;   // Iterator over tuple in a undetermined order
@@ -59,4 +59,4 @@ class AdapterAC3rm : public Constraint, public ObjectiveConstraint {
 }   // namespace Cosoco
 
 
-#endif /* PROXYAC3RM_H */
+#endif /* AdapterAC3RM_H */

@@ -126,24 +126,24 @@ void AdapterAC3rm::display(bool d) { constraint->display(d); }
 
 
 void AdapterAC3rm::updateBound(long bound) {
-    ObjectiveConstraint *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
+    auto *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
     return objective->updateBound(bound);
 }
 
 
 long AdapterAC3rm::maxUpperBound() {
-    ObjectiveConstraint *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
+    auto *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
     return objective->maxUpperBound();
 }
 
 
 long AdapterAC3rm::minLowerBound() {
-    ObjectiveConstraint *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
+    auto *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
     return objective->minLowerBound();
 }
 
 
 long AdapterAC3rm::computeScore(vec<int> &solution) {
-    ObjectiveConstraint *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
+    auto *objective = dynamic_cast<ObjectiveConstraint *>(constraint);
     return objective->computeScore(solution);
 }

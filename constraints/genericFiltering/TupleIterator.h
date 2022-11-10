@@ -41,7 +41,7 @@ class TupleIterator {
 
     virtual bool computeNextTuple() = 0;
 
-    bool hasNextTuple() { return hasNext; }
+    bool hasNextTuple() const { return hasNext; }
 
     vec<int> *nextTuple() {
         current.copyTo(toReturn);
