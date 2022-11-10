@@ -2,8 +2,6 @@
 #define ABSTRACTSOLVER_H
 
 #include "core/Problem.h"
-#include "pFactory/Communicators.h"
-#include "pFactory/Parallel.h"
 #include "utils/Verbose.h"
 namespace Cosoco {
 
@@ -26,8 +24,6 @@ class RootPropagation {   // x equal idv ??
 class AbstractSolver {
    public:
     Problem &                                  problem;   // The problem to solve
-    pFactory::Group *                          threadsGroup;
-    pFactory::Communicator<RootPropagation *> *rootPropagationsCommunicator;
     int                                        core;     // The id of the core (used in // track)
     STATE                                      status;   // The status of the solver
     bool                                       displayModels;
@@ -47,8 +43,6 @@ class AbstractSolver {
 
     AbstractSolver(Problem &pp)
         : problem(pp),
-          threadsGroup(nullptr),
-          rootPropagationsCommunicator(nullptr),
           core(0),
           status(RUNNING),
           displayModels(false),
@@ -62,11 +56,6 @@ class AbstractSolver {
     }
     virtual bool hasSolution() { return nbSolutions > 0; }
 
-
-    virtual void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<RootPropagation *> *rpc) {
-        threadsGroup                 = pthreadsGroup;
-        rootPropagationsCommunicator = rpc;
-    }
 };
 }   // namespace Cosoco
 

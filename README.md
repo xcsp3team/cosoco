@@ -1,4 +1,4 @@
-## COSOCO: A Compact SOlver for COnstraint problems
+  ## COSOCO: A Compact SOlver for COnstraint problems
  
 ### Authors
  Gilles Audemard (audemard@cril.fr)

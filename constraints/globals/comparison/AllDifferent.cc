@@ -82,32 +82,6 @@ AllDifferent::AllDifferent(Problem &p, std::string nn, vec<Variable *> &vars)
 }
 
 
-void AllDifferent::addInitialSATClauses() {
-    bool allDomainAreEquals = true;
-
-    for(int i = 1; i < scope.size(); i++)
-        if(scope[i - 1]->domain.isIdentical(scope[i]->domain) == false) {
-            allDomainAreEquals = false;
-            break;
-        }
-
-
-    if(allDomainAreEquals == false || scope[0]->domain.maxSize() != scope.size())
-        return;
-
-    // add scope[0]=idv0  or ... scope.last=idv0 and so on
-    vec<CSPPropagation> nogood;
-    for(int i = 0; i < scope.size(); i++) {
-        nogood.push();
-        nogood.last().x     = scope[i];
-        nogood.last().equal = true;
-    }
-
-    for(int i = 0; i < scope[0]->domain.maxSize(); i++) {
-        for(int j = 0; j < scope.size(); j++) nogood[j].idv = i;
-        solver->satWrapper->addClause(nogood, true);
-    }
-}
 
 
 //----------------------------------------------------------

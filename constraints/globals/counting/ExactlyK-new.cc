@@ -96,7 +96,7 @@ ExactlyK::ExactlyK(Problem &p, std::string n, vec<Variable *> &vars, int kk, int
 }
 
 
-State ExactlyK::status() { return solver->threadsGroup == nullptr && done ? CONSISTENT : UNDEF; }
+State ExactlyK::status() { return done ? CONSISTENT : UNDEF; }
 
 
 void ExactlyK::reinitialize() { done = false; }

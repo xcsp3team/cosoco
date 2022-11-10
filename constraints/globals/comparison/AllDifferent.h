@@ -42,7 +42,6 @@ class AllDifferent : public GlobalConstraint {
 
     // Checking
     virtual bool isSatisfiedBy(vec<int> &tuple) override;
-    void         addInitialSATClauses() override;
 
     int variableConsistency;   // Use basic filtering limited to variable assignment
    protected:

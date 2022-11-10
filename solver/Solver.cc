@@ -45,8 +45,7 @@ Solver::Solver(Problem &p, int nbc)
       intension2extensionLimit(100000),
       queue(p.nbVariables(), p.variables),
       timestamp(0),
-      nogoodsFromRestarts(false),
-      satWrapper(nullptr) {
+      nogoodsFromRestarts(false) {
     heuristicVar = new HeuristicVarDomWdeg(*this);
     // new HeuristicVarDomWdeg(*this); //new LastConflictReasoning(*this, new HeuristicVarDomWdeg(*this));
     heuristicVal = new HeuristicValFirst(*this);
@@ -55,8 +54,8 @@ Solver::Solver(Problem &p, int nbc)
     localstatistics.growTo(NBLOCALSTATS, 0);
     problem.attachSolver(this);
     lastSolutionRun = 0;
-    nbSolutions = 0;
-    warmStart = false;
+    nbSolutions     = 0;
+    warmStart       = false;
 }
 
 
@@ -74,14 +73,6 @@ void Solver::addRestart(bool luby) {
         restart = new LubyRestart(this);
     else
         restart = new GeometricRestart(this);
-}
-
-
-void Solver::enableSATEngine() {
-    satWrapper          = new SatWrapper(this);
-    decisionMarker      = new DecisionMarker(this);
-    nogoodsFromRestarts = true;
-    for(Constraint *c : problem.constraints) c->addInitialSATClauses();
 }
 
 
@@ -143,35 +134,7 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
 
 int Solver::search(vec<RootPropagation> &assumptions) {
-    std::vector<RootPropagation *> sharedPropagations, sharedPropagationsNC;
-
     while(status == RUNNING) {
-        if(threadsGroup != nullptr && threadsGroup->isStopped())
-            return R_UNKNOWN;
-
-        if(threadsGroup != nullptr && (decisionLevel() == 0 || conflicts % 1000 == 0)) {
-            rootPropagationsCommunicator->recvAll(sharedPropagations);
-
-            // Fact to propagate
-            if(decisionLevel() > 0 && sharedPropagations.size() > 0)
-                doRestart();
-
-            bool ok = true;
-            while(!sharedPropagations.empty()) {
-                RootPropagation *rp = sharedPropagations.back();
-                sharedPropagations.pop_back();
-                if(rp->equal == false)
-                    ok = delIdv(problem.variables[rp->idx], rp->idv);
-                else
-                    ok = assignToIdv(problem.variables[rp->idx], rp->idv);
-            }
-
-            if(!ok) {   // We propagate a false fact at decision level 0 !!
-                return R_UNSAT;
-            }
-        }
-
-
         if(propagate() != nullptr) {   // A conflict occurs
             if(stopSearch)
                 return R_UNKNOWN;
@@ -252,8 +215,8 @@ bool Solver::manageSolution() {
 #endif
 
 
-    //if(nbSolutions == 1)
-    //    verbose.log(NORMAL, "c First solution is found\n");
+    // if(nbSolutions == 1)
+    //     verbose.log(NORMAL, "c First solution is found\n");
 
     if(checkSolution)
         problem.checkSolution();
@@ -384,8 +347,6 @@ void Solver::handleFailure(Variable *x, int idv) {
         backtrack();
         delIdv(tmp, idvtmp);
     }
-    if(round >= 1 && satWrapper != nullptr)
-        satWrapper->propagateAssertive = false;
 }
 
 
@@ -400,8 +361,6 @@ void Solver::handleFailure(int level) {
 
 
 void Solver::doRestart() {
-    if(satWrapper != nullptr)
-        satWrapper->startCSPPropagatations();
     if(nogoodsFromRestarts && decisionMarker->generateNogoodsFromRestarts() == false)
         status = FULL_EXPLORATION;
     statistics[restarts]++;
@@ -441,56 +400,25 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
     currentFilteredConstraint = nullptr;
 startAgainPropagationProcess:
 
-    if(startWithSATEngine == false && satWrapper != nullptr)
-        satWrapper->startCSPPropagatations();
-    if(startWithSATEngine == false) {
-        while(queue.size() > 0) {
-            Variable *x = pickInQueue();
-            if(x->size() == 0)
-                return SatWrapper::fake;   // What's happen if satWrapper->addclause -> props -> end of search ???
-            for(Constraint *c : x->constraints) {
-                if(x->timestamp > c->timestamp && isEntailed(c) == false) {
-                    filterCalls++;
-                    filterCallIsUsefull       = false;
-                    currentFilteredConstraint = c;
-                    if(c->filterFrom(x) == false) {   // Inconsistent
-                        c->timestamp = ++timestamp;
-                        notifyConflict(c);
-                        currentFilteredConstraint = nullptr;
-                        return c;
-                    }
-                    currentFilteredConstraint = nullptr;
-                    if(filterCallIsUsefull == false)
-                        statistics[uselessFilterCalls]++;
+    while(queue.size() > 0) {
+        Variable *x = pickInQueue();
+        assert(x->size() > 0);
+        for(Constraint *c : x->constraints) {
+            if(x->timestamp > c->timestamp && isEntailed(c) == false) {
+                filterCalls++;
+                filterCallIsUsefull       = false;
+                currentFilteredConstraint = c;
+                if(c->filterFrom(x) == false) {   // Inconsistent
                     c->timestamp = ++timestamp;
+                    notifyConflict(c);
+                    currentFilteredConstraint = nullptr;
+                    return c;
                 }
+                currentFilteredConstraint = nullptr;
+                if(filterCallIsUsefull == false)
+                    statistics[uselessFilterCalls]++;
+                c->timestamp = ++timestamp;
             }
-        }
-    }
-    startWithSATEngine = false;
-    if(satWrapper != nullptr) {
-        uint64_t nbProps = propagations;
-        int      bt      = satWrapper->doSATPropagations();   // perform SAT Propagations
-        while(bt != SATISOK) {
-            handleFailure(bt);
-            SatWrapper::SatPropState st = satWrapper->addAssertiveLiteralInQueue();
-            if(st == SatWrapper::USELESS)
-                bt = SATISOK;
-            if(st == SatWrapper::CONFLICT)
-                bt = decisionLevel() - 1;
-            if(st == SatWrapper::PROPAGATE) {
-                startWithSATEngine             = true;
-                satWrapper->propagateAssertive = false;
-                goto startAgainPropagationProcess;
-            }
-        }
-        if(satWrapper->providesNewSATPropagations() == false) {
-            statistics[SATConflicts]++;
-            return SatWrapper::fake;
-        }
-        if(queue.size() > 0) {   // Do it!
-            statistics[SATPropagations] += (propagations - nbProps);
-            goto startAgainPropagationProcess;
         }
     }
     return nullptr;
@@ -520,8 +448,6 @@ bool Solver::isGACGuaranted() { return false; }
 bool Solver::delIdv(Variable *x, int idv) {
     if(x->domain.containsIdv(idv) == false)
         return true;
-    if(threadsGroup != nullptr && decisionLevel() == 0)
-        rootPropagationsCommunicator->send(new RootPropagation(x->idx, false, idv));
 
     filterCallIsUsefull = true;
 
@@ -572,8 +498,6 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     if(d.containsIdv(idv) == false)
         return false;
     propagations++;
-    if(threadsGroup != nullptr && decisionLevel() == 0)
-        rootPropagationsCommunicator->send(new RootPropagation(x->idx, true, idv));
 
     // if(d.size()==1) return true;
     filterCallIsUsefull = true;
@@ -645,14 +569,14 @@ bool Solver::changeDomain(Variable *x, SparseSet &newidvalues) {
 
 
 bool Solver::delValuesInRange(Variable *x, int start, int stop) {
-    if (start >= stop)
+    if(start >= stop)
         return true;
     int first = x->minimum(), last = x->maximum();
-    if (start > last || stop < first)
-        return true; // because there is no overlapping
+    if(start > last || stop < first)
+        return true;   // because there is no overlapping
     int left = std::max(start, first), right = std::min(stop - 1, last);
-    if (left == first && right == last)
-            return false;
+    if(left == first && right == last)
+        return false;
     for(int v = left; v <= right; v++)
         if(delVal(x, v) == false)
             return false;
@@ -816,10 +740,4 @@ void Solver::printFinalStats() {
     printf("c filter calls          : %lu   (%.0f /sec)\n", filterCalls, filterCalls / cpu_time);
     printf("c useless filter calls  : %lu   (%lu %%)\n", statistics[uselessFilterCalls],
            statistics[uselessFilterCalls] * 100 / filterCalls);
-    if(satWrapper != nullptr) {
-        printf("c\n");
-        printf("c clauses               : %d\n", satWrapper->satSolver->nClauses());
-        printf("c SAT propagations      : %lu\n", statistics[SATPropagations]);
-        printf("c SAT conflicts         : %lu (%lu learnts)\n", statistics[SATConflicts], statistics[SATLearnts]);
-    }
 }

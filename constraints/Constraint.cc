@@ -99,9 +99,6 @@ void Constraint::delayedConstruction(int id) {
 void Constraint::attachSolver(Solver *s) { solver = s; }
 
 
-// Clauses that can be derived initialy by the constraint in order to help the csp solver
-
-void Constraint::addInitialSATClauses() { }   // Nothing to do
 
 
 // Filtering

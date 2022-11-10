@@ -15,7 +15,6 @@ namespace Cosoco {
 
 class Optimizer : public AbstractSolver, ObserverConflict {
    protected:
-    pFactory::Communicator<long> *boundCommunicator;
     long                          lower, upper;   // The current lower et upper bound
 
     Solution *bestSolution;   // The solution manager (used to avoid problems if the solver is killed during solution storing
@@ -49,11 +48,6 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     long bestCost() { return bestSolution->bestBound(); }
 
 
-    void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<RootPropagation *> *rpc) override {
-        assert(solver != nullptr);
-        AbstractSolver::setGroup(pthreadsGroup, rpc);
-        solver->setGroup(pthreadsGroup, rpc);
-    }
 
 
     bool hasSolution() override { return bestSolution->exists(); }
@@ -65,14 +59,6 @@ class Optimizer : public AbstractSolver, ObserverConflict {
         solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
     }
 
-
-    void addBoundCommunicator(pFactory::Communicator<long> *boundC) {
-        // Concurrent mode : register to notification
-        solver->addObserverConflict(this);
-        boundCommunicator = boundC;
-    }
-
-    void importNewBound();
 
     void notifyConflict(Constraint *c, int level) override;
 };

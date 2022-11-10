@@ -66,8 +66,6 @@ class Constraint {
    public:
     virtual State status();         // Override this method if it is known when CONSISTENT / INCONSISTENT
     virtual void  reinitialize();   // The constraint must be reinitialized (after a full backtrak)
-    virtual void
-    addInitialSATClauses();   // Clauses that can be derived initialy by the constraint in order to help the csp solver
 
     // Assign and unassign variables
     void assignVariable(Variable *x);

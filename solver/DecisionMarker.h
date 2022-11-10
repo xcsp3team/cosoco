@@ -8,6 +8,7 @@
 
 #include <mtl/Vec.h>
 
+#include "ObserverDecision.h"
 #include "Solver.h"
 
 namespace Cosoco {

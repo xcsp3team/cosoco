@@ -1,7 +1,6 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include <satwrapper/SatWrapper.h>
 #include <solver/observers/ObserverDomainReduction.h>
 #include <solver/restarts/Restart.h>
 
@@ -16,18 +15,16 @@
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
 #include "restarts/Restart.h"
-#include "satwrapper/SatWrapper.h"
 
 namespace Cosoco {
-#define NBSTATS 7
-enum GlobalStats { rootPropagations, uselessFilterCalls, restarts, nogoods, SATPropagations, SATConflicts, SATLearnts };
+#define NBSTATS 4
+enum GlobalStats { rootPropagations, uselessFilterCalls, restarts, nogoods };
 
 #define NBLOCALSTATS 4
 enum OneRunStats { maxDepth, minDepth, sumDepth, nbConflicts };
 
 class Restart;
 class DecisionMarker;
-class SatWrapper;
 
 class Solver : public AbstractSolver {
    public:
@@ -83,7 +80,6 @@ class Solver : public AbstractSolver {
 
     // Optionnal techniques
     bool        nogoodsFromRestarts;   // Generate nogoods from restarts
-    SatWrapper *satWrapper;
 
 
     // --------------------------------------------------------------------------------------
@@ -95,7 +91,6 @@ class Solver : public AbstractSolver {
     void addRandomizationFirstDescent();
     void addStickingValue();
     void addRestart(bool luby = false);
-    void enableSATEngine();
 
 
     // --------------------------------------------------------------------------------------

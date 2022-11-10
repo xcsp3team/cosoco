@@ -6,8 +6,6 @@
 
 
 bool Cosoco::GeometricRestart::isItTimeToRestart() {
-    if(solver->satWrapper != nullptr && solver->conflicts < 5000 && nbC++ % 10 == 0)
-        return true;
     if(solver->conflicts > limit) {
         numberOfConflicts *= factor;
         limit += numberOfConflicts;

@@ -1,6 +1,8 @@
 #include "BinaryExtension.h"
 
 #include "Extension.h"
+
+#include <utility>
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -126,23 +128,3 @@ struct CSPPropagation {   // x equal idv ??
 };
 
 
-void BinaryExtension::addInitialSATClauses() {
-    if(isSupport)
-        return;
-    vec<CSPPropagation> nogood;
-    nogood.push();
-    nogood[0].x     = x;
-    nogood[0].equal = false;
-    nogood.push();
-    nogood[1].x     = y;
-    nogood[1].equal = false;
-    for(int idv1 = 0; idv1 < x->domain.maxSize(); idv1++) {
-        for(int idv2 = 0; idv2 < y->domain.maxSize(); idv2++) {
-            if(matrix[idv1][idv2] == false)
-                continue;
-            nogood[0].idv = idv1;
-            nogood[1].idv = idv2;
-            solver->satWrapper->addClause(nogood, true);
-        }
-    }
-}

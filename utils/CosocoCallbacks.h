@@ -42,22 +42,21 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     Range possibleValuesForExpressionInRange(Node *node) {
         if(XCSP3Core::isPredicateOperator(node->type))
-            return Range(0, 1);
+            return {0, 1};
 
         if(node->type == OVAR) {
             auto     *nx = dynamic_cast<NodeVariable *>(node);
             Variable *x  = problems[0]->mapping[nx->var];
-            return Range(x->minimum(), x->maximum());
+            return {x->minimum(), x->maximum()};
         }
         if(node->type == ODECIMAL) {
             auto *nx = dynamic_cast<NodeConstant *>(node);
-            return Range(nx->val, nx->val);
+            return {nx->val, nx->val};
         }
 
         assert(node->parameters.size() > 0);   // To be sure
         vec<Range> ranges;
 
-        int i = 0;
         for(Node *n : node->parameters) ranges.push(possibleValuesForExpressionInRange(n));
 
         if(node->type == ONEG)
@@ -67,7 +66,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             return ranges[0].absRange();
 
         if(node->type == OSQR)
-            return Range(ranges[0].min * ranges[0].min, ranges[0].max * ranges[0].max);
+            return {ranges[0].min * ranges[0].min, ranges[0].max * ranges[0].max};
 
         assert(ranges.size() > 1);
 
@@ -79,7 +78,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         }
 
         if(node->type == OMOD) {
-            return Range(0, ranges[1].max);
+            return {0, ranges[1].max};
         }
 
 
@@ -97,7 +96,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                 mn += r.min;
                 mx += r.max;
             }
-            return Range(mn, mx);
+            return {mn, mx};
         }
 
 
@@ -113,7 +112,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                 min = std::min({a, b, c, d});
                 max = std::max({a, b, c, d});
             }
-            return Range(min, max);
+            return {min, max};
         }
 
 
@@ -123,7 +122,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                 mn = mn > r.min ? r.min : mn;
                 mx = mx > r.max ? r.max : mx;
             }
-            return Range(mn, mx);
+            return {mn, mx};
         }
 
         if(node->type == OMAX) {
@@ -132,13 +131,16 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                 mn = mn < r.min ? r.min : mn;
                 mx = mx < r.max ? r.max : mx;
             }
-            return Range(mn, mx);
+            return {mn, mx};
         }
 
 
         if(node->type == OIF) {
             assert(false);
         }
+
+        assert(false);
+        return Range(0,0); // Avoid warning
     }
 
 
@@ -992,8 +994,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) override {
         if(values.size() == 1) {
             vector<Tree *> trees;
-            for(int i = 0; i < list.size(); i++) {
-                string s = "eq(" + list[i]->id + "," + values[0]->id + ")";
+            for(auto &xv : list) {
+                string s = "eq(" + xv->id + "," + values[0]->id + ")";
                 trees.push_back(new Tree(s));
             }
             buildConstraintSum(id, trees, xc);
@@ -1006,8 +1008,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) override {
         if(values.size() == 1) {
             vector<Tree *> newtrees;
-            for(int i = 0; i < trees.size(); i++) {
-                string s = "eq(" + trees[i]->toString() + "," + to_string(values[0]) + ")";
+            for(auto & tree : trees) {
+                string s = "eq(" + tree->toString() + "," + to_string(values[0]) + ")";
                 newtrees.push_back(new Tree(s));
             }
             buildConstraintSum(id, newtrees, xc);
@@ -1020,8 +1022,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) override {
         if(values.size() == 1) {
             vector<Tree *> newtrees;
-            for(int i = 0; i < trees.size(); i++) {
-                string s = "eq(" + trees[i]->toString() + "," + values[0]->id + ")";
+            for(auto & tree : trees) {
+                string s = "eq(" + tree->toString() + "," + values[0]->id + ")";
                 newtrees.push_back(new Tree(s));
             }
             buildConstraintSum(id, newtrees, xc);
@@ -1143,7 +1145,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         throw runtime_error("minimum over set is not yet supported");
     }
 
-    virtual void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override {
+    void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override {
         if(xc.operandType == VARIABLE) {
             if(xc.op == EQ)
                 for(int core = 0; core < nbcores; core++) {
@@ -1316,7 +1318,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         Variable *v   = problems[0]->mapping[list[0]->id];
         int       min = v->minimum();
         int       max = v->maximum();
-        for(int i = 1; i < list.size(); i++) {
+        for(unsigned int i = 1; i < list.size(); i++) {
             v   = problems[0]->mapping[list[i]->id];
             min = min > v->minimum() ? v->minimum() : min;
             max = max < v->maximum() ? v->maximum() : max;
@@ -1503,14 +1505,14 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             // Add redundant constraint
             vec<Variable *> ox, oy;
             vec<int>        lx, ly;
-            for(int i = 0; i < origins.size(); i++) {
+            for(unsigned int i = 0; i < origins.size(); i++) {
                 ox.push(problems[core]->mapping[origins[i][0]->id]);
                 lx.push(lengths[i][0]);
                 oy.push(problems[core]->mapping[origins[i][1]->id]);
                 ly.push(lengths[i][1]);
             }
             int minX = INT_MAX, minY = INT_MAX, maxX = INT_MIN, maxY = INT_MIN;
-            for(int i = 0; i < origins.size(); i++) {
+            for(unsigned int i = 0; i < origins.size(); i++) {
                 minX = std::min(minX, ox[i]->minimum());
                 minY = std::min(minY, oy[i]->minimum());
                 maxX = std::max(maxX, ox[i]->maximum() + lx[i]);
@@ -1562,7 +1564,6 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintInstantiation(string id, vector<XVariable *> &list, vector<int> &values) override {
         for(int core = 0; core < nbcores; core++)
             for(unsigned int i = 0; i < list.size(); i++) {
-                Variable *x = problems[core]->mapping[list[i]->id];
                 vec<int> value;
                 if(values[i] == STAR)
                     continue;

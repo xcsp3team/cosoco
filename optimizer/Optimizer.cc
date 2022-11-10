@@ -65,8 +65,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         int ret = solver->solve(assumps);
 
-        if(threadsGroup != nullptr)
-            importNewBound();
 
         callToSolver++;
         if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
@@ -79,8 +77,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
-                if(threadsGroup != nullptr)
-                    boundCommunicator->send(best);
 
                 // Store solution in order to avoid a signal
                 bestSolution->begin(best);
@@ -100,23 +96,11 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 upper = best - 1;
             else
                 lower = best + 1;
-            if(threadsGroup == nullptr && callToSolver % 2 == 1) {
+            if(callToSolver % 2 == 1)
                 verbose.log(NORMAL, "c %lld conflicts -- %lld decisions\n", solver->conflicts, solver->decisions);
-            }
 
-            if(false) {
-                int backtrackLevel = -1;
-                for(Variable *x : c->scope)
-                    if(backtrackLevel < x->domain.lastRemovedLevel())
-                        backtrackLevel = x->domain.lastRemovedLevel();
-                printf("%d %d\n", backtrackLevel, solver->decisionLevel());
-                if(backtrackLevel>0)
-                    backtrackLevel--;
-                solver->backtrack(backtrackLevel);
-            } else {
-                solver->fullBacktrack();
-                solver->reinitializeConstraints();
-            }
+            solver->fullBacktrack();
+            solver->reinitializeConstraints();
 
         } else {
             status = OPTIMUM;
@@ -134,25 +118,10 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 }
 
 
-void Optimizer::notifyConflict(Constraint *c, int level) {
-    if(threadsGroup != nullptr && solver->conflicts % 1000 == 0) {
-        importNewBound();
-    }
-}
+void Optimizer::notifyConflict(Constraint *c, int level) { }
 
 
-void Optimizer::importNewBound() {
-    long newBound;
-    while((newBound = boundCommunicator->recv()) != boundCommunicator->getEmptyValue()) {
-        firstCall = false;
-        nbSolutions++;
-        if((optimtype == Minimize && newBound < best) || (optimtype == Maximize && newBound > best)) {
-            // bestSolution.cancelSolution();
-            best               = newBound;
-            solver->stopSearch = true;
-        }
-    }
-}
+
 
 
 void Optimizer::displayCurrentSolution() {

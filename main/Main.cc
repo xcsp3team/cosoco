@@ -4,13 +4,10 @@
 #include <sys/resource.h>
 #include <zlib.h>
 
-#include <parallelsolver/EPSSolver.hh>
-#include <parallelsolver/PortofolioSolver.hh>
 #include <sstream>
 #include <vector>
 
 #include "XCSP3CoreParser.h"
-#include "pFactory/Parallel.h"
 #include "solver/Solver.h"
 #include "solver/heuristics/values/HeuristicValLast.h"
 #include "solver/heuristics/values/HeuristicValRandom.h"
@@ -42,7 +39,6 @@ IntOption  lastConflict("SEARCH", "lc", "Last Conflict reasoning (0 to disable)"
 BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
 // BoolOption optimize("SEARCH", "cop", "Run optimizer (needs an objective)", 0);
 BoolOption   orestarts("SEARCH", "restarts", "Enable restarts", 1);
-BoolOption   sat("SEARCH", "sat", "Enable SAT engine", 0);
 StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random)", "first");
 StringOption hvr("SEARCH", "var", "Heuristic for values (wdeg, cacd)", "wdeg");
 
@@ -53,8 +49,6 @@ StringOption removeClasses("PARSE", "removeclasses", "Remove special classes whe
 IntOption    i2e("PARSE", "i2e", "Transform intension to extension. Max size of cartesian product (0 -> disable it", 100000,
               IntRange(0, INT32_MAX));
 
-IntOption  nbcores("PARALLEL", "nbcores", "Number of cores used in the solver", 1, IntRange(0, INT32_MAX));
-BoolOption eps("PARALLEL", "eps", "Use EPS mode instead of portfolio mode", false);
 // --------------------------- OPTIONS ----------------------------------------
 
 
@@ -81,6 +75,7 @@ static void SIGINT_interrupt(int signum) { SIGINT_exit(0); }
 
 int main(int argc, char **argv) {
     realTimeStart = realTime();
+    int nbcores = 1;
 
     try {
         printf("c\nc This is cosoco 2.00 --  \nc\n");
@@ -96,11 +91,6 @@ int main(int argc, char **argv) {
 
         parseOptions(argc, argv, true);
 
-
-        if(nbcores == 0) {
-            nbcores = pFactory::getNbCores();
-            printf("c\nc adjust automatically to %d cores\nc\n", pFactory::getNbCores());
-        }
 
         if(nbSolutions > 1 && (nbcores > 1 || orestarts)) {
             cout << "c this combination of options not possible" << endl;
@@ -185,8 +175,6 @@ int main(int argc, char **argv) {
                 S->addStickingValue();
             if(orestarts)
                 S->addRestart();
-            if(sat)
-                S->enableSATEngine();
 
             S->nbWishedSolutions = nbSolutions;
             if(annotations && cb.decisionVariables[core].size() != 0)
@@ -227,18 +215,7 @@ int main(int argc, char **argv) {
         if(nbcores == 1)
             solver = solvers[0];
         else {
-            // PortofolioSolver *ps = new PortofolioSolver();
-            ParallelSolver *ps;
-            if(eps) {
-                ps = new EPSSolver(*solvingProblems[0], optimize);
-                printf("c Parallel mode: EPS\n");
-            } else {
-                ps = new PortofolioSolver(*solvingProblems[0], optimize);
-                printf("c Parallel mode: Portfolio\n");
-            }
-
-            ps->setSolvers(solvers);
-            solver = ps;
+            assert(false);
         }
 
         // --------------------------- SOLVE ----------------------------------------
@@ -407,7 +384,7 @@ static void SIGINT_exit(int signum) {
     printf("\n");
     printf("c *** INTERRUPTED ***\n");
 
-    if(nbcores == 1) {
+    if(true /*nbcores == 1*/) {
         if(verb >= 0) {
             printStats(solvers[0]);
             printf("\n");

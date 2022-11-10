@@ -18,7 +18,6 @@ class BinaryExtension : public Extension {
     // Constructors and initialisation
     BinaryExtension(Problem &p, std::string n, bool support, Variable *x, Variable *y);
     BinaryExtension(Problem &p, std::string n, bool support, Variable *x, Variable *y, BinaryExtension *hasSameTuples);
-    void addInitialSATClauses() override;
 
     // filtering
     bool filter(Variable *x) override;

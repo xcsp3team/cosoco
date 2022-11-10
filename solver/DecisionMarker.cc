@@ -8,6 +8,7 @@ using namespace Cosoco;
 
 
 DecisionMarker::DecisionMarker(Solver *s) : solver(s) {
+    assert(false);
     unsigned int n1 = (int)ceil(log2(s->problem.nbVariables()));
     unsigned int n2 = (int)ceil(log2(s->problem.maximumDomainSize()));
 
@@ -52,29 +53,6 @@ inline int DecisionMarker::getNegativeDecisionFor(Variable *x, int idv) { return
 
 
 bool DecisionMarker::generateNogoodsFromRestarts() {   // See Nogood Recording From Restarts, Lecoutre et al. Ijcai07
-    vec<CSPPropagation> nogood;
-    printf("ICI\n");
-    if(solver->satWrapper == nullptr)
-        return true;
-    solver->satWrapper->fullBacktrack();   // Clauses can only be attached at decision level 0.
-    // int i = 0;
-    // display();
-    for(int currentDecision : currentBranch) {
-        nogood.push();
-        nogood.last().equal = false;   // we store nogood : not(x=a or y=b) -> z!=c) <-> x!=a or y!=b or z!=c
-        nogood.last().x     = getVariableIn(currentDecision);
-        nogood.last().idv   = getIndexIn(currentDecision);
-        // std::cout << getStringFor(currentBranch[i++]) << " ";
-        if(currentDecision < 0) {
-            if(currentDecision != currentBranch[0]) {
-                solver->statistics[nogoods]++;
-                solver->satWrapper->addClause(nogood, true);
-            }
-            nogood.pop();   // Remove the negative one
-            //  std::cout << std::endl;
-            //            return;
-        }
-    }
     return true;
 }
 

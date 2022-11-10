@@ -22,7 +22,7 @@ Unary::Unary(Problem &p, std::string n, Variable *xx, const vec<int> &vals, bool
 }
 
 
-Cosoco::State Cosoco::Unary::status() { return solver->threadsGroup == nullptr && done ? CONSISTENT : UNDEF; }
+Cosoco::State Cosoco::Unary::status() { return  done ? CONSISTENT : UNDEF; }
 
 
 void Cosoco::Unary::reinitialize() { done = false; }

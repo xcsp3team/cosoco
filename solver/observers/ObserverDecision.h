@@ -1,6 +1,6 @@
 #ifndef OBERSERDECISION_H
 #define OBERSERDECISION_H
-
+#include "core/Variable.h"
 namespace Cosoco {
 class Solver;
 

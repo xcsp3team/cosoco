@@ -10,7 +10,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 
-State MaximumConstantLE::status() { return solver->threadsGroup == nullptr && done ? CONSISTENT : UNDEF; }
+State MaximumConstantLE::status() { return done ? CONSISTENT : UNDEF; }
 
 
 void MaximumConstantLE::reinitialize() { done = false; }
@@ -33,8 +33,8 @@ bool MaximumConstantLE::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------
 
 bool MaximumConstantLE::filter(Variable *dummy) {
-    for(int i = 0; i < scope.size(); i++)
-        if(solver->delValuesGreaterOrEqualThan(scope[i], k + 1) == false)
+    for(auto & x : scope)
+        if(solver->delValuesGreaterOrEqualThan(x, k + 1) == false)
             return false;
     solver->entail(this);
     return true;
