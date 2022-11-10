@@ -106,8 +106,8 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
     void      newDecision(Variable *x, int idv);   // Assign a variable
     Variable *decisionVariableAtLevel(int lvl);    // Return the decision variable
-    int       decisionLevel();                     // Return the decision level
-    bool      isAssigned(Variable *x);             // Return true if x is assigned
+    int       decisionLevel() const;                     // Return the decision level
+    bool      isAssigned(Variable *x) const;             // Return true if x is assigned
 
 
     // --------------------------------------------------------------------------------------

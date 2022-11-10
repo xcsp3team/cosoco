@@ -265,10 +265,10 @@ Variable *Solver::decisionVariableAtLevel(int lvl) {
 }
 
 
-int Solver::decisionLevel() { return trail_lim.size(); }
+int Solver::decisionLevel() const { return trail_lim.size(); }
 
 
-bool Solver::isAssigned(Variable *x) { return unassignedVariables.contains(x) == false; }
+bool Solver::isAssigned(Variable *x) const { return unassignedVariables.contains(x) == false; }
 
 //----------------------------------------------
 // Backtrack methods
@@ -398,7 +398,6 @@ Variable *Solver::pickInQueue() {   // Select the variable with the smallest dom
 
 Constraint *Solver::propagate(bool startWithSATEngine) {
     currentFilteredConstraint = nullptr;
-startAgainPropagationProcess:
 
     while(queue.size() > 0) {
         Variable *x = pickInQueue();
