@@ -7,7 +7,7 @@ namespace Cosoco {
 
 class ExactlyKVariable : public GlobalConstraint {
     vec<Variable *> list;   // Put list in a dedicated array (do not use scope)
-    Variable *      k;
+    Variable       *k;
     int             value;
     int             positionOfKInList;   // -1 if not present
 
@@ -15,7 +15,7 @@ class ExactlyKVariable : public GlobalConstraint {
     ExactlyKVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *k, int val);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    virtual bool filter(Variable *dummy) override;
 
     // Checking
     virtual bool isSatisfiedBy(vec<int> &tuple) override;

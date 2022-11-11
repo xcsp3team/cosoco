@@ -28,7 +28,7 @@ bool ExactlyKVariable::isCorrectlyDefined() {
 // Filtering
 //----------------------------------------------------------
 
-bool ExactlyKVariable::filter(Cosoco::Variable *x) {
+bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
     // counting the nb of occurrences of value in the vector
     int nbGuaranteedOccurrences = 0, nbPossibleOccurrences = 0;
     for(Variable *x : list)

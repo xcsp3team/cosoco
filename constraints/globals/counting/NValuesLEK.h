@@ -16,18 +16,18 @@ class NValuesLEK : public GlobalConstraint, public ObjectiveConstraint {
     std::set<int> myset;
     NValuesLEK(Problem &p, std::string n, vec<Variable *> &vars, int k);
 
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
-    virtual bool isCorrectlyDefined() override;
-    int          countDistinct(vec<int> &tuple);
+    bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isCorrectlyDefined() override;
+    int  countDistinct(vec<int> &tuple);
 
     // Functions related to Objective constraint
-    virtual void updateBound(long bound) override;            // Update the current bound
-    virtual long maxUpperBound() override;                    // Bounds are included
-    virtual long minLowerBound() override;                    // Bounds are included
-    virtual long computeScore(vec<int> &solution) override;   // Compute the current score of the constraint
+    void updateBound(long bound) override;            // Update the current bound
+    long maxUpperBound() override;                    // Bounds are included
+    long minLowerBound() override;                    // Bounds are included
+    long computeScore(vec<int> &solution) override;   // Compute the current score of the constraint
 };
 
 }   // namespace Cosoco

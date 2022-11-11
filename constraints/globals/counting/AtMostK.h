@@ -12,11 +12,11 @@ class AtMostK : public GlobalConstraint {
 
     AtMostK(Problem &p, std::string n, vec<Variable *> &vars, int k, int val);
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
-    virtual bool isCorrectlyDefined() override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isCorrectlyDefined() override;
 };
 }   // namespace Cosoco
 

@@ -18,13 +18,13 @@ class NValuesEQVar : public GlobalConstraint {
 
     NValuesEQVar(Problem &p, std::string n, vec<Variable *> &vars, Variable *x);
 
-    virtual bool filter(Variable *x) override;
-    void         initializeSets();
+    bool filter(Variable *x) override;
+    void initializeSets();
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
-    virtual bool isCorrectlyDefined() override;
-    int          countDistinct(vec<int> &tuple);
+    bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isCorrectlyDefined() override;
+    int  countDistinct(vec<int> &tuple);
 };
 
 }   // namespace Cosoco
