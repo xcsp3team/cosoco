@@ -99,8 +99,6 @@ void Constraint::delayedConstruction(int id) {
 void Constraint::attachSolver(Solver *s) { solver = s; }
 
 
-
-
 // Filtering
 
 State Constraint::status() { return UNDEF; }   // By default, a constraint must be filtering at each call
@@ -108,10 +106,10 @@ State Constraint::status() { return UNDEF; }   // By default, a constraint must 
 void Constraint::reinitialize() { }   // By default, nothing to do
 
 bool Constraint::filterFrom(Variable *x) {
-    State st = status();
-    if(st == CONSISTENT)
+    State st2 = status();
+    if(st2 == CONSISTENT)
         return true;
-    if(st == INCONSISTENT)
+    if(st2 == INCONSISTENT)
         return false;
     return filter(x);
 }
@@ -145,7 +143,6 @@ int Constraint::toScopePosition(int idx) {
             if(scope[1]->idx == idx)
                 return 1;
             return 2;
-            break;
     }
     return idxToScopePosition[idx];
 }
@@ -165,8 +162,8 @@ bool Constraint::isSatisfiedByOfIndexes(vec<int> &tupleOfIndex) {
 
 void Constraint::extractConstraintTupleFromInterpretation(const vec<int> &interpretation, vec<int> &tuple) {
     tuple.clear();
-    for(int i = 0; i < scope.size(); i++) {
-        int idx = scope[i]->idx;
+    for(auto &x : scope) {
+        int idx = x->idx;
         tuple.push(interpretation[idx]);
     }
 }
@@ -190,7 +187,7 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
                     supports.push();
                     tuple[scope.last()->_name] = eval;
                     assert(tuple.size() == scope.size());
-                    for(int j = 0; j < scope.size(); j++) supports.last().push(tuple[scope[j]->_name]);
+                    for(auto &x : scope) supports.last().push(tuple[x->_name]);
                 }
                 continue;
             }
@@ -198,12 +195,9 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
         if(posx == scope.size() - 1) {
             vec<vec<int>> &putInside = tree->evaluate(tuple) ? supports : conflicts;
             putInside.push();
-            for(int j = 0; j < scope.size(); j++) {
-                putInside.last().push(tuple[scope[j]->_name]);
-                // cout << scope[j]->_name << "= " << tuple[scope[j]->_name] <<" ";
+            for(auto &x : scope) {
+                putInside.last().push(tuple[x->_name]);
             }
-            // cout << endl;
-
         } else
             createTuples(posx + 1, scope, tree, conflicts, supports, tuple);
     }

@@ -16,7 +16,7 @@ class DistNE : public Binary {
     bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
     //
     bool revise(Variable *z1, Variable *z2);

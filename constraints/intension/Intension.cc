@@ -36,9 +36,9 @@ bool Intension::filter(Variable *dummy) {
 
 
 void Intension::updateBound(long bound) {
-    NodeBinary *  nodeB = dynamic_cast<NodeBinary *>(evaluator->root);
-    NodeConstant *nodeC = dynamic_cast<NodeConstant *>(nodeB->parameters[1]);
-    nodeC->val          = bound;
+    auto *nodeB = dynamic_cast<NodeBinary *>(evaluator->root);
+    auto *nodeC = dynamic_cast<NodeConstant *>(nodeB->parameters[1]);
+    nodeC->val  = bound;
 }
 
 
@@ -51,7 +51,7 @@ long Intension::minLowerBound() { return INT_MIN + 10; }
 long Intension::computeScore(vec<int> &solution) {
     assert(solution.size() == scope.size());
     for(int i = 0; i < scope.size(); i++) tuple[scope[i]->_name] = solution[i];
-    NodeBinary *nodeB = dynamic_cast<NodeBinary *>(evaluator->root);
+    auto *nodeB = dynamic_cast<NodeBinary *>(evaluator->root);
     return nodeB->parameters[0]->evaluate(tuple);
 }
 

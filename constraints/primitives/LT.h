@@ -16,7 +16,7 @@ class Lt : public Binary {
     bool filter(Variable *x) override;
 
     // checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 
