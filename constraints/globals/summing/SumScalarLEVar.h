@@ -19,7 +19,6 @@ class SumScalarLEVar : public SumScalar {
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
-
 };
 }   // namespace Cosoco
-#endif   // COSOCO_SUMSCALARLEK_H
+#endif   // COSOCO_SUMSCALARLEVar_H

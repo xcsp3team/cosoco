@@ -34,7 +34,7 @@ bool Sum::isCorrectlyDefined() {
 //----------------------------------------------
 
 
-bool SumEQ::filter(Variable *x) {
+bool SumEQ::filter(Variable *dummy) {
     long min = 0, max = 0;
     for(int i = 0; i < scope.size(); i++) {
         int c    = coefficients[i];

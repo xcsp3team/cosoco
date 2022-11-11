@@ -16,10 +16,10 @@ class SumNE : public Sum {
    public:
     SumNE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
 
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

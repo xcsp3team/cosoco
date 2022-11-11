@@ -14,7 +14,7 @@ class Sum : public GlobalConstraint {
         : GlobalConstraint(p, n, "Sum", vars), limit(l) {
         coefs.copyTo(coefficients);
     }
-    virtual bool isCorrectlyDefined() override;   // Implementation inside SumEQ
+    bool isCorrectlyDefined() override;   // Implementation inside SumEQ
 
     long weightedSum(vec<int> &tuple) {
         long sum = 0;
