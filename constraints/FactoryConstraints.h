@@ -14,6 +14,7 @@
 #include <regex>
 
 #include "Constraint.h"
+#include "Precedence.h"
 #include "XCSP3Constants.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
 #include "extensions/BinaryExtension.h"
@@ -55,7 +56,6 @@
 #include "primitives/XeqYeqK.h"
 #include "primitives/xEqOryk.h"
 #include "utils/Verbose.h"
-#include "Precedence.h"
 
 namespace Cosoco {
 using namespace XCSP3Core;
@@ -274,7 +274,7 @@ class FactoryConstraints {
         for(int i = 0; i < vars.size(); i++) {
             Variable *x1 = vars[i];
             for(int j = 0; j < i; j++) {
-                Variable *    x2 = vars[j];
+                Variable     *x2 = vars[j];
                 vec<vec<int>> tuples;
                 for(int idv1 : x1->domain) {
                     int v1 = x1->domain.toVal(idv1);
@@ -433,7 +433,7 @@ class FactoryConstraints {
 
         // Remove duplicate vars
         vec<Variable *> vars2;
-        vec<int> coefs2;
+        vec<int>        coefs2;
         for(int i = 0; i < vars.size(); i++) {
             int pos = vars2.containsRank(vars[i]);
             if(pos == -1) {
@@ -471,7 +471,7 @@ class FactoryConstraints {
                 vars[j++] = vars[i];
             }
         coeffs.shrink(i - j);
-        vars.shrink(i -j);
+        vars.shrink(i - j);
 
         switch(order) {
             case OrderType::LE:
@@ -554,7 +554,8 @@ class FactoryConstraints {
 
     static void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                             vec<Occurs> &occurs) {
-        verbose.log(NORMAL, "c Create Cardinality(vars,values,occurs) constraint using %d Exactly/AtMost.. constraint \nc\n",
+        verbose.log(DEBUGVERBOSE,
+                    "c Create Cardinality(vars,values,occurs) constraint using %d Exactly/AtMost.. constraint \nc\n",
                     vars.size());
         if(occurs.size() != values.size())
             throw std::logic_error("Cardinality: Occurs and values must have the same size");
@@ -679,17 +680,15 @@ class FactoryConstraints {
         p->addConstraint(new Cumulative(*p, name, vars, lengths, heights, limit));
     }
 
-    static void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X,
-                                          vec<int> &width, vec<Variable *> &Y, vec<int> &heights ) {
+    static void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<int> &width, vec<Variable *> &Y,
+                                          vec<int> &heights) {
         p->addConstraint(new NoOverlap(*p, name, X, width, Y, heights));
     }
-
 
 
     static void createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values) {
         p->addConstraint(new Precedence(*p, name, vars, values));
     }
-
 };
 
 }   // namespace Cosoco

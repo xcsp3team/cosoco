@@ -27,6 +27,7 @@ vec<AbstractSolver *> solvers;
 bool   optimize = false;
 double realTimeStart;
 
+string version("2.2");
 // --------------------------- OPTIONS ----------------------------------------
 
 IntOption  verb("MAIN", "verb", "Verbosity level (0=silent, 1=some, 2=more, 3=full, 4=fullfull).", 1, IntRange(0, 4));
@@ -78,7 +79,7 @@ int main(int argc, char **argv) {
     int nbcores   = 1;
 
     try {
-        printf("c\nc This is cosoco 2.00 --  \nc\n");
+        printf("c\nc This is cosoco %s  \nc\n", version.c_str());
 
         setUsageHelp("c USAGE: %s [options] <input-file>\n\n  where input may be either in plain or gzipped XCSP3.\n");
 

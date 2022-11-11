@@ -214,16 +214,11 @@ bool Solver::manageSolution() {
     for(Variable *x : problem.variables) allSolutions.last().push(x->useless ? 0 : x->value());
 #endif
 
-
-    // if(nbSolutions == 1)
-    //     verbose.log(NORMAL, "c First solution is found\n");
-
     if(checkSolution)
         problem.checkSolution();
     lastSolution.clear();   // Store the last solution
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
-
 
     if(nbSolutions == nbWishedSolutions) {
         status = REACH_GOAL;
@@ -248,9 +243,7 @@ void Solver::newDecision(Variable *x, int idv) {
                 x->domain.toVal(idv), x->size(), KNRM);
 
     assignToIdv(x, idv);
-
     for(Constraint *c : x->constraints) c->assignVariable(x);
-
     notifyNewDecision(x);
 }
 
