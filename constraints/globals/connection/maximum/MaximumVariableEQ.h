@@ -9,19 +9,19 @@ namespace Cosoco {
 
 class MaximumVariableEQ : public GlobalConstraint {
    public:
-    Variable *      value;
+    Variable       *value;
     vec<Variable *> list;
 
     MaximumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *x);
 
 
-    virtual bool filter(Variable *dummy) override;
+    bool filter(Variable *dummy) override;
 
 
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
    private:
-    Variable *      findNewSentinelFor(int v, Variable *except);
+    Variable       *findNewSentinelFor(int v, Variable *except);
     int             computeLimitForSentinel(Variable *sentinel);
     vec<Variable *> sentinels;   // sentinels for idxs of values of the extremum var
 };

@@ -18,13 +18,13 @@ class MaximumConstant : public GlobalConstraint, public ObjectiveConstraint {
 
 
     // Function related to optimisation (see ObjectiveConstraint class)
-    virtual void updateBound(long bound) override;
+    void updateBound(long bound) override;
 
-    virtual long maxUpperBound() override;
+    long maxUpperBound() override;
 
-    virtual long minLowerBound() override;
+    long minLowerBound() override;
 
-    virtual long computeScore(vec<int> &tuple) override;
+    long computeScore(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 
