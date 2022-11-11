@@ -8,13 +8,7 @@ using namespace Cosoco;
 // Check validity
 //----------------------------------------------
 
-bool MinimumConstantLE::isSatisfiedBy(vec<int>& tuple) {
-    int min = tuple[0];
-    for(int i = 0; i < tuple.size(); i++)
-        if(tuple[i] < min)
-            min = tuple[i];
-    return min <= k;
-}
+bool MinimumConstantLE::isSatisfiedBy(vec<int>& tuple) { return tuple.min() <= k; }
 
 
 //----------------------------------------------

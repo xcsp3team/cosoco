@@ -5,7 +5,7 @@
 using namespace Cosoco;
 
 
-State MinimumConstantGE::status() { return  done ? CONSISTENT : UNDEF; }
+State MinimumConstantGE::status() { return done ? CONSISTENT : UNDEF; }
 
 
 void MinimumConstantGE::reinitialize() { done = false; }
@@ -28,9 +28,9 @@ bool MinimumConstantGE::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------
 
 bool MinimumConstantGE::filter(Variable *dummy) {
-    for(int i = 0; i < scope.size(); i++)
-        if(solver->delValuesLowerOrEqualThan(scope[i], k - 1) == false)
+    for(auto &x : scope)
+        if(solver->delValuesLowerOrEqualThan(x, k - 1) == false)
             return false;
-   solver->entail(this);
+    solver->entail(this);
     return true;
 }

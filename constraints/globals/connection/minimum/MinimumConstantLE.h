@@ -14,8 +14,8 @@ class MinimumConstantLE : public MinimumConstant {
         sentinel2 = vars.size() - 1;
     }
 
-    virtual bool filter(Variable *dummy) override;
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool filter(Variable *dummy) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

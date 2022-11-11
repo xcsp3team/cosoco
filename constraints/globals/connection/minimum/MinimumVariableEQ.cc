@@ -38,7 +38,6 @@ int MinimumVariableEQ::computeLimitForSentinel(Variable *sentinel) {
             v = val;
     }
     return v;
-    return INT_MAX;
 }
 
 

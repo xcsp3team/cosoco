@@ -13,11 +13,11 @@ class MinimumConstant : public GlobalConstraint, public ObjectiveConstraint {
         : GlobalConstraint(p, n, "Min constant", vars), k(kk) { }
 
     // Function related to optimisation (see ObjectiveConstraint class)
-    virtual void updateBound(long bound) override;
-    virtual long maxUpperBound() override;
-    virtual long minLowerBound() override;
-    virtual long computeScore(vec<int> &tuple) override;
+    void updateBound(long bound) override;
+    long maxUpperBound() override;
+    long minLowerBound() override;
+    long computeScore(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 
-#endif /* MAXIMIZECONSTANT_H */
+#endif /* MINIMIZECONSTANT_H */

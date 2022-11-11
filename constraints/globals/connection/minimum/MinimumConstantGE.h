@@ -11,11 +11,11 @@ class MinimumConstantGE : public MinimumConstant {
    public:
     MinimumConstantGE(Problem &p, std::string n, vec<Variable *> &vars, int kk) : MinimumConstant(p, n, vars, kk), done(false) { }
 
-    virtual State status() override;
-    virtual void  reinitialize() override;
+    State status() override;
+    void  reinitialize() override;
 
-    virtual bool filter(Variable *dummy) override;
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool filter(Variable *dummy) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

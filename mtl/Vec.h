@@ -108,7 +108,6 @@ class vec {
             if(data[i] == elt)
                 return i;
         return -1;
-
     }
 
 
@@ -216,6 +215,27 @@ class vec {
                 nb++;
         return nb;
     }
+
+    int min() {
+        int tmp = data[0];
+
+        for(int i = 1; i < size(); i++) {
+            if(data[i] < tmp)
+                tmp = data[i];
+        }
+        return tmp;
+    }
+
+    int max() {
+        int tmp = data[0];
+
+        for(int i = 1; i < size(); i++) {
+            if(data[i] > tmp)
+                tmp = data[i];
+        }
+        return tmp;
+    }
+
 };
 
 
