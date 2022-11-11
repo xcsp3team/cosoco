@@ -65,12 +65,12 @@ class Cumulative : public GlobalConstraint {
     Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<int> &, int);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
-    virtual bool isCorrectlyDefined() override;
+    bool isCorrectlyDefined() override;
 };
 }   // namespace Cosoco
 

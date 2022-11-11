@@ -15,18 +15,15 @@ class BinPacking : public GlobalConstraint {
     vec<int> sizes;
     BinPacking(Problem &p, std::string n, vec<Variable *> vars, vec<int> szs, int uB);
 
-    virtual bool isCorrectlyDefined() override;
+    bool isCorrectlyDefined() override;
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *x) override;
+    bool filter(Variable *x) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 
    protected:
-
-
-
 };
-}
+}   // namespace Cosoco
 #endif   // COSOCO_BINPACKING_H

@@ -9,8 +9,8 @@ class Circuit : public AllDifferent {
     SparseSet set;
 
     Circuit(Problem &p, std::string n, vec<Variable *> &vars);
-    virtual bool filter(Variable *dummy) override;
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
+    bool filter(Variable *dummy) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 
