@@ -101,7 +101,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
 
         if(node->type == OMUL) {
-            int a = 1, b = 1, c = 1, d = 1;
+            int a, b, c, d;
             int min = ranges[0].min;
             int max = ranges[0].max;
             for(int i = 1; i < ranges.size(); i++) {
@@ -243,7 +243,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     // Language  constraints
     //--------------------------------------------------------------------------------------
 
-    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &vars, int core);
+    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list, int core);
 
     void buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) override;
 
@@ -328,7 +328,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     // Connection constraints
     //--------------------------------------------------------------------------------------
 
-    string createExpression(string minmax, OrderType op, vector<XVariable *> &list, string value);
+    static string createExpression(string minmax, OrderType op, vector<XVariable *> &list, string value);
 
     void buildConstraintMaximum(string id, vector<Tree *> &list, XCondition &xc) override;
 

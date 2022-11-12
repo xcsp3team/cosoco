@@ -316,8 +316,10 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
     int nbTuples = 1;
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
 
-    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
+    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
+        std::cout << "ic\n";
         nbTuples = nbTuples / scope.last()->domain.maxSize();
+    }
 
 
     if(startToParseObjective == false && intension2extensionLimit && nbTuples < intension2extensionLimit) {   // Create extension
@@ -427,15 +429,15 @@ void CosocoCallbacks::buildConstraintMult(string id, XVariable *x, XVariable *y,
 // Language  constraints
 //--------------------------------------------------------------------------------------
 
-Cosoco::MDD *CosocoCallbacks::sameMDDAsPrevious(vec<Variable *> &vars, int core) {
+Cosoco::MDD *CosocoCallbacks::sameMDDAsPrevious(vec<Variable *> &list, int core) {
     if(insideGroup && nbMDD) {   // Check is the MDD is the same
-        MDDExtension *ext = dynamic_cast<MDDExtension *>(problems[core]->constraints.last());
+        auto *ext = dynamic_cast<MDDExtension *>(problems[core]->constraints.last());
         assert(ext != nullptr);
-        assert(vars.size() == ext->scope.size());
+        assert(list.size() == ext->scope.size());
         int same = true;
-        for(int i = 0; i < vars.size(); i++)
-            if(vars[i]->minimum() != ext->scope[i]->minimum() || vars[i]->maximum() != ext->scope[i]->maximum() ||
-               vars[i]->domain.maxSize() != ext->scope[i]->domain.maxSize()) {
+        for(int i = 0; i < list.size(); i++)
+            if(list[i]->minimum() != ext->scope[i]->minimum() || list[i]->maximum() != ext->scope[i]->maximum() ||
+               list[i]->domain.maxSize() != ext->scope[i]->domain.maxSize()) {
                 same = false;
                 break;
             }
@@ -455,7 +457,7 @@ void CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, v
             continue;
         }
         vec<XTransition *> trans;
-        for(unsigned int i = 0; i < transitions.size(); i++) trans.push(&transitions[i]);
+        for(auto &transition : transitions) trans.push(&transition);
         FactoryConstraints::createConstraintMDD(problems[core], id, vars, trans);
     }
     nbMDD++;
@@ -473,7 +475,7 @@ void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &lis
         }
 
         vec<XTransition *> trans;
-        for(unsigned int i = 0; i < transitions.size(); i++) trans.push(&transitions[i]);
+        for(auto &transition : transitions) trans.push(&transition);
         FactoryConstraints::createConstraintRegular(problems[core], id, vars, start, final, trans);
     }
 }
@@ -490,7 +492,7 @@ void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &lis
         toMyVariables(list, vars, core);
 
         for(Variable *x : vars) {
-            DomainRange *d = dynamic_cast<DomainRange *>(&(x->domain));
+            auto *d = dynamic_cast<DomainRange *>(&(x->domain));
             if(d == nullptr)
                 throw std::invalid_argument("Circuit constraint is not yet supported with special domain");
             if(x->domain.minimum() != 0)
@@ -528,7 +530,7 @@ void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &tre
     // core duplication is here
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
-        for(unsigned int i = 0; i < auxiliaryVariables.size(); i++) vars.push(problems[core]->mapping[auxiliaryVariables[i]]);
+        for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
         FactoryConstraints::createConstraintAllDiff(problems[core], id, vars);
     }
     /*
@@ -553,9 +555,9 @@ void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &tre
 void CosocoCallbacks::buildConstraintAlldifferentList(string id, vector<vector<XVariable *>> &origlists) {
     for(int core = 0; core < nbcores; core++) {
         vec<vec<Variable *>> lists;
-        for(unsigned int j = 0; j < origlists.size(); j++) {
+        for(auto &origlist : origlists) {
             lists.push();
-            toMyVariables(origlists[j], lists.last(), core);
+            toMyVariables(origlist, lists.last(), core);
         }
         FactoryConstraints::createConstraintAllDiffList(problems[core], id, lists);
     }
@@ -564,7 +566,7 @@ void CosocoCallbacks::buildConstraintAlldifferentList(string id, vector<vector<X
 
 void CosocoCallbacks::buildConstraintAlldifferentMatrix(string id, vector<vector<XVariable *>> &matrix) {
     // lines
-    for(unsigned int i = 0; i < matrix.size(); i++) buildConstraintAlldifferent(id, matrix[i]);
+    for(auto &list : matrix) buildConstraintAlldifferent(id, list);
 
     // columns
     for(unsigned int i = 0; i < matrix[0].size(); i++) {
@@ -709,7 +711,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
     for(unsigned int i = 0; i < list.size(); i++) trees.push_back(new Tree("mul(" + list[i]->id + "," + coeffs[i]->id + ")"));
 
     buildConstraintSum(id, trees, xc);
-    return;
 
 
     /*            string tmp = "add(";
@@ -759,7 +760,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vecto
     // core duplication is here
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
-        for(unsigned int i = 0; i < auxiliaryVariables.size(); i++) vars.push(problems[core]->mapping[auxiliaryVariables[i]]);
+        for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
 
         buildConstraintSum(id, vars, coefs, cond, core);
     }
@@ -926,8 +927,7 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<Tree *> &list, XC
             createAuxiliaryVariablesAndExpressions(list, auxiliaryVariables);
             for(int core = 0; core < nbcores; core++) {
                 vars.clear();
-                for(unsigned int i = 0; i < auxiliaryVariables.size(); i++)
-                    vars.push(problems[core]->mapping[auxiliaryVariables[i]]);
+                for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
                 FactoryConstraints::createConstraintMaximumVariableEQ(problems[core], id, vars, problems[core]->mapping[xc.var]);
             }
             return;
@@ -944,8 +944,7 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XC
             createAuxiliaryVariablesAndExpressions(list, auxiliaryVariables);
             for(int core = 0; core < nbcores; core++) {
                 vars.clear();
-                for(unsigned int i = 0; i < auxiliaryVariables.size(); i++)
-                    vars.push(problems[core]->mapping[auxiliaryVariables[i]]);
+                for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
                 FactoryConstraints::createConstraintMinimumVariableEQ(problems[core], id, vars, problems[core]->mapping[xc.var]);
             }
             return;
@@ -1079,12 +1078,12 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
 void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
                                              XVariable *value) {
     for(int core = 0; core < nbcores; core++) {
-        vec<Variable *> vars;
+        vec<Variable *> tmp;
         vec<vec<int>>   tuples;
         Variable       *idx = problems[core]->mapping[index->id];
         Variable       *val = problems[core]->mapping[value->id];
-        vars.push(idx);
-        vars.push(val);
+        tmp.push(idx);
+        tmp.push(val);
         for(int idv1 : idx->domain) {
             int v = idx->domain.toVal(idv1) - startIndex;
             if(v >= 0 && v < ((int)list.size()) && val->containsValue(list[v])) {
@@ -1093,7 +1092,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
                 tuples.last().push(val->domain.toIdv(list[v]));
             }
         }
-        FactoryConstraints::createConstraintExtension(problems[core], id, vars, tuples, true, false);
+        FactoryConstraints::createConstraintExtension(problems[core], id, tmp, tuples, true, false);
     }
 }
 
@@ -1105,7 +1104,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
             return;
         } else {
             if(xc.operandType == VARIABLE) {
-                XVariable *x = new XVariable(xc.var, nullptr);
+                auto *x = new XVariable(xc.var, nullptr);
                 buildConstraintElement(id, list, startIndex, index, ANY, x);
                 return;
             } else {
@@ -1145,8 +1144,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
         tmp = "gt(";
     if(xc.op == NE)
         tmp = "ne(";
-    tmp          = tmp + auxVar + "," + xc.var + ")";
-    XVariable *x = new XVariable(auxVar, nullptr);
+    tmp     = tmp + auxVar + "," + xc.var + ")";
+    auto *x = new XVariable(auxVar, nullptr);
     buildConstraintIntension(id, new Tree(tmp));
     buildConstraintElement(id, list, startIndex, index, ANY, x);
 }
@@ -1265,10 +1264,11 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             string le1 = "le(add(" + origins[i][0]->id + "," + lengths[i][0]->id + ")," + origins[j][0]->id + ")";
             string le2 = "le(add(" + origins[j][0]->id + "," + lengths[j][0]->id + ")," + origins[i][0]->id + ")";
 
-            string le3 = "le(add(" + origins[i][1]->id + "," + lengths[i][1]->id + ")," + origins[j][1]->id + ")";
-            string le4 = "le(add(" + origins[j][1]->id + "," + lengths[j][1]->id + ")," + origins[i][1]->id + ")";
-
-            string tmp = "or(" + le1 + "," + le2 + "," + le3 + "," + le4 + ")";
+            std::stringstream stream;
+            string            le3 = "le(add(" + origins[i][1]->id + "," + lengths[i][1]->id + ")," + origins[j][1]->id + ")";
+            string            le4 = "le(add(" + origins[j][1]->id + "," + lengths[j][1]->id + ")," + origins[i][1]->id + ")";
+            stream << "or(" << le1 << "," << le2 << "," << le3 << "," << le4 << ")";
+            string tmp = stream.str();
             // intension(or(le(add(x1, w1), x2), le(add(x2, w2), x1), le(add(y1, h1), y2), le(add(y2, h2), y1)));
             buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
         }
@@ -1417,9 +1417,9 @@ void CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
 
     for(int core = 0; core < nbcores; core++) {
-        OptimizationProblem *po = static_cast<OptimizationProblem *>(problems[core]);
-        po->type                = OptimisationType::Minimize;
-        ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+        auto *po = static_cast<OptimizationProblem *>(problems[core]);
+        po->type = OptimisationType::Minimize;
+        auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
         po->addObjectiveUB(oc, true);
     }
 }
@@ -1429,9 +1429,9 @@ void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
     string tmp = "ge(" + expr + ",0)";   // Fake value
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
     for(int core = 0; core < nbcores; core++) {
-        OptimizationProblem *po = static_cast<OptimizationProblem *>(problems[core]);
-        po->type                = OptimisationType::Maximize;
-        ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+        auto *po = static_cast<OptimizationProblem *>(problems[core]);
+        po->type = OptimisationType::Maximize;
+        auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
         po->addObjectiveLB(oc, true);
     }
 }
@@ -1439,9 +1439,9 @@ void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
 void CosocoCallbacks::buildObjectiveMinimizeVariable(XVariable *x) {
     for(int core = 0; core < nbcores; core++) {
         FactoryConstraints::createConstraintUnaryLE(problems[core], "", problems[core]->mapping[x->id], 0);
-        OptimizationProblem *po = static_cast<OptimizationProblem *>(problems[core]);
-        po->type                = OptimisationType::Minimize;
-        ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+        auto *po = static_cast<OptimizationProblem *>(problems[core]);
+        po->type = OptimisationType::Minimize;
+        auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
         po->addObjectiveUB(oc, true);
     }
 }
@@ -1449,9 +1449,9 @@ void CosocoCallbacks::buildObjectiveMinimizeVariable(XVariable *x) {
 void CosocoCallbacks::buildObjectiveMaximizeVariable(XVariable *x) {
     for(int core = 0; core < nbcores; core++) {
         FactoryConstraints::createConstraintUnaryGE(problems[core], "", problems[core]->mapping[x->id], 0);
-        OptimizationProblem *po = static_cast<OptimizationProblem *>(problems[core]);
-        po->type                = OptimisationType::Maximize;
-        ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+        auto *po = static_cast<OptimizationProblem *>(problems[core]);
+        po->type = OptimisationType::Maximize;
+        auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
         po->addObjectiveLB(oc, true);
     }
 }
@@ -1473,8 +1473,8 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs,
                                              int core) {
-    OptimizationProblem *po = static_cast<OptimizationProblem *>(problems[core]);
-    po->type                = OptimisationType::Minimize;
+    auto *po = static_cast<OptimizationProblem *>(problems[core]);
+    po->type = OptimisationType::Minimize;
 
     switch(type) {
         case EXPRESSION_O:
@@ -1485,7 +1485,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
             invertOptimization = true;
 
             FactoryConstraints::createConstraintSum(problems[core], "objective", variables, vector2vec(origcoeffs), INT_MAX, LE);
-            ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
             po->addObjectiveLB(oc, true);
             break;
         }
@@ -1494,19 +1494,19 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
             break;
         case MINIMUM_O: {
             FactoryConstraints::createConstraintMinimumLE(problems[core], "objective", variables, INT_MAX);
-            ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
             po->addObjectiveUB(oc, true);
             break;
         }
         case MAXIMUM_O: {
             FactoryConstraints::createConstraintMaximumLE(problems[core], "objective", variables, INT_MAX);
-            ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
             po->addObjectiveUB(oc, true);
             break;
         }
         case NVALUES_O: {
             FactoryConstraints::createConstraintNValuesLE(problems[core], "objective", variables, variables.size() + 1);
-            ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
             po->addObjectiveUB(oc, true);
             break;
         }
@@ -1527,8 +1527,8 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs,
                                              int core) {
-    OptimizationProblem *po = static_cast<OptimizationProblem *>(problems[core]);
-    po->type                = OptimisationType::Maximize;
+    auto *po = static_cast<OptimizationProblem *>(problems[core]);
+    po->type = OptimisationType::Maximize;
 
     switch(type) {
         case EXPRESSION_O:
@@ -1553,7 +1553,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Varia
             throw runtime_error("Objective expression not yet supported");
             break;
     }
-    ObjectiveConstraint *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[core]->constraints.last());
     po->addObjectiveLB(oc, true);
 }
 
@@ -1608,7 +1608,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tr
     // core duplication is here
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
-        for(unsigned int i = 0; i < auxiliaryVariables.size(); i++) vars.push(problems[core]->mapping[auxiliaryVariables[i]]);
+        for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
         buildObjectiveMinimize(type, vars, coefs, core);
     }
 }
@@ -1622,7 +1622,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
     // core duplication is here
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
-        for(unsigned int i = 0; i < auxiliaryVariables.size(); i++) vars.push(problems[core]->mapping[auxiliaryVariables[i]]);
+        for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
         buildObjectiveMaximize(type, vars, coefs, core);
     }
 }
