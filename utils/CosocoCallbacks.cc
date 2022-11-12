@@ -317,7 +317,6 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
 
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
-        std::cout << "ic\n";
         nbTuples = nbTuples / scope.last()->domain.maxSize();
     }
 
