@@ -28,27 +28,27 @@ class DecisionMarker;
 
 class Solver : public AbstractSolver {
    public:
-    Problem &problem;             // The problem to solve
-    int      nbWishedSolutions;   // The number of solutions to find
-    vec<int> lastSolution;        // The last solution found
+    Problem &problem;                 // The problem to solve
+    int      nbWishedSolutions = 1;   // The number of solutions to find
+    vec<int> lastSolution;            // The last solution found
 #ifdef COMPARESOLUTIONS
     vec<vec<int> > allSolutions;
 #endif
     // -- Main Stats ------------------------------------------------------------------------
-    uint64_t decisions, conflicts, propagations, wrongDecisions;
-    uint64_t filterCalls;
+    uint64_t decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0;
+    uint64_t filterCalls = 0;
 
 
     // -- Minor Stats -----------------------------------------------------------------------
-    vec<uint64_t> statistics;                   // global statistics
-    vec<int>      localstatistics;              // local statistics: cleared at each restart
-    int           displayStatsEveryConflicts;   // Display GlobalStats every conflicts
+    vec<uint64_t> statistics;                          // global statistics
+    vec<int>      localstatistics;                     // local statistics: cleared at each restart
+    int           displayStatsEveryConflicts = 1000;   // Display GlobalStats every conflicts
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double seed;                  // A seed value
-    bool   checkSolution;         // Check solution or not
-    bool   filterCallIsUsefull;   // Check if a call to filter call is usefull or not
+    double seed          = 91648253;   // A seed value
+    bool   checkSolution = true;       // Check solution or not
+    bool   filterCallIsUsefull;        // Check if a call to filter call is usefull or not
 
 
     // -- Search ----------------------------------------------------------------------------
@@ -59,27 +59,27 @@ class Solver : public AbstractSolver {
     SparseSetOfVariables unassignedVariables;   // The set of unassigned variables;
     SparseSetOfVariables decisionVariables;
     SparseSetMultiLevel  entailedConstraints;
-    DecisionMarker *     decisionMarker;   // The current branch of the search tree
-    bool                 stopSearch;       // Stop the search usefull, in // with the optimizer
+    DecisionMarker      *decisionMarker;       // The current branch of the search tree
+    bool                 stopSearch = false;   // Stop the search usefull, in // with the optimizer
     bool                 warmStart;
     // -- Heuristics ------------------------------------------------------------------------
-    HeuristicVar *heuristicVar;               // The heuristic to choose variables
-    HeuristicVal *heuristicVal;               // The heuristic to choose values
-    Restart *     restart;                    // The restart strategy
-    int           intension2extensionLimit;   // Transform intension -> extension : limit of the cartesian product
+    HeuristicVar *heuristicVar;                         // The heuristic to choose variables
+    HeuristicVal *heuristicVal;                         // The heuristic to choose values
+    Restart      *restart                  = nullptr;   // The restart strategy
+    int           intension2extensionLimit = 100000;    // Transform intension -> extension : limit of the cartesian product
     // -- Propagations ----------------------------------------------------------------------
     SparseSetOfVariables queue;                       // Propagation queue
-    Constraint *         currentFilteredConstraint;   // The constraint that is filtered
+    Constraint          *currentFilteredConstraint;   // The constraint that is filtered
 
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict
     vec<ObserverNewDecision *>     observersNewDecision;       // Classes listen for decisions
     vec<ObserverDeleteDecision *>  observersDeleteDecision;    // Classes listen for decisions
     vec<ObserverDomainReduction *> observersDomainReduction;   // Classes listen for domain reduction
-    unsigned long                  timestamp;                  // Current timestamp
+    unsigned long                  timestamp = 0;              // Current timestamp
 
     // Optionnal techniques
-    bool        nogoodsFromRestarts;   // Generate nogoods from restarts
+    bool nogoodsFromRestarts = false;   // Generate nogoods from restarts
 
 
     // --------------------------------------------------------------------------------------
@@ -106,8 +106,8 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
     void      newDecision(Variable *x, int idv);   // Assign a variable
     Variable *decisionVariableAtLevel(int lvl);    // Return the decision variable
-    int       decisionLevel() const;                     // Return the decision level
-    bool      isAssigned(Variable *x) const;             // Return true if x is assigned
+    int       decisionLevel() const;               // Return the decision level
+    bool      isAssigned(Variable *x) const;       // Return true if x is assigned
 
 
     // --------------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
 
     void        addToQueue(Variable *x);                      // Add a variable to queue (side effect if used directly))
-    Variable *  pickInQueue();                                // Pick a var in the prop queue
+    Variable   *pickInQueue();                                // Pick a var in the prop queue
     Constraint *propagate(bool startWithSATEngine = false);   // Propagate the Queue
     Constraint *propagateComplete();                          // fill the queue and propagate everything
     bool        isGACGuaranted();                             // Return trus if GAC is ensured

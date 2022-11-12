@@ -28,24 +28,10 @@ using namespace std;
 Solver::Solver(Problem &p, int nbc)
     : AbstractSolver(p),
       problem(p),
-      nbWishedSolutions(1),
-      decisions(0),
-      conflicts(0),
-      propagations(0),
-      wrongDecisions(0),
-      filterCalls(0),
-      displayStatsEveryConflicts(10000),
-      seed(91648253),
-      checkSolution(true),
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
-      stopSearch(false),
-      restart(nullptr),
-      intension2extensionLimit(100000),
-      queue(p.nbVariables(), p.variables),
-      timestamp(0),
-      nogoodsFromRestarts(false) {
+      queue(p.nbVariables(), p.variables) {
     heuristicVar = new HeuristicVarDomWdeg(*this);
     // new HeuristicVarDomWdeg(*this); //new LastConflictReasoning(*this, new HeuristicVarDomWdeg(*this));
     heuristicVal = new HeuristicValFirst(*this);

@@ -1,6 +1,5 @@
 #include <optimizer/Optimizer.h>
 #include <sys/resource.h>
-#include <zlib.h>
 
 #include <csignal>
 #include <cstring>
@@ -158,7 +157,7 @@ int main(int argc, char **argv) {
                 vec<int>      values;
                 for(std::string line; std::getline(warmFile, line);) {
                     std::vector<std::string> stringValues = split1(line, ' ');
-                    for(std::string v : stringValues) {
+                    for(const std::string &v : stringValues) {
                         if(v.find("x") != std::string::npos) {
                             std::vector<std::string> compact = split1(v, 'x');
                             for(int i = 0; i < std::stoi(compact[1]); i++) values.push(std::stoi(compact[0]));
@@ -192,7 +191,7 @@ int main(int argc, char **argv) {
             }
 
             if(optimize) {
-                Optimizer *optimizer      = new Optimizer(*solvingProblems[core]);
+                auto *optimizer           = new Optimizer(*solvingProblems[core]);
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
                 optimizer->core = core;
@@ -294,11 +293,12 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
         }
 
         if(optimize) {
+            ObjectiveConstraint *objective;
             printf("\n");
             printf("c |               Objective: ");
-            Optimizer           *o         = (Optimizer *)solvers[0];
-            ObjectiveConstraint *objective = (o->optimtype == Minimize) ? o->objectiveUB : o->objectiveLB;
-            Constraint          *c         = dynamic_cast<Constraint *>(objective);
+            auto *o   = (Optimizer *)solvers[0];
+            objective = (o->optimtype == Minimize) ? o->objectiveUB : o->objectiveLB;
+            auto *c   = dynamic_cast<Constraint *>(objective);
             printf("%s %s\n",
                    o->optimtype == Minimize || (o->optimtype == Maximize && o->invertBestCost) ? "Minimize" : "Maximize",
                    c->type.c_str());
@@ -317,7 +317,7 @@ void printStats(AbstractSolver *solver) {
 
     if(mem_used != 0)
         printf("c Memory used           : %.2f MB\n", mem_used);
-    Optimizer *optimizer = dynamic_cast<Optimizer *>(solver);
+    auto *optimizer = dynamic_cast<Optimizer *>(solver);
     if(optimizer != nullptr)
         printf("c Best bound time (wc)  : %g s\n", optimizer->realTimeForBestSolution() - realTimeStart);
     printf("c CPU time              : %g s\n", cpu_time);
@@ -411,32 +411,4 @@ static void SIGINT_exit(int signum) {
 
         exit(1);
     }
-
-    if(solvers[0]->verbose.verbosity >= 0) {
-        printStats(solvers[0]);
-        printf("\n");
-    }
-    if(!optimize) {
-        printf("s UNKNOWN\n");
-        std::cout << std::flush;
-
-        exit(1);
-        // Do not compute many models in // mode
-        // if no optimisation then no model
-    }
-
-    for(auto &solver : solvers) {
-        if(solver->hasSolution()) {
-            printf("s SATISFIABLE\n");
-            printf("c Best value found: %ld\n\n", ((Optimizer *)solver)->bestCost());
-            if(model)
-                solver->displayCurrentSolution();
-            exit(1);
-        }
-    }
-    printf("c No Bound found!\n\ns UNKNOWN\n");
-
-
-    std::cout << std::flush;
-    exit(1);
 }
