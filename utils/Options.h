@@ -26,7 +26,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <stdlib.h>
 #include <string.h>
 
-
 #include "mtl/IntTypes.h"
 #include "mtl/Vec.h"
 #include "utils/ParseUtils.h"
@@ -80,7 +79,7 @@ class Option {
     }
 
    public:
-    virtual ~Option() { }
+    virtual ~Option() = default;
 
     virtual bool parse(const char* str)     = 0;
     virtual void help(bool verbose = false) = 0;
@@ -320,7 +319,7 @@ class StringOption : public Option {
         : Option(n, d, c, "<string>"), value(def) { }
 
                   operator const char*(void) const { return value; }
-                  operator const char* &(void) { return value; }
+                  operator const char*&(void) { return value; }
     StringOption& operator=(const char* x) {
         value = x;
         return *this;

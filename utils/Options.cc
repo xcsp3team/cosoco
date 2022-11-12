@@ -61,27 +61,27 @@ void Cosoco::setUsageHelp(const char* str) { Option::getUsageString() = str; }
 void Cosoco::setHelpPrefixStr(const char* str) { Option::getHelpPrefixString() = str; }
 void Cosoco::printUsageAndExit(int argc, char** argv, bool verbose) {
     const char* usage = Option::getUsageString();
-    if(usage != NULL)
+    if(usage != nullptr)
         fprintf(stderr, usage, argv[0]);
 
     sort(Option::getOptionList(), Option::OptionLt());
 
-    const char* prev_cat  = NULL;
-    const char* prev_type = NULL;
+    const char* prev_cat  = nullptr;
+    const char* prev_type = nullptr;
 
-    for(int i = 0; i < Option::getOptionList().size(); i++) {
-        const char* cat  = Option::getOptionList()[i]->category;
-        const char* type = Option::getOptionList()[i]->type_name;
+    for(auto& opt : Option::getOptionList()) {
+        const char* cat  = opt->category;
+        const char* type = opt->type_name;
 
         if(cat != prev_cat)
             fprintf(stderr, "\n%s OPTIONS:\n\n", cat);
         else if(type != prev_type)
             fprintf(stderr, "\n");
 
-        Option::getOptionList()[i]->help(verbose);
+        opt->help(verbose);
 
-        prev_cat  = Option::getOptionList()[i]->category;
-        prev_type = Option::getOptionList()[i]->type_name;
+        prev_cat  = opt->category;
+        prev_type = opt->type_name;
     }
 
     fprintf(stderr, "\nHELP OPTIONS:\n\n");
