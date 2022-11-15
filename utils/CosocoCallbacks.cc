@@ -489,17 +489,7 @@ void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &lis
 
     for(int core = 0; core < nbcores; core++) {
         toMyVariables(list, vars, core);
-
-        for(Variable *x : vars) {
-            auto *d = dynamic_cast<DomainRange *>(&(x->domain));
-            if(d == nullptr)
-                throw std::invalid_argument("Circuit constraint is not yet supported with special domain");
-            if(x->domain.minimum() != 0)
-                throw std::runtime_error("Circuit constraint is not yet supported with special domain");
-            if(x->domain.maximum() != vars.size() - 1)
-                throw std::runtime_error("Circuit constraint is not yet supported with special domain");
-        }
-
+        
         FactoryConstraints::createConstraintCircuit(problems[core], id, vars);
     }
 }

@@ -11,69 +11,94 @@ using namespace Cosoco;
 bool Circuit::isSatisfiedBy(vec<int> &tuple) {
     if(AllDifferent::isSatisfiedBy(tuple) == false)
         return false;
-    int nLoops = 0;
+    int nLoops = 0, first = -1;
     for(int i = 0; i < tuple.size(); i++)
         if(tuple[i] == i)
             nLoops++;
-
+        else if(first == -1)
+            first = i;
     if(nLoops == tuple.size())
-        return false;
+        return false;   // because no circuit at all
 
-    int i = 0;
-    while(i < scope.size() && tuple[i] == i) i++;
+    tmp.fill(false);
 
-    SparseSet s;
-    s.setCapacity(scope.size(), false);
-    while(tuple[i] != i && s.contains(tuple[i]) == false) {
-        s.add(tuple[i]);
-        i = tuple[i];
+    int i = first, size = 0;
+    while(!tmp[tuple[i]]) {
+        if(tuple[i] == i)
+            return false;   // because badly formed circuit
+        tmp[tuple[i]] = true;
+        i             = tuple[i];
+        size++;
     }
-    return s.size() == (tuple.size() - nLoops);
+    return size == tuple.size() - nLoops;
 }
 
+
+bool Circuit::isCorrectlyDefined() {
+    for(Variable *x : scope)
+        if(x->minimum() < 0 || x->maximum() >= scope.size())
+            return false;
+    return true;
+}
 
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
 
-bool Circuit::filter(Variable *x) {
-    if(AllDifferent::filter(x) == false)
+bool Circuit::filter(Variable *dummy) {
+    if(AllDifferent::filter(dummy) == false)
         return false;
 
-
+    if(unassignedVariablesIdx.isEmpty())
+        return true;
     int minimalCircuitLength = 0;
     for(int i = 0; i < scope.size(); i++)
-        if(scope[i]->containsIdv(i) == false)
+        if(scope[i]->containsValue(i) == false)
             minimalCircuitLength++;
 
+    tmp.fill(false);
 
+    int nSelfLoops = 0;
     for(int i = 0; i < scope.size(); i++) {
-        if(scope[i]->size() == 1) {
-            int j = scope[i]->value();
-            if(i == j)
-                continue;   // because self-loop
-            set.clear();
-            set.add(i);
-            if(solver->delIdv(scope[j], j) == false)
-                return false;
+        if(scope[i]->size() > 1 || tmp[i])
+            continue;
+        int j = scope[i]->value();
+        if(i == j) {
+            nSelfLoops++;
+            continue;   // because self-loop
+        }
+        set.clear();
+        set.add(i);                                // i belongs to the circuit
+        if(solver->delVal(scope[j], j) == false)   // because self-loop not possible for j
+            return false;
+        while(set.size() + 1 < minimalCircuitLength) {
+            for(int v : set)
+                if(solver->delVal(scope[j], v) == false)   // because we cannot close the circuit now (it would be too short)
+                    return false;
 
-            while(set.size() + 1 < minimalCircuitLength) {
-                for(int idv : set) {
-                    if(solver->delIdv(scope[j], idv) == false)
-                        return false;
-                }
-                if(scope[j]->size() == 1) {
-                    set.add(j);
-                    j = scope[j]->value();   // we know for sure here that the new value of j is different from the previous one
-                    if(solver->delIdv(scope[j], j) == false)
-                        return false;
-                } else
-                    break;
-            }
+            if(scope[j]->size() > 1)
+                break;
+            tmp[j] = true;
+            if(set.contains(j))
+                return false;                          // because two times the same value (and too short circuit)
+            set.add(j);                                // j belongs to the circuit
+            j = scope[j]->value();                     // we know that the *new value of j* is different from the previous one
+            if(solver->delVal(scope[j], j) == false)   // because self-loop not possible for j
+                return false;
+        }
+        if(scope[j]->size() == 1 && scope[j]->value() == set[0]) {
+            for(int k = 0; k < scope.size(); k++)
+                if(j != k && !set.contains(k) && solver->assignToVal(scope[k], k) == false)
+                    return false;
+            solver->entail(this);
+            return true;
         }
     }
+    if(nSelfLoops == scope.size())   // TODO: we should prune when all but two variables are self loops
+        return false;
     return true;
 }
+
 
 //----------------------------------------------
 // Construction and initialisation
@@ -82,5 +107,5 @@ bool Circuit::filter(Variable *x) {
 Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferent(p, n, vars) {
     type = "Circuit";
     set.setCapacity(vars.size(), false);
-    //    Kit.control(Stream.of(scp).allMatch(x -> x.dom.areInitValuesExactly(pb.api.range(scp.length))));
+    tmp.growTo(scope.size());
 }
