@@ -1,4 +1,5 @@
-rm -rf bin/cosoco
+rm -rf cmake-build-debug
+rm -rf main/cosoco
 cd ../XCSP3-CPP-Parser
 cmake --build . --target clean -- -j 8
 rm -rf lib/libxcsp3parser.a
