@@ -11,6 +11,7 @@
 #include "solver/Solver.h"
 #include "solver/heuristics/values/HeuristicValLast.h"
 #include "solver/heuristics/values/HeuristicValRandom.h"
+#include "solver/heuristics/values/HeuristicValRoundRobin.h"
 #include "utils/CosocoCallbacks.h"
 #include "utils/Options.h"
 #include "utils/System.h"
@@ -39,7 +40,7 @@ IntOption  lastConflict("SEARCH", "lc", "Last Conflict reasoning (0 to disable)"
 BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
 // BoolOption optimize("SEARCH", "cop", "Run optimizer (needs an objective)", 0);
 BoolOption   orestarts("SEARCH", "restarts", "Enable restarts", 1);
-StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random)", "first");
+StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random, robin)", "first");
 StringOption hvr("SEARCH", "var", "Heuristic for values (wdeg, cacd)", "wdeg");
 
 BoolOption   annotations("SEARCH", "annotations", "Enable annotations (if any)", true);
@@ -136,7 +137,7 @@ int main(int argc, char **argv) {
             S->core                     = core;
             S->seed                     = S->seed * (core + 1);
             S->intension2extensionLimit = i2e;
-            if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0) {
+            if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 && strcmp(hv, "robin") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");
                 exit(1);
             }
@@ -144,6 +145,8 @@ int main(int argc, char **argv) {
                 S->heuristicVal = new HeuristicValRandom(*S);
             if(strcmp(hv, "last") == 0)
                 S->heuristicVal = new HeuristicValLast(*S);
+            if(strcmp(hv, "robin") == 0)
+                S->heuristicVal = new HeuristicValRoundRobin(*S);
 
             if(strcmp(hvr, "wdeg") != 0 && strcmp(hvr, "cacd") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");

@@ -6,7 +6,7 @@
 namespace Cosoco {
 class HeuristicValFirst : public HeuristicVal {
    public:
-    HeuristicValFirst(Solver &s);
+    explicit HeuristicValFirst(Solver &s);
 
 
     int select(Variable *x) override;
