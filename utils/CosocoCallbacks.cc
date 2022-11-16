@@ -14,6 +14,7 @@ void CosocoCallbacks::beginInstance(InstanceType type) {
     auxiliaryIdx                = 0;
     nbIntension2Extention       = 0;
     nbSharedIntension2Extension = 0;
+    inArray                     = false;
 }
 
 void CosocoCallbacks::endInstance() {
@@ -24,12 +25,29 @@ void CosocoCallbacks::endInstance() {
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
-    for(int core = 0; core < nbcores; core++) problems[core]->createVariable(id, *(new DomainRange(minValue, maxValue)));
+    for(int core = 0; core < nbcores; core++) {
+        Variable *x = problems[core]->createVariable(id, *(new DomainRange(minValue, maxValue)),
+                                                     inArray ? problems[core]->variablesArray.size() : -1);
+        if(inArray)
+            problems[core]->variablesArray.last().push(x);
+    }
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
-    for(int core = 0; core < nbcores; core++) problems[core]->createVariable(id, *(new DomainValue(vector2vec(values))));
+    for(int core = 0; core < nbcores; core++) {
+        Variable *x = problems[core]->createVariable(id, *(new DomainValue(vector2vec(values))),
+                                                     inArray ? problems[core]->variablesArray.size() : -1);
+        if(inArray)
+            problems[core]->variablesArray.last().push(x);
+    }
 }
+
+void CosocoCallbacks::beginVariableArray(string id) {
+    for(int core = 0; core < nbcores; core++) problems[core]->variablesArray.push();
+    inArray = true;
+}
+
+void CosocoCallbacks::endVariableArray() { inArray = false; }
 
 void CosocoCallbacks::endVariables() { nbInitialsVariables = problems[0]->nbVariables(); }
 
@@ -489,7 +507,7 @@ void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &lis
 
     for(int core = 0; core < nbcores; core++) {
         toMyVariables(list, vars, core);
-        
+
         FactoryConstraints::createConstraintCircuit(problems[core], id, vars);
     }
 }

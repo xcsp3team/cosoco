@@ -56,10 +56,10 @@ void Problem::addConstraint(Constraint *c) {
 }
 
 
-Variable *Problem::createVariable(std::string n, Domain &d) {
+Variable *Problem::createVariable(std::string n, Domain &d, int array) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add variables");
-    auto *v = new Variable(*this, n, d, nbVariables());
+    auto *v = new Variable(*this, n, d, nbVariables(), array);
     variables.push(v);
     mapping[v->name()] = v;
     return v;

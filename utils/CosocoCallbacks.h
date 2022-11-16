@@ -159,6 +159,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     bool                insideGroup;
     int                 nbIntension;
+    bool                inArray;
     int                 i2eNumber;
     int                 nbMDD;
     vec<Variable *>     vars;   // Not so beautiful, but efficient...
@@ -190,8 +191,12 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildVariableInteger(string id, int minValue, int maxValue) override;
 
-
     void buildVariableInteger(string id, vector<int> &values) override;
+
+    void beginVariableArray(string id) override;
+
+    void endVariableArray() override;
+
 
     void endVariables() override;
 

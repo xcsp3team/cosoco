@@ -21,14 +21,15 @@ class Variable {
 
     friend class Problem;
 
-    Problem &         problem;       // The associated problem
+    Problem          &problem;       // The associated problem
     const int         idx;           // The position in problem.variables
+    const int         array;         // the array in which the variable appear (-1 if none)
     const std::string _name;         // I do not like _ but... useful for name() function
-    Domain &          domain;        // The domain
+    Domain           &domain;        // The domain
     vec<Constraint *> constraints;   // Set of constraints where it occurs
 
     // Datas used for some algorithms (some heuristics and so on...)
-    double wdeg;                   // The wdeg value
+    double wdeg;   // The wdeg value
 
 
     // Fake data used in some algorithms. Use must be circumscribed to one call of the algorithm
@@ -42,7 +43,7 @@ class Variable {
     void addConstraint(Constraint *c);              // This constraint contains the variable
 
    protected:
-    Variable(Problem &p, std::string n, Domain &d, int id);   // Do not use it directly (use Problem::createVariable)
+    Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods
     bool delVal(int v, int lvl);     // Do not use directly, use solver's one
