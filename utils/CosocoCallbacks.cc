@@ -27,7 +27,7 @@ void CosocoCallbacks::endInstance() {
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
     for(int core = 0; core < nbcores; core++) {
         Variable *x = problems[core]->createVariable(id, *(new DomainRange(minValue, maxValue)),
-                                                     inArray ? problems[core]->variablesArray.size() : -1);
+                                                     inArray ? problems[core]->variablesArray.size() - 1 : -1);
         if(inArray)
             problems[core]->variablesArray.last().push(x);
     }
@@ -36,7 +36,7 @@ void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     for(int core = 0; core < nbcores; core++) {
         Variable *x = problems[core]->createVariable(id, *(new DomainValue(vector2vec(values))),
-                                                     inArray ? problems[core]->variablesArray.size() : -1);
+                                                     inArray ? problems[core]->variablesArray.size() - 1 : -1);
         if(inArray)
             problems[core]->variablesArray.last().push(x);
     }

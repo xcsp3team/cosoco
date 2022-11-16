@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 
+#include "HeuristicValOccs.h"
 #include "HeuristicVarCACD.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
@@ -40,7 +41,7 @@ IntOption  lastConflict("SEARCH", "lc", "Last Conflict reasoning (0 to disable)"
 BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
 // BoolOption optimize("SEARCH", "cop", "Run optimizer (needs an objective)", 0);
 BoolOption   orestarts("SEARCH", "restarts", "Enable restarts", 1);
-StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random, robin)", "first");
+StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random, robin, occs)", "first");
 StringOption hvr("SEARCH", "var", "Heuristic for values (wdeg, cacd)", "wdeg");
 
 BoolOption   annotations("SEARCH", "annotations", "Enable annotations (if any)", true);
@@ -137,7 +138,8 @@ int main(int argc, char **argv) {
             S->core                     = core;
             S->seed                     = S->seed * (core + 1);
             S->intension2extensionLimit = i2e;
-            if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 && strcmp(hv, "robin") != 0) {
+            if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 && strcmp(hv, "robin") != 0 &&
+               strcmp(hv, "occs") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");
                 exit(1);
             }
@@ -147,6 +149,8 @@ int main(int argc, char **argv) {
                 S->heuristicVal = new HeuristicValLast(*S);
             if(strcmp(hv, "robin") == 0)
                 S->heuristicVal = new HeuristicValRoundRobin(*S);
+            if(strcmp(hv, "occs") == 0)
+                S->heuristicVal = new HeuristicValOccs(*S);
 
             if(strcmp(hvr, "wdeg") != 0 && strcmp(hvr, "cacd") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");

@@ -8,7 +8,7 @@ namespace Cosoco {
 class HeuristicValLast : public HeuristicVal {
    public:
     HeuristicValLast(Solver &s);
-    virtual int select(Variable *x) override;
+    int select(Variable *x) override;
 };
 }   // namespace Cosoco
 #endif   // COSOCO_HEURISTICVALLAST_H
