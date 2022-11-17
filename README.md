@@ -5,7 +5,7 @@
 
 This work would not have taken place without [Christophe Lecoutre](https://github.com/lecoutre). 
 I  would like to thank him very warmly for his support. Indeed, this is the result of many discussions 
-and most of the contraint propagators come from [ACE](https://github.com/xcsp3team/ace)
+and most of the contraint propagators come from [ACE](https://github.com/xcsp3team/ace).
 
 ### Introduction
  Written in C++, cosoco is a small (less than 12,000 lines of code) constraint solver that deals with 
