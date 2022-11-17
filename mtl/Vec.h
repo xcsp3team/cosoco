@@ -236,6 +236,26 @@ class vec {
         return tmp;
     }
 
+
+    int minIndex() {
+        int tmp = 0;
+
+        for(int i = 1; i < size(); i++) {
+            if(data[i] < data[tmp])
+                tmp = i;
+        }
+        return tmp;
+    }
+
+    int maxIndex() {
+        int tmp = 0;
+
+        for(int i = 1; i < size(); i++) {
+            if(data[i] > data[tmp])
+                tmp = i;
+        }
+        return tmp;
+    }
 };
 
 

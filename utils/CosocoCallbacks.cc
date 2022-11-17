@@ -27,7 +27,7 @@ void CosocoCallbacks::endInstance() {
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
     for(int core = 0; core < nbcores; core++) {
         Variable *x = problems[core]->createVariable(id, *(new DomainRange(minValue, maxValue)),
-                                                     inArray ? problems[core]->variablesArray.size() : -1);
+                                                     inArray ? problems[core]->variablesArray.size() - 1 : -1);
         if(inArray)
             problems[core]->variablesArray.last().push(x);
     }
@@ -36,7 +36,7 @@ void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     for(int core = 0; core < nbcores; core++) {
         Variable *x = problems[core]->createVariable(id, *(new DomainValue(vector2vec(values))),
-                                                     inArray ? problems[core]->variablesArray.size() : -1);
+                                                     inArray ? problems[core]->variablesArray.size() - 1 : -1);
         if(inArray)
             problems[core]->variablesArray.last().push(x);
     }
@@ -314,7 +314,7 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
                 }
             }
         }
-        if(problems[0]->constraints.last()->scope.size() != tree->listOfVariables.size())
+        if(((unsigned int)problems[0]->constraints.last()->scope.size()) != tree->listOfVariables.size())
             sameArguments = false;
         if(sameArguments == true) {   // And same domains -> create extension and leave
             auto *c = dynamic_cast<Extension *>(problems[0]->constraints.last());
@@ -1123,7 +1123,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
     }
     insideGroup = false;
     string exp;
-    if(xc.op == INTERVAL)
+    if(xc.operandType == INTERVAL)
         throw runtime_error("Element with condition and interval not yet  implemented");
     if(xc.operandType == INTEGER)
         throw runtime_error("Element with condition and integer not yet  implemented");
