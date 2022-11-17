@@ -4,16 +4,21 @@
 
 #ifndef COSOCO_HEURISTICVALOCCS_H
 #define COSOCO_HEURISTICVALOCCS_H
-#include "HeuristicVal.h"
 
+#include "HeuristicVal.h"
+#include "Map.h"
 
 namespace Cosoco {
+struct IntHash {
+    uint32_t operator()(int v) const { return (uint32_t)v; }
+};
 class HeuristicValOccs : public HeuristicVal {
-    vec<vec<int> > nbOccurrences;   // the occurences for each array of variables
-    vec<uint64_t>  lastConflict;    // last time we updateed the array
+    vec<Map<int, int, IntHash> > nbOccurrences;   // the occurences for each array of variables
+    vec<vec<int> >               elements;        // the element sin the map
+    vec<uint64_t>                lastConflict;    // last time we updateed the array
 
    public:
-    HeuristicValOccs(Solver &s);
+    explicit HeuristicValOccs(Solver &s);
     int  select(Variable *x) override;
     void updateOccurrences(int array);
 };
