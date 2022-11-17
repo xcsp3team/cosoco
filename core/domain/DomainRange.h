@@ -40,7 +40,9 @@ class DomainRange : public Domain {
 
    public:
     // Constructors
-    DomainRange(int mn, int mx) : Domain(mx - mn + 1), min(mn), max(mx) { }
+    DomainRange(int mn, int mx) : Domain(mx - mn + 1), min(mn), max(mx) {
+        nAssignments.growTo(mx - mn  +1, 0);
+    }
 
     // Virtual Method conversion id to value
 

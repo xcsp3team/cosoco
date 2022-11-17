@@ -19,6 +19,7 @@ class DomainValue : public Domain {
             values.push(vals[i]);
             map[vals[i]] = i;
         }
+        nAssignments.growTo(vals.size(), 0);
     }
 
 

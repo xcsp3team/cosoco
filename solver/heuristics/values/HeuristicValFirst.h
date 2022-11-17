@@ -14,4 +14,4 @@ class HeuristicValFirst : public HeuristicVal {
 }   // namespace Cosoco
 
 
-#endif /* HEURISTICVARFIRST_H */
+#endif /* HEURISTICVALFIRST_H */

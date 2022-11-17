@@ -16,7 +16,9 @@ class Domain {
 
    protected:
     LinkedSet idvs;   // the set of elements
+
    public:
+    vec<int> nAssignments;
     // using const_iterator = LinkedSetIterator;
     using iterator = LinkedSetIterator;
     // using const_reverse_iterator = LinkedSetIterator;
@@ -32,7 +34,7 @@ class Domain {
     // Virtual Method conversion id to value
     virtual int toIdv(int v) = 0;
 
-    virtual  int toVal(int idv) = 0;
+    virtual int toVal(int idv) = 0;
 
 
     // Methods related to deletion of values

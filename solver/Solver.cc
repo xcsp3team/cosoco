@@ -231,6 +231,7 @@ void Solver::newDecision(Variable *x, int idv) {
     assignToIdv(x, idv);
     for(Constraint *c : x->constraints) c->assignVariable(x);
     notifyNewDecision(x);
+    x->domain.nAssignments[idv]++;
 }
 
 
