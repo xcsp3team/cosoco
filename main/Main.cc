@@ -43,6 +43,8 @@ BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
 // BoolOption optimize("SEARCH", "cop", "Run optimizer (needs an objective)", 0);
 BoolOption   orestarts("SEARCH", "restarts", "Enable restarts", 1);
 StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random, robin, occs, asgs)", "first");
+StringOption robin("SEARCH", "robin",
+                   "The order of robin (F (first), L(last), R(random), O(occs), A(asgs)), usefull only if val=robin", "FLR");
 StringOption hvr("SEARCH", "var", "Heuristic for values (wdeg, cacd)", "wdeg");
 
 BoolOption   annotations("SEARCH", "annotations", "Enable annotations (if any)", true);
@@ -144,12 +146,13 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "  --help        Print help message.\n");
                 exit(1);
             }
+            string tmp(robin);
             if(strcmp(hv, "rand") == 0)
                 S->heuristicVal = new HeuristicValRandom(*S);
             if(strcmp(hv, "last") == 0)
                 S->heuristicVal = new HeuristicValLast(*S);
             if(strcmp(hv, "robin") == 0)
-                S->heuristicVal = new HeuristicValRoundRobin(*S);
+                S->heuristicVal = new HeuristicValRoundRobin(*S, tmp);
             if(strcmp(hv, "occs") == 0)
                 S->heuristicVal = new HeuristicValOccs(*S);
             if(strcmp(hv, "asgs") == 0)
