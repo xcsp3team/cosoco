@@ -126,4 +126,7 @@ void Optimizer::displayCurrentSolution() {
 }
 
 
-void Optimizer::printFinalStats() { solver->printFinalStats(); }
+void Optimizer::printFinalStats() {
+    printf("c best bound            : %ld\n\n", bestCost());
+    solver->printFinalStats();
+}
