@@ -1396,6 +1396,21 @@ void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &
     }
 }
 
+void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list) {
+    for(int core = 0; core < nbcores; core++) {
+        toMyVariables(list, core);
+        std::set<int> values;
+        for(Variable* x : vars) {
+            for(int idv : x->domain)
+                values.insert(x->domain.toVal(idv));
+        }
+        vec<int> tmp;
+        for(int v : values)
+            tmp.push(v);
+        FactoryConstraints::createConstraintPrecedence(problems[core], id, vars, tmp);
+    }
+}
+
 void CosocoCallbacks::buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
                                               XCondition weightsCondition, XCondition &profitCondition) {
     buildConstraintSum(id, list, weights, weightsCondition);

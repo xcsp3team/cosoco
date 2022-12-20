@@ -415,6 +415,7 @@ namespace XCSP3Core {
 
         void buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values) override;
 
+        void buildConstraintPrecedence(string id, vector<XVariable *> &list) override;
 
         void buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
                                      XCondition weightsCondition, XCondition &profitCondition) override;
