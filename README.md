@@ -1,4 +1,4 @@
-  ## COSOCO: A COmpact SOlver for COnstraint problems
+  ## COSOCO: A COmpact SOlver for COnstrained problems
  
 ### Authors
  Gilles Audemard (audemard@cril.fr)
@@ -8,7 +8,7 @@ I  would like to thank him very warmly for his support. Indeed, this is the resu
 and most of the contraint propagators come from [ACE](https://github.com/xcsp3team/ace).
 
 ### Introduction
- Written in C++, cosoco is a small (less than 12,000 lines of code) constraint solver that deals with 
+ Written in C++, cosoco is a small (less than 12,000 lines of code)  solver that deals with 
  almost all constraints that forms the [XCSP3 core](http://xcsp.org):
  
   + The main data structures (related to CSP instances) contain around 600 loc.
@@ -65,13 +65,13 @@ and most of the contraint propagators come from [ACE](https://github.com/xcsp3te
    + scope
 
 ### Directories
-  + constraints: all constraints implemented. This directory contains subdirectories, named follow the name of constraints in XCSP specifications.
+  + constraints: all constraints implemented. This directory contains subdirectories ihiwh follow the structure of constraints in XCSP specifications.
   + core: the classes Domain, Problem, Variables  
-  + main: contains the XCSP3 Parser callback and the main file
+  + main: contains the main file
   + mtl: data structures, most of them come from minisat (thanks again to minisat team)
   + optimizer: the optimizer solver
   + solver: the solver, with observer, heuristics, restarts...
-  + utils: options, system, verbose... Some code comes from minisat...
+  + utils: options, system, verbose, the XCSP3 Parser callback (some files come from minisat)
 
 
 
