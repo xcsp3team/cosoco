@@ -31,9 +31,6 @@ bool Cumulative::isSatisfiedBy(vec<int> &tuple) {
             return false;
     }
     return true;
-    //    return IntStream.rangeClosed(min, max)
-    //            .allMatch(t -> IntStream.range(0, tuple.length).filter(i -> tuple[i] <= t && t < tuple[i] + lengths[i]).map(i ->
-    //            heights[i]).sum() <= limit);
 }
 
 
@@ -62,7 +59,6 @@ int Cumulative::buildTimeTable() {
         }
         offsets[me] -= heights[posx];
     }
-    // System.out.println(ticks);
     if(ticks.size() == 0)
         return 0;   // TRUE
     int nbRelevantTicks = 0;
@@ -70,11 +66,8 @@ int Cumulative::buildTimeTable() {
         if(offsets[i] != 0)
             slots[nbRelevantTicks++].start = i;
 
-
     sort(slots, nbRelevantTicks, CompareStart());
     nSlots = nbRelevantTicks - 1;
-    // System.out.println("nSlots=" + nSlots);
-
 
     int h = 0;
     for(int k = 0; k < nSlots; k++) {
@@ -86,7 +79,6 @@ int Cumulative::buildTimeTable() {
     }
 
     sort(slots, nSlots, CompareHeight());
-
     return 1;
 }
 
@@ -115,21 +107,6 @@ bool Cumulative::filter(Variable *dummy) {
             }
         }
     }
-    /*
-     * int smin = Integer.MAX_VALUE, emax = -1;
-    for(int j = futvars.limit; j >= 0; j--) {
-        int i = futvars.dense[j];
-        if(scp[i].dom.firstValue() < smin)
-            smin = scp[i].dom.firstValue();
-        if(emax < scp[i].dom.lastValue() + lengths[i])
-            emax = scp[i].dom.lastValue() + lengths[i];
-    }
-    int depth = pb.solver.depth();
-    for(int j = omega.limit; j >= 0; j--) {
-        int i = omega.dense[j];
-        if(scp[i].dom.size() == 1 && (scp[i].dom.lastValue() + lengths[i] <= smin || emax <= scp[i].dom.firstValue()))
-            omega.removeAtPosition(j, depth);
-    }*/
     return true;
 }
 
@@ -144,7 +121,6 @@ int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars, vec<int> &l) {
         if(vars[i]->maximum() + l[i] > h)
             h = vars[i]->maximum() + l[i];
     h++;
-
     return h;
 }
 
@@ -165,7 +141,6 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int
 
     l.copyTo(lengths);
     h.copyTo(heights);
-
     horizon = _horizon(vars, l);
     offsets.growTo(horizon);
     slots.growTo(horizon);
