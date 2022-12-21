@@ -47,8 +47,7 @@ bool Cumulative::isCorrectlyDefined() { return true; }
 int Cumulative::buildTimeTable() {
     ticks.clear();
 
-    for(int posx = 0; posx < scope.size(); posx++) {
-        // for(int posx : omega) {
+    for(int posx = 0; posx < variables.size(); posx++) {
         int ms = mandatoryStart(posx), me = mandatoryEnd(posx);
         if(me <= ms)
             continue;   // no mandatory part here
@@ -73,12 +72,12 @@ int Cumulative::buildTimeTable() {
 
 
     sort(slots, nbRelevantTicks, CompareStart());
-    m = nbRelevantTicks - 1;
-    // System.out.println("m=" + m);
+    nSlots = nbRelevantTicks - 1;
+    // System.out.println("nSlots=" + nSlots);
 
 
     int h = 0;
-    for(int k = 0; k < m; k++) {
+    for(int k = 0; k < nSlots; k++) {
         slots[k].height = h + offsets[slots[k].start];
         if(slots[k].height > limit)
             return -1;   // Boolean.FALSE;
@@ -86,7 +85,7 @@ int Cumulative::buildTimeTable() {
         h            = slots[k].height;
     }
 
-    sort(slots, m, CompareHeight());
+    sort(slots, nSlots, CompareHeight());
 
     return 1;
 }
@@ -99,20 +98,18 @@ bool Cumulative::filter(Variable *dummy) {
     if(b == 0)   // Nothing to do
         return true;
 
-    // for (int j = futvars.limit; j >= 0; j--) {
-    // int i = futvars.dense[j];
-    for(int posx = 0; posx < scope.size(); posx++) {
+    for(int posx = 0; posx < variables.size(); posx++) {
         int ms = mandatoryStart(posx), me = mandatoryEnd(posx);
-        for(int k = 0; k < m; k++) {
+        for(int k = 0; k < nSlots; k++) {
             if(slots[k].height + heights[posx] <= limit)
                 break;
             int rs = slots[k].start, re = slots[k].end;
             if(me <= ms) {   // if no mandatory part
-                if(solver->delValuesInRange(scope[posx], rs - lengths[posx] + 1, re) == false)
+                if(solver->delValuesInRange(variables[posx], rs - lengths[posx] + 1, re) == false)
                     return false;
             } else {
                 if(me <= rs || re <= ms) {   // if the rectangle and the mandatory parts are disjoint
-                    if(solver->delValuesInRange(scope[posx], rs - lengths[posx] + 1, re) == false)
+                    if(solver->delValuesInRange(variables[posx], rs - lengths[posx] + 1, re) == false)
                         return false;
                 }
             }
@@ -152,12 +149,22 @@ int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars, vec<int> &l) {
 }
 
 
-Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l, vec<int> &h, int lm)
-    : GlobalConstraint(p, n, "Cumulative", vars), ticks(_horizon(vars, l), false), omega(vars.size(), true) {
+Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l, vec<int> &h, int lm, Variable* limitV)
+    : GlobalConstraint(p, n, "Cumulative", limitV == nullptr ? vars.size() : vars.size() + 1), ticks(_horizon(vars, l), false), omega(vars.size(), true) {
     limit = lm;
+
+    vars.copyTo(variables);
+
+    // Initialize in case condition is limit
+    // TODO : Refactor... too ugly
+    if(limitV != nullptr)
+        vars.push(limitV);
+    scopeInitialisation(vars);
+    if(limitV != nullptr)
+        vars.pop();
+
     l.copyTo(lengths);
     h.copyTo(heights);
-
 
     horizon = _horizon(vars, l);
     offsets.growTo(horizon);

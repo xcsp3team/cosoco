@@ -24,34 +24,24 @@ class Slot {
 
 class Cumulative : public GlobalConstraint {
    protected:
+    vec<Variable*> variables;
     vec<int> lengths;
-
     vec<int> heights;
 
     int limit;
-
     int horizon;
 
     SparseSet ticks;
-
     vec<int> offsets;
-
     vec<Slot> slots;
-
-    int m;
+    int nSlots;
 
     SparseSetMultiLevel omega;
 
     int _horizon(vec<Variable *> &, vec<int> &l);
-
-
-    int mandatoryStart(int i) { return scope[i]->maximum(); }
-
-
-    int mandatoryEnd(int i) { return scope[i]->minimum() + lengths[i]; }
-
+    int mandatoryStart(int i) { return variables[i]->maximum(); }
+    int mandatoryEnd(int i) { return variables[i]->minimum() + lengths[i]; }
     int buildTimeTable();
-
 
     struct CompareStart {
         bool operator()(Slot t1, Slot t2) { return t1.start < t2.start; }
@@ -62,14 +52,13 @@ class Cumulative : public GlobalConstraint {
     };
 
    public:
-    Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<int> &, int);
+    Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<int> &, int, Variable* limitV = nullptr);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
-
     bool isCorrectlyDefined() override;
 };
 }   // namespace Cosoco

@@ -99,8 +99,8 @@ class Domain {
     // return the next valid index in the domain, -1 if none exists (in such a case, idx is equal to the max
     /*inline int nextValidIndex(int currentIdv) {
         assert(size() > 0);
-        int m = maximum();
-        if(toIdv(m) == currentIdv) return -1;
+        int nSlots = maximum();
+        if(toIdv(nSlots) == currentIdv) return -1;
         for(int idv = currentIdv + 1; idv < maxSize(); idv++) {
             if(containsIdv(idv))
                 return idv;

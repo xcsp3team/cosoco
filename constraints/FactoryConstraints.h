@@ -14,6 +14,7 @@
 #include <regex>
 
 #include "Constraint.h"
+#include "CumulativeConditionVariable.h"
 #include "Precedence.h"
 #include "XCSP3Constants.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
@@ -674,6 +675,10 @@ class FactoryConstraints {
     //--------------------------------------------------------------------------------------
     // Packing constraints
     //--------------------------------------------------------------------------------------
+    static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
+                                           vec<int> &heights, Variable * limit) {
+        p->addConstraint(new CumulativeConditionVariable(*p, name, vars, lengths, heights, limit));
+    }
 
     static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
                                            vec<int> &heights, int limit) {

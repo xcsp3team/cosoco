@@ -1367,9 +1367,11 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         vals.copyTo(l);
         vector2vec(heights);
         vals.copyTo(h);
-
         toMyVariables(origins, vars, core);
-        FactoryConstraints::createConstraintCumulative(problems[core], id, vars, l, h, xc.val);
+        if(xc.operandType == VARIABLE) {
+            FactoryConstraints::createConstraintCumulative(problems[core], id, vars, l, h, problems[core]->mapping[xc.var]);
+        } else
+            FactoryConstraints::createConstraintCumulative(problems[core], id, vars, l, h, xc.val);
     }
 }
 

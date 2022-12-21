@@ -4,7 +4,7 @@
 %%
 %% \CharacterTable
 %%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
-%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\nSlots\n\o\p\q\r\s\t\u\v\w\x\y\z
 %%   Digits        \0\1\2\3\4\5\6\7\8\9
 %%   Exclamation   \!     Double quote  \"     Hash (number) \#
 %%   Dollar        \$     Percent       \%     Ampersand     \&
@@ -68,7 +68,7 @@
      \@tempdima #3\relax
      \advance\leftskip \@tempdima \null\nobreak\hskip -\leftskip
      {#4}\nobreak
-     \leaders\hbox{$\m@th
+     \leaders\hbox{$\nSlots@th
         \mkern \@dotsep mu\hbox{.}\mkern \@dotsep
         mu$}\hfill
      \nobreak
@@ -287,7 +287,7 @@
                     \global\@topnum\z@
                     \@afterindentfalse
                     \secdef\@chapter\@schapter}
-\def\@chapter[#1]#2{\ifnum \c@secnumdepth >\m@ne
+\def\@chapter[#1]#2{\ifnum \c@secnumdepth >\nSlots@ne
                        \if@mainmatter
                          \refstepcounter{chapter}%
                          \typeout{\@chapapp\space\thechapter.}%
@@ -311,7 +311,7 @@
 \def\@makechapterhead#1{%
 % \vspace*{50\p@}%
   {\centering
-    \ifnum \c@secnumdepth >\m@ne
+    \ifnum \c@secnumdepth >\nSlots@ne
       \if@mainmatter
         \large\bfseries \@chapapp{} \thechapter
         \par\nobreak
@@ -502,7 +502,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
               \partopsep \p@ \@plus\z@ \@minus\p@}
 
 \renewcommand\labelitemi{\normalfont\bfseries --}
-\renewcommand\labelitemii{$\m@th\bullet$}
+\renewcommand\labelitemii{$\nSlots@th\bullet$}
 
 \setlength\arraycolsep{1.4\p@}
 \setlength\tabcolsep{1.4\p@}
@@ -574,7 +574,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
  {\large\bfseries\boldmath#1}\ifx0#2\hfil\null
  \else
       \nobreak
-      \leaders\hbox{$\m@th \mkern \@dotsep mu.\mkern
+      \leaders\hbox{$\nSlots@th \mkern \@dotsep mu.\mkern
       \@dotsep mu$}\hfill
       \nobreak\hbox to\@pnumwidth{\hss #2}%
  \fi\par
@@ -589,7 +589,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
  \parfillskip -\rightskip \pretolerance=10000
  \leavevmode \advance\leftskip\@tempdima \hskip -\leftskip
  #1\nobreak
- \leaders\hbox{$\m@th \mkern \@dotsep mu.\mkern
+ \leaders\hbox{$\nSlots@th \mkern \@dotsep mu.\mkern
  \@dotsep mu$}\hfill
  \nobreak\hbox to\@pnumwidth{\hss #2}\par
  \penalty\@highpenalty \endgroup}
@@ -685,7 +685,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
         \renewcommand\newblock{\hskip .11em \@plus.33em \@minus.07em}%
       \fi
       \sloppy\clubpenalty4000\widowpenalty4000%
-      \sfcode`\.=\@m}
+      \sfcode`\.=\@nSlots}
      {\def\@noitemerr
        {\@latex@warning{Empty `thebibliography' environment}}%
       \endlist}
@@ -694,25 +694,25 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
      \write\@auxout{\string\bibcite{#2}{#1}}}\fi\ignorespaces}
 \newcount\@tempcntc
 \def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
-  \@tempcnta\z@\@tempcntb\m@ne\def\@citea{}\@cite{\@for\@citeb:=#2\do
+  \@tempcnta\z@\@tempcntb\nSlots@ne\def\@citea{}\@cite{\@for\@citeb:=#2\do
     {\@ifundefined
-       {b@\@citeb}{\@citeo\@tempcntb\m@ne\@citea\def\@citea{,}{\bfseries
+       {b@\@citeb}{\@citeo\@tempcntb\nSlots@ne\@citea\def\@citea{,}{\bfseries
         ?}\@warning
        {Citation `\@citeb' on page \thepage \space undefined}}%
     {\setbox\z@\hbox{\global\@tempcntc0\csname b@\@citeb\endcsname\relax}%
-     \ifnum\@tempcntc=\z@ \@citeo\@tempcntb\m@ne
+     \ifnum\@tempcntc=\z@ \@citeo\@tempcntb\nSlots@ne
        \@citea\def\@citea{,}\hbox{\csname b@\@citeb\endcsname}%
      \else
       \advance\@tempcntb\@ne
       \ifnum\@tempcntb=\@tempcntc
-      \else\advance\@tempcntb\m@ne\@citeo
+      \else\advance\@tempcntb\nSlots@ne\@citeo
       \@tempcnta\@tempcntc\@tempcntb\@tempcntc\fi\fi}}\@citeo}{#1}}
 \def\@citeo{\ifnum\@tempcnta>\@tempcntb\else
                \@citea\def\@citea{,\,\hskip\z@skip}%
                \ifnum\@tempcnta=\@tempcntb\the\@tempcnta\else
                {\advance\@tempcnta\@ne\ifnum\@tempcnta=\@tempcntb \else
                 \def\@citea{--}\fi
-      \advance\@tempcnta\m@ne\the\@tempcnta\@citea\the\@tempcntb}\fi\fi}
+      \advance\@tempcnta\nSlots@ne\the\@tempcnta\@citea\the\@tempcntb}\fi\fi}
 \else
 \renewenvironment{thebibliography}[1]
      {\section*{\refname}
@@ -737,7 +737,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
         \renewcommand\newblock{\hskip .11em \@plus.33em \@minus.07em}%
       \fi
       \sloppy\clubpenalty4000\widowpenalty4000%
-      \sfcode`\.=\@m}
+      \sfcode`\.=\@nSlots}
      {\def\@noitemerr
        {\@latex@warning{Empty `thebibliography' environment}}%
       \endlist}
