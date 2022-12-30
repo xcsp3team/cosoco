@@ -21,7 +21,8 @@ bool AtLeastK::isSatisfiedBy(vec<int> &tuple) {
 
 bool AtLeastK::isCorrectlyDefined() {
     if(k < 1 || k > scope.size())
-        throw std::logic_error("Constraint " + std::to_string(idc) + ": Atleast must have 1<=k <= size(list)");
+        throw std::logic_error("Constraint " + std::to_string(idc) +
+                               ": Atleast must have 1<=k <= size(list) (k=" + std::to_string(k) + ")");
     for(Variable *x : scope)
         if(x->containsValue(value) == false)
             throw std::logic_error("Constraint " + std::to_string(idc) + ": AtLeast, all variables must contain value");

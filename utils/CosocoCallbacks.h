@@ -20,449 +20,424 @@ using namespace std;
 
 namespace XCSP3Core {
 
-    class CosocoCallbacks : public XCSP3CoreCallbacks {
-    protected:
-        vec<int> &vector2vec(vector<int> &src) {
-            vals.clear();
-            vals.growTo(src.size());
-            for (unsigned int i = 0; i < src.size(); i++) vals[i] = src[i];
-            return vals;
+class CosocoCallbacks : public XCSP3CoreCallbacks {
+   protected:
+    vec<int> &vector2vec(vector<int> &src) {
+        vals.clear();
+        vals.growTo(src.size());
+        for(unsigned int i = 0; i < src.size(); i++) vals[i] = src[i];
+        return vals;
+    }
+
+
+    vec<Variable *> &toMyVariables(vector<XVariable *> &src, vec<Variable *> &dest, int coreNumber) {
+        dest.clear();
+        for(unsigned int i = 0; i < src.size(); i++) dest.push(problems[coreNumber]->mapping[src[i]->id]);
+        return dest;
+    }
+
+
+    vec<Variable *> &toMyVariables(vector<XVariable *> &src, int coreNumber) { return toMyVariables(src, vars, coreNumber); }
+
+
+    Range possibleValuesForExpressionInRange(Node *node) {
+        if(XCSP3Core::isPredicateOperator(node->type))
+            return {0, 1};
+
+        if(node->type == OVAR) {
+            auto     *nx = dynamic_cast<NodeVariable *>(node);
+            Variable *x  = problems[0]->mapping[nx->var];
+            return {x->minimum(), x->maximum()};
+        }
+        if(node->type == ODECIMAL) {
+            auto *nx = dynamic_cast<NodeConstant *>(node);
+            return {nx->val, nx->val};
         }
 
+        assert(node->parameters.size() > 0);   // To be sure
+        vec<Range> ranges;
 
-        vec<Variable *> &toMyVariables(vector<XVariable *> &src, vec<Variable *> &dest, int coreNumber) {
-            dest.clear();
-            for (unsigned int i = 0; i < src.size(); i++) dest.push(problems[coreNumber]->mapping[src[i]->id]);
-            return dest;
-        }
+        for(Node *n : node->parameters) ranges.push(possibleValuesForExpressionInRange(n));
 
+        if(node->type == ONEG)
+            return ranges[0].negRange();
 
-        vec<Variable *> &toMyVariables(vector<XVariable *> &src, int coreNumber) {
-            return toMyVariables(src, vars, coreNumber);
-        }
+        if(node->type == OABS)
+            return ranges[0].absRange();
 
+        if(node->type == OSQR)
+            return {ranges[0].min * ranges[0].min, ranges[0].max * ranges[0].max};
 
-        Range possibleValuesForExpressionInRange(Node *node) {
-            if (XCSP3Core::isPredicateOperator(node->type))
-                return {0, 1};
+        assert(ranges.size() > 1);
 
-            if (node->type == OVAR) {
-                auto *nx = dynamic_cast<NodeVariable *>(node);
-                Variable *x = problems[0]->mapping[nx->var];
-                return {x->minimum(), x->maximum()};
-            }
-            if (node->type == ODECIMAL) {
-                auto *nx = dynamic_cast<NodeConstant *>(node);
-                return {nx->val, nx->val};
-            }
+        if(node->type == OSUB)
+            return ranges[0].addRange(ranges[1].negRange());
 
-            assert(node->parameters.size() > 0);   // To be sure
-            vec<Range> ranges;
-
-            for (Node *n: node->parameters) ranges.push(possibleValuesForExpressionInRange(n));
-
-            if (node->type == ONEG)
-                return ranges[0].negRange();
-
-            if (node->type == OABS)
-                return ranges[0].absRange();
-
-            if (node->type == OSQR)
-                return {ranges[0].min * ranges[0].min, ranges[0].max * ranges[0].max};
-
-            assert(ranges.size() > 1);
-
-            if (node->type == OSUB)
-                return ranges[0].addRange(ranges[1].negRange());
-
-            if (node->type == ODIV) {
-                assert(false);
-            }
-
-            if (node->type == OMOD) {
-                return {0, ranges[1].max};
-            }
-
-
-            if (node->type == OPOW) {
-                assert(false);
-            }
-
-            if (node->type == ODIST)
-                return ranges[0].addRange(ranges[1].negRange()).absRange();
-
-
-            if (node->type == OADD) {
-                int mn = 0, mx = 0;
-                for (Range r: ranges) {
-                    mn += r.min;
-                    mx += r.max;
-                }
-                return {mn, mx};
-            }
-
-
-            if (node->type == OMUL) {
-                int a, b, c, d;
-                int min = ranges[0].min;
-                int max = ranges[0].max;
-                for (int i = 1; i < ranges.size(); i++) {
-                    a = min * ranges[i].min;
-                    b = min * ranges[i].max;
-                    c = max * ranges[i].min;
-                    d = max * ranges[i].max;
-                    min = std::min({a, b, c, d});
-                    max = std::max({a, b, c, d});
-                }
-                return {min, max};
-            }
-
-
-            if (node->type == OMIN) {
-                int mn = ranges[0].min, mx = ranges[0].max;
-                for (Range &r: ranges) {
-                    mn = mn > r.min ? r.min : mn;
-                    mx = mx > r.max ? r.max : mx;
-                }
-                return {mn, mx};
-            }
-
-            if (node->type == OMAX) {
-                int mn = ranges[0].min, mx = ranges[0].max;
-                for (Range &r: ranges) {
-                    mn = mn < r.min ? r.min : mn;
-                    mx = mx < r.max ? r.max : mx;
-                }
-                return {mn, mx};
-            }
-
-
-            if (node->type == OIF) {
-                assert(false);
-            }
-
+        if(node->type == ODIV) {
             assert(false);
-            return Range(0, 0);   // Avoid warning
+        }
+
+        if(node->type == OMOD) {
+            return {0, ranges[1].max};
         }
 
 
-        void possibleValuesForExpression(Tree *tree, std::map<std::string, int> &tuple, set<int> &values, int idx) {
-            if (((unsigned int) idx) == tree->listOfVariables.size()) {
-                values.insert(tree->evaluate(tuple));
-                return;
+        if(node->type == OPOW) {
+            assert(false);
+        }
+
+        if(node->type == ODIST)
+            return ranges[0].addRange(ranges[1].negRange()).absRange();
+
+
+        if(node->type == OADD) {
+            int mn = 0, mx = 0;
+            for(Range r : ranges) {
+                mn += r.min;
+                mx += r.max;
             }
-            Variable *x = problems[0]->mapping[tree->listOfVariables[idx]];   // Take core 0 is ok
-            for (int idv: x->domain) {
-                tuple[tree->listOfVariables[idx]] = x->domain.toVal(idv);
-                possibleValuesForExpression(tree, tuple, values, idx + 1);
-            }
+            return {mn, mx};
         }
 
 
-        bool insideGroup;
-        int nbIntension;
-        bool inArray;
-        int i2eNumber;
-        int nbMDD;
-        vec<Variable *> vars;   // Not so beautiful, but efficient...
-        vec<int> vals;   // Avoid std::move and save lines...
-        bool startToParseObjective;
-        int auxiliaryIdx;
-        map<string, string> expressionsToAuxiliaryVariables;
-        vector<XVariable *> previousArgument;
-        int nbIntension2Extention, nbSharedIntension2Extension;
+        if(node->type == OMUL) {
+            int a, b, c, d;
+            int min = ranges[0].min;
+            int max = ranges[0].max;
+            for(int i = 1; i < ranges.size(); i++) {
+                a   = min * ranges[i].min;
+                b   = min * ranges[i].max;
+                c   = max * ranges[i].min;
+                d   = max * ranges[i].max;
+                min = std::min({a, b, c, d});
+                max = std::max({a, b, c, d});
+            }
+            return {min, max};
+        }
 
-    public:
-        int nbcores;
-        int intension2extensionLimit;
-        vec<Cosoco::Problem *> problems;
-        bool optimizationProblem;
-        bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
-        vec <vec<Variable *>> decisionVariables;
-        int nbInitialsVariables;
 
+        if(node->type == OMIN) {
+            int mn = ranges[0].min, mx = ranges[0].max;
+            for(Range &r : ranges) {
+                mn = mn > r.min ? r.min : mn;
+                mx = mx > r.max ? r.max : mx;
+            }
+            return {mn, mx};
+        }
 
-        CosocoCallbacks(int ncores, int i2e) : startToParseObjective(false), nbcores(ncores),
-                                               intension2extensionLimit(i2e) {}
+        if(node->type == OMAX) {
+            int mn = ranges[0].min, mx = ranges[0].max;
+            for(Range &r : ranges) {
+                mn = mn < r.min ? r.min : mn;
+                mx = mx < r.max ? r.max : mx;
+            }
+            return {mn, mx};
+        }
 
 
-        void beginInstance(InstanceType type) override;
+        if(node->type == OIF) {
+            assert(false);
+        }
 
+        assert(false);
+        return Range(0, 0);   // Avoid warning
+    }
 
-        void endInstance() override;
 
+    void possibleValuesForExpression(Tree *tree, std::map<std::string, int> &tuple, set<int> &values, int idx) {
+        if(((unsigned int)idx) == tree->listOfVariables.size()) {
+            values.insert(tree->evaluate(tuple));
+            return;
+        }
+        Variable *x = problems[0]->mapping[tree->listOfVariables[idx]];   // Take core 0 is ok
+        for(int idv : x->domain) {
+            tuple[tree->listOfVariables[idx]] = x->domain.toVal(idv);
+            possibleValuesForExpression(tree, tuple, values, idx + 1);
+        }
+    }
 
-        void buildVariableInteger(string id, int minValue, int maxValue) override;
 
-        void buildVariableInteger(string id, vector<int> &values) override;
+    bool                insideGroup;
+    int                 nbIntension;
+    bool                inArray;
+    int                 i2eNumber;
+    int                 nbMDD;
+    vec<Variable *>     vars;   // Not so beautiful, but efficient...
+    vec<int>            vals;   // Avoid std::move and save lines...
+    bool                startToParseObjective;
+    int                 auxiliaryIdx;
+    map<string, string> expressionsToAuxiliaryVariables;
+    vector<XVariable *> previousArgument;
+    int                 nbIntension2Extention, nbSharedIntension2Extension;
 
-        void beginVariableArray(string id) override;
+   public:
+    int                    nbcores;
+    int                    intension2extensionLimit;
+    vec<Cosoco::Problem *> problems;
+    bool                   optimizationProblem;
+    bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
+    vec<vec<Variable *>> decisionVariables;
+    int                  nbInitialsVariables;
 
-        void endVariableArray() override;
 
+    CosocoCallbacks(int ncores, int i2e) : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) { }
 
-        void endVariables() override;
 
-        void initGroups();
+    void beginInstance(InstanceType type) override;
 
-        void beginGroup(string name) override;
 
-        void endGroup() override;
+    void endInstance() override;
 
-        void beginSlide(string id, bool circular) override;
 
-        void endSlide() override;
+    void buildVariableInteger(string id, int minValue, int maxValue) override;
 
-        void beginBlock(string classes) override;
+    void buildVariableInteger(string id, vector<int> &values) override;
 
-        void endBlock() override;
+    void beginVariableArray(string id) override;
 
-        void beginObjectives() override;
+    void endVariableArray() override;
 
 
-        //--------------------------------------------------------------------------------------
-        // Basic constraints
-        //--------------------------------------------------------------------------------------
+    void endVariables() override;
 
+    void initGroups();
 
-        void
-        buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
-                                 bool hasStar) override;
+    void beginGroup(string name) override;
 
+    void endGroup() override;
 
-        void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples,
-                                       bool support,
-                                       bool hasStar, int core) const;
+    void beginSlide(string id, bool circular) override;
 
-        void buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support,
-                                      bool hasStar) override;
+    void endSlide() override;
 
-        void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
+    void beginBlock(string classes) override;
 
-        void buildConstraintIntension(string id, Tree *tree) override;
+    void endBlock() override;
 
-        void buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k, XVariable *y) override;
+    void beginObjectives() override;
 
-        void
-        buildConstraintPrimitive(string id, OrderType op, XVariable *xx, int k) override;   // x op k op is <= or >=
 
-        void buildConstraintPrimitive(string id, XVariable *xx, bool in, int min,
-                                      int max) override;   // x in/notin [min,max]
+    //--------------------------------------------------------------------------------------
+    // Basic constraints
+    //--------------------------------------------------------------------------------------
 
-        void buildConstraintMult(string id, XVariable *x, XVariable *y, XVariable *z) override;
 
+    void buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
+                                  bool hasStar) override;
 
-        //--------------------------------------------------------------------------------------
-        // Language  constraints
-        //--------------------------------------------------------------------------------------
 
-        Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list, int core);
+    void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples, bool support,
+                                   bool hasStar, int core) const;
 
-        void buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) override;
+    void buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support, bool hasStar) override;
 
-        void buildConstraintRegular(string id, vector<XVariable *> &list, string start, vector<string> &final,
-                                    vector<XTransition> &transitions) override;
+    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
 
-        //--------------------------------------------------------------------------------------
-        // Graph constraints
-        //--------------------------------------------------------------------------------------
+    void buildConstraintIntension(string id, Tree *tree) override;
 
-        void buildConstraintCircuit(string id, vector<XVariable *> &list, int startIndex) override;
+    void buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k, XVariable *y) override;
 
-        //--------------------------------------------------------------------------------------
-        // Comparison constraints
-        //--------------------------------------------------------------------------------------
+    void buildConstraintPrimitive(string id, OrderType op, XVariable *xx, int k) override;   // x op k op is <= or >=
 
-        void buildConstraintAlldifferent(string id, vector<XVariable *> &list) override;
+    void buildConstraintPrimitive(string id, XVariable *xx, bool in, int min,
+                                  int max) override;   // x in/notin [min,max]
 
-        void buildConstraintAlldifferentExcept(string id, vector<XVariable *> &list, vector<int> &except) override;
+    void buildConstraintMult(string id, XVariable *x, XVariable *y, XVariable *z) override;
 
-        void buildConstraintAlldifferent(string id, vector<Tree *> &trees) override;
 
-        void buildConstraintAlldifferentList(string id, vector<vector<XVariable *>> &origlists) override;
+    //--------------------------------------------------------------------------------------
+    // Language  constraints
+    //--------------------------------------------------------------------------------------
 
-        void buildConstraintAlldifferentMatrix(string id, vector<vector<XVariable *>> &matrix) override;
+    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list, int core);
 
-        void buildConstraintAllEqual(string id, vector<XVariable *> &list) override;
+    void buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) override;
 
-        void buildConstraintNotAllEqual(string id, vector<XVariable *> &list) override;
+    void buildConstraintRegular(string id, vector<XVariable *> &list, string start, vector<string> &final,
+                                vector<XTransition> &transitions) override;
 
-        void buildConstraintOrdered(string id, vector<XVariable *> &list, OrderType order) override;
+    //--------------------------------------------------------------------------------------
+    // Graph constraints
+    //--------------------------------------------------------------------------------------
 
-        void
-        buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) override;
+    void buildConstraintCircuit(string id, vector<XVariable *> &list, int startIndex) override;
 
-        void buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) override;
+    //--------------------------------------------------------------------------------------
+    // Comparison constraints
+    //--------------------------------------------------------------------------------------
 
-        void buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) override;
+    void buildConstraintAlldifferent(string id, vector<XVariable *> &list) override;
 
+    void buildConstraintAlldifferentExcept(string id, vector<XVariable *> &list, vector<int> &except) override;
 
-        //--------------------------------------------------------------------------------------
-        // Summing and counting constraints
-        //--------------------------------------------------------------------------------------
+    void buildConstraintAlldifferent(string id, vector<Tree *> &trees) override;
 
-        void buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) override;
+    void buildConstraintAlldifferentList(string id, vector<vector<XVariable *>> &origlists) override;
 
-        void buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) override;
+    void buildConstraintAlldifferentMatrix(string id, vector<vector<XVariable *>> &matrix) override;
 
-        void buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc, int core);
+    void buildConstraintAllEqual(string id, vector<XVariable *> &list) override;
 
-        void
-        buildConstraintSum(string id, vector<XVariable *> &list, vector<XVariable *> &coeffs, XCondition &xc) override;
+    void buildConstraintNotAllEqual(string id, vector<XVariable *> &list) override;
 
-        void buildConstraintSum(string id, vector<Tree *> &trees, XCondition &cond) override;
+    void buildConstraintOrdered(string id, vector<XVariable *> &list, OrderType order) override;
 
-        void buildConstraintSum(string id, vector<Tree *> &trees, vector<int> &coefs, XCondition &cond) override;
+    void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) override;
 
-        void buildConstraintAtMost(string id, vector<XVariable *> &list, int value, int k) override;
+    void buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) override;
 
-        void buildConstraintAtLeast(string id, vector<XVariable *> &list, int value, int k) override;
+    void buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) override;
 
-        void buildConstraintExactlyK(string id, vector<XVariable *> &list, int value, int k) override;
 
-        void buildConstraintExactlyVariable(string id, vector<XVariable *> &list, int value, XVariable *x) override;
+    //--------------------------------------------------------------------------------------
+    // Summing and counting constraints
+    //--------------------------------------------------------------------------------------
 
-        void buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) override;
+    void buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) override;
 
-        void buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values,
-                                  XCondition &xc) override;
+    void buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) override;
 
-        void buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) override;
+    void buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc, int core);
 
-        void
-        buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) override;
+    void buildConstraintSum(string id, vector<XVariable *> &list, vector<XVariable *> &coeffs, XCondition &xc) override;
 
-        void
-        buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
-                                   bool closed) override;
+    void buildConstraintSum(string id, vector<Tree *> &trees, XCondition &cond) override;
 
-        void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
-                                        vector<XVariable *> &varOccurs,
-                                        bool closed) override;
+    void buildConstraintSum(string id, vector<Tree *> &trees, vector<int> &coefs, XCondition &cond) override;
 
-        void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
-                                        vector<XInterval> &intervalOccurs,
-                                        bool closed) override;
+    void buildConstraintAtMost(string id, vector<XVariable *> &list, int value, int k) override;
 
-        //--------------------------------------------------------------------------------------
-        // Connection constraints
-        //--------------------------------------------------------------------------------------
+    void buildConstraintAtLeast(string id, vector<XVariable *> &list, int value, int k) override;
 
-        static string createExpression(string minmax, OrderType op, vector<XVariable *> &list, string value);
+    void buildConstraintExactlyK(string id, vector<XVariable *> &list, int value, int k) override;
 
-        void buildConstraintMaximum(string id, vector<Tree *> &list, XCondition &xc) override;
+    void buildConstraintExactlyVariable(string id, vector<XVariable *> &list, int value, XVariable *x) override;
 
-        void buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) override;
+    void buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) override;
 
-        void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override;
+    void buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) override;
 
-        void buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) override;
+    void buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) override;
 
-        void
-        buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index, RankType rank,
-                               int value) override;
+    void buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) override;
 
-        void
-        buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index, RankType rank,
-                               XVariable *value) override;
+    void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
+                                    bool closed) override;
 
-        void buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
-                                    XVariable *value) override;
+    void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<XVariable *> &varOccurs,
+                                    bool closed) override;
 
-        void buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
-                                    XCondition &xc) override;
+    void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<XInterval> &intervalOccurs,
+                                    bool closed) override;
 
-        void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex,
-                                    int startColIndex,
-                                    XVariable *colIndex, XVariable *value) override;
+    //--------------------------------------------------------------------------------------
+    // Connection constraints
+    //--------------------------------------------------------------------------------------
 
+    static string createExpression(string minmax, OrderType op, vector<XVariable *> &list, string value);
 
-        void
-        buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex, XVariable *rowIndex,
-                               int startColIndex, XVariable *colIndex, int value) override;
+    void buildConstraintMaximum(string id, vector<Tree *> &list, XCondition &xc) override;
 
+    void buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) override;
 
-        void buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
-                                    int startIndex2) override;
+    void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override;
 
-        void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex, XVariable *value) override;
+    void buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) override;
 
-        //--------------------------------------------------------------------------------------
-        // packing and schedulling constraints
-        //--------------------------------------------------------------------------------------
+    void buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index, RankType rank,
+                                int value) override;
 
+    void buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index, RankType rank,
+                                XVariable *value) override;
 
-        void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<int> &lengths,
-                                      bool zeroIgnored) override;
+    void buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
+                                XVariable *value) override;
 
-        void
-        buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<XVariable *>> &lengths,
-                                 bool zeroIgnored) override;
+    void buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex, XCondition &xc) override;
 
-        void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<int>> &lengths,
-                                      bool zeroIgnored) override;
+    void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex, int startColIndex,
+                                XVariable *colIndex, XVariable *value) override;
 
-        void
-        buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths, vector<int> &heights,
-                                  XCondition &xc) override;
 
+    void buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex, XVariable *rowIndex,
+                                int startColIndex, XVariable *colIndex, int value) override;
 
-        //--------------------------------------------------------------------------------------
-        // Instantiation constraint
-        //--------------------------------------------------------------------------------------
 
-        void buildConstraintInstantiation(string id, vector<XVariable *> &list, vector<int> &values) override;
+    void buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
+                                int startIndex2) override;
 
-        void buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values) override;
+    void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex, XVariable *value) override;
 
-        void buildConstraintPrecedence(string id, vector<XVariable *> &list) override;
+    //--------------------------------------------------------------------------------------
+    // packing and schedulling constraints
+    //--------------------------------------------------------------------------------------
 
-        void buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
-                                     XCondition weightsCondition, XCondition &profitCondition) override;
 
-        void buildConstraintFlow(string id, vector<XVariable *> &list, vector<int> &balance, vector<int> &weights,
-                                 vector<vector<int>> &arcs, XCondition &xc) override;
+    void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<int> &lengths, bool zeroIgnored) override;
 
-        //--------------------------------------------------------------------------------------
-        // Objectives
-        //--------------------------------------------------------------------------------------
+    void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<XVariable *>> &lengths,
+                                  bool zeroIgnored) override;
 
-        void buildObjectiveMinimizeExpression(string expr) override;
+    void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<int>> &lengths,
+                                  bool zeroIgnored) override;
 
-        void buildObjectiveMaximizeExpression(string expr) override;
+    void buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths, vector<int> &heights,
+                                   XCondition &xc) override;
 
-        void buildObjectiveMinimizeVariable(XVariable *x) override;
+    void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) override;
 
-        void buildObjectiveMaximizeVariable(XVariable *x) override;
+    //--------------------------------------------------------------------------------------
+    // Instantiation constraint
+    //--------------------------------------------------------------------------------------
 
-        void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list) override;
+    void buildConstraintInstantiation(string id, vector<XVariable *> &list, vector<int> &values) override;
 
-        void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) override;
+    void buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values) override;
 
-        void
-        buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+    void buildConstraintPrecedence(string id, vector<XVariable *> &list) override;
 
-        void
-        buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
+    void buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
+                                 XCondition weightsCondition, XCondition &profitCondition) override;
 
-        void
-        buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+    void buildConstraintFlow(string id, vector<XVariable *> &list, vector<int> &balance, vector<int> &weights,
+                             vector<vector<int>> &arcs, XCondition &xc) override;
 
-        void
-        buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
+    //--------------------------------------------------------------------------------------
+    // Objectives
+    //--------------------------------------------------------------------------------------
 
-        void createAuxiliaryVariablesAndExpressions(vector<Tree *> &trees, vector<string> &auxiliaryVariables);
+    void buildObjectiveMinimizeExpression(string expr) override;
 
-        void buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) override;
+    void buildObjectiveMaximizeExpression(string expr) override;
 
-        void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) override;
+    void buildObjectiveMinimizeVariable(XVariable *x) override;
 
-        void buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees) override;
+    void buildObjectiveMaximizeVariable(XVariable *x) override;
 
-        void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees) override;
+    void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list) override;
 
-        void buildAnnotationDecision(vector<XVariable *> &list) override;
-    };
+    void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) override;
+
+    void buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+
+    void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
+
+    void buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+
+    void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
+
+    void createAuxiliaryVariablesAndExpressions(vector<Tree *> &trees, vector<string> &auxiliaryVariables);
+
+    void buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) override;
+
+    void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) override;
+
+    void buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees) override;
+
+    void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees) override;
+
+    void buildAnnotationDecision(vector<XVariable *> &list) override;
+};
 
 
 }   // namespace XCSP3Core

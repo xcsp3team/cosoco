@@ -1375,6 +1375,25 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
     }
 }
 
+
+void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        vec<int> s;
+        vector2vec(sizes);
+        vals.copyTo(s);
+        toMyVariables(list, vars, core);
+        if(cond.operandType == VARIABLE)
+            throw std::runtime_error("Bin packoing with variable in condition is not yet supported");
+        if(cond.op != LE)
+            throw std::runtime_error("Bin packoing with condition not LEis not yet supported");
+        vec<int> limits;
+
+        limits.growTo(vars[0]->domain.maxSize(), cond.val);
+        FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, limits);
+    }
+}
+
 //--------------------------------------------------------------------------------------
 // Instantiation constraint
 //--------------------------------------------------------------------------------------
@@ -1402,13 +1421,11 @@ void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &
     for(int core = 0; core < nbcores; core++) {
         toMyVariables(list, core);
         std::set<int> values;
-        for(Variable* x : vars) {
-            for(int idv : x->domain)
-                values.insert(x->domain.toVal(idv));
+        for(Variable *x : vars) {
+            for(int idv : x->domain) values.insert(x->domain.toVal(idv));
         }
         vec<int> tmp;
-        for(int v : values)
-            tmp.push(v);
+        for(int v : values) tmp.push(v);
         FactoryConstraints::createConstraintPrecedence(problems[core], id, vars, tmp);
     }
 }

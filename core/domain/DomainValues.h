@@ -28,6 +28,10 @@ class DomainValue : public Domain {
 
 
     int toVal(int idv) override { return values[idv]; }
+
+    bool isIndexesAreValues() override {
+        return minimum() == 0 && maximum() == maxSize();
+    }
 };
 }   // namespace Cosoco
 #endif

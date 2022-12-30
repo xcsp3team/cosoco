@@ -13,6 +13,7 @@
 #include <iostream>
 #include <regex>
 
+#include "BinPacking.h"
 #include "Constraint.h"
 #include "CumulativeConditionVariable.h"
 #include "Precedence.h"
@@ -503,6 +504,8 @@ class FactoryConstraints {
 
 
     static void createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
+        if(k == 0)
+            return;
         p->addConstraint(new AtLeastK(*p, name, vars, k, value));
     }
 
@@ -676,7 +679,7 @@ class FactoryConstraints {
     // Packing constraints
     //--------------------------------------------------------------------------------------
     static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
-                                           vec<int> &heights, Variable * limit) {
+                                           vec<int> &heights, Variable *limit) {
         p->addConstraint(new CumulativeConditionVariable(*p, name, vars, lengths, heights, limit));
     }
 
@@ -693,6 +696,11 @@ class FactoryConstraints {
 
     static void createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values) {
         p->addConstraint(new Precedence(*p, name, vars, values));
+    }
+
+    static void createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,
+                                           vec<int> &limits) {
+        p->addConstraint(new BinPacking(*p, name, vars, sizes, limits));
     }
 };
 

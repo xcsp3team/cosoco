@@ -64,6 +64,8 @@ class Domain {
     inline bool isBoolean() { return maxSize() == 2 && minimum() == 0 && maximum() == 1; }
     // inline const int getPosition(int idx) { return idvs.getPosition(idx); }
 
+    virtual inline bool isIndexesAreValues() { return false; }
+
 
     // Method related to presence of value
     inline bool containsValue(int v) {
