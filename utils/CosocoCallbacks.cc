@@ -1687,6 +1687,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
             expressionsToAuxiliaryVariables[predicate] = auxVar;
 
             if(tree->listOfVariables.size() == 1 && XCSP3Core::isPredicateOperator(tree->root->type) == false) {
+                // Add this part.
                 Variable             *x = problems[0]->mapping[tree->listOfVariables[0]];
                 std::set<int>         values;
                 std::map<string, int> tuple;
