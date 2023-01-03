@@ -1686,8 +1686,20 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
             auxiliaryVariables.push_back(auxVar);
             expressionsToAuxiliaryVariables[predicate] = auxVar;
 
-            Range r = possibleValuesForExpressionInRange(tree->root);
-            buildVariableInteger(auxVar, r.min, r.max);
+            if(tree->listOfVariables.size() == 1 && XCSP3Core::isPredicateOperator(tree->root->type) == false) {
+                Variable             *x = problems[0]->mapping[tree->listOfVariables[0]];
+                std::set<int>         values;
+                std::map<string, int> tuple;
+                for(int idv : x->domain) {
+                    tuple[x->_name] = x->domain.toVal(idv);
+                    values.insert(tree->evaluate(tuple));
+                }
+                std::vector<int> v(values.begin(), values.end());
+                buildVariableInteger(auxVar, v);
+            } else {
+                Range r = possibleValuesForExpressionInRange(tree->root);
+                buildVariableInteger(auxVar, r.min, r.max);
+            }
             // Create the constraint auxVar = tree[i]
             // idem core duplication is done in the variable
             string tmp = "eq(" + auxVar + "," + predicate + ")";
