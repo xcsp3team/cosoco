@@ -24,8 +24,8 @@ bool BinPacking::isSatisfiedBy(vec<int> &tuple) {
 
 
 bool BinPacking::isCorrectlyDefined() {
-    for(Variable *x : scope)
-        if(x->domain.isIndexesAreValues() == false)
+    for(int i = 0; i < nItems; i++)
+        if(scope[i]->domain.isIndexesAreValues() == false)
             return false;
     return true;
 }

@@ -14,6 +14,7 @@
 #include <regex>
 
 #include "BinPacking.h"
+#include "BinPackingLoad.h"
 #include "Constraint.h"
 #include "CumulativeConditionVariable.h"
 #include "Precedence.h"
@@ -701,6 +702,11 @@ class FactoryConstraints {
     static void createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,
                                            vec<int> &limits) {
         p->addConstraint(new BinPacking(*p, name, vars, sizes, limits));
+    }
+
+    static void createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,
+                                           vec<Variable *> &loads) {
+        p->addConstraint(new BinPackingLoad(*p, name, vars, sizes, loads));
     }
 };
 

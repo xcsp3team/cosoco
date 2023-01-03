@@ -72,3 +72,13 @@ void Variable::display(bool allDetails) {
     printf("     ");
     domain.display();
 }
+
+
+// utils
+bool Variable::haveSameDomainType(vec<Variable *> &vars) {
+    size_t h = vars[0]->domain.hash();
+    for(Variable *v : vars)
+        if(h != v->domain.hash())
+            return false;
+    return true;
+}

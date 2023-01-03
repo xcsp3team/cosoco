@@ -7,31 +7,24 @@ namespace Cosoco {
 
 
 class Range {
-   public :
+   public:
     int min, max;
     Range(int mn, int mx) {
         if(mn < mx) {
-            min = mn;max = mx;
+            min = mn;
+            max = mx;
         } else {
             min = mx;
             max = mn;
         }
     }
-    Range negRange() const {
-        return {-max, -min};
-    }
+    Range negRange() const { return {-max, -min}; }
 
-    int contains(int v) const {
-        return min <= v and v <= max;
-    }
+    int contains(int v) const { return min <= v and v <= max; }
 
-    Range absRange() const {
-        return {contains(0) ? 0 : std::min(abs(min), abs(max)), std::max(abs(min), abs(max))};
-    }
+    Range absRange() const { return {contains(0) ? 0 : std::min(abs(min), abs(max)), std::max(abs(min), abs(max))}; }
 
-   Range addRange(Range r2) const {
-        return {min + r2.min, max + r2.max};
-    }
+    Range addRange(Range r2) const { return {min + r2.min, max + r2.max}; }
 };
 
 class DomainRange : public Domain {
@@ -40,9 +33,7 @@ class DomainRange : public Domain {
 
    public:
     // Constructors
-    DomainRange(int mn, int mx) : Domain(mx - mn + 1), min(mn), max(mx) {
-        nAssignments.growTo(mx - mn  +1, 0);
-    }
+    DomainRange(int mn, int mx) : Domain(mx - mn + 1), min(mn), max(mx) { nAssignments.growTo(mx - mn + 1, 0); }
 
     // Virtual Method conversion id to value
 
@@ -55,6 +46,12 @@ class DomainRange : public Domain {
     int toVal(int idv) override {
         assert(idv >= 0 && idv < idvs.maxSize());
         return min + idv;
+    }
+
+    size_t hash() override {
+        std::string            s = std::to_string(min) + " " + std::to_string(max) + " " + std::to_string(INT_MAX);
+        std::hash<std::string> h;
+        return h(s);
     }
 };
 }   // namespace Cosoco

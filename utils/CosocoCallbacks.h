@@ -386,6 +386,15 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) override;
 
+    void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<int> &capacities,
+                                   bool load) override;
+
+    void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<XVariable *> &capacities,
+                                   bool load) override;
+
+    void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<XCondition> &conditions,
+                                   int startindex) override;
+
     //--------------------------------------------------------------------------------------
     // Instantiation constraint
     //--------------------------------------------------------------------------------------

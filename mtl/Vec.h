@@ -135,6 +135,10 @@ class vec {
         assert(sz > 0);
         sz--;
     }
+    vec<T>& extend(vec<T>& tmp) {
+        for(auto& t : tmp) push(t);
+        return *this;
+    }
     void remove(const T& elem) {
         int tmp;
         for(tmp = 0; tmp < sz; tmp++) {

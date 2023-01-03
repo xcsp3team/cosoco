@@ -29,8 +29,13 @@ class DomainValue : public Domain {
 
     int toVal(int idv) override { return values[idv]; }
 
-    bool isIndexesAreValues() override {
-        return minimum() == 0 && maximum() == maxSize();
+    bool isIndexesAreValues() override { return minimum() == 0 && maximum() == maxSize(); }
+
+    size_t hash() override {
+        string                 s;
+        std::hash<std::string> h;
+        for(int v : values) s += std::to_string(v) + " ";
+        return h(s);
     }
 };
 }   // namespace Cosoco

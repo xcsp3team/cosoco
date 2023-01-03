@@ -1379,18 +1379,66 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) {
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
+        toMyVariables(list, vars, core);
+        if(Variable::haveSameDomainType(vars) == false) {
+            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
+        }
+        vec<int> s;
+        vector2vec(sizes);
+        vals.copyTo(s);
+
+        if(cond.operandType == VARIABLE)
+            throw std::runtime_error("Bin packing with variable in condition is not yet supported");
+        if(cond.op != LE && cond.op != LT)
+            throw std::runtime_error("Bin packing with condition not LE/LT is not yet supported");
+        vec<int> limits;
+
+        limits.growTo(vars[0]->domain.maxSize(), cond.val - (cond.op == LT ? 1 : 0));
+        FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, limits);
+    }
+}
+
+
+void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<int> &capacities,
+                                                bool load) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        toMyVariables(list, vars, core);
+        if(Variable::haveSameDomainType(vars) == false) {
+            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
+        }
+        if(load)
+            throw std::runtime_error("Bin packing with loads and integer is not yet implemented");
+
+        vec<int> s, c;
+        vector2vec(sizes);
+        vals.copyTo(s);
+        vector2vec(capacities);
+        vals.copyTo(c);
+        FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, c);
+    }
+}
+
+void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
+                                                vector<XVariable *> &capacities, bool load) {
+    assert(false);
+}
+
+void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
+                                                vector<XCondition> &conditions, int startindex) {
+    for(XCondition &xc : conditions) {
+        if(xc.operandType != VARIABLE && xc.op != EQ)
+            throw std::runtime_error("Bin packing with all condiions not EQ=VAR is not yet implemented");
+    }
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
         vec<int> s;
         vector2vec(sizes);
         vals.copyTo(s);
         toMyVariables(list, vars, core);
-        if(cond.operandType == VARIABLE)
-            throw std::runtime_error("Bin packoing with variable in condition is not yet supported");
-        if(cond.op != LE)
-            throw std::runtime_error("Bin packoing with condition not LEis not yet supported");
-        vec<int> limits;
-
-        limits.growTo(vars[0]->domain.maxSize(), cond.val);
-        FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, limits);
+        vec<Variable *> loads;
+        for(XCondition &xc : conditions) loads.push(problems[core]->mapping[xc.var]);
+        FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, loads);
     }
 }
 
@@ -1654,7 +1702,6 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
     vector<string> auxiliaryVariables;
-
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
     // Create the new objective
     // core duplication is here

@@ -1,8 +1,8 @@
 #include "BinaryExtension.h"
 
-#include "Extension.h"
-
 #include <utility>
+
+#include "Extension.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -126,5 +126,3 @@ struct CSPPropagation {   // x equal idv ??
     int       idv;
     bool      equal;
 };
-
-

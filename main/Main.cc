@@ -72,7 +72,10 @@ static void SIGINT_exit(int signum);
 
 // Terminate by notifying the solver and back out gracefully. This is mainly to have a test-case
 // for this feature of the Solver as it may take longer than an immediate call to '_exit()'.
-static void SIGINT_interrupt(int signum) { SIGINT_exit(0); }
+static void SIGINT_interrupt(int signum) {
+    std::cout << "\nc Kill process\n";
+    SIGINT_exit(0);
+}
 
 
 //=================================================================================================

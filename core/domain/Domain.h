@@ -36,7 +36,6 @@ class Domain {
 
     virtual int toVal(int idv) = 0;
 
-
     // Methods related to deletion of values
     inline void delIdv(int idv, int level) { idvs.del(idv, level); }
 
@@ -151,6 +150,8 @@ class Domain {
         printf("{");
         for(int idv = idvs.first(); idv != -1; idv = idvs.next(idv)) printf("%d ", toVal(idv));
     }
+
+    virtual size_t hash() = 0;
 };
 
 }   // namespace Cosoco
