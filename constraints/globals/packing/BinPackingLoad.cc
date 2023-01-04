@@ -61,7 +61,7 @@ bool BinPackingLoad::filter(Variable *x) {
         if(loads[i]->size() == 1) {
             int load           = loads[i]->value();
             int possibleExtent = 0;
-            int minSize        = 0;
+            int minSize        = INT_MAX;
             for(int k = freeItems.size() - 1; k >= 0; k--) {
                 int j = freeItems[k];
                 if(scope[j]->containsValue(i)) {

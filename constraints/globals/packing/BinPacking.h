@@ -20,6 +20,7 @@ class Bin {
     void set(int i, int c) {
         index    = i;
         capacity = c;
+        lost     = 0;
     }
 };
 

@@ -146,21 +146,20 @@ start:
             }
             // maybe, some items in front of a bin on the left have a size greater than the margin (we can then
             // remove them from bins on the right)
-            bool additionalFiltering = false;
+            bool additionalFiltering = true;
             if(additionalFiltering)
                 if(maxSize > margin) {
                     for(int left = 0; left < j; left++) {
                         if(fronts[left].size() == 0)
                             continue;
-                        for(int k = 0; k <= fronts[left].size(); k++) {
+                        for(int k = 0; k < fronts[left].size(); k++) {
                             int p    = fronts[left][k];
                             int size = sizes[p];
                             if(size <= margin)
                                 continue;
-                            for(int right = usableBins.size(); right >= j; right--) {
-                                if(solver->delIdv(
-                                       scope[p],
-                                       sortedBins[right]->index))   // scp[p].dom.removeValueIfPresent(sortedBins[right].index)
+                            for(int right = usableBins.size() - 1; right >= j; right--) {
+                                if(solver->delIdv(scope[p],sortedBins[right]->index))
+                                    // scp[p].dom.removeValueIfPresent(sortedBins[right].index)
                                                                     // == false)
                                     return false;
                             }
