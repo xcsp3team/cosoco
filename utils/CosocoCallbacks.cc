@@ -1487,7 +1487,36 @@ void CosocoCallbacks::buildConstraintKnapsack(string id, vector<XVariable *> &li
 
 void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, vector<int> &balance, vector<int> &weights,
                                           vector<vector<int>> &arcs, XCondition &xc) {
-    assert(false);
+    std::set<int> set;
+    toMyVariables(list, 0);
+    for(auto &arc : arcs) {
+        set.insert(arc[0]);
+        set.insert(arc[1]);
+    }
+    vec<int> nodes;
+    for(int v : set) nodes.push(v);
+
+    int sm = nodes[0];
+
+    vec<vec<Variable *>> preds(nodes.size());
+    vec<vec<Variable *>> succs(nodes.size());
+
+    for(unsigned int i = 0; i < arcs.size(); i++) {
+        preds[arcs[i][1] - sm].push(vars[i]);
+        succs[arcs[i][0] - sm].push(vars[i]);
+    }
+    vec<Variable *> tmp;
+    for(int i = 0; i < nodes.size(); i++) {
+        tmp.clear();
+        succs[i].copyTo(tmp);
+        tmp.extend(preds[i]);
+        vec<int> coeffs;
+        coeffs.growTo(succs[i].size(), 1);
+        for(int j = 0; j < preds[i].size(); j++) coeffs.push(-1);
+        FactoryConstraints::createConstraintSum(problems[0], id, tmp, coeffs, balance[i], EQ);
+    }
+    buildConstraintSum(id, list, weights, xc);
+
     // TODO
     /*
         int[] nodes = IntStream.range(0, arcs.length).flatMap(t -> IntStream.of(arcs[t])).distinct().sorted().toArray();
@@ -1495,7 +1524,10 @@ void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, 
         int sm = nodes[0];
                     List<Var>[] preds = (List<Var>[]) IntStream.range(0, nodes.length).mapToObj(i -> new
        ArrayList<>()).toArray(List<?>[]::new); List<Var>[] succs = (List<Var>[]) IntStream.range(0, nodes.length).mapToObj(i ->
-       new ArrayList<>()).toArray(List<?>[]::new); for (int i = 0; i < arcs.length; i++) { preds[arcs[i][1] - sm].add(list[i]);
+       new ArrayList<>()).toArray(List<?>[]::new);
+
+
+       for (int i = 0; i < arcs.length; i++) { preds[arcs[i][1] - sm].add(list[i]);
                         succs[arcs[i][0] - sm].add(list[i]);
                     }
                     for (int i = 0; i < nodes.length; i++) {
