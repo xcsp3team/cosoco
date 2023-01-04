@@ -17,7 +17,7 @@ and most of the contraint propagators come from [ACE](https://github.com/xcsp3te
   + The constraint directory is the biggest one with around 5,500 loc.
  
  As introduced above, cosoco uses the [XCSP3 core](XCSP3 format) and parses  problems using the parser 
- available [https://github.com/xcsp3team/XCSP3-CPP-Parser](here)
+ available [here](https://github.com/xcsp3team/XCSP3-CPP-Parser)
  
  A class diagram is provided with the source code (see diagram.puml)
  
