@@ -78,7 +78,7 @@ bool Constraint::scopeIsOk() {
     for(Variable *x : scope) x->fake = 0;
     for(Variable *x : scope) {
         if(x->fake == 1)
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": scope contains variable " + x->name() +
+            throw std::logic_error("Constraint " + std::to_string(idc) + " " + type + " : scope contains variable " + x->name() +
                                    " many times");
         x->fake = 1;
     }

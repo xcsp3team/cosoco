@@ -1516,27 +1516,6 @@ void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, 
         FactoryConstraints::createConstraintSum(problems[0], id, tmp, coeffs, balance[i], EQ);
     }
     buildConstraintSum(id, list, weights, xc);
-
-    // TODO
-    /*
-        int[] nodes = IntStream.range(0, arcs.length).flatMap(t -> IntStream.of(arcs[t])).distinct().sorted().toArray();
-        control(nodes.length == balance.length);
-        int sm = nodes[0];
-                    List<Var>[] preds = (List<Var>[]) IntStream.range(0, nodes.length).mapToObj(i -> new
-       ArrayList<>()).toArray(List<?>[]::new); List<Var>[] succs = (List<Var>[]) IntStream.range(0, nodes.length).mapToObj(i ->
-       new ArrayList<>()).toArray(List<?>[]::new);
-
-
-       for (int i = 0; i < arcs.length; i++) { preds[arcs[i][1] - sm].add(list[i]);
-                        succs[arcs[i][0] - sm].add(list[i]);
-                    }
-                    for (int i = 0; i < nodes.length; i++) {
-                        List<Var> s = succs[i], p = preds[i];
-                        int[] coeffs = IntStream.range(0, s.size() + p.size()).map(j -> j < s.size() ? 1 : -1).toArray();
-                        sum((Var[]) vars(succs[i], preds[i]), coeffs, Condition.buildFrom(EQ, balance[i]));
-                    }
-        return sum(list, weights, condition);
-    */
 }
 
 
