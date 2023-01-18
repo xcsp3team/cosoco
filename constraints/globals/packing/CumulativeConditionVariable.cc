@@ -36,13 +36,13 @@ bool CumulativeConditionVariable::filter(Variable *dummy) {
 }
 
 void CumulativeConditionVariable::filterLimitVariable(Variable *x) {
-    if(x->size() > 1 && nSlots > 0) {
+    /*if(x->size() > 1 && nSlots > 0) {
         for(int idv : x->domain) {
             int v = x->domain.toVal(idv);
             if(slots[0].height > v)
                 solver->delIdv(x, idv); // No inconsistency
         }
-    }
+    }*/
 }
 
 //----------------------------------------------
