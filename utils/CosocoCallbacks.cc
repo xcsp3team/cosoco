@@ -922,7 +922,7 @@ string CosocoCallbacks::createExpression(string minmax, OrderType op, vector<XVa
         throw runtime_error("not yet supported");
 
     string tmp = o + "(" + value + "," + minmax + "(";
-    for(unsigned int i = 0; i < list.size(); i++) tmp = tmp + (i != 0 ? "," : "") + list[i]->id;
+    for(unsigned int i = 0; i < list.size(); i++) tmp += (i != 0 ? "," : "") + list[i]->id;
     tmp = tmp + "))";
     return tmp;
 }
