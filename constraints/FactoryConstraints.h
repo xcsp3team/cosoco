@@ -681,12 +681,15 @@ class FactoryConstraints {
     //--------------------------------------------------------------------------------------
     static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
                                            vec<int> &heights, Variable *limit) {
-        p->addConstraint(new CumulativeConditionVariable(*p, name, vars, lengths, heights, limit));
+        vec<Variable *> scope;
+        vars.copyTo(scope);
+        scope.push(limit);
+        p->addConstraint(new CumulativeConditionVariable(*p, name, vars, scope, lengths, heights, limit));
     }
 
     static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
                                            vec<int> &heights, int limit) {
-        p->addConstraint(new Cumulative(*p, name, vars, lengths, heights, limit));
+        p->addConstraint(new Cumulative(*p, name, vars, vars, lengths, heights, limit));
     }
 
     static void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<int> &width, vec<Variable *> &Y,

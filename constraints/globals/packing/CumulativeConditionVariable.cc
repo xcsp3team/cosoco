@@ -36,21 +36,21 @@ bool CumulativeConditionVariable::filter(Variable *dummy) {
 }
 
 void CumulativeConditionVariable::filterLimitVariable(Variable *x) {
-    /*if(x->size() > 1 && nSlots > 0) {
+    if(x->size() > 1 && timetableReasoner.nSlots > 0) {
         for(int idv : x->domain) {
             int v = x->domain.toVal(idv);
-            if(slots[0].height > v)
-                solver->delIdv(x, idv); // No inconsistency
+            if(timetableReasoner.slots[0].height > v)
+                solver->delIdv(x, idv);   // No inconsistency
         }
-    }*/
+    }
 }
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeConditionVariable::CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l,
-                                                         vec<int> &h, Variable *_limit)
-    : Cumulative(p, n, vars, l, h, 0, _limit) {
+CumulativeConditionVariable::CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope,
+                                                         vec<int> &l, vec<int> &h, Variable *_limit)
+    : Cumulative(p, n, vars, scope, l, h, 0) {
     limitVariable = _limit;
 }

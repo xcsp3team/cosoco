@@ -49,8 +49,6 @@ int TimeTableReasoner::buildSlots() {
     nSlots = 0;
     ticks.clear();
     for(int posx = 0; posx < cumulative.starts.size(); posx++) {
-        // for (int j = relevantTasks.limit; j >= 0; j--) { // ok for Cst but for VarH does not seem correct
-        // int posx = relevantTasks.dense[j];
         int ms = mandatoryStart(posx), me = mandatoryEnd(posx);
         if(me <= ms)
             continue;   // no mandatory part here
@@ -66,9 +64,9 @@ int TimeTableReasoner::buildSlots() {
         offsets[me] -= cumulative.wheights[posx];
     }
     int nRelevantTicks = 0;
-    for(int j = 0; j < ticks.size(); j++)
-        if(offsets[ticks[j]] != 0)   // ticks with offset at 0 are not relevant (and so, are discarded)
-            slots[nRelevantTicks++].start = ticks[j];
+    for(int tick : ticks)
+        if(offsets[tick] != 0)   // ticks with offset at 0 are not relevant (and so, are discarded)
+            slots[nRelevantTicks++].start = tick;
     if(nRelevantTicks == 0)
         return 1;
 
@@ -133,13 +131,13 @@ bool TimeTableReasoner::filter() {
             if(me <= ms || me <= rs || re <= ms) {
                 if(cumulative.solver->delValuesInRange(cumulative.starts[posx], rs - cumulative.wwidths[posx] + 1, re) == false)
                     return false;
-            }   // else something else ?
+            }
         }
     }
     updateRelevantTasks();
     return true;
 }
-TimeTableReasoner::TimeTableReasoner(Cumulative &c) : cumulative(c) { }
+TimeTableReasoner::TimeTableReasoner(Cumulative &c) : cumulative(c), nSlots(0) { }
 
 int Cumulative::maxWidth(int posx) { return wwidths[posx]; }
 
@@ -184,19 +182,12 @@ int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars, vec<int> &l) {
 }
 
 
-Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l, vec<int> &h, int lm, Variable *limitV)
-    : GlobalConstraint(p, n, "Cumulative", limitV == nullptr ? vars.size() : vars.size() + 1), timetableReasoner(*this) {
+Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int lm)
+    : GlobalConstraint(p, n, "Cumulative", scope), timetableReasoner(*this) {
     limit = lm;
 
     vars.copyTo(starts);
 
-    // Initialize in case condition is limit
-    // TODO : Refactor... too ugly
-    if(limitV != nullptr)
-        vars.push(limitV);
-    scopeInitialisation(vars);
-    if(limitV != nullptr)
-        vars.pop();
 
     l.copyTo(wwidths);
     h.copyTo(wheights);
@@ -204,11 +195,11 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<int
 
     timetableReasoner.offsets.growTo(horizon);
     timetableReasoner.slots.growTo(horizon);
-    timetableReasoner.ticks.setCapacity(_horizon(starts, l), false);
+    timetableReasoner.ticks.setCapacity(horizon, false);
     timetableReasoner.relevantTasks.setCapacity(starts.size(), true);
 }
 
 void Cumulative::attachSolver(Solver *s) {
     Constraint::attachSolver(s);
-    s->addObserverDeleteDecision(this);   // We need to restore validTuples.
+    s->addObserverDeleteDecision(this);   // We need to restore relevantTasks.
 }
