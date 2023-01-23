@@ -387,6 +387,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths, vector<XVariable *> &varHeights,
                                    XCondition &xc) override;
 
+    void buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varlengths,
+                                   vector<int> &hœeights, XCondition &xc) override;
+
     void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) override;
 
     void buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<int> &capacities,

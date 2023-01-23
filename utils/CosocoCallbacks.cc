@@ -1394,6 +1394,25 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
 }
 
 
+void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varlengths,
+                                                vector<int> &h, XCondition &xc) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        vec<int>        heights;
+        vec<Variable *> myvarwidths;
+
+        vector2vec(h);
+        vals.copyTo(heights);
+        toMyVariables(varlengths, myvarwidths, core);
+        toMyVariables(origins, vars, core);
+        if(xc.operandType == VARIABLE) {
+            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
+        } else
+            FactoryConstraints::createConstraintCumulativeWidthVariables(problems[core], id, vars, myvarwidths, heights, xc.val);
+    }
+}
+
+
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) {
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
