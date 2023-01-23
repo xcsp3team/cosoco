@@ -70,6 +70,5 @@ CumulativeWidthVariables::CumulativeWidthVariables(Problem &p, std::string n, ve
                                                    vec<Variable *> &widths, vec<int> &heights, int limit)
     : Cumulative(p, n, vars, scope, heights, heights, limit) {
     widths.copyTo(widthVariables);
-    std::cout << "test\n";
     wwidths.growTo(widths.size(), 0);   // TODO: not so beautiful this constructor
 }
