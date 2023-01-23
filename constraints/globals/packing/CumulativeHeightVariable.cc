@@ -20,7 +20,7 @@ bool CumulativeHeightVariable::isSatisfiedBy(vec<int> &tuple) {
     int      i, j = 0;
     for(i = 0; i < starts.size(); i++) st.push(tuple[i]);
     for(; i < tuple.size(); i++) wheights[j++] = tuple[i];
-    return Cumulative::isSatisfiedBy(tuple);
+    return Cumulative::isSatisfiedBy(st);
 }
 
 
@@ -63,7 +63,8 @@ void CumulativeHeightVariable::filterHeightVariablesVariable(vec<Variable *> &_h
 
 CumulativeHeightVariable::CumulativeHeightVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope,
                                                    vec<int> &l, vec<Variable *> &h, int _limit)
-    : Cumulative(p, n, vars, scope, l, l, 0) {
+    : Cumulative(p, n, vars, scope, l, l, _limit) {
     h.copyTo(heightsVariables);
+    std::cout << scope.size() << std::endl;
     wheights.growTo(h.size(), 0);   // TODO: not so beautiful this constructor
 }
