@@ -16,11 +16,11 @@ using namespace Cosoco;
 
 
 bool CumulativeHeightVariable::isSatisfiedBy(vec<int> &tuple) {
-    limit = tuple.last();
-    tuple.pop();
-    bool tmp = Cumulative::isSatisfiedBy(tuple);
-    tuple.push(limit);
-    return tmp;
+    vec<int> st;
+    int      i, j = 0;
+    for(i = 0; i < starts.size(); i++) st.push(tuple[i]);
+    for(; i < tuple.size(); i++) wheights[j++] = tuple[i];
+    return Cumulative::isSatisfiedBy(tuple);
 }
 
 
