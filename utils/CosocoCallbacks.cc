@@ -1368,10 +1368,65 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         vector2vec(heights);
         vals.copyTo(h);
         toMyVariables(origins, vars, core);
-        if(xc.operandType == VARIABLE) {
+        if(xc.operandType == VARIABLE)
             FactoryConstraints::createConstraintCumulative(problems[core], id, vars, l, h, problems[core]->mapping[xc.var]);
-        } else
+        else
             FactoryConstraints::createConstraintCumulative(problems[core], id, vars, l, h, xc.val);
+    }
+}
+
+void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths,
+                                                vector<XVariable *> &varHeights, XCondition &xc) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        vec<int>        l;
+        vec<Variable *> myvarHeights;
+
+        vector2vec(lengths);
+        vals.copyTo(l);
+        toMyVariables(varHeights, myvarHeights, core);
+        toMyVariables(origins, vars, core);
+        if(xc.operandType == VARIABLE) {
+            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+        } else
+            FactoryConstraints::createConstraintCumulativeHeightVariable(problems[core], id, vars, l, myvarHeights, xc.val);
+    }
+}
+
+
+void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varlengths,
+                                                vector<int> &h, XCondition &xc) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        vec<int>        heights;
+        vec<Variable *> myvarwidths;
+
+        vector2vec(h);
+        vals.copyTo(heights);
+        toMyVariables(varlengths, myvarwidths, core);
+        toMyVariables(origins, vars, core);
+        if(xc.operandType == VARIABLE) {
+            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+        } else
+            FactoryConstraints::createConstraintCumulativeWidthVariables(problems[core], id, vars, myvarwidths, heights, xc.val);
+    }
+}
+
+
+void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varwidths,
+                                                vector<XVariable *> &varheights, XCondition &xc) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        vec<Variable *> myvarwidths, myvarheights;
+
+        toMyVariables(varwidths, myvarwidths, core);
+        toMyVariables(varheights, myvarheights, core);
+        toMyVariables(origins, vars, core);
+        if(xc.operandType == VARIABLE) {
+            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+        } else
+            FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(problems[core], id, vars, myvarwidths,
+                                                                                  myvarheights, xc.val);
     }
 }
 

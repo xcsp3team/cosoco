@@ -46,14 +46,14 @@ bool Lexicographic::isCorrectlyDefined() {
 
 
 bool Lexicographic::filter(Variable *dummy) {
-    int alpha  = 0;
-    int sz = X.size();
+    int alpha = 0;
+    int sz    = X.size();
     while(alpha < sz) {   // Update alpha
         Variable *x = X[alpha], *y = Y[alpha];
         if(establishAC(x, y) == false)
             return false;
-        if (x->size() == 1 && y->size() == 1) {
-            if (x->value() < y->value()) {
+        if(x->size() == 1 && y->size() == 1) {
+            if(x->value() < y->value()) {
                 solver->entail(this);
                 return true;
             }
@@ -62,19 +62,18 @@ bool Lexicographic::filter(Variable *dummy) {
         } else {
             int minX = x->minimum(), minY = y->minimum();
             assert(minX <= minY);
-            if (minX == minY && isConsistentPair(alpha, minX) == false && solver->delVal(y, minY) == false)
-                    return false;
+            if(minX == minY && isConsistentPair(alpha, minX) == false && solver->delVal(y, minY) == false)
+                return false;
             int maxX = x->maximum(), maxY = y->maximum();
             assert(maxX <= maxY);
-            if (maxX == maxY && isConsistentPair(alpha, maxX) == false && solver->delVal(x, maxX) == false)
-                    return false;
-            //assert (x->minimum() < y->maximum());
+            if(maxX == maxY && isConsistentPair(alpha, maxX) == false && solver->delVal(x, maxX) == false)
+                return false;
+            // assert (x->minimum() < y->maximum());
             return true;
         }
     }
     assert(alpha == sz);
     return !strict;
-
 }
 
 
@@ -93,20 +92,20 @@ bool Lexicographic::establishAC(Variable *x, Variable *y) {
 
 bool Lexicographic::isConsistentPair(int alpha, int v) {
     time++;
-    int sz = X.size();
+    int       sz = X.size();
     Variable *x = X[alpha], *y = Y[alpha];
 
     setTime(toScopePosition(x), v);
     setTime(toScopePosition(y), v);
 
-    for (int i = alpha + 1; i < sz; i++) {
+    for(int i = alpha + 1; i < sz; i++) {
         int posx = toScopePosition(X[i]);
         int posy = toScopePosition(Y[i]);
         int minx = times[posx] == time ? vals[posx] : X[i]->minimum();
         int maxy = times[posy] == time ? vals[posy] : Y[i]->maximum();
-        if (minx < maxy)
+        if(minx < maxy)
             return true;
-        if (minx > maxy)
+        if(minx > maxy)
             return false;
         setTime(posx, minx);
         setTime(posy, maxy);

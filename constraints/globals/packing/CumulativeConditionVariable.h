@@ -9,11 +9,13 @@
 #include "Cumulative.h"
 namespace Cosoco {
 
-class CumulativeConditionVariable : public Cumulative{
+class CumulativeConditionVariable : public Cumulative {
    protected:
     Variable *limitVariable;
-   public :
-    CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<int> &, Variable *limit);
+
+   public:
+    CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &, vec<int> &,
+                                Variable *limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -22,6 +24,6 @@ class CumulativeConditionVariable : public Cumulative{
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
-}
+}   // namespace Cosoco
 
 #endif   // COSOCO_CUMULATIVECONDITIONVARIABLE_H
