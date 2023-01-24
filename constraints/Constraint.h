@@ -30,8 +30,8 @@ class Constraint {
     vec<int> current;   // to avoid creation during search
     int      arity;     // arity=scope.size()
    public:
-    Problem &       problem;                  // The linked problem
-    Solver *        solver;                   // The linked solver
+    Problem        &problem;                  // The linked problem
+    Solver         *solver;                   // The linked solver
     std::string     name;                     // Name in the problem description
     std::string     type;                     // The type : ext, int, alldiff.... (useful for displaying)
     int             idc;                      // The id in problem.constraints
@@ -80,7 +80,7 @@ class Constraint {
     virtual bool isSatisfiedBy(vec<int> &tuple) = 0;
     void         extractConstraintTupleFromInterpretation(
                 const vec<int> &interpretation,
-                vec<int> &      tuple);   // Given an interpretation, extract the related vector associated to the scope
+                vec<int>       &tuple);   // Given an interpretation, extract the related vector associated to the scope
     bool isSatisfiedByOfIndexes(vec<int> &tupleOfIndex);
 
     // Extract tuples

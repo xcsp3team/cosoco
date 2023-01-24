@@ -102,7 +102,6 @@ MaximumVariableEQ::MaximumVariableEQ(Problem &p, std::string n, vec<Variable *> 
     value = v;
     // Check if value is not in scope.
     for(Variable *x : vars) {
-
         if(x == value)
             throw std::runtime_error("Problem in definition of MaximumEQ Variable");
     }

@@ -21,7 +21,7 @@ class HeuristicVarCACD : public HeuristicVar, ObserverConflict, ObserverNewDecis
 
    public:
     explicit HeuristicVarCACD(Solver &s);
-    void              reset();
+    void      reset();
     Variable *select() override;
     void      notifyConflict(Constraint *c, int level) override;
     void      notifyDeleteDecision(Variable *x, int v, Solver &s) override;
