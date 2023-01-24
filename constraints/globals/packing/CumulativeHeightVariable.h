@@ -17,7 +17,6 @@ class CumulativeHeightVariable : public Cumulative {
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
-    void filterHeightVariables(vec<Variable *> &_heights);
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;

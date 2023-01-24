@@ -36,27 +36,6 @@ bool CumulativeHeightVariable::filter(Variable *dummy) {
     return true;
 }
 
-void CumulativeHeightVariable::filterHeightVariables(vec<Variable *> &_heights) {
-    if(timetableReasoner.nSlots > 0) {
-        for(int posx = 0; posx < starts.size(); posx++) {
-            if(heightVariables[posx]->size() == 1)
-                continue;
-            int ms = timetableReasoner.mandatoryStart(posx), me = timetableReasoner.mandatoryEnd(posx);
-            if(me <= ms)
-                continue;   // no mandatory part here
-            int increase = heightVariables[posx]->maximum() - heightVariables[posx]->minimum();
-            for(int k = 0; k < timetableReasoner.nSlots; k++) {
-                Slot slot    = timetableReasoner.slots[k];
-                int  surplus = slot.height + increase - limit;
-                if(surplus <= 0)
-                    break;
-                if(!(me <= slot.start || slot.end <= ms))   // if overlapping
-                    solver->delValuesGreaterOrEqualThan(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
-            }
-        }
-    }
-}
-
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------

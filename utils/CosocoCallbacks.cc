@@ -1387,7 +1387,7 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         toMyVariables(varHeights, myvarHeights, core);
         toMyVariables(origins, vars, core);
         if(xc.operandType == VARIABLE) {
-            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
+            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
         } else
             FactoryConstraints::createConstraintCumulativeHeightVariable(problems[core], id, vars, l, myvarHeights, xc.val);
     }
@@ -1406,9 +1406,27 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         toMyVariables(varlengths, myvarwidths, core);
         toMyVariables(origins, vars, core);
         if(xc.operandType == VARIABLE) {
-            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
+            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
         } else
             FactoryConstraints::createConstraintCumulativeWidthVariables(problems[core], id, vars, myvarwidths, heights, xc.val);
+    }
+}
+
+
+void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varwidths,
+                                                vector<XVariable *> &varheights, XCondition &xc) {
+    for(int core = 0; core < nbcores; core++) {
+        vars.clear();
+        vec<Variable *> myvarwidths, myvarheights;
+
+        toMyVariables(varwidths, myvarwidths, core);
+        toMyVariables(varheights, myvarheights, core);
+        toMyVariables(origins, vars, core);
+        if(xc.operandType == VARIABLE) {
+            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+        } else
+            FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(problems[core], id, vars, myvarwidths,
+                                                                                  myvarheights, xc.val);
     }
 }
 

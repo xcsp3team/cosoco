@@ -172,11 +172,11 @@ void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 // Construction and initialisation
 //----------------------------------------------
 
-int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars, vec<int> &l) {
+int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars) {
     int h = -1;
     for(int i = 0; i < vars.size(); i++)
-        if(vars[i]->maximum() + l[i] > h)
-            h = vars[i]->maximum() + l[i];
+        if(vars[i]->maximum() + maxWidth(i) > h)
+            h = vars[i]->maximum() + maxWidth(i);
     h++;
     return h;
 }
@@ -191,15 +191,64 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Var
 
     l.copyTo(wwidths);
     h.copyTo(wheights);
-    horizon = _horizon(starts, l);
+}
 
+void Cumulative::attachSolver(Solver *s) {
+    // Init timetableReasoner here..
+    horizon = _horizon(starts);
     timetableReasoner.offsets.growTo(horizon);
     timetableReasoner.slots.growTo(horizon);
     timetableReasoner.ticks.setCapacity(horizon, false);
     timetableReasoner.relevantTasks.setCapacity(starts.size(), true);
-}
 
-void Cumulative::attachSolver(Solver *s) {
     Constraint::attachSolver(s);
     s->addObserverDeleteDecision(this);   // We need to restore relevantTasks.
+}
+
+
+//-----------------------------------------------------------------------
+// Usefull for children classes
+void Cumulative::filterHeightVariables(vec<Variable *> &heightVariables) {
+    if(timetableReasoner.nSlots > 0) {
+        for(int posx = 0; posx < starts.size(); posx++) {
+            if(heightVariables[posx]->size() == 1)
+                continue;
+            int ms = timetableReasoner.mandatoryStart(posx), me = timetableReasoner.mandatoryEnd(posx);
+            if(me <= ms)
+                continue;   // no mandatory part here
+            int increase = heightVariables[posx]->maximum() - heightVariables[posx]->minimum();
+            for(int k = 0; k < timetableReasoner.nSlots; k++) {
+                Slot slot    = timetableReasoner.slots[k];
+                int  surplus = slot.height + increase - limit;
+                if(surplus <= 0)
+                    break;
+                if(!(me <= slot.start || slot.end <= ms))   // if overlapping
+                    solver->delValuesGreaterOrEqualThan(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
+            }
+        }
+    }
+}
+
+
+void Cumulative::filterWidthVariables(vec<Variable *> &widthVariables) {
+    if(timetableReasoner.nSlots > 0)
+        for(int i = 0; i < starts.size(); i++) {
+            if(widthVariables[i]->size() == 1)
+                continue;
+            int gap = widthVariables[i]->maximum() - widthVariables[i]->minimum();
+            int ms1 = timetableReasoner.mandatoryStart(i), me1 = timetableReasoner.mandatoryEnd(i), me2 = me1 + gap;
+            if(me2 <= ms1)
+                continue;   // no mandatory part here
+            int ms2            = me1 >= ms1 ? me1 : ms1;
+            int virtual_height = wheights[i];   // height of the new "virtual" task (from ms2 to me2)
+            for(int k = 0; k < timetableReasoner.nSlots; k++) {
+                Slot slot = timetableReasoner.slots[k];
+                if(slot.height + virtual_height - limit <= 0)
+                    break;                                    // because we can no more find a conflict
+                if(!(me2 <= slot.start || slot.end <= ms2))   // if overlapping
+                    // widths[i].dom.removeValue(widths[i].dom.lastValue());
+                    solver->delValuesGreaterOrEqualThan(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
+                // no possible conflict
+            }
+        }
 }

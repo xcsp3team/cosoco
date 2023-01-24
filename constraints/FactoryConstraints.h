@@ -17,6 +17,7 @@
 #include "BinPackingLoad.h"
 #include "Constraint.h"
 #include "CumulativeConditionVariable.h"
+#include "CumulativeHeightAndWidthsVariables.h"
 #include "CumulativeHeightVariable.h"
 #include "CumulativeWidthVariables.h"
 #include "Precedence.h"
@@ -710,7 +711,16 @@ class FactoryConstraints {
         for(Variable *x : lengths) scope.push(x);
         p->addConstraint(new CumulativeWidthVariables(*p, name, vars, scope, lengths, heights, limit));
     }
-    
+
+    static void createConstraintCumulativeHeightAndWidthVariables(Problem *p, std::string name, vec<Variable *> &vars,
+                                                                  vec<Variable *> &widths, vec<Variable *> &heights, int limit) {
+        vec<Variable *> scope;
+        vars.copyTo(scope);
+        for(Variable *x : widths) scope.push(x);
+        for(Variable *x : heights) scope.push(x);
+
+        p->addConstraint(new CumulativeHeightAndWidthsVariables(*p, name, vars, scope, widths, heights, limit));
+    }
 
     static void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<int> &width, vec<Variable *> &Y,
                                           vec<int> &heights) {

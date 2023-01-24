@@ -17,7 +17,6 @@ class CumulativeWidthVariables : public Cumulative {
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
-    void filterWidthVariables(vec<Variable *> &_lenghts);
     int  maxWidth(int posx) override;
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
