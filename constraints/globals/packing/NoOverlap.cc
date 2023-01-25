@@ -44,7 +44,7 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
         Variable *x11 = x1[i];
         for(int idv : x11->domain) {
             bool lextern = false;
-            int v = x11->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
+            int  v       = x11->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
             // we compute the set of tasks overlapping on the first axis wrt (x1[i],v)
             overlappings.clear();
             for(int j = 0; j < half; j++)
@@ -64,7 +64,7 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
                 Variable *x22 = x2[i];
                 for(int idv2 : x22->domain) {
                     bool lintern = false;
-                    long volume = 0;
+                    long volume  = 0;
                     int  minX = INT_MAX, minY = INT_MAX;
                     int  maxX = INT_MIN, maxY = INT_MIN;
                     int  w = x22->domain.toVal(idv2);
@@ -87,10 +87,10 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
                         diffY -= std::min(maxY, w + t2[i]) - minY;
                     else if(minY <= w && w < maxY)
                         diffY -= std::min(maxY, w + t2[i]) - w;
-                    if(volume > diffX * diffY)    // not enough room for the items
-                       continue;           // to try another value w
+                    if(volume > diffX * diffY)   // not enough room for the items
+                        continue;                // to try another value w
 
-                    lextern = true;  // because found support
+                    lextern = true;   // because found support
                     break;
                 }
                 if(lextern)
@@ -109,15 +109,10 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
 // Construction and initialisation
 //----------------------------------------------
 
-
 NoOverlap::NoOverlap(Problem &pb, std::string &n, vec<Variable *> &X, vec<int> &w, vec<Variable *> &Y, vec<int> &h)
-    : GlobalConstraint(pb, n, "NoOverlap", 2 * X.size()) {
+    : GlobalConstraint(pb, n, "NoOverlap", Constraint::createScopeVec(&X, &Y)) {
     X.copyTo(xs);
     Y.copyTo(ys);
-    vec<Variable *> vars;
-    for(Variable *x : xs) vars.push(x);
-    for(Variable *y : ys) vars.push(y);
-    scopeInitialisation(vars);
     w.copyTo(widths);
     h.copyTo(heights);
     half = xs.size();
