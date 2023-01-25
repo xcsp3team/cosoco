@@ -37,7 +37,7 @@ bool ElementConstant::filter(Variable *dummy) {
     // Not else : domain can have changed
     if(index->size() == 1) {
         Variable *x = getVariableFor(index->value());   // This value must be equal to result
-        if(solver->assignToVal(x, result) ==false)
+        if(solver->assignToVal(x, result) == false)
             return false;
         solver->entail(this);
     }
@@ -51,16 +51,7 @@ bool ElementConstant::filter(Variable *dummy) {
 
 
 ElementConstant::ElementConstant(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, int kk, bool one)
-    : Element(p, n, "Element Constant", vars.size() + 1, i, one), result(kk), indexInList(-1) {
-    szVector = vars.size();
-
-    int pos = vars.firstOccurrenceOf(i);
-    if(pos == -1) {
-        vars.push(i);
-        scopeInitialisation(vars);
-        vars.pop();
-    } else {
-        scopeInitialisation(vars);
-        indexInList = pos;
-    }
+    : Element(p, n, "Element Constant", Constraint::createScopeVec(&vars, i), i, one), result(kk) {
+    szVector    = vars.size();
+    indexInList = vars.firstOccurrenceOf(i);
 }

@@ -1,4 +1,5 @@
 
+#include "Constraint.h"
 #ifndef MINIMUMVARIABLEEQ_H
 #define MINIMUMVARIABLEEQ_H
 
@@ -19,6 +20,7 @@ class MinimumVariableEQ : public GlobalConstraint {
 
 
     bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isCorrectlyDefined() override;
 
    private:
     Variable       *findNewSentinelFor(int v, Variable *except);

@@ -17,6 +17,7 @@ bool MinimumVariableEQ::isSatisfiedBy(vec<int> &tuple) {
     return min == tuple.last();
 }
 
+bool MinimumVariableEQ::isCorrectlyDefined() { return list.contains(value) == false; }
 
 //----------------------------------------------
 // Filtering
@@ -97,17 +98,8 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 MinimumVariableEQ::MinimumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *v)
-    : GlobalConstraint(p, n, "Minimum Variable", vars.size() + 1) {
+    : GlobalConstraint(p, n, "Minimum Variable", Constraint::createScopeVec(&vars, v)) {
     value = v;
-    // Check if value is not in scope.
-    for(Variable *x : vars)
-        if(x == value)
-            throw std::runtime_error("Problem in definition of MinimumEQ Variable");
-
-    vars.push(value);   //
-    scopeInitialisation(vars);
-    vars.pop();   // Think to let vars unchanged.
-
     vars.copyTo(list);
     sentinels.growTo(value->domain.maxSize());
     for(int i = 0; i < value->domain.maxSize(); i++) sentinels[i] = findNewSentinelFor(value->domain.toVal(i), nullptr);
