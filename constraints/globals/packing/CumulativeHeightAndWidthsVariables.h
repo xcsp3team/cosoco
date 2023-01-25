@@ -12,8 +12,8 @@ class CumulativeHeightAndWidthsVariables : public Cumulative {
     vec<Variable *> widthVariables, heightVariables;
 
    public:
-    CumulativeHeightAndWidthsVariables(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope,
-                                       vec<Variable *> &, vec<Variable *> &, int limit);
+    CumulativeHeightAndWidthsVariables(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &, vec<Variable *> &,
+                                       int limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -40,9 +40,9 @@ bool CumulativeHeightVariable::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeHeightVariable::CumulativeHeightVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope,
-                                                   vec<int> &l, vec<Variable *> &h, int _limit)
-    : Cumulative(p, n, vars, scope, l, l, _limit) {
+CumulativeHeightVariable::CumulativeHeightVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l,
+                                                   vec<Variable *> &h, int _limit)
+    : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &h), l, l, _limit) {
     h.copyTo(heightVariables);
-    wheights.growTo(h.size(), 0);   // TODO: not so beautiful this constructor
+    wheights.growTo(h.size(), 0);
 }

@@ -92,7 +92,7 @@ class Constraint {
     static void  toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
                                        bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
 
-   private:
+   protected:
     // All this part simplify scope initialisation
     static vec<Variable *> temporary;
 
@@ -106,10 +106,10 @@ class Constraint {
         for(Variable *v : *vars) dosScopeInitialisation(v);
     }
     static void initScope() { }
-    
+
     template <typename T, typename... Args>
     static void initScope(T &t, Args... args) {
-        doScopeInitialisation(t);
+        dosScopeInitialisation(t);
         initScope(args...);
     }
 
