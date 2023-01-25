@@ -22,6 +22,7 @@ class Problem;
 class Variable;
 
 class Solver;
+typedef vec<Variable *> vecVariables;
 
 class Constraint {
    protected:
@@ -90,7 +91,36 @@ class Constraint {
     virtual void attachSolver(Solver *s);
     static void  toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
                                        bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
+
+   private:
+    // All this part simplify scope initialisation
+    static vec<Variable *> temporary;
+
+    static void dosScopeInitialisation(Variable *v) {
+        if(temporary.contains(v))
+            return;
+        temporary.push(v);
+    }
+
+    static void dosScopeInitialisation(vecVariables *vars) {
+        for(Variable *v : *vars) dosScopeInitialisation(v);
+    }
+    static void initScope() { }
+    
+    template <typename T, typename... Args>
+    static void initScope(T &t, Args... args) {
+        doScopeInitialisation(t);
+        initScope(args...);
+    }
+
+    template <typename... Args>
+    static vecVariables &createScopeVec(Args &&...args) {
+        temporary.clear();
+        initScope(args...);
+        return temporary;
+    }
 };
+
 
 };   // namespace Cosoco
 

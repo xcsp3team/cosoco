@@ -4,6 +4,7 @@
 
 #include "CumulativeConditionVariable.h"
 
+#include "Constraint.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -51,6 +52,6 @@ void CumulativeConditionVariable::filterLimitVariable(Variable *x) {
 
 CumulativeConditionVariable::CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope,
                                                          vec<int> &l, vec<int> &h, Variable *_limit)
-    : Cumulative(p, n, vars, scope, l, h, 0) {
+    : Cumulative(p, n, vars, Constraint::createScopeVec(vars, _limit), l, h, 0) {
     limitVariable = _limit;
 }

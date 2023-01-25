@@ -1,5 +1,6 @@
 #include "DistinctVectors.h"
 
+#include "DomainRange.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;

@@ -229,3 +229,7 @@ void Constraint::display(bool allDetails) {
     for(int i = 0; i < scope.size(); i++) printf(" %s ", scope[i]->name());
     printf("]\n");
 }
+
+//----------------- Simplify Constraint scope initialisation
+
+vecVariables Constraint::temporary;
