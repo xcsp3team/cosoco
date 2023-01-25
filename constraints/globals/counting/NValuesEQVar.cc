@@ -110,10 +110,7 @@ bool NValuesEQVar::filter(Variable *x) {
 //----------------------------------------------
 
 NValuesEQVar::NValuesEQVar(Problem &p, std::string n, vec<Variable *> &vars, Variable *x)
-    : GlobalConstraint(p, n, "NValues = x", vars.size() + 1), k(x) {
+    : GlobalConstraint(p, n, "NValues = x", Constraint::createScopeVec(&vars, x)), k(x) {
     szVector = vars.size();
-    assert(vars.firstOccurrenceOf(x)  == -1);
-    vars.push(x);
-    scopeInitialisation(vars);
-    vars.pop();   // Think to let vars unchanged.
+    assert(vars.firstOccurrenceOf(x) == -1);
 }

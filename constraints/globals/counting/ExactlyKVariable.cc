@@ -102,14 +102,6 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
 //----------------------------------------------
 
 ExactlyKVariable::ExactlyKVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *kk, int val)
-    : GlobalConstraint(p, n, "Exactly K variable", vars.size() + 1), k(kk), value(val) {
+    : GlobalConstraint(p, n, "Exactly K variable", Constraint::createScopeVec(&vars, kk)), k(kk), value(val) {
     positionOfKInList = vars.firstOccurrenceOf(k);
-    vars.copyTo(list);
-
-    if(positionOfKInList == -1)
-        vars.push(k);
-
-    scopeInitialisation(vars);
-    if(positionOfKInList == -1)
-        vars.pop();
 }
