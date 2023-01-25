@@ -108,28 +108,10 @@ void DistinctVectors::handlePossibleInferenceFor(int sentinel) {
 
 
 DistinctVectors::DistinctVectors(Cosoco::Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY)
-    : GlobalConstraint(p, n, "Distinct Vectors", 2 * XX.size()) {
+    : GlobalConstraint(p, n, "Distinct Vectors", Constraint::createScopeVec(&XX, &YY)) {
     XX.copyTo(X);
     YY.copyTo(Y);
-    size = X.size();
-
-    vec<Variable *> vars;
-
-    for(Variable *x : XX) x->fake = 0;
-    for(Variable *y : YY) y->fake = 0;
-    // Put variables only once in scope!!
-    for(Variable *x : XX) {
-        if(x->fake == 0)
-            vars.push(x);
-        x->fake = 1;
-    }
-    for(Variable *y : YY) {
-        if(y->fake == 0)
-            vars.push(y);
-        y->fake = 1;
-    }
-
-    scopeInitialisation(vars);
+    size      = X.size();
     sentinel1 = sentinel2 = 0;   // Must be initialized before looking for a new one
     sentinel1             = findAnotherSentinel();
     if(sentinel1 == -1)

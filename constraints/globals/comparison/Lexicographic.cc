@@ -128,27 +128,9 @@ void Lexicographic::setTime(int posx, int v) {
 
 
 Lexicographic::Lexicographic(Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY, bool st)
-    : GlobalConstraint(p, n, "Lex", 2 * XX.size()), strict(st), time(0) {
+    : GlobalConstraint(p, n, "Lex", Constraint::createScopeVec(&XX, &YY)), strict(st), time(0) {
     XX.copyTo(X);
     YY.copyTo(Y);
-
-    vec<Variable *> vars;
-    for(Variable *x : XX) x->fake = 0;
-    for(Variable *y : YY) y->fake = 0;
-    // Put variables only once in scope!!
-    for(Variable *x : XX) {
-        if(x->fake == 0)
-            vars.push(x);
-        x->fake = 1;
-    }
-    for(Variable *y : YY) {
-        if(y->fake == 0)
-            vars.push(y);
-        y->fake = 1;
-    }
-
-
-    scopeInitialisation(vars);
     times.growTo(scope.size(), 0);
     vals.growTo(scope.size(), 0);
 }
