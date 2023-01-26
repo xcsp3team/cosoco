@@ -104,4 +104,5 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
 ExactlyKVariable::ExactlyKVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *kk, int val)
     : GlobalConstraint(p, n, "Exactly K variable", Constraint::createScopeVec(&vars, kk)), k(kk), value(val) {
     positionOfKInList = vars.firstOccurrenceOf(k);
+    vars.copyTo(list);
 }
