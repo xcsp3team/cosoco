@@ -15,7 +15,8 @@ class SumScalar : public GlobalConstraint {
    public:
     int half;
 
-    SumScalar(Problem &p, std::string n, int sz) : GlobalConstraint(p, n, "Sum Scalar", sz), set01vs1(sz / 2) { }
+    SumScalar(Problem &p, std::string n, vec<Variable *> &scp)
+        : GlobalConstraint(p, n, "Sum Scalar", scp), set01vs1(scp.size() / 2) { }
 
 
     bool isCorrectlyDefined() override {
@@ -24,7 +25,6 @@ class SumScalar : public GlobalConstraint {
             if(x->domain.maxSize() != 2 || x->minimum() != 0 || x->maximum() != 1)
                 throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum Scalar, vars must be boolean");
         }
-
         return true;
     }
 

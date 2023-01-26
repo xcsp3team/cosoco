@@ -50,7 +50,7 @@ bool xEqOryk::filter(Variable *x) {
         assert(result->value() == 1);
         int nb  = 0;
         int pos = -1;
-        int i  = 0;
+        int i   = 0;
         for(Variable *y : clause) {
             if(y->size() == 1 && y->value() == values[i]) {
                 solver->entail(this);
@@ -60,7 +60,8 @@ bool xEqOryk::filter(Variable *x) {
                 nb++;
                 if(pos == -1)
                     pos = i;
-                else break;
+                else
+                    break;
             }
             i++;
         }
@@ -73,7 +74,7 @@ bool xEqOryk::filter(Variable *x) {
         }
     }
 
-    int i = 0;
+    int i  = 0;
     int nb = 0;
     for(Variable *y : clause) {
         if(y->size() == 1 && y->value() == values[i]) {
@@ -98,11 +99,7 @@ bool xEqOryk::filter(Variable *x) {
 //----------------------------------------------
 
 xEqOryk::xEqOryk(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<int> &_values)
-    : GlobalConstraint(p, n, "X = Or(X1=k1, X2=k2...)", vars.size() + 1), result(r) {
+    : GlobalConstraint(p, n, "X = Or(X1=k1, X2=k2...)", Constraint::createScopeVec(&vars, r)), result(r) {
     vars.copyTo(clause);
-
     _values.copyTo(values);
-    vars.push(r);
-    scopeInitialisation(vars);
-    vars.pop();
 }
