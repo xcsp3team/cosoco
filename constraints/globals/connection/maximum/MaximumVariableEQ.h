@@ -2,12 +2,13 @@
 #ifndef MAXIMUMVARIABLEEQ_H
 #define MAXIMUMVARIABLEEQ_H
 
+#include "MaximumVariable.h"
 #include "constraints/globals/GlobalConstraint.h"
 #include "mtl/Vec.h"
 
 namespace Cosoco {
 
-class MaximumVariableEQ : public GlobalConstraint {
+class MaximumVariableEQ : public MaximumVariable {
    public:
     Variable       *value;
     vec<Variable *> list;

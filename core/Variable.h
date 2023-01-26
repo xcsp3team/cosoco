@@ -42,7 +42,6 @@ class Variable {
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem
     void addConstraint(Constraint *c);              // This constraint contains the variable
 
-   protected:
     Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods

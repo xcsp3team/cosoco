@@ -122,23 +122,9 @@ bool ElementVariable::reduceResultDomain() {
 //----------------------------------------------
 
 ElementVariable::ElementVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, Variable *r, bool one)
-    : Element(p, n, "Element Variable", vars.size() + 2, i, one), result(r) {
+    : Element(p, n, "Element Variable", Constraint::createScopeVec(&vars, i, r), i, one), result(r) {
     szVector = vars.size();
-
     posIndex = vars.firstOccurrenceOf(i);
-
-    int posResult = vars.firstOccurrenceOf(r);
-
-
     resultSentinels.growTo(result->domain.maxSize(), -1);
     vectorSentinels.growTo(vars.size(), -1);
-    if(posIndex == -1)
-        vars.push(index);
-    if(posResult == -1)
-        vars.push(result);
-    scopeInitialisation(vars);
-    if(posResult == -1)
-        vars.pop();
-    if(posIndex == -1)
-        vars.pop();   // Think to let vars unchanged.
 }

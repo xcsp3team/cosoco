@@ -14,8 +14,7 @@ class CumulativeConditionVariable : public Cumulative {
     Variable *limitVariable;
 
    public:
-    CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &, vec<int> &,
-                                Variable *limit);
+    CumulativeConditionVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<int> &, Variable *limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

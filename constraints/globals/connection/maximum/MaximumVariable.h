@@ -12,11 +12,7 @@ class MaximumVariable : public GlobalConstraint {
 
 
     MaximumVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *v)
-        : GlobalConstraint(p, n, "Max variable", vars.size() + 1), maxVar(v) {
-        vars.push(maxVar);
-        scopeInitialisation(vars);
-        vars.pop();   // leave vars unchanged after call
-    }
+        : GlobalConstraint(p, n, "Max variable", Constraint::createScopeVec(&vars, v)), maxVar(v) { }
 };
 }   // namespace Cosoco
 

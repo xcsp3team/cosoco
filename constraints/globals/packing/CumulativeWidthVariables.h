@@ -12,8 +12,7 @@ class CumulativeWidthVariables : public Cumulative {
     vec<Variable *> widthVariables;
 
    public:
-    CumulativeWidthVariables(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<Variable *> &,
-                             vec<int> &, int limit);
+    CumulativeWidthVariables(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &, vec<int> &, int limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

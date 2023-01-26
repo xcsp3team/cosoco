@@ -98,17 +98,8 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 MaximumVariableEQ::MaximumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *v)
-    : GlobalConstraint(p, n, "Maximum Variable", vars.size() + 1) {
+    : MaximumVariable(p, n, vars, v) {
     value = v;
-    // Check if value is not in scope.
-    for(Variable *x : vars) {
-        if(x == value)
-            throw std::runtime_error("Problem in definition of MaximumEQ Variable");
-    }
-    vars.push(value);   //
-    scopeInitialisation(vars);
-    vars.pop();   // Think to let vars unchanged.
-
     vars.copyTo(list);
     sentinels.growTo(value->domain.maxSize());
     for(int i = 0; i < value->domain.maxSize(); i++) sentinels[i] = findNewSentinelFor(value->domain.toVal(i), nullptr);
