@@ -453,6 +453,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees) override;
 
     void buildAnnotationDecision(vector<XVariable *> &list) override;
+    void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) override;
 };
 
 

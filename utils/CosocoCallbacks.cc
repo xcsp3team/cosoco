@@ -1221,6 +1221,15 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable 
 }
 
 
+void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) {
+    if(startIndex != 0)
+        throw runtime_error("Channel is not implemented with index != 0");
+    for(int core = 0; core < nbcores; core++) {
+        toMyVariables(list, core);
+        FactoryConstraints::createConstraintChannel(problems[core], id, vars, 0);
+    }
+}
+
 void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
                                              int startIndex2) {
     for(int core = 0; core < nbcores; core++) {

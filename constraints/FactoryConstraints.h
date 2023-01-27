@@ -620,6 +620,14 @@ class FactoryConstraints {
         for(int i = 0; i < X.size(); i++) createConstraintElementConstant(p, name, Y, X[i], startY, i);
     }
 
+    static void createConstraintChannel(Problem *p, string name, vec<Variable *> &vars, int index) {
+        assert(index == 0);
+        createConstraintAllDiff(p, name, vars);
+        for(int i = 0; i < vars.size(); i++) {
+            createConstraintElementConstant(p, name, vars, vars[i], 0, i);
+        }
+    }
+
     //-----------------------------------------------------------------------
 
     static void createConstraintNoOverlap(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2) {
