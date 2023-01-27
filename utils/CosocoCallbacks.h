@@ -408,9 +408,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintInstantiation(string id, vector<XVariable *> &list, vector<int> &values) override;
 
-    void buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values) override;
+    void buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values, bool covered) override;
 
-    void buildConstraintPrecedence(string id, vector<XVariable *> &list) override;
+    void buildConstraintPrecedence(string id, vector<XVariable *> &list, bool covered) override;
 
     void buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
                                  XCondition weightsCondition, XCondition &profitCondition) override;

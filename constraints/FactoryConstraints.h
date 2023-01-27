@@ -714,8 +714,8 @@ class FactoryConstraints {
     }
 
 
-    static void createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values) {
-        p->addConstraint(new Precedence(*p, name, vars, values));
+    static void createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, bool covered) {
+        p->addConstraint(new Precedence(*p, name, vars, values, covered));
     }
 
     static void createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,

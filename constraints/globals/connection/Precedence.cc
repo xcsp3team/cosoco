@@ -47,7 +47,8 @@ bool Precedence::filter(Variable *x) {
             for(int j = 0; j < i; j++) solver->delVal(scope[j], values[i]);
     }
 
-    if(reinit) size = k;
+    if(reinit)
+        size = k;
 
     assert(size > 1);
     for(int i = 0; i < size; i++) {
@@ -87,7 +88,7 @@ bool Precedence::filter(Variable *x) {
             if(scope[j]->containsValue(values[i - 1]))
                 absent = false;
         if(absent)
-            if(solver->assignToVal(scope[firsts[i - 1]],values[i - 1]) == false)
+            if(solver->assignToVal(scope[firsts[i - 1]], values[i - 1]) == false)
                 return false;
     }
     int i = size - 1;
@@ -99,17 +100,16 @@ bool Precedence::filter(Variable *x) {
 }
 
 
-
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-Precedence::Precedence(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &vs)
+Precedence::Precedence(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &vs, bool c)
     : GlobalConstraint(p, n, "Precedence", vars) {
     vs.copyTo(values);
     // control((!covered || list.length > values.length) && values.length > 1);
     r       = scope.size();
     k       = values.size();
-    covered = false;   // TODO
+    covered = covered;
     firsts.growTo(k, 0);
 }

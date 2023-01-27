@@ -1513,14 +1513,14 @@ void CosocoCallbacks::buildConstraintInstantiation(string id, vector<XVariable *
 }
 
 
-void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values) {
+void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values, bool covered) {
     for(int core = 0; core < nbcores; core++) {
         toMyVariables(list, core);
-        FactoryConstraints::createConstraintPrecedence(problems[core], id, vars, vector2vec(values));
+        FactoryConstraints::createConstraintPrecedence(problems[core], id, vars, vector2vec(values), covered);
     }
 }
 
-void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list) {
+void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, bool covered) {
     for(int core = 0; core < nbcores; core++) {
         toMyVariables(list, core);
         std::set<int> values;
@@ -1529,7 +1529,7 @@ void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &
         }
         vec<int> tmp;
         for(int v : values) tmp.push(v);
-        FactoryConstraints::createConstraintPrecedence(problems[core], id, vars, tmp);
+        FactoryConstraints::createConstraintPrecedence(problems[core], id, vars, tmp, covered);
     }
 }
 
