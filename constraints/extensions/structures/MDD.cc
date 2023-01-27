@@ -70,7 +70,10 @@ MDD *MDD::buildFromAutomata(std::string name, vec<Variable *> &scope, string sta
             nextTransitions[t->from] = new vec<XCSP3Core::XTransition *>();
         nextTransitions[t->from]->push(t);
     }
-
+    for(XCSP3Core::XTransition *t : transitions) {
+        if(nextTransitions.find(t->to) == nextTransitions.end())
+            nextTransitions[t->to] = new vec<XCSP3Core::XTransition *>();
+    }
 
     int  nb  = 0;
     MDD *tmp = new MDD();
