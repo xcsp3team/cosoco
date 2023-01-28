@@ -206,6 +206,9 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
+    if(displayModels)
+        displayCurrentSolution();
+
     if(nbSolutions == nbWishedSolutions) {
         status = REACH_GOAL;
         return true;

@@ -158,9 +158,7 @@ start:
                             if(size <= margin)
                                 continue;
                             for(int right = usableBins.size() - 1; right >= j; right--) {
-                                if(solver->delIdv(scope[p],sortedBins[right]->index))
-                                    // scp[p].dom.removeValueIfPresent(sortedBins[right].index)
-                                                                    // == false)
+                                if(solver->delIdv(scope[p], sortedBins[right]->index) == false)
                                     return false;
                             }
                         }
