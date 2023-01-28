@@ -110,6 +110,6 @@ Precedence::Precedence(Problem &p, std::string n, vec<Variable *> &vars, vec<int
     // control((!covered || list.length > values.length) && values.length > 1);
     r       = scope.size();
     k       = values.size();
-    covered = covered;
+    covered = c;
     firsts.growTo(k, 0);
 }
