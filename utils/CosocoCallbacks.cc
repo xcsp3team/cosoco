@@ -1274,18 +1274,16 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
                                                bool zeroIgnored) {
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
-
-    for(unsigned int i = 0; i < origins.size(); i++)
-        for(unsigned int j = i + 1; j < origins.size(); j++) {
-            Variable xi = (Variable)origins[i], xj = (Variable)origins[j];
-            Variable wi = (Variable)lengths[i], wj = (Variable)lengths[j];
-
-            if(head.control.global.noOverlap == INTENSION_DECOMPOSITION)
-                intension(or (le(add(xi, wi), xj), le(add(xj, wj), xi)));
-            else
-                post(new DisjonctiveVar(this, xi, xj, wi, wj));
-        }
-    return null;
+    for(int core = 0; core < nbcores; core++) {
+        for(unsigned int i = 0; i < origins.size(); i++)
+            for(unsigned int j = i + 1; j < origins.size(); j++) {
+                Variable *xi = problems[core]->mapping[origins[i]->id];
+                Variable *xj = problems[core]->mapping[origins[j]->id];
+                Variable *wi = problems[core]->mapping[lengths[i]->id];
+                Variable *wj = problems[core]->mapping[lengths[j]->id];
+                FactoryConstraints::createConstraintDisjunctiveVars(problems[core], id, xi, xj, wi, wj);
+            }
+    }
 }
 
 void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins,

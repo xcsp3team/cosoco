@@ -20,6 +20,7 @@
 #include "CumulativeHeightAndWidthsVariables.h"
 #include "CumulativeHeightVariable.h"
 #include "CumulativeWidthVariables.h"
+#include "DisjunctiveVars.h"
 #include "Precedence.h"
 #include "XCSP3Constants.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
@@ -636,11 +637,15 @@ class FactoryConstraints {
         // to_string(w2) + ")," + x1->_name + "))"; createConstraintIntension(p, "no overlap", tmp);
     }
 
+    static void createConstraintDisjunctiveVars(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *w1,
+                                                Variable *w2) {
+        p->addConstraint(new DisjunctiveVars(*p, name, x1, x2, w1, w2));
+    }
+
     static void createConstraintDisjunctive2D(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
                                               Variable *y2, int w1, int w2, int h1, int h2) {
         p->addConstraint(new Disjunctive2D(*p, name, x1, x2, y1, y2, w1, w2, h1, h2));
     }
-
     //-----------------------------------------------------------------------
 
     static void createConstraintMaximumLE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
