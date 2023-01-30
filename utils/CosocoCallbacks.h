@@ -454,6 +454,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildAnnotationDecision(vector<XVariable *> &list) override;
     void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) override;
+    void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
+                                  bool zeroIgnored) override;
 };
 
 
