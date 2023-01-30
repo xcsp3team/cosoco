@@ -98,10 +98,14 @@ int main(int argc, char **argv) {
         printf("\n");
 
         parseOptions(argc, argv, true);
+        std::cout << orestarts << endl;
+        if((nbSolutions > 1 || nbSolutions == 0) && orestarts) {
+            cout << "c count solutions and restarts is impossible" << endl;
+            exit(1);
+        }
 
-
-        if(nbSolutions > 1 && (nbcores > 1 || orestarts)) {
-            cout << "c this combination of options not possible" << endl;
+        if((nbSolutions > 1 || nbSolutions == 0) && nbcores > 1) {
+            cout << "c count solutions and multicore usage is impossible" << endl;
             exit(1);
         }
 
