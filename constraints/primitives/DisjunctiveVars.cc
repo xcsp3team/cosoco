@@ -27,18 +27,11 @@ bool DisjunctiveVars::filter(Variable *xx) {
     if(!b2)   // we enforce the first part
         return solver->delValuesLowerOrEqualThan(x2, min1 - 1) && solver->delValuesGreaterOrEqualThan(x1, max1 + 1) &&
                solver->delValuesGreaterOrEqualThan(w1, x2->maximum() - x1->minimum() + 1);
-    //    if (!b2) // we enforce the first part
-    //        return dx2.removeValuesLT(min1) && dx1.removeValuesGT(max1) && dw1.removeValuesGT(dx2.lastValue() -
-    //        dx1.firstValue());
-    ///    if (!b1) // we enforce the second part
-    //       return dx1.removeValuesLT(min2) && dx2.removeValuesGT(max2) && dw2.removeValuesGT(dx1.lastValue() -
-    //       dx2.firstValue());
-
     if(!b1)   // we enforce the second part
         return solver->delValuesLowerOrEqualThan(x1, min2 - 1) && solver->delValuesGreaterOrEqualThan(x2, max2 + 1) &&
                solver->delValuesGreaterOrEqualThan(w2, x1->maximum() - x2->minimum() + 1);
+
     return solver->delValuesInRange(x1, max1 + 1, min2 - 1) && solver->delValuesInRange(x2, max2 + 1, min1 - 1);
-    //        dx1.removeValuesInRange(max1 + 1, min2) && dx2.removeValuesInRange(max2 + 1, min1);
 }
 
 
