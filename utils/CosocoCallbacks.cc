@@ -1500,7 +1500,7 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
 
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
                                                 vector<XVariable *> &capacities, bool load) {
-    assert(false);
+    throw std::runtime_error("Bin packing with sizes and capacities is not yet implemented");
 }
 
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,

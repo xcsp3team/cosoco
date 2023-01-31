@@ -90,9 +90,7 @@ int main(int argc, char **argv) {
 
         setUsageHelp("c USAGE: %s [options] <input-file>\n\n  where input may be either in plain or gzipped XCSP3.\n");
 
-
         // --------------------------- COMMAND LINE ----------------------------------------
-
         printf("c command line: ");
         for(int i = 0; i < argc; i++) printf("%s ", argv[i]);
         printf("\n");
@@ -108,7 +106,6 @@ int main(int argc, char **argv) {
             cout << "c count solutions and multicore usage is impossible" << endl;
             exit(1);
         }
-
 
         limitRessourcesUsage();
 
@@ -131,7 +128,7 @@ int main(int argc, char **argv) {
         } catch(exception &e) {
             cout.flush();
             cout << "c " << e.what() << endl;
-            if(strstr(e.what(), "not yet supported"))
+            if(strstr(e.what(), "not yet"))
                 cout << "s UNSUPPORTED" << endl;
             exit(1);
         }
