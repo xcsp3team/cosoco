@@ -1,5 +1,7 @@
 #include "ElementVariable.h"
 
+#include <XCSP3Constants.h>
+
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -62,15 +64,14 @@ bool ElementVariable::filter(Variable *dummy) {
     return true;
 }
 
-bool ElementVariable::validIndex(int idv) {
-    int v = indexSentinels[idv];
-    if(v != -1 && list[v]->containsValue(v) && value->containsValue(v))
+bool ElementVariable::validIndex(int posx) {
+    int v = indexSentinels[posx];
+    if(v != STAR && list[posx]->containsValue(v) && value->containsValue(v))
         return true;
-    int vi = index->domain.toVal(idv);
-    for(int idv2 : list[vi]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
-        int v2 = list[vi]->domain.toVal(idv2);
+    for(int idv2 : list[posx]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
+        int v2 = list[posx]->domain.toVal(idv2);
         if(value->containsValue(v2)) {
-            indexSentinels[idv] = v2;
+            indexSentinels[posx] = v2;
             return true;
         }
     }
@@ -78,9 +79,11 @@ bool ElementVariable::validIndex(int idv) {
 }
 
 bool ElementVariable::filterIndex() {
-    for(int idv : index->domain)
-        if(validIndex(idv) == false && solver->delIdv(index, idv) == false)
+    for(int idv : index->domain) {
+        int v = index->domain.toVal(idv);
+        if((v < 0 || v >= list.size() || validIndex(v) == false) && solver->delIdv(index, idv) == false)
             return false;
+    }
     return true;
 }
 
@@ -117,5 +120,5 @@ ElementVariable::ElementVariable(Problem &p, std::string n, vec<Variable *> &var
     posIndex = vars.firstOccurrenceOf(i);
     vars.copyTo(list);
     valueSentinels.growTo(value->domain.maxSize(), -1);
-    indexSentinels.growTo(vars.size(), -1);
+    indexSentinels.growTo(vars.size(), STAR);
 }
