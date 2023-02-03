@@ -30,9 +30,7 @@ bool ElementVariable::isCorrectlyDefined() {
 
 
 bool ElementVariable::filter(Variable *dummy) {
-    return true;
     if(index->size() > 1) {
-        // updating vdom (and valueSentinels)
         if(filterValue() == false)
             return false;
         while(true) {
@@ -63,12 +61,12 @@ bool ElementVariable::filter(Variable *dummy) {
 
 bool ElementVariable::validIndex(int idv) {
     int v = indexSentinels[idv];
-    if(v != -1 && list[idv]->containsValue(v) && value->containsValue(v))
+    if(v != -1 && list[v]->containsValue(v) && value->containsValue(v))
         return true;
-    for(int idv2 : list[idv]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
-        v = list[idv]->domain.toVal(idv2);
-        if(value->containsValue(v)) {
-            indexSentinels[idv] = v;
+    for(int idv2 : list[v]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
+        int v2 = list[v]->domain.toVal(idv2);
+        if(value->containsValue(v2)) {
+            indexSentinels[idv] = v2;
             return true;
         }
     }
@@ -80,17 +78,17 @@ bool ElementVariable::filterIndex() {
         if(validIndex(idv) == false && solver->delIdv(index, idv) == false)
             return false;
     return true;
-    // return idom.removeIndexesChecking(i -> !validIndex(i));
 }
 
 bool ElementVariable::validValue(int idv) {
     int v        = value->domain.toVal(idv);
     int sentinel = valueSentinels[idv];
-    if(sentinel != -1 && index->containsIdv(sentinel) && list[sentinel]->containsValue(v))
+    if(sentinel != -1 && index->containsValue(sentinel) && list[sentinel]->containsValue(v))
         return true;
     for(int idv2 : index->domain) {
-        if(list[idv2]->containsValue(v)) {
-            valueSentinels[idv] = idv2;
+        int v2 = index->domain.toVal(idv2);
+        if(v2 >= 0 && v2 < list.size() && list[v2]->containsValue(v)) {
+            valueSentinels[idv] = v2;
             return true;
         }
     }
