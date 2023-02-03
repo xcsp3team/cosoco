@@ -6,22 +6,25 @@
 namespace Cosoco {
 
 class ElementVariable : public Element {
-    Variable *result;
+    Variable       *value;
+    vec<Variable *> list;
 
     /**
      * For each idx of a value v in result's domain, we store the index i of a variable from vector such that v is in
      * dom(vector[i]).
      */
-    vec<int> resultSentinels;
+    vec<int> indexSentinels;
 
     /**
      * For each variable in vector, we store a (normalized) value that is both in its domain and in result's domain
      */
-    vec<int> vectorSentinels;
+    vec<int> valueSentinels;
 
    public:
     ElementVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, Variable *r, bool one = false);
 
+
+    bool isCorrectlyDefined() override;
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -30,10 +33,10 @@ class ElementVariable : public Element {
     bool isSatisfiedBy(vec<int> &tuple) override;
 
    protected:
-    bool findVectorSentinelFor(int idxIndex);
-    bool findResultSentinelFor(int idxResult);
-    bool reduceResultDomain();
-    bool isCorrectlyDefined() override;
+    bool validIndex(int v);
+    bool filterIndex();
+    bool validValue(int v);
+    bool filterValue();
 };
 }   // namespace Cosoco
 

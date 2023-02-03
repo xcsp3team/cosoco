@@ -8,13 +8,15 @@ namespace Cosoco {
 
 class Element : public GlobalConstraint {
    protected:
-    Variable *index;
-    int       posIndex;   // position of the index in the list (-1 if absent)
-    bool      startAtOne;
-    int       szVector;   // original size without index
+    Variable       *index;
+    int             posIndex;   // position of the index in the list (-1 if absent)
+    bool            startAtOne;
+    int             szVector;   // original size without index
    public:
     Element(Problem &p, std::string n, std::string t, vec<Variable *> &scp, Variable *i, bool one = false)
-        : GlobalConstraint(p, n, t, scp), index(i), startAtOne(one) { }
+        : GlobalConstraint(p, n, t, scp), index(i), startAtOne(one) {
+
+    }
 
 
     inline Variable *getVariableFor(int posx) { return scope[posx - (startAtOne ? 1 : 0)]; }

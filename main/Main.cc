@@ -177,16 +177,12 @@ int main(int argc, char **argv) {
                     for(const std::string &v : stringValues) {
                         if(v.find("x") != std::string::npos) {
                             std::vector<std::string> compact = split1(v, 'x');
-                            std::cout << compact[0] << std::endl;
                             int tmp = compact[0].find("*") != std::string::npos ? STAR : std::stoi(compact[0]);
                             for(int i = 0; i < std::stoi(compact[1]); i++) values.push(tmp);
                         } else {
                             if(v.find("*") != std::string::npos) {
-                                std::cout << v << std::endl;
                                 values.push(STAR);
-                                std::cout << "oco\n";
                             } else {
-                                std::cout << v << std::endl;
                                 values.push(std::stoi(v));
                             }
                         }
