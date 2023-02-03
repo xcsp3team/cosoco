@@ -392,6 +392,7 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                 currentFilteredConstraint = c;
                 if(c->filterFrom(x) == false) {   // Inconsistent
                     c->timestamp = ++timestamp;
+                    c->display();
                     notifyConflict(c);
                     currentFilteredConstraint = nullptr;
                     return c;
