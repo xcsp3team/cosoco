@@ -11,9 +11,9 @@ using namespace Cosoco;
 
 
 bool ElementVariable::isSatisfiedBy(vec<int> &tuple) {
-    int idx = posIndex == -1 ? tuple[tuple.size() - 2] : posIndex;
-    int res = tuple[tuple.size() - 1];
     return true;
+    int idx = posIndex == -1 ? tuple[tuple.size() - 2] : tuple[posIndex];
+    int res = tuple[tuple.size() - 1];
     return tuple[idx - (startAtOne ? 1 : 0)] == res;
 }
 
@@ -51,7 +51,10 @@ bool ElementVariable::filter(Variable *dummy) {
     // If index is singleton, we update dom(list[index]) and vdom so that they are both equal to the
     // intersection of the two domains
     if(index->size() == 1) {
-        if(solver->delValuesNotInDomain(list[index->value()], value->domain) == false)
+        Variable *x = list[index->value()];
+        if(solver->delValuesNotInDomain(x, value->domain) == false)
+            return false;
+        if(solver->delValuesNotInDomain(value, x->domain) == false)
             return false;
         if(value->size() == 1)
             solver->entail(this);
@@ -63,8 +66,9 @@ bool ElementVariable::validIndex(int idv) {
     int v = indexSentinels[idv];
     if(v != -1 && list[v]->containsValue(v) && value->containsValue(v))
         return true;
-    for(int idv2 : list[v]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
-        int v2 = list[v]->domain.toVal(idv2);
+    int vi = index->domain.toVal(idv);
+    for(int idv2 : list[vi]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
+        int v2 = list[vi]->domain.toVal(idv2);
         if(value->containsValue(v2)) {
             indexSentinels[idv] = v2;
             return true;
