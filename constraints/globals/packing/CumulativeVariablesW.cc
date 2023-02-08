@@ -2,10 +2,10 @@
 // Created by audemard on 21/01/23.
 //
 
-#include "CumulativeWidthVariables.h"
+#include "CumulativeVariablesW.h"
 
 #include "Cumulative.h"
-#include "CumulativeHeightVariable.h"
+#include "CumulativeVariablesH.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -16,7 +16,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 
-bool CumulativeWidthVariables::isSatisfiedBy(vec<int> &tuple) {
+bool CumulativeVariablesW::isSatisfiedBy(vec<int> &tuple) {
     vec<int> st;
     int      i, j = 0;
     for(i = 0; i < starts.size(); i++) st.push(tuple[i]);
@@ -29,7 +29,7 @@ bool CumulativeWidthVariables::isSatisfiedBy(vec<int> &tuple) {
 // Filtering
 //----------------------------------------------------------
 
-bool CumulativeWidthVariables::filter(Variable *dummy) {
+bool CumulativeVariablesW::filter(Variable *dummy) {
     for(int i = 0; i < starts.size(); i++) wwidths[i] = widthVariables[i]->minimum();
     if(Cumulative::filter(dummy) == false)
         return false;
@@ -37,14 +37,14 @@ bool CumulativeWidthVariables::filter(Variable *dummy) {
     return true;
 }
 
-int CumulativeWidthVariables::maxWidth(int posx) { return widthVariables[posx]->maximum(); }
+int CumulativeVariablesW::maxWidth(int posx) { return widthVariables[posx]->maximum(); }
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeWidthVariables::CumulativeWidthVariables(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &widths,
-                                                   vec<int> &heights, int limit)
+CumulativeVariablesW::CumulativeVariablesW(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &widths,
+                                           vec<int> &heights, int limit)
     : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &widths), heights, heights, limit) {
     widths.copyTo(widthVariables);
     wwidths.growTo(widths.size(), 0);

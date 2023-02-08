@@ -2,7 +2,7 @@
 // Created by audemard on 21/01/23.
 //
 
-#include "CumulativeHeightVariable.h"
+#include "CumulativeVariablesH.h"
 
 #include "Cumulative.h"
 #include "solver/Solver.h"
@@ -15,7 +15,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 
-bool CumulativeHeightVariable::isSatisfiedBy(vec<int> &tuple) {
+bool CumulativeVariablesH::isSatisfiedBy(vec<int> &tuple) {
     vec<int> st;
     int      i, j = 0;
     for(i = 0; i < starts.size(); i++) st.push(tuple[i]);
@@ -28,7 +28,7 @@ bool CumulativeHeightVariable::isSatisfiedBy(vec<int> &tuple) {
 // Filtering
 //----------------------------------------------------------
 
-bool CumulativeHeightVariable::filter(Variable *dummy) {
+bool CumulativeVariablesH::filter(Variable *dummy) {
     for(int i = 0; i < starts.size(); i++) wheights[i] = heightVariables[i]->minimum();
     if(Cumulative::filter(dummy) == false)
         return false;
@@ -40,8 +40,8 @@ bool CumulativeHeightVariable::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeHeightVariable::CumulativeHeightVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l,
-                                                   vec<Variable *> &h, int _limit)
+CumulativeVariablesH::CumulativeVariablesH(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l, vec<Variable *> &h,
+                                           int _limit)
     : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &h), l, l, _limit) {
     h.copyTo(heightVariables);
     wheights.growTo(h.size(), 0);

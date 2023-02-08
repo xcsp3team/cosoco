@@ -2,7 +2,7 @@
 // Created by audemard on 23/01/23.
 //
 
-#include "CumulativeHeightAndWidthsVariables.h"
+#include "CumulativeVariablesHW.h"
 
 #include "Cumulative.h"
 using namespace Cosoco;
@@ -13,7 +13,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 
-bool CumulativeHeightAndWidthsVariables::isSatisfiedBy(vec<int> &tuple) {
+bool CumulativeVariablesHW::isSatisfiedBy(vec<int> &tuple) {
     vec<int> st;
     int      i, j = 0;
     for(i = 0; i < starts.size(); i++) st.push(tuple[i]);
@@ -30,7 +30,7 @@ bool CumulativeHeightAndWidthsVariables::isSatisfiedBy(vec<int> &tuple) {
 // Filtering
 //----------------------------------------------------------
 
-bool CumulativeHeightAndWidthsVariables::filter(Variable *dummy) {
+bool CumulativeVariablesHW::filter(Variable *dummy) {
     for(int i = 0; i < starts.size(); i++) {
         wwidths[i]  = widthVariables[i]->minimum();
         wheights[i] = heightVariables[i]->minimum();
@@ -45,15 +45,15 @@ bool CumulativeHeightAndWidthsVariables::filter(Variable *dummy) {
     return true;
 }
 
-int CumulativeHeightAndWidthsVariables::maxWidth(int posx) { return widthVariables[posx]->maximum(); }
+int CumulativeVariablesHW::maxWidth(int posx) { return widthVariables[posx]->maximum(); }
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
 
-CumulativeHeightAndWidthsVariables::CumulativeHeightAndWidthsVariables(Problem &p, std::string n, vec<Variable *> &vars,
-                                                                       vec<Variable *> &w, vec<Variable *> &h, int limit)
+CumulativeVariablesHW::CumulativeVariablesHW(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &w,
+                                             vec<Variable *> &h, int limit)
     : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &w, &h), wwidths, wheights, limit) {
     h.copyTo(heightVariables);
     w.copyTo(widthVariables);

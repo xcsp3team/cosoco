@@ -16,10 +16,11 @@
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
 #include "Constraint.h"
-#include "CumulativeConditionVariable.h"
-#include "CumulativeHeightAndWidthsVariables.h"
-#include "CumulativeHeightVariable.h"
-#include "CumulativeWidthVariables.h"
+#include "CumulativeVariablesC.h"
+#include "CumulativeVariablesH.h"
+#include "CumulativeVariablesHW.h"
+#include "CumulativeVariablesHWC.h"
+#include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
 #include "Precedence.h"
 #include "XCSP3Constants.h"
@@ -697,7 +698,7 @@ class FactoryConstraints {
     //--------------------------------------------------------------------------------------
     static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
                                            vec<int> &heights, Variable *limit) {
-        p->addConstraint(new CumulativeConditionVariable(*p, name, vars, lengths, heights, limit));
+        p->addConstraint(new CumulativeVariablesC(*p, name, vars, lengths, heights, limit));
     }
 
     static void createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
@@ -708,17 +709,23 @@ class FactoryConstraints {
 
     static void createConstraintCumulativeHeightVariable(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
                                                          vec<Variable *> &heights, int limit) {
-        p->addConstraint(new CumulativeHeightVariable(*p, name, vars, lengths, heights, limit));
+        p->addConstraint(new CumulativeVariablesH(*p, name, vars, lengths, heights, limit));
     }
 
     static void createConstraintCumulativeWidthVariables(Problem *p, std::string name, vec<Variable *> &vars,
                                                          vec<Variable *> &lengths, vec<int> &heights, int limit) {
-        p->addConstraint(new CumulativeWidthVariables(*p, name, vars, lengths, heights, limit));
+        p->addConstraint(new CumulativeVariablesW(*p, name, vars, lengths, heights, limit));
     }
 
     static void createConstraintCumulativeHeightAndWidthVariables(Problem *p, std::string name, vec<Variable *> &vars,
                                                                   vec<Variable *> &widths, vec<Variable *> &heights, int limit) {
-        p->addConstraint(new CumulativeHeightAndWidthsVariables(*p, name, vars, widths, heights, limit));
+        p->addConstraint(new CumulativeVariablesHW(*p, name, vars, widths, heights, limit));
+    }
+
+    static void createConstraintCumulativeHeightAndWidthAndConditionVariables(Problem *p, std::string name, vec<Variable *> &vars,
+                                                                              vec<Variable *> &widths, vec<Variable *> &heights,
+                                                                              Variable *limit) {
+        p->addConstraint(new CumulativeVariablesHWC(*p, name, vars, widths, heights, limit));
     }
 
     static void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<int> &width, vec<Variable *> &Y,

@@ -1411,7 +1411,7 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         toMyVariables(varHeights, myvarHeights, core);
         toMyVariables(origins, vars, core);
         if(xc.operandType == VARIABLE) {
-            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+            throw std::runtime_error("Cumulative with var Heights and condition variable is not yet implemented");
         } else
             FactoryConstraints::createConstraintCumulativeHeightVariable(problems[core], id, vars, l, myvarHeights, xc.val);
     }
@@ -1430,7 +1430,7 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         toMyVariables(varlengths, myvarwidths, core);
         toMyVariables(origins, vars, core);
         if(xc.operandType == VARIABLE) {
-            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+            throw std::runtime_error("Cumulative with variable lenghts and condition variable is not yet implemented");
         } else
             FactoryConstraints::createConstraintCumulativeWidthVariables(problems[core], id, vars, myvarwidths, heights, xc.val);
     }
@@ -1447,7 +1447,8 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
         toMyVariables(varheights, myvarheights, core);
         toMyVariables(origins, vars, core);
         if(xc.operandType == VARIABLE) {
-            throw std::runtime_error("Cumulative with different domain types for items is not yet implemented");
+            FactoryConstraints::createConstraintCumulativeHeightAndWidthAndConditionVariables(
+                problems[core], id, vars, myvarwidths, myvarheights, problems[core]->mapping[xc.var]);
         } else
             FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(problems[core], id, vars, myvarwidths,
                                                                                   myvarheights, xc.val);

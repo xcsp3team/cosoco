@@ -79,6 +79,8 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
 
     void filterHeightVariables(vec<Variable *> &_heights);   // Don't want to use multiple inheritance
     void filterWidthVariables(vec<Variable *> &_lenghts);
+    void filterLimitVariable(Variable *x);
+    
 
     virtual int maxWidth(int posx);
     // Checking

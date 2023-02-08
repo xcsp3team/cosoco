@@ -2,17 +2,17 @@
 // Created by audemard on 23/01/23.
 //
 
-#ifndef COSOCO_CUMULATIVEWIDTHVARIABLES_H
-#define COSOCO_CUMULATIVEWIDTHVARIABLES_H
+#ifndef COSOCO_CUMULATIVEVARIABLESW_H
+#define COSOCO_CUMULATIVEVARIABLESW_H
 
 #include "Cumulative.h"
 namespace Cosoco {
-class CumulativeWidthVariables : public Cumulative {
+class CumulativeVariablesW : public Cumulative {
    protected:
     vec<Variable *> widthVariables;
 
    public:
-    CumulativeWidthVariables(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &, vec<int> &, int limit);
+    CumulativeVariablesW(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &, vec<int> &, int limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -23,4 +23,4 @@ class CumulativeWidthVariables : public Cumulative {
 }   // namespace Cosoco
 
 
-#endif   // COSOCO_CUMULATIVEWIDTHVARIABLES_H
+#endif   // COSOCO_CUMULATIVEVARIABLESW_H

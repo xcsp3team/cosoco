@@ -252,3 +252,13 @@ void Cumulative::filterWidthVariables(vec<Variable *> &widthVariables) {
             }
         }
 }
+
+void Cumulative::filterLimitVariable(Variable *x) {
+    if(x->size() > 1 && timetableReasoner.nSlots > 0) {
+        for(int idv : x->domain) {
+            int v = x->domain.toVal(idv);
+            if(timetableReasoner.slots[0].height > v)
+                solver->delIdv(x, idv);   // No inconsistency
+        }
+    }
+}

@@ -2,17 +2,17 @@
 // Created by audemard on 21/01/23.
 //
 
-#ifndef COSOCO_CUMULATIVEHEIGHTVARIABLE_H
-#define COSOCO_CUMULATIVEHEIGHTVARIABLE_H
+#ifndef COSOCO_CUMULATIVEVARIABLESH_H
+#define COSOCO_CUMULATIVEVARIABLESH_H
 
 #include "Cumulative.h"
 namespace Cosoco {
-class CumulativeHeightVariable : public Cumulative {
+class CumulativeVariablesH : public Cumulative {
    protected:
     vec<Variable *> heightVariables;
 
    public:
-    CumulativeHeightVariable(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, int limit);
+    CumulativeVariablesH(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, int limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -21,4 +21,4 @@ class CumulativeHeightVariable : public Cumulative {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
-#endif   // COSOCO_CUMULATIVEHEIGHTVARIABLE_H
+#endif   // COSOCO_CUMULATIVEVARIABLESH_H
