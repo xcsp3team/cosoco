@@ -19,7 +19,8 @@ bool AtMostK::isSatisfiedBy(vec<int> &tuple) {
 
 
 bool AtMostK::isCorrectlyDefined() {
-    if(k < 1 || k > scope.size())
+    std::cout << k << " " << scope.size() << std::endl;
+    if(k < 1)
         throw std::logic_error("Constraint " + std::to_string(idc) + ": AtMost must have 1<=k <= size(list)");
     for(Variable *x : scope)
         if(x->containsValue(value) == false)
@@ -32,6 +33,9 @@ bool AtMostK::isCorrectlyDefined() {
 //----------------------------------------------
 
 bool AtMostK::filter(Variable *x) {
+    if(k >= scope.size()) {
+        return true;
+    }
     if(x->isUniqueValue(value) == false)
         return true;
 

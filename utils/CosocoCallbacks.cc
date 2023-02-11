@@ -1501,7 +1501,20 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
 
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
                                                 vector<XVariable *> &capacities, bool load) {
-    throw std::runtime_error("Bin packing with sizes and capacities is not yet implemented");
+    if(load) {
+        for(int core = 0; core < nbcores; core++) {
+            vars.clear();
+            vec<int> s;
+            vector2vec(sizes);
+            vals.copyTo(s);
+            toMyVariables(list, vars, core);
+            vec<Variable *> loads;
+            toMyVariables(capacities, loads, core);
+            FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, loads);
+        }
+    } else {
+        throw std::runtime_error("Bin packing with capcities and not load is not yet implemented");
+    }
 }
 
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
