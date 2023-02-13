@@ -137,6 +137,7 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
     vec<Variable *> scope;
     for(string &s : tree->listOfVariables) scope.push(problems[0]->mapping[s]);
 
+
     // Check x = y1=k1 or y2=k2...
     bool match = true;
     if(tree->root->type == OEQ && tree->root->parameters[0]->type == OVAR && tree->root->parameters[1]->type == OOR) {
@@ -193,6 +194,34 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
         }
         return;
     }
+    //    tree->prefixe();
+    //    std::cout << "\n";
+    // Check x <= y + z
+    if(tree->root->type == OLE && tree->root->parameters[0]->type == OADD &&
+       (tree->root->parameters[1]->type == OVAR || tree->root->parameters[1]->type == ODECIMAL)) {
+        bool            ok = true;
+        vec<Variable *> list;
+        for(auto *tmp : tree->root->parameters[0]->parameters) {
+            if(tmp->type != OVAR) {
+                ok = false;
+                break;
+            }
+        }
+        if(ok) {
+            vec<int> coeffs;
+            coeffs.growTo(tree->root->parameters[0]->parameters.size(), 1);
+            coeffs.push(-1);
+            for(int core = 0; core < nbcores; core++) {
+                vec<Variable *> v;
+                for(auto *tmp : tree->root->parameters[0]->parameters)
+                    v.push(problems[core]->mapping[((NodeVariable *)tmp)->var]);
+                v.push(problems[core]->mapping[((NodeVariable *)tree->root->parameters[1])->var]);
+                FactoryConstraints::createConstraintSum(problems[core], id, v, coeffs, 0, LE);   // x = y + k
+            }
+            return;
+        }
+    }
+
 
     // check x + k = y
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OADD && tree->root->parameters[0]->type == OVAR &&
