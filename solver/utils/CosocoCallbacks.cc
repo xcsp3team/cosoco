@@ -361,7 +361,7 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
     }
 
 
-    int nbTuples = 1;
+    unsigned long long nbTuples = 1;
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
 
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute

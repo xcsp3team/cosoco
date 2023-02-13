@@ -3,10 +3,10 @@
 
 #include <numeric>
 
+#include "FactoryConstraints.h"
 #include "XCSP3Constants.h"
 #include "XCSP3Constraint.h"
 #include "XCSP3CoreCallbacks.h"
-#include "constraints/FactoryConstraints.h"
 #include "constraints/extensions/structures/MDD.h"
 #include "core/OptimizationProblem.h"
 #include "core/Problem.h"
@@ -172,7 +172,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
    public:
     int                    nbcores;
-    int                    intension2extensionLimit;
+    unsigned long long     intension2extensionLimit;
     vec<Cosoco::Problem *> problems;
     bool                   optimizationProblem;
     bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
@@ -180,14 +180,12 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     int                  nbInitialsVariables;
 
 
-    CosocoCallbacks(int ncores, int i2e) : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) { }
-
+    CosocoCallbacks(int ncores, unsigned long long i2e)
+        : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) { }
 
     void beginInstance(InstanceType type) override;
 
-
     void endInstance() override;
-
 
     void buildVariableInteger(string id, int minValue, int maxValue) override;
 
@@ -196,7 +194,6 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void beginVariableArray(string id) override;
 
     void endVariableArray() override;
-
 
     void endVariables() override;
 
@@ -453,7 +450,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees) override;
 
     void buildAnnotationDecision(vector<XVariable *> &list) override;
+
     void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) override;
+
     void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
                                   bool zeroIgnored) override;
 };

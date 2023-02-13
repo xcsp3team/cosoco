@@ -2,9 +2,9 @@
 
 #include <assert.h>
 
-#include "FactoryConstraints.h"
 #include "XCSP3Tree.h"
 #include "mtl/Map.h"
+#include "solver/utils/FactoryConstraints.h"
 #include "utils/Utils.h"
 
 
