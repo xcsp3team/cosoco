@@ -1,15 +1,6 @@
 #ifndef FACTORYCONSTRAINTS_H
 #define FACTORYCONSTRAINTS_H
 
-#include <constraints/globals/connection/element/ElementMatrix.h>
-#include <constraints/globals/counting/NValuesEQVar.h>
-#include <constraints/globals/graph/Circuit.h>
-#include <constraints/globals/packing/Cumulative.h>
-#include <constraints/globals/packing/NoOverlap.h>
-#include <constraints/globals/summing/SumScalarLEK.h>
-#include <constraints/globals/summing/SumScalarLEVar.h>
-#include <constraints/primitives/xTimesyEQz.h>
-
 #include <iostream>
 #include <regex>
 
@@ -24,7 +15,15 @@
 #include "DisjunctiveVars.h"
 #include "Precedence.h"
 #include "XCSP3Constants.h"
+#include "constraints/globals/connection/element/ElementMatrix.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
+#include "constraints/globals/counting/NValuesEQVar.h"
+#include "constraints/globals/graph/Circuit.h"
+#include "constraints/globals/packing/Cumulative.h"
+#include "constraints/globals/packing/NoOverlap.h"
+#include "constraints/globals/summing/SumScalarLEK.h"
+#include "constraints/globals/summing/SumScalarLEVar.h"
+#include "constraints/primitives/xTimesyEQz.h"
 #include "extensions/BinaryExtension.h"
 #include "extensions/MDDExtension.h"
 #include "extensions/STRNeg.h"
