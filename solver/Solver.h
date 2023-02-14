@@ -9,12 +9,14 @@
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
+#include "mtl/SparseSetCounter.h"
 #include "mtl/SparseSetMultiLevel.h"
 #include "mtl/SparseSetOfVariables.h"
 #include "mtl/Vec.h"
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
 #include "restarts/Restart.h"
+
 
 namespace Cosoco {
 #define NBSTATS 4
@@ -70,6 +72,7 @@ class Solver : public AbstractSolver {
     // -- Propagations ----------------------------------------------------------------------
     SparseSetOfVariables queue;                       // Propagation queue
     Constraint          *currentFilteredConstraint;   // The constraint that is filtered
+    SparseSetCounter     pickQueueHistory;            // The set of picking variables history
 
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict

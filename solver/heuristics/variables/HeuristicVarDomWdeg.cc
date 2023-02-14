@@ -14,9 +14,8 @@ HeuristicVarDomWdeg::HeuristicVarDomWdeg(Solver &s) : HeuristicVar(s) {
 Variable *HeuristicVarDomWdeg::select() {
     if(solver.warmStart && solver.conflicts == 0 && solver.nbSolutions == 0) {
         for(int i = 0; i < solver.decisionVariables.size(); i++)
-            if (solver.decisionVariables[i]->_name.rfind("__av", 0) != 0)
+            if(solver.decisionVariables[i]->_name.rfind("__av", 0) != 0)
                 return solver.decisionVariables[i];
-
     }
 
     if(solver.warmStart == false && solver.statistics[restarts] < 1 && solver.nbSolutions == 0) {
@@ -119,6 +118,22 @@ void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarDomWdeg::notifyFullBacktrack() {
+    /*    printf("erer\n");
+        Variable *y;
+        double    wd = 0;
+        for(Variable *x : solver.problem.variables) {
+            if(x->wdeg > wd) {
+                wd = x->wdeg;
+                y  = x;
+            }
+        }
+        std::cout << y->_name << std::endl;
+        for(Constraint *c : y->constraints) {
+            double v = 0;
+            for(double tmp : c->wdeg) v += tmp;
+            std::cout << c->type << " " << v << std::endl;
+        }
+    */
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
