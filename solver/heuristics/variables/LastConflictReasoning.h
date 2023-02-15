@@ -6,15 +6,19 @@
 #include "solver/Solver.h"
 #include "solver/observers/ObserverConflict.h"
 namespace Cosoco {
-class LastConflictReasoning : public HeuristicVar, ObserverConflict {
-   public:
-    HeuristicVar *hvar;   // The main heuristic
-    vec<Variable *>    lcs;     // The last conflict variable
-    LastConflictReasoning(Solver &s, HeuristicVar *hv, int _nbVariables = 2);
-    int nVariables;
+class LastConflictReasoning : public HeuristicVar, ObserverNewDecision, ObserverDeleteDecision {
+    HeuristicVar   *hvar;   // The main heuristic
+    vec<Variable *> lcs;    // The last conflict variable
+    int             nVariables;
+    Variable       *lastAssigned, *candidate;
 
-    virtual Variable *select() override;
-    virtual void      notifyConflict(Constraint *c, int level) override;
+   public:
+    LastConflictReasoning(Solver &s, HeuristicVar *hv, int _nbVariables = 2);
+
+    Variable *select() override;
+
+    void notifyNewDecision(Variable *x, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
 };
 
 }   // namespace Cosoco

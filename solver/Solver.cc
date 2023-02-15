@@ -16,6 +16,7 @@
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
+#include "heuristics/variables/PickOnDom.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
 using namespace Cosoco;
 using namespace std;

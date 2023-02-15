@@ -3,30 +3,57 @@
 using namespace Cosoco;
 
 
-LastConflictReasoning::LastConflictReasoning(Solver &s, HeuristicVar *hv, int n) : HeuristicVar(s), hvar(hv), nVariables(n) {
-    s.addObserverConflict(this);
+LastConflictReasoning::LastConflictReasoning(Solver &s, HeuristicVar *hv, int n)
+    : HeuristicVar(s), hvar(hv), nVariables(n), lastAssigned(nullptr), candidate(nullptr) {
+    s.addObserverNewDecision(this);
+    s.addObserverDeleteDecision(this);
 }
 
 
 Variable *LastConflictReasoning::select() {
-    if(solver.statistics[restarts] < 2 && solver.nbSolutions == 0)
+    if(lcs.size() == 0) {
+        if(lastAssigned == nullptr || lastAssigned->isAssigned())
+            return hvar->select();
+        lcs.push(lastAssigned);
+        return lastAssigned;
+    }
+    // using one of the recorded variables?
+    for(Variable *y : lcs)
+        if(y->isAssigned() == false)
+            return y;
+    // leaving last reasoning mode?
+    if(lcs.size() == nVariables || candidate == nullptr || candidate->isAssigned()) {
+        lcs.clear();
+        candidate = nullptr;
         return hvar->select();
-
-    for(Variable *v : lcs)
-        if(solver.isAssigned(v) == false)
-            return v;
-
-    return hvar->select();
+    }
+    // recording the candidate
+    lcs.push(candidate);
+    candidate = nullptr;
+    return lcs.last();
+    // return hvar->select();
 }
 
 
-void LastConflictReasoning::notifyConflict(Constraint *c, int level) {
-    if(solver.decisionLevel() == 0)
-        return;   // This is the end.
-    lcs.clear();
-    int i = 0;
-    while(level - i >= 1 && i < nVariables) {
-        lcs.push(solver.decisionVariableAtLevel(level - i));
-        i++;
+void LastConflictReasoning::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+    if(lcs.size() == 0) {
+        if(x != candidate)
+            candidate = x;
+    } else {
+        if(lcs.size() < nVariables) {
+            for(Variable *y : lcs)
+                if(y == x)
+                    return;
+            candidate = x;
+        }
     }
+}
+
+void LastConflictReasoning::notifyNewDecision(Variable *x, Solver &s) {
+    if(solver.decisionLevel() == 0) {
+        lcs.clear();
+        candidate = nullptr;
+    }
+    if(lcs.size() == 0)
+        lastAssigned = x;
 }
