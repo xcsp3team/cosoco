@@ -37,6 +37,8 @@ IntOption  cpu_lim("MAIN", "cpu-lim", "Limit on CPU time allowed in seconds.\n",
 IntOption  mem_lim("MAIN", "mem-lim", "Limit on memory usage in megabytes.\n", INT32_MAX, IntRange(0, INT32_MAX));
 IntOption  nbSolutions("MAIN", "nbsols", "Number of solutions to find", 1, IntRange(0, INT32_MAX));
 BoolOption model("MAIN", "model", "Display models", 0);
+BoolOption colors("MAIN", "colors", "Add colors to output", 1);
+
 
 IntOption  lastConflict("SEARCH", "lc", "Last Conflict reasoning (0 to disable)", 1);
 BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
@@ -128,8 +130,11 @@ int main(int argc, char **argv) {
         } catch(exception &e) {
             cout.flush();
             cout << "c " << e.what() << endl;
-            if(strstr(e.what(), "not yet"))
+            if(strstr(e.what(), "not yet")) {
+                colorize(termcolor::bright_green, colors);
                 cout << "s UNSUPPORTED" << endl;
+                resetcolors();
+            }
             exit(1);
         }
 
@@ -145,6 +150,7 @@ int main(int argc, char **argv) {
             S->core                     = core;
             S->seed                     = S->seed * (core + 1);
             S->intension2extensionLimit = i2e;
+            S->colors                   = colors;
             if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 && strcmp(hv, "robin") != 0 &&
                strcmp(hv, "occs") != 0 && strcmp(hv, "asgs") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");
@@ -217,7 +223,8 @@ int main(int argc, char **argv) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
-                optimizer->core = core;
+                optimizer->core   = core;
+                optimizer->colors = colors;
                 if(pg && warmStart == nullptr)
                     optimizer->addProgressSaving();
                 solvers[core] = optimizer;
@@ -244,14 +251,14 @@ int main(int argc, char **argv) {
         // --------------------------- SOLVE ----------------------------------------
 
         int returnCode = solver->solve();
-
+        colorize(termcolor::bright_green, colors);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
                : returnCode == R_SAT   ? "s SATISFIABLE\n"
                                        : "s UNKNOWN\n");
-
         if(nbcores == 1 && model == false && solver->nbSolutions >= 1)
             printf("d N_SOLUTIONS %d\n\n", solvers[0]->nbSolutions);
+        resetcolors();
         printStats(solvers[0]);
         printf("\n");
 
@@ -263,7 +270,9 @@ int main(int argc, char **argv) {
 
     } catch(OutOfMemoryException &) {
         printf("c =========================================================================================================\n");
+        colorize(termcolor::bright_green, colors);
         printf("s UNKNOWN\n");
+        resetcolors();
         exit(0);
     }
 }
@@ -279,20 +288,32 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     }
 
 
-    if(verb > 0) {
-        //           printf("c |  Number of variables:  %12d |\n", S.nVars()); printf("c |  Number of clauses:    %12d |\n",
-        //           S.nClauses()); }
-    }
     double parsed_time = cpuTime();
     if(verb > 0) {
         printf("c |  Parse time        : %12.2f s \n", parsed_time - initial_time);
         printf("c |\n");
 
-        printf("c |               Variables: %d\n", solvingProblem->nbVariables());
-        printf("c |            Domain Sizes: %d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
+        printf("c |               ");
+        colorize(termcolor::blue, colors);
+        printf("Variables:");
+        resetcolors();
+        printf(" %d\n", solvingProblem->nbVariables());
+        printf("c |            ");
+        colorize(termcolor::blue, colors);
+        printf("Domain Sizes: ");
+        resetcolors();
+        printf("%d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
         printf("c |\n");
-        printf("c |             Constraints: %d\n", solvingProblem->nbConstraints());
-        printf("c |                   Arity: %d..%d", solvingProblem->minimumArity(), solvingProblem->maximumArity());
+        printf("c |             ");
+        colorize(termcolor::blue, colors);
+        printf("Constraints: ");
+        resetcolors();
+        printf("%d\n", solvingProblem->nbConstraints());
+        printf("c |                   ");
+        colorize(termcolor::blue, colors);
+        printf("Arity: ");
+        resetcolors();
+        printf("%d..%d", solvingProblem->minimumArity(), solvingProblem->maximumArity());
         int nb;
         if((nb = solvingProblem->nbConstraintsOfSize(1)) > 0)
             printf("  -- Unary: %d", nb);
@@ -302,7 +323,11 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
             printf("  -- Ternary: %d", nb);
 
         printf("\nc | \n");
-        printf("c |                   Types: \nc |                          ");
+        printf("c |                   ");
+        colorize(termcolor::blue, colors);
+        printf("Types: ");
+        resetcolors();
+        printf("\nc |                          ");
 
         std::map<std::string, int> typeOfConstraints;
         solvingProblem->nbTypeOfConstraints(typeOfConstraints);
@@ -318,7 +343,10 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
         if(optimize) {
             ObjectiveConstraint *objective;
             printf("\n");
-            printf("c |               Objective: ");
+            printf("c |               ");
+            colorize(termcolor::blue, colors);
+            printf("Objective: ");
+            resetcolors();
             auto *o   = (Optimizer *)solvers[0];
             objective = (o->optimtype == Minimize) ? o->objectiveUB : o->objectiveLB;
             auto *c   = dynamic_cast<Constraint *>(objective);
@@ -412,6 +440,7 @@ static void SIGINT_exit(int signum) {
         if(verb >= 0) {
             printStats(solvers[0]);
             printf("\n");
+            colorize(termcolor::bright_green, colors);
             if(solvers[0]->nbSolutions >= 1)
                 printf("d N_SOLUTIONS %d\n", solvers[0]->nbSolutions);
             if(optimize) {
@@ -429,6 +458,7 @@ static void SIGINT_exit(int signum) {
                 else
                     printf("s UNKNOWN\n");
             }
+            resetcolors();
         }
         std::cout << std::flush;
 

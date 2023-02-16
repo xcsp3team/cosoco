@@ -81,7 +81,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
-                bestSolution->end();
+                bestSolution->end(colors);
 
                 if(progressSaving) {
                     vec<int> idvalues;

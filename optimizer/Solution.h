@@ -9,6 +9,7 @@
 #include <map>
 #include <mutex>
 
+#include "Termcolor.h"
 #include "mtl/Vec.h"
 
 
@@ -21,10 +22,10 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     long              bound;
     bool              invertBestCost;
     std::mutex        mutex;
-    double            realTimeForBestSolution{}, realTimeStart;
+    double            realTimeForBestSolution {}, realTimeStart;
     OptimisationType  optimType;
-    bool              updateBound{};
-    Problem &         problem;
+    bool              updateBound {};
+    Problem          &problem;
 
    public:
     explicit Solution(Problem &p) : problem(p) {
@@ -59,7 +60,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     /**
      * to be called once a solution is completely entered
      */
-    void end() {
+    void end(bool colors) {
         if(updateBound) {
             std::vector<int> *del = preserved;
             // begin critical section
@@ -68,7 +69,9 @@ class Solution {   // This class comes from pseudo boolean competition and was p
             tmp = nullptr;
             delete del;
             realTimeForBestSolution = realTime();
+            colorize(termcolor::bright_green, colors);
             std::cout << "o " << bestBound() << " " << (realTimeForBestSolution - realTimeStart) << std::endl;
+            resetcolors();
         }
         mutex.unlock();
     }
@@ -115,7 +118,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
                     std::cout << "* ";
                 else
                     std::cout << (*preserved)[i] << " ";
-            }
+        }
         printf("</values>\n");
 
         printf("v </instantiation>\n\n");

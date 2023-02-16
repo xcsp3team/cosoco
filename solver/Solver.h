@@ -51,7 +51,7 @@ class Solver : public AbstractSolver {
     double seed          = 91648253;   // A seed value
     bool   checkSolution = true;       // Check solution or not
     bool   filterCallIsUsefull;        // Check if a call to filter call is usefull or not
-
+    bool   colors;                     // Display colors in terminal
 
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables
