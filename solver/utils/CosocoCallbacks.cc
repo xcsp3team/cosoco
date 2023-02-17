@@ -210,13 +210,18 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
         if(ok) {
             vec<int> coeffs;
             coeffs.growTo(tree->root->parameters[0]->parameters.size(), 1);
-            coeffs.push(-1);
+            if(tree->root->parameters[1]->type == OVAR)
+                coeffs.push(-1);
             for(int core = 0; core < nbcores; core++) {
                 vec<Variable *> v;
                 for(auto *tmp : tree->root->parameters[0]->parameters)
                     v.push(problems[core]->mapping[((NodeVariable *)tmp)->var]);
-                v.push(problems[core]->mapping[((NodeVariable *)tree->root->parameters[1])->var]);
-                FactoryConstraints::createConstraintSum(problems[core], id, v, coeffs, 0, LE);   // x = y + k
+                int l = 0;
+                if(tree->root->parameters[1]->type == OVAR)
+                    v.push(problems[core]->mapping[((NodeVariable *)tree->root->parameters[1])->var]);
+                else
+                    l = ((NodeConstant *)tree->root->parameters[1])->val;
+                FactoryConstraints::createConstraintSum(problems[core], id, v, coeffs, l, LE);   // x = y + k
             }
             return;
         }
