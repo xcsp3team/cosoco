@@ -29,6 +29,7 @@ class Problem {
 
     // Constructors and delayed initialisation
     Problem(std::string n);
+    virtual ~Problem() = default;   // To let the possibility to cast
     void delayedConstruction();     // Perform additional initialisation at the end of the parsing
     void attachSolver(Solver *s);   // Attach the solver to the problem
 
