@@ -36,7 +36,7 @@ bool BinPackingLoad::filter(Variable *x) {
                 System.out.println("limits : " + Kit.join(limits));
                 System.out.println("sizes : " + Kit.join(sizes));
                 for (Variable y : scp)
-                    y.dom.display(true);
+                    y.dom.displayCurrentBranch(true);
                 System.exit(1);
             }
         }
