@@ -64,7 +64,7 @@ bool BinPackingLoad::filter(Variable *x) {
             int minSize        = INT_MAX;
             for(int k = freeItems.size() - 1; k >= 0; k--) {
                 int j = freeItems[k];
-                if(scope[j]->containsValue(i)) {
+                if(sizes[j] > 0 && scope[j]->containsValue(i)) {
                     if(currentFill + sizes[j] > load) {
                         if(solver->delVal(scope[j], i) == false)
                             return false;
@@ -79,10 +79,14 @@ bool BinPackingLoad::filter(Variable *x) {
                 return false;
 
             if(currentFill + possibleExtent == load) {
-                for(int k = freeItems.size() - 1; k >= 0; k--) {
+                for(int k = freeItems.size() - 1; k >= 0 && possibleExtent > 0; k--) {
                     int j = freeItems[k];
-                    if(scope[j]->containsValue(i))
+                    if(sizes[j] > 0 && scope[j]->containsValue(i)) {
                         solver->assignToVal(scope[j], i);
+                        sums[i] += sizes[j];
+                        freeItems.del(j);
+                        possibleExtent -= sizes[j];
+                    }
                 }
             } else if(currentFill + possibleExtent - minSize < load)
                 return false;
@@ -94,9 +98,9 @@ bool BinPackingLoad::filter(Variable *x) {
             int possibleExtent = 0;
             for(int k = freeItems.size() - 1; k >= 0; k--) {
                 int j = freeItems[k];
-                if(scope[j]->containsValue(i)) {
+                if(sizes[j] > 0 && scope[j]->containsValue(i)) {
                     if(currentFill + sizes[j] > loadMax) {
-                        if(solver->delVal(scope[j], i) == false)
+                        if(sizes[j] > 0 && solver->delVal(scope[j], i) == false)
                             return false;
                     } else
                         possibleExtent += sizes[j];
@@ -106,10 +110,12 @@ bool BinPackingLoad::filter(Variable *x) {
                 return false;
             if(currentFill + possibleExtent == loadMin) {
                 solver->assignToVal(loads[i], loadMin);
-                for(int k = freeItems.size() - 1; k >= 0; k--) {
+                for(int k = freeItems.size() - 1; possibleExtent > 0 && k >= 0; k--) {
                     int j = freeItems[k];
-                    if(scope[j]->containsValue(i))
+                    if(sizes[j] > 0 && scope[j]->containsValue(i)) {
                         solver->assignToVal(scope[j], i);
+                        possibleExtent -= sizes[j];
+                    }
                 }
             }
         }

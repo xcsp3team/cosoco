@@ -187,7 +187,7 @@ start:
         // for breaking, we should go from 0 to ..., but removing an element in usableBins could be a problem
         int i = sortedBins[j]->index;
         assert(usableBins.contains(i));
-        if(sortedBins[j]->capacity < sizes[smallestFreeItem]) {   // || i < minUsableBin || i > maxUsableBin)
+        if(sortedBins[j]->capacity < sizes[smallestFreeItem] || i < minUsableBin || i > maxUsableBin) {
             if(usableBins.isLimitRecordedAtLevel(solver->decisionLevel()) == false)
                 usableBins.recordLimit(solver->decisionLevel());
             usableBins.del(i);
