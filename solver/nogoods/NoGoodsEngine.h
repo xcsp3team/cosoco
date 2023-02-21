@@ -22,8 +22,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     vec<vec<int>>                  watchers;          // watchers[pos] provides all nogoods watcherd by the tuple ix!=idv
     vec<Tuple> nogoodsOfSize1;   // Store nogoods of size 1 before enqueue them in th esolver propagation queue
 
-    int       OFFSET;
-    vec<long> currentBranch;   // each long represents x=v or x!=v (given the offset).
+    vec<Tuple> currentBranch;   // each long represents x=v or x!=v (given the offset).
 
    public:
     static Constraint *fake;
@@ -42,18 +41,11 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
     void notifyFullBacktrack() override;
 
-    // From x=idv to int and vice-versa
-    int       getPositiveDecisionFor(Variable *x, int idv) const;
-    int       getNegativeDecisionFor(Variable *x, int idv) const;
-    Variable *getVariableIn(int number);
-    int       getIndexIn(int number) const;
-
 
     // Minor functions (display/trace...)
-    std::string getStringFor(long dec);
-    void        displayCurrentBranch();
-    void        displayNogood();
-    void        printStats();
+    void displayTuples(vec<Tuple> &ng);
+    void printStats();
+    void checkWatchers();
 };
 }   // namespace Cosoco
 
