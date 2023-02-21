@@ -5,7 +5,6 @@
 #include <solver/restarts/Restart.h>
 
 #include "AbstractSolver.h"
-#include "DecisionMarker.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
@@ -13,20 +12,20 @@
 #include "mtl/SparseSetMultiLevel.h"
 #include "mtl/SparseSetOfVariables.h"
 #include "mtl/Vec.h"
+#include "nogoods/NoGoodsEngine.h"
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
 #include "restarts/Restart.h"
 
-
 namespace Cosoco {
-#define NBSTATS 4
-enum GlobalStats { rootPropagations, uselessFilterCalls, restarts, nogoods };
+#define NBSTATS 3
+enum GlobalStats { rootPropagations, uselessFilterCalls, restarts };
 
 #define NBLOCALSTATS 4
 enum OneRunStats { maxDepth, minDepth, sumDepth, nbConflicts };
 
 class Restart;
-class DecisionMarker;
+class NoGoodsEngine;
 
 class Solver : public AbstractSolver {
    public:
@@ -61,7 +60,6 @@ class Solver : public AbstractSolver {
     SparseSetOfVariables unassignedVariables;   // The set of unassigned variables;
     SparseSetOfVariables decisionVariables;
     SparseSetMultiLevel  entailedConstraints;
-    DecisionMarker      *decisionMarker;       // The current branch of the search tree
     bool                 stopSearch = false;   // Stop the search usefull, in // with the optimizer
     bool                 warmStart;
     // -- Heuristics ------------------------------------------------------------------------
@@ -81,9 +79,11 @@ class Solver : public AbstractSolver {
     vec<ObserverDomainReduction *> observersDomainReduction;   // Classes listen for domain reduction
     unsigned long                  timestamp = 0;              // Current timestamp
 
-    // Optionnal techniques
-    bool nogoodsFromRestarts = false;   // Generate nogoods from restarts
+    //  -- Nogoods from Restarts  -----------------------------------------------------------
+    NoGoodsEngine *noGoodsEngine;
 
+    bool nogoodsFromRestarts = false;
+    void addNoGoodsFromRestarts();
 
     // --------------------------------------------------------------------------------------
     // Construction and initialisation

@@ -40,11 +40,16 @@ Solver::Solver(Problem &p, int nbc)
     statistics.growTo(NBSTATS, 0);
     localstatistics.growTo(NBLOCALSTATS, 0);
     problem.attachSolver(this);
-    lastSolutionRun = 0;
-    nbSolutions     = 0;
-    warmStart       = false;
+    lastSolutionRun     = 0;
+    nbSolutions         = 0;
+    warmStart           = false;
+    nogoodsFromRestarts = false;
 }
 
+void Solver::addNoGoodsFromRestarts() {
+    nogoodsFromRestarts = true;
+    noGoodsEngine       = new NoGoodsEngine(*this);
+}
 
 void Solver::addLastConflictReasoning(int nVars) { heuristicVar = new LastConflictReasoning(*this, heuristicVar, nVars); }
 
@@ -345,12 +350,15 @@ void Solver::handleFailure(int level) {
 
 
 void Solver::doRestart() {
-    if(nogoodsFromRestarts && decisionMarker->generateNogoodsFromRestarts() == false)
+    if(nogoodsFromRestarts && noGoodsEngine->generateNogoodsFromRestarts() == false)
         status = FULL_EXPLORATION;
     statistics[restarts]++;
     if(verbose.verbosity >= 1)
         displayCurrentSearchSpace();
     fullBacktrack();
+    if(nogoodsFromRestarts)
+        noGoodsEngine->enqueueNoGoodsOfSize1();
+
     propagate(true);
 }
 
@@ -387,6 +395,11 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         Variable *x = pickInQueue();
         pickQueueHistory.add(x->idx);
         assert(x->size() > 0);
+
+        if(nogoodsFromRestarts && noGoodsEngine->propagate(x) == false)
+            return NoGoodsEngine::fake;
+
+
         for(Constraint *c : x->constraints) {
             if(x->timestamp > c->timestamp && isEntailed(c) == false) {
                 filterCalls++;
@@ -698,7 +711,10 @@ void Solver::displayCurrentSearchSpace() {
     printElement(filterCalls);
     printElement(propagations);
     printElement(trail_lim[0]);
-    printElement(statistics[nogoods]);
+    if(nogoodsFromRestarts)
+        printElement(noGoodsEngine->statistics[nbnogoods]);
+    else
+        printElement(0);
 
 
     printElement(std::to_string(localstatistics[minDepth]) + "   " + std::to_string(localstatistics[maxDepth]) + "   " +
@@ -724,4 +740,6 @@ void Solver::printFinalStats() {
     printf("c filter calls          : %lu   (%.0f /sec)\n", filterCalls, filterCalls / cpu_time);
     printf("c useless filter calls  : %lu   (%lu %%)\n", statistics[uselessFilterCalls],
            statistics[uselessFilterCalls] * 100 / filterCalls);
+    if(nogoodsFromRestarts)
+        noGoodsEngine->printStats();
 }

@@ -54,7 +54,7 @@ class Variable {
 
    public:
     // Minor methods
-    void display(bool allDetails = false);   // display
+    void display(bool allDetails = false);   // displayCurrentBranch
 
 
     inline const char *name() { return _name.c_str(); }   // The name

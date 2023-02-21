@@ -176,7 +176,7 @@ void Problem::nbTypeOfConstraints(std::map<std::string, int> &tmp) {
 }
 
 
-// display
+// displayCurrentBranch
 void Problem::display(bool alldetails) {
     printf("Variables : \n");
     for(Variable *v : variables) {

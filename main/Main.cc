@@ -9,6 +9,7 @@
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicVarCACD.h"
+#include "PickOnDom.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
 #include "solver/heuristics/values/HeuristicValLast.h"
@@ -41,6 +42,7 @@ BoolOption model("MAIN", "model", "Display models", 0);
 BoolOption colors("MAIN", "colors", "Add colors to output", 1);
 
 
+BoolOption nogoods("SEARCH", "nogoods", "Learn nogoods from restarts", 0);
 IntOption  lastConflict("SEARCH", "lc", "Last Conflict reasoning (0 to disable)", 1);
 BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
 // BoolOption optimize("SEARCH", "cop", "Run optimizer (needs an objective)", 0);
@@ -171,12 +173,14 @@ int main(int argc, char **argv) {
             if(strcmp(hv, "pool") == 0)
                 S->heuristicVal = new PoolOfHeuristicsValues(*S);
 
-            if(strcmp(hvr, "wdeg") != 0 && strcmp(hvr, "cacd") != 0) {
+            if(strcmp(hvr, "wdeg") != 0 && strcmp(hvr, "cacd") != 0 && strcmp(hvr, "pick") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");
                 exit(1);
             }
             if(strcmp(hvr, "cacd") == 0)
                 S->heuristicVar = new HeuristicVarCACD(*S);
+            if(strcmp(hvr, "pick") == 0)
+                S->heuristicVar = new PickOnDom(*S);
 
             if(warmStart != nullptr) {
                 std::ifstream warmFile(warmStart);
@@ -207,6 +211,8 @@ int main(int argc, char **argv) {
                 S->addStickingValue();
             if(orestarts)
                 S->addRestart();
+            if(nogoods)
+                S->addNoGoodsFromRestarts();
 
             S->nbWishedSolutions = nbSolutions;
             if(annotations && cb.decisionVariables[core].size() != 0)
