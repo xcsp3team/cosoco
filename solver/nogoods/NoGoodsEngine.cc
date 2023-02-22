@@ -48,7 +48,8 @@ void NoGoodsEngine::addNoGood(vec<Tuple> &nogood) {
     nogoods.push();
     for(auto &t : nogood) {
         nogoods.last().push(t);
-        nogoods.last().last().eq = false;   // We want to store this nogood... // TODO to be improved
+        nogoods.last().last().eq = false;   // We want to store (x=2 and y=4) -> z!=3
+                                            // All literals are of the form x!=a
     }
     addWatcher(nogoods.last()[0], nogoods.size() - 1);
     addWatcher(nogoods.last()[1], nogoods.size() - 1);
@@ -72,9 +73,11 @@ void NoGoodsEngine::addWatcher(Tuple &ng, int ngposition) {
 //-----------------------------------------------------------------------
 
 bool NoGoodsEngine::propagate(Variable *x) {
-    // checkWatchers();
-    if(x->size() > 1)
+    // checkWatchers();  // Debug watchers
+
+    if(x->size() > 1)   // Nothing to do
         return true;
+
     Tuple ng(x, x->valueId());
     if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
         return true;
@@ -93,10 +96,10 @@ bool NoGoodsEngine::propagate(Variable *x) {
         }
         for(int k = 2; k < nogood.size(); k++)
             if(nogood[k].x->containsIdv(nogood[k].idv) == false || nogood[k].x->size() > 1) {
-                // Find a new watcher (size > 2 or the id is not in the domain
+                // Find a new watcher
                 nogood[falsePosition] = nogood[k];   // put the new watch in good position
                 nogood[k]             = ng;
-                addWatcher(nogood[falsePosition], ngposition);
+                addWatcher(nogood[falsePosition], ngposition); // ADd it to the watcher list
                 goto nextNoGood;
             }
 
