@@ -94,8 +94,6 @@ int Solver::solve(vec<RootPropagation> &assumps) {
     status         = RUNNING;
     nbSolutions    = 0;
     Constraint *pc = propagateComplete();
-    if(statistics[rootPropagations] == 0)
-        statistics[rootPropagations] = propagations;
     if(pc != nullptr) {
         status = FULL_EXPLORATION;
         return R_UNSAT;
@@ -111,15 +109,11 @@ int Solver::solve(vec<RootPropagation> &assumps) {
     }
 
     // Remove useless variables:
-    int nb = 0;
     for(Variable *x : problem.variables)
         if(x->useless) {
-            nb++;
             unassignedVariables.del(x);
             decisionVariables.del(x);
         }
-    if(nb > 0)
-        printf("c remove %d useless variables\n", nb);
 
     return search(assumps);
 }
@@ -455,6 +449,8 @@ bool Solver::delIdv(Variable *x, int idv) {
         trail.push(x);
     x->addToTrail = false;
     propagations++;
+    if(decisionLevel() == 0)
+        statistics[rootPropagations]++;
     verbose.log(FULLVERBOSE, "   lvl %d : %s (|d|=%d) -= {%d}\n", decisionLevel(), x->name(), x->size(), x->domain.toVal(idv));
     addToQueue(x);
     return x->size() != 0;
@@ -478,6 +474,9 @@ bool Solver::assignToVal(Variable *x, int v) {
         return true;   // already assigned to v
 
     propagations++;
+    if(decisionLevel() == 0)
+        statistics[rootPropagations]++;
+
     filterCallIsUsefull = true;
     notifyDomainAssignment(x, idv);
     x->assignToIdv(idv, decisionLevel());
@@ -495,6 +494,8 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     if(d.containsIdv(idv) == false)
         return false;
     propagations++;
+    if(decisionLevel() == 0)
+        statistics[rootPropagations]++;
 
     // if(d.size()==1) return true;
     filterCallIsUsefull = true;

@@ -95,8 +95,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 upper = best - 1;
             else
                 lower = best + 1;
-            if(callToSolver % 2 == 1)
-                verbose.log(NORMAL, "c %lld conflicts -- %lld decisions\n", solver->conflicts, solver->decisions);
 
             solver->fullBacktrack();
             solver->reinitializeConstraints();
