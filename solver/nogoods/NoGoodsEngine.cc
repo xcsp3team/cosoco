@@ -44,6 +44,12 @@ void NoGoodsEngine::addNoGood(vec<Tuple> &nogood) {
         statistics[size1]++;
         return;
     }
+    if(nogood.size() == 2)
+        statistics[size2]++;
+    statistics[sumsize] += nogood.size();
+
+    if(statistics[maxsize] < nogood.size())
+        statistics[maxsize] = nogood.size();
 
     nogoods.push();
     for(auto &t : nogood) {
@@ -99,7 +105,7 @@ bool NoGoodsEngine::propagate(Variable *x) {
                 // Find a new watcher
                 nogood[falsePosition] = nogood[k];   // put the new watch in good position
                 nogood[k]             = ng;
-                addWatcher(nogood[falsePosition], ngposition); // ADd it to the watcher list
+                addWatcher(nogood[falsePosition], ngposition);   // ADd it to the watcher list
                 goto nextNoGood;
             }
 
@@ -158,7 +164,8 @@ void NoGoodsEngine::displayTuples(vec<Tuple> &ng) {
 
 void NoGoodsEngine::printStats() {
     printf("\nc nogoods               : %lu\n", statistics[nbnogoods]);
-    printf("c ng size1              : %lu\n", statistics[size1]);
+    printf("c nogoods sizes         : #1: %lu   #2: %lu   max size: %lu   avg size: %lu\n", statistics[size1], statistics[size2],
+           statistics[maxsize], statistics[sumsize] / nogoods.size());
     printf("c ng propagations       : %lu\n", statistics[props]);
     printf("c ng conflicts          : %lu\n", statistics[cfl]);
 }

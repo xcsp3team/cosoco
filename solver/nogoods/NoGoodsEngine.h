@@ -8,8 +8,8 @@
 #include "ObserverDecision.h"
 #include "Solver.h"
 #include "Tuple.h"
-#define NOGOODSSTATS 4
-enum NoGoodStats { nbnogoods, size1, cfl, props };
+#define NOGOODSSTATS 7
+enum NoGoodStats { nbnogoods, size1, size2, sumsize, maxsize, cfl, props };
 
 namespace Cosoco {
 
