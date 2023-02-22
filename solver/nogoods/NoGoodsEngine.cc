@@ -9,6 +9,16 @@ Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
 
 
 NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s) {
+    // std::cout << n1 << " " << n2 << " " << sizeof(long) * 8 << std::endl;
+
+    // if(n1 + n2 <= sizeof(long) * 8)
+    auto n1 = (unsigned int)ceil(log2(s.problem.nbVariables()));
+    auto n2 = (unsigned int)ceil(log2(s.problem.maximumDomainSize()));
+    if(n1 + n2 > 8 * sizeof(Lit) - 1)
+        throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
+
+    OFFSET = (unsigned int)pow(2, n2 + 1);   // +1 because 0 excluded ???
+
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
@@ -24,10 +34,10 @@ std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
 
 bool NoGoodsEngine::generateNogoodsFromRestarts() {
     nogoodsOfSize1.clear();
-    vec<Tuple> nogood;
-    for(Tuple &currentDecision : currentBranch) {
+    vec<Lit> nogood;
+    for(auto &currentDecision : currentBranch) {
         nogood.push(currentDecision);
-        if(currentDecision.eq == false) {
+        if(currentDecision < 0) {
             if(currentDecision != currentBranch[0])
                 solver.noGoodsEngine->addNoGood(nogood);
             nogood.pop();   // Remove the negative one
@@ -37,10 +47,10 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
 }
 
 
-void NoGoodsEngine::addNoGood(vec<Tuple> &nogood) {
+void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
     statistics[nbnogoods]++;
     if(nogood.size() == 1) {
-        nogoodsOfSize1.push(Tuple(nogood[0]));
+        nogoodsOfSize1.push(nogood[0]);
         statistics[size1]++;
         return;
     }
@@ -52,16 +62,16 @@ void NoGoodsEngine::addNoGood(vec<Tuple> &nogood) {
         statistics[maxsize] = nogood.size();
 
     nogoods.push();
-    for(auto &t : nogood) {
-        nogoods.last().push(t);
-        nogoods.last().last().eq = false;   // We want to store (x=2 and y=4) -> z!=3
-                                            // All literals are of the form x!=a
+    for(Lit l : nogood) {
+        nogoods.last().push(l < 0 ? l : -l);
+        // nogoods.last().last().eq = false;   // We want to store (x=2 and y=4) -> z!=3
+        //  All literals are of the form x!=a
     }
     addWatcher(nogoods.last()[0], nogoods.size() - 1);
     addWatcher(nogoods.last()[1], nogoods.size() - 1);
 }
 
-void NoGoodsEngine::addWatcher(Tuple &ng, int ngposition) {
+void NoGoodsEngine::addWatcher(Lit ng, int ngposition) {
     int wp = -1;
     if(watcherPosition.count(ng) == 0) {
         watchers.push();                                     // Add a new watcher for x!=idv
@@ -84,34 +94,39 @@ bool NoGoodsEngine::propagate(Variable *x) {
     if(x->size() > 1)   // Nothing to do
         return true;
 
-    Tuple ng(x, x->valueId());
+    Lit ng = getNegativeDecisionFor(x, x->valueId());
     if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
         return true;
 
     int position = watcherPosition[ng];
     int i = 0, j = 0;
     for(; i < watchers[position].size();) {
-        int         ngposition    = watchers[position][i++];
-        vec<Tuple> &nogood        = nogoods[ngposition];
-        int         falsePosition = ng == nogood[0] ? 0 : 1;
+        int       ngposition    = watchers[position][i++];
+        vec<Lit> &nogood        = nogoods[ngposition];
+        int       falsePosition = ng == nogood[0] ? 0 : 1;
         assert(ng == nogood[falsePosition]);
 
-        if(isSupport(nogood[1 - falsePosition])) {   // Ths tuple is satisfied, can pass it
+        Variable *y   = getVariableIn(nogood[1 - falsePosition]);
+        int       idv = getIndexIn(nogood[1 - falsePosition]);
+        if(isSupport(y, idv)) {   // Ths tuple is satisfied, can pass it
             watchers[position][j++] = ngposition;
             continue;
         }
-        for(int k = 2; k < nogood.size(); k++)
-            if(nogood[k].x->containsIdv(nogood[k].idv) == false || nogood[k].x->size() > 1) {
+
+        for(int k = 2; k < nogood.size(); k++) {
+            Variable *z    = getVariableIn(nogood[k]);
+            int       idv2 = getIndexIn(nogood[k]);
+            if(z->containsIdv(idv2) == false || z->size() > 1) {
                 // Find a new watcher
                 nogood[falsePosition] = nogood[k];   // put the new watch in good position
                 nogood[k]             = ng;
                 addWatcher(nogood[falsePosition], ngposition);   // ADd it to the watcher list
                 goto nextNoGood;
             }
-
+        }
         watchers[position][j++] = ngposition;   // The nogood stay in the watcher, it has to be propagated
         statistics[props]++;
-        if(solver.delIdv(nogood[1 - falsePosition].x, nogood[1 - falsePosition].idv) == false) {   // The nogood is false
+        if(solver.delIdv(y, idv) == false) {   // The nogood is false
             statistics[cfl]++;
             while(i < watchers[position].size())   // Copy the remaining watches
                 watchers[position][j++] = watchers[position][i++];
@@ -125,31 +140,50 @@ bool NoGoodsEngine::propagate(Variable *x) {
     return true;
 }
 
-bool NoGoodsEngine::isSupport(Tuple &tuple) { return tuple.x->containsIdv(tuple.idv) == false; }
+bool NoGoodsEngine::isSupport(Variable *x, int idv) { return x->containsIdv(idv) == false; }
 
 void NoGoodsEngine::enqueueNoGoodsOfSize1() {
-    for(Tuple &t : nogoodsOfSize1) solver.delIdv(t.x, t.idv);
+    for(Lit lit : nogoodsOfSize1) {
+        Variable *x   = getVariableIn(lit);
+        int       idv = getIndexIn(lit);
+        solver.delIdv(x, idv);
+    }
 }
 
 //-----------------------------------------------------------------------
 // -- Observers callbacks
 //-----------------------------------------------------------------------
 
-void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.push({x, x->valueId(), true}); }
+void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.push(getPositiveDecisionFor(x, x->valueId())); }
 
 
 void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    Tuple current = {x, x->domain.toIdv(v), true};
-    int   pos     = currentBranch.firstOccurrenceOf(current);
+    Lit current = getPositiveDecisionFor(x, x->domain.toIdv(v));
+    int pos     = currentBranch.firstOccurrenceOf(current);
     assert(pos >= 0);
     currentBranch.cut(pos + 1);
     assert(currentBranch.last() == current);
-    currentBranch.last().eq = false;
+    currentBranch.last() = -currentBranch.last();
     assert(currentBranch.contains(current) == false);
 }
 
 
 void NoGoodsEngine::notifyFullBacktrack() { currentBranch.clear(); }
+
+
+//-----------------------------------------------------------------------
+// -- From x=idv to int and vice-versa
+//-----------------------------------------------------------------------
+
+Variable *NoGoodsEngine::getVariableIn(int number) { return solver.problem.variables[abs(number) / OFFSET]; }
+
+inline int NoGoodsEngine::getIndexIn(int number) const { return abs(number) % OFFSET - 1; }
+
+
+inline Lit NoGoodsEngine::getPositiveDecisionFor(Variable *x, int idv) const { return 1 + idv + OFFSET * x->idx; }
+
+
+inline Lit NoGoodsEngine::getNegativeDecisionFor(Variable *x, int idv) const { return -getPositiveDecisionFor(x, idv); }
 
 
 //-----------------------------------------------------------------------
