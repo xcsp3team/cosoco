@@ -63,7 +63,7 @@ bool AllDifferentPermutation::filter(Variable *dummy) {
             unfixedIdxs.del(idv, level);
             for(int j = unfixedVars.size() - 1; j >= 0; j--) {
                 Variable *y = scope[unfixedVars[j]];
-                if(y->containsIdv(idv) && solver->delIdv(y, idv) == false) {
+                if(solver->delIdv(y, idv) == false) {
                     return false;
                 }
                 if(y->size() == 1)
