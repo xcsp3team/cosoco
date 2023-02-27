@@ -33,10 +33,7 @@ bool BinPacking::isCorrectlyDefined() {
 //----------------------------------------------
 // Filrtering
 //----------------------------------------------
-void BinPacking::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    if(usableBins.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        usableBins.restoreLimit(s.decisionLevel() + 1);
-}
+void BinPacking::notifyDeleteDecision(Variable *x, int v, Solver &s) { usableBins.restoreLimit(s.decisionLevel() + 1); }
 
 
 bool BinPacking::filter(Variable *dummy) {
@@ -187,11 +184,8 @@ start:
         // for breaking, we should go from 0 to ..., but removing an element in usableBins could be a problem
         int i = sortedBins[j]->index;
         assert(usableBins.contains(i));
-        if(sortedBins[j]->capacity < sizes[smallestFreeItem] || i < minUsableBin || i > maxUsableBin) {
-            if(usableBins.isLimitRecordedAtLevel(solver->decisionLevel()) == false)
-                usableBins.recordLimit(solver->decisionLevel());
-            usableBins.del(i);
-        }
+        if(sortedBins[j]->capacity < sizes[smallestFreeItem] || i < minUsableBin || i > maxUsableBin)
+            usableBins.del(i, solver->decisionLevel());
     }
     return true;
 }

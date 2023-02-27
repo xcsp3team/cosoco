@@ -25,28 +25,7 @@ bool AllDifferent::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
-
-
-bool AllDifferent::filter(Variable *dummy) {
-    //    VC  filtering
-    if(variableConsistency)
-        return basicFilter(dummy);
-
-    // Bound consistency
-    bool again;
-    do {
-        again = false;   // Reach fi point?
-        sortIt();
-        if(filterLower(again) == false)
-            return false;   // Contradiction
-        if(filterUpper(again) == false)
-            return false;   // Contradiction
-    } while(again);
-    return true;
-}
-
-
-bool AllDifferent::basicFilter(Variable *x) {
+bool AllDifferentBasic::filter(Variable *x) {
     if(x->size() > 1)
         return true;
     int v = x->value();
@@ -60,12 +39,75 @@ bool AllDifferent::basicFilter(Variable *x) {
 }
 
 
+bool AllDifferentInterval::filter(Variable *dummy) {
+    bool again;
+    do {
+        again = false;   // Reach fi point?
+        sortIt();
+        if(filterLower(again) == false)
+            return false;   // Contradiction
+        if(filterUpper(again) == false)
+            return false;   // Contradiction
+    } while(again);
+    return true;
+}
+
+
+bool AllDifferentPermutation::filter(Variable *dummy) {
+    int level = solver->decisionLevel();
+    for(int i = unfixedVars.size() - 1; i >= 0; i--) {
+        Variable *x = scope[unfixedVars[i]];
+        if(x->size() == 1) {
+            int idv = x->domain[0];
+            unfixedVars.del(scope.firstOccurrenceOf(x), level);
+            unfixedIdxs.del(idv, level);
+            for(int j = unfixedVars.size() - 1; j >= 0; j--) {
+                Variable *y = scope[unfixedVars[j]];
+                if(y->containsIdv(idv) && solver->delIdv(y, idv) == false) {
+                    return false;
+                }
+                if(y->size() == 1)
+                    i = std::max(i, j + 1);   // +1 because i-- before a new iteration
+            }
+        }
+    }
+
+    for(int idv : reverse(unfixedIdxs)) {
+        if(sentinels1[idv]->containsIdv(idv) == false) {
+            Variable *x = findSentinel(idv, sentinels2[idv]);
+            if(x != nullptr)
+                sentinels1[idv] = x;
+            else {
+                x = sentinels2[idv];
+                if(solver->assignToIdv(x, idv) == false)
+                    return false;
+                unfixedVars.del(scope.firstOccurrenceOf(x), level);
+                unfixedIdxs.del(idv, level);
+            }
+        }
+        assert(sentinels1[idv]->size() > 1);
+
+        if(sentinels2[idv]->containsIdv(idv)) {
+            Variable *x = findSentinel(idv, sentinels1[idv]);
+            if(x != nullptr)
+                sentinels2[idv] = x;
+            else {
+                x = sentinels1[idv];
+                solver->assignToIdv(x, idv);
+                unfixedVars.del(scope.firstOccurrenceOf(x), level);
+                unfixedIdxs.del(idv, level);
+            }
+        }
+    }
+    return true;
+}
+
+
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
 
-AllDifferent::AllDifferent(Problem &p, std::string nn, vec<Variable *> &vars)
-    : GlobalConstraint(p, nn, "All Different", vars), variableConsistency(false) {
+AllDifferentInterval::AllDifferentInterval(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
     int sz = scope.size();
     t.growTo(2 * sz + 2, 0);
     d.growTo(2 * sz + 2, 0);
@@ -81,17 +123,33 @@ AllDifferent::AllDifferent(Problem &p, std::string nn, vec<Variable *> &vars)
     }
 }
 
+AllDifferentPermutation::AllDifferentPermutation(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferent(p, n, vars) {
+    unfixedVars.setCapacity(scope.size(), true);
+    unfixedIdxs.setCapacity(scope[0]->domain.maxSize(), true);
+    sentinels1.growTo(scope[0]->domain.maxSize(), scope[0]);
+    sentinels2.growTo(scope[0]->domain.maxSize(), scope.last());
+}
 
 //----------------------------------------------------------
-// Filtering
+// Internal functions
 //----------------------------------------------------------
 
+void AllDifferentPermutation::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+    unfixedIdxs.restoreLimit(s.decisionLevel() + 1);
+    unfixedVars.restoreLimit(s.decisionLevel() + 1);
+}
 
-// ---- Filtering using IJCAI'03 paper
-//      A Fast and Simple Algorithm for Bound Consistency Of the AllDifferent Constraint.
+Variable *AllDifferentPermutation::findSentinel(int idv, Variable *otherSentinel) {
+    for(int posx : unfixedVars) {
+        Variable *x = scope[posx];
+        if(x != otherSentinel && x->containsIdv(idv))
+            return x;
+    }
+    return nullptr;
+}
 
 
-void AllDifferent::sortIt() {
+void AllDifferentInterval::sortIt() {
     int sz = scope.size();
     for(int i = 0; i < sz; i++) {
         Variable *x     = interval[i]->x;
@@ -130,7 +188,7 @@ void AllDifferent::sortIt() {
 }
 
 
-void AllDifferent::pathset(vec<int> &tab, int start, int end, int to) {
+void AllDifferentInterval::pathset(vec<int> &tab, int start, int end, int to) {
     int next = start;
     int prev = next;
     while(prev != end) {
@@ -141,19 +199,19 @@ void AllDifferent::pathset(vec<int> &tab, int start, int end, int to) {
 }
 
 
-int AllDifferent::pathmin(vec<int> &tab, int i) {
+int AllDifferentInterval::pathmin(vec<int> &tab, int i) {
     while(tab[i] < i) i = tab[i];
     return i;
 }
 
 
-int AllDifferent::pathmax(vec<int> &tab, int i) {
+int AllDifferentInterval::pathmax(vec<int> &tab, int i) {
     while(tab[i] > i) i = tab[i];
     return i;
 }
 
 
-bool AllDifferent::filterLower(bool &again) {
+bool AllDifferentInterval::filterLower(bool &again) {
     int sz = scope.size();
     for(int i = 1; i <= nbBounds + 1; i++) {
         t[i] = h[i] = i - 1;
@@ -198,7 +256,7 @@ bool AllDifferent::filterLower(bool &again) {
 }
 
 
-bool AllDifferent::filterUpper(bool &again) {
+bool AllDifferentInterval::filterUpper(bool &again) {
     int sz = scope.size();
     for(int i = 0; i <= nbBounds; i++) {
         t[i] = h[i] = i + 1;

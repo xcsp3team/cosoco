@@ -2,14 +2,28 @@
 #define ALLDIFFERENT_H
 
 
+#include "ObserverDecision.h"
 #include "constraints/globals/GlobalConstraint.h"
-
-// Using bound consistency : A fast and simple algorithm for bounds consistency of the alldifferent constraint
-// Ijcai 2003 Alejandro Lopez-Ortiz, Claude-Guy Quimper, John Tromp, Peter van Beek
-// Based on choco implementation
-
+#include "mtl/SparseSetMultiLevel.h"
 
 namespace Cosoco {
+
+class AllDifferent : public GlobalConstraint {
+   public:
+    AllDifferent(Problem &p, std::string n, vec<Variable *> &vars) : GlobalConstraint(p, n, "All Different", vars) { }
+
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+
+class AllDifferentBasic : public AllDifferent {
+    AllDifferentBasic(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferent(p, n, vars) { }
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+};
+
 
 // ------------    Internal Data structures -----------------
 class Interval {
@@ -31,19 +45,18 @@ struct MinOrder {
     bool operator()(Interval *o1, Interval *o2) const { return o1->lb < o2->lb; }
 };
 
-//----------------------------------------------------------
+// Using bound consistency : A fast and simple algorithm for bounds consistency of the alldifferent constraint
+// Ijcai 2003 Alejandro Lopez-Ortiz, Claude-Guy Quimper, John Tromp, Peter van Beek
+// Based on choco implementation
 
-class AllDifferent : public GlobalConstraint {
+
+class AllDifferentInterval : public AllDifferent {
    public:
-    AllDifferent(Problem &p, std::string n, vec<Variable *> &vars);
+    AllDifferentInterval(Problem &p, std::string n, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 
-    // Checking
-    bool isSatisfiedBy(vec<int> &tuple) override;
-
-    int variableConsistency;   // Use basic filtering limited to variable assignment
    protected:
     vec<int> t;   // Tree links
     vec<int> d;   // Diffs between critical capacities
@@ -56,7 +69,6 @@ class AllDifferent : public GlobalConstraint {
     vec<Interval *> minsorted;
     vec<Interval *> maxsorted;
 
-    bool basicFilter(Variable *x);
 
     void sortIt();
     bool filterLower(bool &again);
@@ -65,6 +77,24 @@ class AllDifferent : public GlobalConstraint {
     void pathset(vec<int> &tab, int start, int end, int to);
     int  pathmin(vec<int> &tab, int i);
     int  pathmax(vec<int> &tab, int i);
+};
+
+
+//----------------------------------------------------------
+// Based on ACE propagator
+
+class AllDifferentPermutation : public AllDifferent, public ObserverDeleteDecision {
+   private:
+    SparseSetMultiLevel unfixedVars, unfixedIdxs;
+    vec<Variable *>     sentinels1, sentinels2;
+
+    Variable *findSentinel(int idv, Variable *otherSentinel);
+
+   public:
+    AllDifferentPermutation(Problem &p, std::string n, vec<Variable *> &vars);
+    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
 };
 
 }   // namespace Cosoco

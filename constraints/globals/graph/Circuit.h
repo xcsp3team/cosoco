@@ -4,7 +4,7 @@
 #include <constraints/globals/comparison/AllDifferent.h>
 
 namespace Cosoco {
-class Circuit : public AllDifferent {
+class Circuit : public AllDifferentInterval {
    public:
     SparseSet set;
     vec<bool> tmp;   // Temporary, avoid to create it at each filter calls

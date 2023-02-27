@@ -46,7 +46,7 @@ bool Circuit::isCorrectlyDefined() {
 //----------------------------------------------
 
 bool Circuit::filter(Variable *dummy) {
-    if(AllDifferent::filter(dummy) == false)
+    if(AllDifferentInterval::filter(dummy) == false)
         return false;
 
     if(unassignedVariablesIdx.isEmpty())
@@ -104,7 +104,7 @@ bool Circuit::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferent(p, n, vars) {
+Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferentInterval(p, n, vars) {
     type = "Circuit";
     set.setCapacity(vars.size(), false);
     tmp.growTo(scope.size());

@@ -153,7 +153,7 @@ STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, vec<vec<int> > 
 void STRNeg::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
 
-    if(tuples.size() == 0) // the constrain is always satisfied. Can occcur: see StillLife-wastage-8-8.xml
+    if(tuples.size() == 0)   // the constrain is always satisfied. Can occcur: see StillLife-wastage-8-8.xml
         return;
 
 
@@ -173,17 +173,10 @@ void STRNeg::delayedConstruction(int id) {
 //----------------------------------------------
 
 
-void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        validTuples.restoreLimit(s.decisionLevel() + 1);
-}
+void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s) { validTuples.restoreLimit(s.decisionLevel() + 1); }
 
 
-void STRNeg::delTuple(int position, int level) {
-    if(validTuples.isLimitRecordedAtLevel(level) == false)
-        validTuples.recordLimit(level);
-    validTuples.del(position);
-}
+void STRNeg::delTuple(int position, int level) { validTuples.del(position, level); }
 
 
 void STRNeg::attachSolver(Solver *s) {
