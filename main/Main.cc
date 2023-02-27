@@ -9,7 +9,7 @@
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicVarCACD.h"
-#include "PickOnDom.h"
+//#include "PickOnDom.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
 #include "solver/heuristics/values/HeuristicValLast.h"
@@ -179,8 +179,8 @@ int main(int argc, char **argv) {
             }
             if(strcmp(hvr, "cacd") == 0)
                 S->heuristicVar = new HeuristicVarCACD(*S);
-            if(strcmp(hvr, "pick") == 0)
-                S->heuristicVar = new PickOnDom(*S);
+            // if(strcmp(hvr, "pick") == 0)
+            //     S->heuristicVar = new PickOnDom(*S);
 
             if(warmStart != nullptr) {
                 std::ifstream warmFile(warmStart);
