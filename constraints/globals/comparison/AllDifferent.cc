@@ -54,18 +54,23 @@ bool AllDifferentInterval::filter(Variable *dummy) {
 
 
 bool AllDifferentPermutation::filter(Variable *dummy) {
+    std::cout << "---------\nvars: ";
+    unfixedVars.display();
+    std::cout << "\nidx: ";
+    unfixedIdxs.display();
+    std::cout << "\n";
+
     int level = solver->decisionLevel();
     for(int i = unfixedVars.size() - 1; i >= 0; i--) {
         Variable *x = scope[unfixedVars[i]];
         if(x->size() == 1) {
             int idv = x->domain[0];
-            unfixedVars.del(scope.firstOccurrenceOf(x), level);
+            unfixedVars.del(unfixedVars[i], level);
             unfixedIdxs.del(idv, level);
             for(int j = unfixedVars.size() - 1; j >= 0; j--) {
                 Variable *y = scope[unfixedVars[j]];
-                if(solver->delIdv(y, idv) == false) {
+                if(solver->delIdv(y, idv) == false)
                     return false;
-                }
                 if(y->size() == 1)
                     i = std::max(i, j + 1);   // +1 because i-- before a new iteration
             }
@@ -130,6 +135,13 @@ AllDifferentPermutation::AllDifferentPermutation(Problem &p, std::string n, vec<
     sentinels2.growTo(scope[0]->domain.maxSize(), scope.last());
 }
 
+
+void AllDifferentPermutation::attachSolver(Solver *s) {
+    Constraint::attachSolver(s);
+    s->addObserverDeleteDecision(this);   // We need to restore validTuples.
+}
+
+
 //----------------------------------------------------------
 // Internal functions
 //----------------------------------------------------------
@@ -137,6 +149,12 @@ AllDifferentPermutation::AllDifferentPermutation(Problem &p, std::string n, vec<
 void AllDifferentPermutation::notifyDeleteDecision(Variable *x, int v, Solver &s) {
     unfixedIdxs.restoreLimit(s.decisionLevel() + 1);
     unfixedVars.restoreLimit(s.decisionLevel() + 1);
+    /*std::cout << "Backtrack: \n ";
+    unfixedVars.display();
+    std::cout << "\nidx: ";
+    unfixedIdxs.display();
+    std::cout << "End\n";
+     */
 }
 
 Variable *AllDifferentPermutation::findSentinel(int idv, Variable *otherSentinel) {

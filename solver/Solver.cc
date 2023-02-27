@@ -16,7 +16,7 @@
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
-//#include "heuristics/variables/PickOnDom.h"
+// #include "heuristics/variables/PickOnDom.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
 using namespace Cosoco;
 using namespace std;
@@ -33,7 +33,8 @@ Solver::Solver(Problem &p, int nbc)
       entailedConstraints(p.nbConstraints(), false),
       queue(p.nbVariables(), p.variables),
       pickQueueHistory(p.variables.size()) {
-    heuristicVar = new HeuristicVarDomWdeg(*this);   // new PickOnDom(*this);   // new HeuristicVarDomWdeg(*this);
+    heuristicVar = new HeuristicVarFirst(*this);
+    new HeuristicVarDomWdeg(*this);   // new PickOnDom(*this);   // new HeuristicVarDomWdeg(*this);
     // new HeuristicVarDomWdeg(*this); //new LastConflictReasoning(*this, new HeuristicVarDomWdeg(*this));
     heuristicVal = new HeuristicValFirst(*this);
     // new HeuristicValLast(*this);//new HeuristicValFirst(*this);//new HeuristicValRandom(*this);//;new HeuristicValFirst(*this);

@@ -95,6 +95,7 @@ class AllDifferentPermutation : public AllDifferent, public ObserverDeleteDecisi
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
+    void attachSolver(Solver *s) override;
 };
 
 }   // namespace Cosoco
