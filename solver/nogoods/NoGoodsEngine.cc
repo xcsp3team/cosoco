@@ -191,8 +191,10 @@ inline Lit NoGoodsEngine::getNegativeDecisionFor(Variable *x, int idv) const { r
 //-----------------------------------------------------------------------
 
 
-void NoGoodsEngine::displayTuples(vec<Tuple> &ng) {
-    for(Tuple &tuple : ng) std::cout << tuple;
+void NoGoodsEngine::displayTuples(vec<long long> &ng) {
+    for(auto tuple : ng) {
+        std::cout << getVariableIn(tuple)->_name << (tuple < 0 ? "!=" : "=") << getIndexIn(tuple) << " ";
+    }
     std::cout << std::endl;
 }
 

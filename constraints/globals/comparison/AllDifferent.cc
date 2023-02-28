@@ -54,12 +54,6 @@ bool AllDifferentInterval::filter(Variable *dummy) {
 
 
 bool AllDifferentPermutation::filter(Variable *dummy) {
-    std::cout << "---------\nvars: ";
-    unfixedVars.display();
-    std::cout << "\nidx: ";
-    unfixedIdxs.display();
-    std::cout << "\n";
-
     int level = solver->decisionLevel();
     for(int i = unfixedVars.size() - 1; i >= 0; i--) {
         Variable *x = scope[unfixedVars[i]];
@@ -90,9 +84,10 @@ bool AllDifferentPermutation::filter(Variable *dummy) {
                 unfixedIdxs.del(idv, level);
             }
         }
-        assert(sentinels1[idv]->size() > 1);
 
-        if(sentinels2[idv]->containsIdv(idv)) {
+        // assert(sentinels1[idv]->size() > 1);
+
+        if(sentinels2[idv]->containsIdv(idv) == false) {
             Variable *x = findSentinel(idv, sentinels1[idv]);
             if(x != nullptr)
                 sentinels2[idv] = x;

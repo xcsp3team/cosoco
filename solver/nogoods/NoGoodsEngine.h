@@ -22,10 +22,11 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     vec<vec<int>>      watchers;          // watchers[pos] provides all nogoods watcherd by the tuple ix!=idv
     vec<Lit>           nogoodsOfSize1;    // Store nogoods of size 1 before enqueue
                                           // them in the solver propagation queue
-    vec<Lit>     currentBranch;           // The current branch of the search tree
+
     unsigned int OFFSET;
 
    public:
+    vec<Lit>           currentBranch;   // The current branch of the search tree
     static Constraint *fake;
     vec<long>          statistics;
     explicit NoGoodsEngine(Solver &s);
@@ -51,7 +52,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
 
 
     // Minor functions (display/trace, debug...)
-    void displayTuples(vec<Tuple> &ng);
+    void displayTuples(vec<long long> &ng);
     void printStats();
     void checkWatchers();
 };
