@@ -206,7 +206,7 @@ void NoGoodsEngine::printStats() {
            statistics[maxsize], statistics[sumsize] / nogoods.size());
     printf("c ng propagations       : %lu\n", statistics[props]);
     printf("c ng conflicts          : %lu\n", statistics[cfl]);
-    printf("c time in nogoods       : %5.3fs\n", totalTime);
+    printf("c time in nogoods       : %5.3f s\n", totalTime);
 }
 
 void NoGoodsEngine::checkWatchers() {

@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
         vec<Problem *>  solvingProblems;
 
         double initial_time = cpuTime();
-
+        double real_time    = realTime();
         if(removeClasses != nullptr) {
             std::vector<std::string> classes = split1(std::string(removeClasses), ',');
             for(const std::string &c : classes) cb.addClassToDiscard(c);
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
         // --------------------------- INIT SOLVERS ----------------------------------------
         solvers.growTo(nbcores);
 
-        auto *solution = new Solution(*solvingProblems[0], cpuTime() - initial_time);
+        auto *solution = new Solution(*solvingProblems[0], real_time);
         for(int core = 0; core < nbcores; core++) {
             auto *S                     = new Solver(*solvingProblems[core]);
             S->core                     = core;
