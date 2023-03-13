@@ -23,7 +23,8 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     vec<Lit>           nogoodsOfSize1;    // Store nogoods of size 1 before enqueue
                                           // them in the solver propagation queue
     vec<Lit>     currentBranch;           // The current branch of the search tree
-    unsigned int OFFSET;
+    unsigned int OFFSET;                  //
+    double       totalTime;               // Total time spent in nogood propagator
 
    public:
     static Constraint *fake;

@@ -147,7 +147,8 @@ int main(int argc, char **argv) {
 
         // --------------------------- INIT SOLVERS ----------------------------------------
         solvers.growTo(nbcores);
-        auto *solution = new Solution(*solvingProblems[0]);
+
+        auto *solution = new Solution(*solvingProblems[0], cpuTime() - initial_time);
         for(int core = 0; core < nbcores; core++) {
             auto *S                     = new Solver(*solvingProblems[core]);
             S->core                     = core;

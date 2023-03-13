@@ -3,6 +3,8 @@
 //
 
 #include "NoGoodsEngine.h"
+
+#include "System.h"
 using namespace Cosoco;
 
 Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
@@ -17,8 +19,8 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s) {
     if(n1 + n2 > 8 * sizeof(Lit) - 1)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
-    OFFSET = (unsigned int)pow(2, n2 + 1);   // +1 because 0 excluded ???
-
+    OFFSET    = (unsigned int)pow(2, n2 + 1);   // +1 because 0 excluded ???
+    totalTime = 0;
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
@@ -39,7 +41,7 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
         nogood.push(currentDecision);
         if(currentDecision < 0) {
             if(currentDecision != currentBranch[0])
-                solver.noGoodsEngine->addNoGood(nogood);
+                addNoGood(nogood);
             nogood.pop();   // Remove the negative one
         }
     }
@@ -97,9 +99,9 @@ bool NoGoodsEngine::propagate(Variable *x) {
     Lit ng = getNegativeDecisionFor(x, x->valueId());
     if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
         return true;
-
-    int position = watcherPosition[ng];
-    int i = 0, j = 0;
+    double currentTime = realTime();
+    int    position    = watcherPosition[ng];
+    int    i = 0, j = 0;
     for(; i < watchers[position].size();) {
         int       ngposition    = watchers[position][i++];
         vec<Lit> &nogood        = nogoods[ngposition];
@@ -132,11 +134,13 @@ bool NoGoodsEngine::propagate(Variable *x) {
                 watchers[position][j++] = watchers[position][i++];
 
             watchers[position].shrink(i - j);
+            totalTime += realTime() - currentTime;
             return false;
         }
     nextNoGood:;
     }
     watchers[position].shrink(i - j);
+    totalTime += realTime() - currentTime;
     return true;
 }
 
@@ -202,6 +206,7 @@ void NoGoodsEngine::printStats() {
            statistics[maxsize], statistics[sumsize] / nogoods.size());
     printf("c ng propagations       : %lu\n", statistics[props]);
     printf("c ng conflicts          : %lu\n", statistics[cfl]);
+    printf("c time in nogoods       : %5.3fs\n", totalTime);
 }
 
 void NoGoodsEngine::checkWatchers() {

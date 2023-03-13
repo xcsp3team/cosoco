@@ -22,16 +22,14 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     long              bound;
     bool              invertBestCost;
     std::mutex        mutex;
-    double            realTimeForBestSolution {}, realTimeStart;
+    double            realTimeForBestSolution {};
     OptimisationType  optimType;
     bool              updateBound {};
     Problem          &problem;
+    double            realTimeStart;
 
    public:
-    explicit Solution(Problem &p) : problem(p) {
-        tmp = preserved = nullptr;
-        realTimeStart   = realTime();
-    }
+    explicit Solution(Problem &p, double rt) : problem(p), realTimeStart(rt) { tmp = preserved = nullptr; }
 
 
     /**
