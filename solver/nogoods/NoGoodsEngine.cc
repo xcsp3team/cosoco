@@ -10,7 +10,7 @@ using namespace Cosoco;
 Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
 
 
-NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s) {
+NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), capacity(1024 * 1024) {
     // std::cout << n1 << " " << n2 << " " << sizeof(long) * 8 << std::endl;
 
     // if(n1 + n2 <= sizeof(long) * 8)
@@ -24,6 +24,10 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s) {
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
+
+    // Manage space
+    last    = 0;
+    nogoods = (Lit *)malloc(capacity * sizeof(Lit));
 }
 
 std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
@@ -48,6 +52,20 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
     return true;
 }
 
+unsigned int NoGoodsEngine::insertNoGood(vec<Lit> &nogood) {
+    unsigned int prev_capacity = capacity;
+    if(nogood.size() + 1 + last > !capacity) {
+        unsigned int delta = ((capacity >> 1) + (capacity >> 3) + 2) & ~1;
+        capacity += delta;
+        if(capacity <= prev_capacity)
+            throw std::runtime_error("Out of memory\n");
+        nogoods = (Lit *)xrealloc(nogoods, sizeof(Lit) * capacity);
+    }
+    unsigned tmp = last;
+    for(Lit l : nogood) nogoods[last++] = l < 0 ? l : -l;
+    nogoods[last++] = 0;
+    return tmp;
+}
 
 void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
     statistics[nbnogoods]++;
@@ -63,17 +81,12 @@ void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
     if(statistics[maxsize] < nogood.size())
         statistics[maxsize] = nogood.size();
 
-    nogoods.push();
-    for(Lit l : nogood) {
-        nogoods.last().push(l < 0 ? l : -l);
-        // nogoods.last().last().eq = false;   // We want to store (x=2 and y=4) -> z!=3
-        //  All literals are of the form x!=a
-    }
-    addWatcher(nogoods.last()[0], nogoods.size() - 1);
-    addWatcher(nogoods.last()[1], nogoods.size() - 1);
+    unsigned int ng = insertNoGood(nogood);
+    addWatcher(nogoods.last()[0], ng);
+    addWatcher(nogoods.last()[1], ng);
 }
 
-void NoGoodsEngine::addWatcher(Lit ng, int ngposition) {
+void NoGoodsEngine::addWatcher(Lit ng, unsigned int ngposition) {
     int wp = -1;
     if(watcherPosition.count(ng) == 0) {
         watchers.push();                                     // Add a new watcher for x!=idv
@@ -103,9 +116,9 @@ bool NoGoodsEngine::propagate(Variable *x) {
     int    position    = watcherPosition[ng];
     int    i = 0, j = 0;
     for(; i < watchers[position].size();) {
-        int       ngposition    = watchers[position][i++];
-        vec<Lit> &nogood        = nogoods[ngposition];
-        int       falsePosition = ng == nogood[0] ? 0 : 1;
+        unsigned int ngposition    = watchers[position][i++];
+        Lit          nogood        = nogoods[ngposition];
+        int          falsePosition = ng == nogood[0] ? 0 : 1;
         assert(ng == nogood[falsePosition]);
 
         Variable *y   = getVariableIn(nogood[1 - falsePosition]);

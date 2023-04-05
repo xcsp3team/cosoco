@@ -15,28 +15,35 @@ namespace Cosoco {
 
 typedef long long Lit;
 
+
 class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
-    Solver            &solver;
-    vec<vec<Lit>>      nogoods;           // list of all nogoods
-    std::map<Lit, int> watcherPosition;   // the position pos in th watchers vector of this tuple x!=idv
-    vec<vec<int>>      watchers;          // watchers[pos] provides all nogoods watcherd by the tuple ix!=idv
-    vec<Lit>           nogoodsOfSize1;    // Store nogoods of size 1 before enqueue
-                                          // them in the solver propagation queue
-    vec<Lit>     currentBranch;           // The current branch of the search tree
-    unsigned int OFFSET;                  //
-    double       totalTime;               // Total time spent in nogood propagator
+    Solver &solver;
+    // vec<vec<Lit>>      nogoods;        // list of all nogoods
+    std::map<Lit, int>     watcherPosition;   // the position pos in th watchers vector of this tuple x!=idv
+    vec<vec<unsigned int>> watchers;          // watchers[pos] provides all nogoods watcherd by the tuple ix!=idv
+    vec<Lit>               nogoodsOfSize1;    // Store nogoods of size 1 before enqueue
+                                              // them in the solver propagation queue
+    vec<Lit>     currentBranch;               // The current branch of the search tree
+    unsigned int OFFSET;                      //
+    double       totalTime;                   // Total time spent in nogood propagator
+
+    Lit         *nogoods;
+    unsigned int capacity, last;
+
+    unsigned int insertNoGood(vec<Lit> &nogood);
+
 
    public:
     static Constraint *fake;
     vec<long>          statistics;
     explicit NoGoodsEngine(Solver &s);
 
-    bool generateNogoodsFromRestarts();           // Generate different nogoods
-    void addNoGood(vec<Lit> &nogood);             // Add a no good to the database
-    void addWatcher(Lit tuple, int ngposition);   // Add watcher
-    void enqueueNoGoodsOfSize1();                 // Enqueue nogoods of size 1 in solver queue
-    bool propagate(Variable *x);                  // Propagate x=idv in database of nogoods
-    bool isSupport(Variable *x, int idv);         // is definitively a support for the nogoœod
+    bool generateNogoodsFromRestarts();                    // Generate different nogoods
+    void addNoGood(vec<Lit> &nogood);                      // Add a no good to the database
+    void addWatcher(Lit tuple, unsigned int ngposition);   // Add watcher
+    void enqueueNoGoodsOfSize1();                          // Enqueue nogoods of size 1 in solver queue
+    bool propagate(Variable *x);                           // Propagate x=idv in database of nogoods
+    bool isSupport(Variable *x, int idv);                  // is definitively a support for the nogoœod
 
     // Callbacks to store and delete the current branch
     void notifyNewDecision(Variable *x, Solver &s) override;
