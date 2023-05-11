@@ -16,6 +16,8 @@ class Bin {
     int index;
     int capacity;   // the capacity is updated when possible (when an object is guaranteed to be in it)
     int lost;       // only used when reasoning energetically
+    int minSizeObj;
+    int maxSizeObj;
 
     void set(int i, int c) {
         index    = i;
