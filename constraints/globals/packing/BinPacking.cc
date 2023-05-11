@@ -147,10 +147,11 @@ start:
         // for breaking, we should go from 0 to ..., but removing an element in usableBins could be a problem
         Bin *b = bins[usableBins[j]];
         assert(usableBins.contains(b->index));
-        if(b->maxSizeObj == -1 || b->capacity < sizes[smallestFreeItem] || b->index < minUsableBin || maxUsableBin < b->index)
+        if(b->maxSizeObj == -1 || b->capacity < sizes[smallestFreeItem] || b->index < minUsableBin || maxUsableBin < b->index) {
             if(usableBins.isLimitRecordedAtLevel(solver->decisionLevel()) == false)
                 usableBins.recordLimit(solver->decisionLevel());
-        usableBins.del(b->index);
+            usableBins.del(b->index);
+        }
     }
     return true;
 }

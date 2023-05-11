@@ -28,19 +28,8 @@ bool BinPackingLoad::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------
 
 bool BinPackingLoad::filter(Variable *x) {
-    /*    if (unassignedVariablesIdx.size() == 0) {
-            int[] t = Stream.of(scp).mapToInt(y -> y.dom.singleValue()).toArray();
-            if (!isSatisfiedBy(t)) {
-                cnt++;
-                System.out.println(this + " bef " + cnt);
-                System.out.println("limits : " + Kit.join(limits));
-                System.out.println("sizes : " + Kit.join(sizes));
-                for (Variable y : scp)
-                    y.dom.displayCurrentBranch(true);
-                System.exit(1);
-            }
-        }
-       */
+    if(unassignedVariablesIdx.size() == 0)
+        return true;
 
     // we call the super propagator after setting the highest possible limits
     for(int i = 0; i < nBins; i++) limits[i] = loads[i]->maximum();
