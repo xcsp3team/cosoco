@@ -1878,6 +1878,60 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
 }
 
 
+void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) {
+    assert(nbcores == 1);
+    auto *po = static_cast<OptimizationProblem *>(problems[0]);
+    po->type = OptimisationType::Minimize;
+    switch(type) {
+        case SUM_O: {
+            vector<Tree *> trees;
+            for(unsigned int i = 0; i < list.size(); i++)
+                trees.push_back(new Tree("mul(" + list[i]->id + "," + coefs[i]->id + ")"));
+            vector<int> c;
+            for(auto *t : trees) c.push_back(-1);
+
+            po->type           = OptimisationType::Maximize;
+            invertOptimization = true;
+            XCondition xc;
+            xc.op          = GE;
+            xc.operandType = INTEGER;
+            xc.val         = INT_MIN;
+            buildConstraintSum("objective", trees, c, xc);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[0]->constraints.last());
+            std::cout << problems[0]->constraints.last()->type << std::endl;
+            po->addObjectiveLB(oc, true);
+            break;
+        }
+        default:
+            runtime_error("Objective expression without sum and variables coeffs not yet supported");
+    }
+}
+
+
+void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) {
+    assert(nbcores == 1);
+    auto *po = static_cast<OptimizationProblem *>(problems[0]);
+    po->type = OptimisationType::Maximize;
+    toMyVariables(list, 0);
+    vec<Variable *> c;
+    toMyVariables(coefs, c, 0);
+    switch(type) {
+        case SUM_O: {
+            XCondition xc;
+            xc.op          = GE;
+            xc.operandType = INTEGER;
+            xc.val         = INT_MIN;
+            buildConstraintSum("objective", list, coefs, xc);
+            break;
+        }
+        default:
+            runtime_error("Objective expression without sum and variables coeffs not yet supported");
+    }
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problems[0]->constraints.last());
+    po->addObjectiveLB(oc, true);
+}
+
+
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees) {
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);

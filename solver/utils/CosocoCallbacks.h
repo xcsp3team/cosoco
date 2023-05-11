@@ -453,6 +453,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) override;
 
+    void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) override;
+
+    void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) override;
+
     void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
                                   bool zeroIgnored) override;
 };
