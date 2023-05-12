@@ -27,6 +27,11 @@ enum OneRunStats { maxDepth, minDepth, sumDepth, nbConflicts };
 class Restart;
 class NoGoodsEngine;
 
+typedef struct {
+    Variable *x;
+    int       deletedValues;
+} PickVariables;
+
 class Solver : public AbstractSolver {
    public:
     Problem &problem;                 // The problem to solve
@@ -47,10 +52,10 @@ class Solver : public AbstractSolver {
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double seed          = 91648253;   // A seed value
-    bool   checkSolution = true;       // Check solution or not
-    bool   filterCallIsUsefull;        // Check if a call to filter call is usefull or not
-    bool   colors;                     // Display colors in terminal
+    double seed          = 91648253;     // A seed value
+    bool   checkSolution = true;         // Check solution or not
+    int    nbDeletedValuesByAVariable;   // count the number of deleted values by a filtering on one variable
+    bool   colors;                       // Display colors in terminal
 
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables
@@ -70,7 +75,7 @@ class Solver : public AbstractSolver {
     // -- Propagations ----------------------------------------------------------------------
     SparseSetOfVariables queue;                       // Propagation queue
     Constraint          *currentFilteredConstraint;   // The constraint that is filtered
-    SparseSetCounter     pickQueueHistory;            // The set of picking variables history
+    vec<PickVariables>   pickVariables;               // The set of picking variables history
 
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict

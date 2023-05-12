@@ -31,8 +31,7 @@ Solver::Solver(Problem &p, int nbc)
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
-      queue(p.nbVariables(), p.variables),
-      pickQueueHistory(p.variables.size()) {
+      queue(p.nbVariables(), p.variables) {
     heuristicVar = new HeuristicVarDomWdeg(*this);   // new PickOnDom(*this);   // new HeuristicVarDomWdeg(*this);
     // new HeuristicVarDomWdeg(*this); //new LastConflictReasoning(*this, new HeuristicVarDomWdeg(*this));
     heuristicVal = new HeuristicValFirst(*this);
@@ -384,10 +383,9 @@ Variable *Solver::pickInQueue() {   // Select the variable with the smallest dom
 
 Constraint *Solver::propagate(bool startWithSATEngine) {
     currentFilteredConstraint = nullptr;
-    pickQueueHistory.clear();
+    pickVariables.clear();
     while(queue.size() > 0) {
         Variable *x = pickInQueue();
-        pickQueueHistory.add(x->idx);
         assert(x->size() > 0);
 
         if(nogoodsFromRestarts && noGoodsEngine->propagate(x) == false)
@@ -397,17 +395,20 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         for(Constraint *c : x->constraints) {
             if(x->timestamp > c->timestamp && isEntailed(c) == false) {
                 filterCalls++;
-                filterCallIsUsefull       = false;
-                currentFilteredConstraint = c;
+                nbDeletedValuesByAVariable = 0;
+                currentFilteredConstraint  = c;
                 if(c->filterFrom(x) == false) {   // Inconsistent
+                    pickVariables.push({x, nbDeletedValuesByAVariable == 0 ? 1 : nbDeletedValuesByAVariable});
                     c->timestamp = ++timestamp;
                     notifyConflict(c);
                     currentFilteredConstraint = nullptr;
                     return c;
                 }
                 currentFilteredConstraint = nullptr;
-                if(filterCallIsUsefull == false)
+                if(nbDeletedValuesByAVariable == 0)
                     statistics[uselessFilterCalls]++;
+                else
+                    pickVariables.push({x, nbDeletedValuesByAVariable});
                 c->timestamp = ++timestamp;
             }
         }
@@ -440,7 +441,7 @@ bool Solver::delIdv(Variable *x, int idv) {
     if(x->domain.containsIdv(idv) == false)
         return true;
 
-    filterCallIsUsefull = true;
+    nbDeletedValuesByAVariable++;
 
     notifyDomainReduction(x, idv);
     x->delIdv(idv, decisionLevel());
@@ -477,7 +478,7 @@ bool Solver::assignToVal(Variable *x, int v) {
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
 
-    filterCallIsUsefull = true;
+    nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
     x->assignToIdv(idv, decisionLevel());
     if(x->addToTrail)
@@ -498,7 +499,7 @@ bool Solver::assignToIdv(Variable *x, int idv) {
         statistics[rootPropagations]++;
 
     // if(d.size()==1) return true;
-    filterCallIsUsefull = true;
+    nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
 
     x->assignToIdv(idv, decisionLevel());
