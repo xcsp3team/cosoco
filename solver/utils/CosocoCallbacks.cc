@@ -1516,20 +1516,26 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<int> &capacities,
                                                 bool load) {
     for(int core = 0; core < nbcores; core++) {
-        vars.clear();
-        toMyVariables(list, vars, core);
-        if(Variable::haveSameDomainType(vars) == false) {
-            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
-        }
-        if(load)
-            throw std::runtime_error("Bin packing with loads and integer is not yet implemented");
-
         vec<int> s, c;
         vector2vec(sizes);
         vals.copyTo(s);
         vector2vec(capacities);
         vals.copyTo(c);
-        FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, c);
+        vars.clear();
+        toMyVariables(list, vars, core);
+        if(Variable::haveSameDomainType(vars) == false) {
+            throw std::runtime_error("Bin packing with different domain types for items is not yet implemented");
+        }
+        if(load) {
+            vec<Variable *> loads;
+            for(int cap : capacities) {
+                string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+                buildVariableInteger(auxVar, cap, cap);
+                loads.push(problems[core]->variables.last());
+            }
+            FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, loads);
+        } else
+            FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, c);
     }
 }
 
@@ -1888,8 +1894,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
             for(unsigned int i = 0; i < list.size(); i++)
                 trees.push_back(new Tree("mul(" + list[i]->id + "," + coefs[i]->id + ")"));
             vector<int> c;
-            for(auto *t : trees) c.push_back(-1);
-
+            c.assign(trees.size(), -1);
             po->type           = OptimisationType::Maximize;
             invertOptimization = true;
             XCondition xc;
