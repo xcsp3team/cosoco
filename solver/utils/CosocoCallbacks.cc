@@ -804,7 +804,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vecto
     for(int core = 0; core < nbcores; core++) {
         vars.clear();
         for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problems[core]->mapping[auxiliaryVariable]);
-
         buildConstraintSum(id, vars, coefs, cond, core);
     }
 }
@@ -1541,19 +1540,32 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
 
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
                                                 vector<XVariable *> &capacities, bool load) {
-    if(load) {
-        for(int core = 0; core < nbcores; core++) {
-            vars.clear();
-            vec<int> s;
-            vector2vec(sizes);
-            vals.copyTo(s);
-            toMyVariables(list, vars, core);
-            vec<Variable *> loads;
-            toMyVariables(capacities, loads, core);
+    for(int core = 0; core < nbcores; core++) {
+        vec<int> s;
+        vector2vec(sizes);
+        vals.copyTo(s);
+        vars.clear();
+        toMyVariables(list, vars, core);
+        vec<Variable *> loads;
+        toMyVariables(capacities, loads, core);
+        if(load) {
             FactoryConstraints::createConstraintBinPacking(problems[core], id, vars, s, loads);
+        } else {
+            set<int> b;
+            for(Variable *x : vars)
+                for(int idv : x->domain) b.insert(x->domain.toVal(idv));
+            vector<int> bins;
+            bins.assign(b.begin(), b.end());
+            for(int i = 0; i < bins.size(); i++) {
+                vector<Tree *> trees;
+                for(XVariable *x : list) trees.push_back(new Tree("eq(" + x->id + "," + std::to_string(bins[i]) + ")"));
+                XCondition xc;
+                xc.op          = LE;
+                xc.operandType = VARIABLE;
+                xc.var         = capacities[bins[i]]->id;
+                buildConstraintSum(id, trees, sizes, xc);
+            }
         }
-    } else {
-        throw std::runtime_error("Bin packing with capcities and not load is not yet implemented");
     }
 }
 
