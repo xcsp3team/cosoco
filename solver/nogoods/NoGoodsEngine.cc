@@ -144,15 +144,15 @@ bool NoGoodsEngine::propagate(Variable *x) {
             int       idv2 = getIndexIn(nogood[k]);
             if(z->containsIdv(idv2) == false || z->size() > 1) {
                 // Find a new watcher
-                nogood[falsePosition] = nogood[k];   // put the new watch in good position
+                nogood[falsePosition] = nogood[k];               // put the new watch in good position
                 nogood[k]             = ng;
                 addWatcher(nogood[falsePosition], ngposition);   // ADd it to the watcher list
                 goto nextNoGood;
             }
         }
-        watchers[position][j++] = ngposition;   // The nogood stay in the watcher, it has to be propagated
+        watchers[position][j++] = ngposition;      // The nogood stay in the watcher, it has to be propagated
         statistics[props]++;
-        if(solver.delIdv(y, idv) == false) {   // The nogood is false
+        if(solver.delIdv(y, idv) == false) {       // The nogood is false
             statistics[cfl]++;
             while(i < watchers[position].size())   // Copy the remaining watches
                 watchers[position][j++] = watchers[position][i++];
@@ -227,7 +227,7 @@ void NoGoodsEngine::displayTuples(vec<Tuple> &ng) {
 void NoGoodsEngine::printStats() {
     printf("\nc nogoods               : %lu\n", statistics[nbnogoods]);
     printf("c nogoods sizes         : #1: %lu   #2: %lu   max size: %lu   avg size: %lu\n", statistics[size1], statistics[size2],
-           statistics[maxsize], statistics[sumsize] / statistics[nbnogoods]);
+           statistics[maxsize], statistics[nbnogoods] == 0 ? 0 : statistics[sumsize] / statistics[nbnogoods]);
     printf("c ng propagations       : %lu\n", statistics[props]);
     printf("c ng conflicts          : %lu\n", statistics[cfl]);
     printf("c time in nogoods       : %5.3f s\n", totalTime);
