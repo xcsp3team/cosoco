@@ -58,7 +58,7 @@ void NoGoodsEngine::enlargeNogoodStructure(unsigned int new_capacity) {   // Thi
     while(new_capacity == 0 || capacity < new_capacity) {
         unsigned int delta = ((capacity >> 1) + (capacity >> 3) + 2) & ~1;
         capacity += delta;
-        std::cout << "c realloc " << prev_capacity << " => " << capacity << std::endl;
+        // std::cout << "c realloc " << prev_capacity << " => " << capacity << std::endl;
         if(capacity <= prev_capacity)
             throw std::runtime_error("c Out of memory\n");
         if(new_capacity == 0)
