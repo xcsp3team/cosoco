@@ -13,7 +13,7 @@
 namespace Cosoco {
 class PickOnDom : public HeuristicVar, ObserverConflict, ObserverDeleteDecision {
     unsigned long next;
-    int           mode = 3;
+    int           mode = 0;
 
    public:
     PickOnDom(Solver &s);
