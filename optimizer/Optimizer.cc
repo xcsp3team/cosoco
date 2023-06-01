@@ -2,6 +2,7 @@
 
 #include <XCSP3Constants.h>
 
+#include "HeuristicValRoundRobinBS.h"
 #include "core/OptimizationProblem.h"
 #include "utils/System.h"
 
@@ -87,7 +88,12 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                     vec<int> idvalues;
                     idvalues.growTo(solver->problem.nbVariables());
                     for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
-                    ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
+                    ForceIdvs *forceIdvs;
+                    forceIdvs = dynamic_cast<ForceIdvs *>(solver->heuristicVal);
+                    if(forceIdvs)
+                        forceIdvs->setIdValues(idvalues);
+                    else
+                        ((HeuristicValRoundRobinBS *)solver->heuristicVal)->setIdValues(idvalues);
                 }
             }
 

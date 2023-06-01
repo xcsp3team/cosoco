@@ -10,6 +10,7 @@
 #include "HeuristicValOccs.h"
 #include "HeuristicVarCACD.h"
 //#include "PickOnDom.h"
+#include "HeuristicValRoundRobinBS.h"
 #include "PickOnDom.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
@@ -50,7 +51,7 @@ BoolOption sticking("SEARCH", "stick", "Sticking Value on heuristic val", 0);
 BoolOption   orestarts("SEARCH", "restarts", "Enable restarts", 1);
 StringOption hv("SEARCH", "val", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first");
 StringOption robin("SEARCH", "robin",
-                   "The order of robin (F (first), L(last), R(random), O(occs), A(asgs)), usefull only if val=robin", "FLR");
+                   "The order of robin (F (first), L(last), R(random), O(occs), A(asgs)), usefull only if val=robin", "FLAOR");
 StringOption hvr("SEARCH", "var", "Heuristic for values (wdeg, cacd)", "wdeg");
 
 BoolOption   annotations("SEARCH", "annotations", "Enable annotations (if any)", true);
@@ -156,8 +157,8 @@ int main(int argc, char **argv) {
             S->seed                     = S->seed * (core + 1);
             S->intension2extensionLimit = i2e;
             S->colors                   = colors;
-            if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 && strcmp(hv, "robin") != 0 &&
-               strcmp(hv, "occs") != 0 && strcmp(hv, "asgs") != 0 && strcmp(hv, "pool") != 0) {
+            if(strcmp(hv, "robinbs") != 0 && strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 &&
+               strcmp(hv, "robin") != 0 && strcmp(hv, "occs") != 0 && strcmp(hv, "asgs") != 0 && strcmp(hv, "pool") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");
                 exit(1);
             }
@@ -168,6 +169,8 @@ int main(int argc, char **argv) {
                 S->heuristicVal = new HeuristicValLast(*S);
             if(strcmp(hv, "robin") == 0)
                 S->heuristicVal = new HeuristicValRoundRobin(*S, tmp);
+            if(strcmp(hv, "robinbs") == 0)
+                S->heuristicVal = new HeuristicValRoundRobinBS(*S, tmp);
             if(strcmp(hv, "occs") == 0)
                 S->heuristicVal = new HeuristicValOccs(*S);
             if(strcmp(hv, "asgs") == 0)
@@ -236,7 +239,7 @@ int main(int argc, char **argv) {
                 optimizer->setSolver(S, solution);
                 optimizer->core   = core;
                 optimizer->colors = colors;
-                if(pg && warmStart == nullptr)
+                if(strcmp(hv, "robinbs") != 0 && pg && warmStart == nullptr)
                     optimizer->addProgressSaving();
                 solvers[core] = optimizer;
             } else
