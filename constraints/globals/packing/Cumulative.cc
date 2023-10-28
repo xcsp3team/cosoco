@@ -120,6 +120,9 @@ bool TimeTableReasoner::filter() {
         */
         int ms = mandatoryStart(posx), me = mandatoryEnd(posx);
         for(int k = 0; k < nSlots; k++) {
+            if(cumulative.wwidths[posx] == 0 || cumulative.wheights[0] == 0)
+                continue;
+
             if(slots[k].height + cumulative.wheights[posx] <= cumulative.limit)
                 break;
             assert(slots[k].height != 0);
