@@ -9,7 +9,7 @@
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicVarCACD.h"
-//#include "PickOnDom.h"
+// #include "PickOnDom.h"
 #include "PickOnDom.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
@@ -41,6 +41,7 @@ IntOption  mem_lim("MAIN", "mem-lim", "Limit on memory usage in megabytes.\n", I
 IntOption  nbSolutions("MAIN", "nbsols", "Number of solutions to find", 1, IntRange(0, INT32_MAX));
 BoolOption model("MAIN", "model", "Display models", 0);
 BoolOption colors("MAIN", "colors", "Add colors to output", 1);
+BoolOption dt("MAIN", "dataset", "export dataset for ML prediction", 0);
 
 
 BoolOption nogoods("SEARCH", "nogoods", "Learn nogoods from restarts", 0);
@@ -156,6 +157,7 @@ int main(int argc, char **argv) {
             S->seed                     = S->seed * (core + 1);
             S->intension2extensionLimit = i2e;
             S->colors                   = colors;
+            S->exportDataset            = dt;
             if(strcmp(hv, "first") != 0 && strcmp(hv, "last") != 0 && strcmp(hv, "rand") != 0 && strcmp(hv, "robin") != 0 &&
                strcmp(hv, "occs") != 0 && strcmp(hv, "asgs") != 0 && strcmp(hv, "pool") != 0) {
                 fprintf(stderr, "  --help        Print help message.\n");

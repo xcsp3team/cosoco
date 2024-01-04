@@ -57,6 +57,12 @@ class Solver : public AbstractSolver {
     int    nbDeletedValuesByAVariable;   // count the number of deleted values by a filtering on one variable
     bool   colors;                       // Display colors in terminal
 
+    // -- Generate dataset
+    bool     exportDataset;
+    vec<int> dataset;
+    vec<int> firstIndexInDataset;
+    int      lastState;
+
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables
     // Each level stores the SET variables of variables touched

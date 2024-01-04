@@ -16,13 +16,26 @@
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
-//#include "heuristics/variables/PickOnDom.h"
+// #include "heuristics/variables/PickOnDom.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
 using namespace Cosoco;
 using namespace std;
 //----------------------------------------------
 // Constructor / Initialisation
 //----------------------------------------------
+
+static void printLineDT(vec<int> &dataset) {
+    bool first = true;
+    std::cout << "d ";
+    for(int v : dataset) {
+        if(!first)
+            std::cout << ",";
+        std::cout << v;
+
+        first = false;
+    }
+    std::cout << std::endl;
+}
 
 
 Solver::Solver(Problem &p, int nbc)
@@ -43,6 +56,15 @@ Solver::Solver(Problem &p, int nbc)
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;
+
+    // Create dataset : vector to fill
+    for(Variable *x : p.variables) {
+        firstIndexInDataset.push(dataset.size());
+        for(int d : x->domain) dataset.push(1);
+    }
+    dataset.push(0);   // depth
+    dataset.push(0);   // state
+    lastState = -1;
 }
 
 void Solver::addNoGoodsFromRestarts() {
@@ -180,6 +202,10 @@ int Solver::search(vec<RootPropagation> &assumptions) {
 
 
 bool Solver::manageSolution() {
+    if(exportDataset) {
+        dataset.last() = 1;
+        printLineDT(dataset);
+    }
     nbSolutions++;
     lastSolutionRun = statistics[restarts];
 #ifdef COMPARESOLUTIONS
@@ -295,6 +321,9 @@ void Solver::backtrack() {
 
     for(int idx = trail.size() - 1; idx >= trail_lim[lvl - 1]; idx--) trail[idx]->domain.restoreLimit(lvl);
 
+    if(exportDataset)
+        for(int idv2 : assigned->domain) dataset[firstIndexInDataset[assigned->idx] + idv2] = 1;
+
     trail.shrink(trail.size() - trail_lim[lvl - 1]);   // Remove bad choices and props
     trail_lim.shrink(1);                               // One level less
     decisionVariablesId.shrink(1);
@@ -326,6 +355,7 @@ void Solver::handleFailure(Variable *x, int idv) {
         round++;
         tmp    = decisionVariableAtLevel(decisionLevel());
         idvtmp = decisionVariablesId.last();
+        printLineDT(dataset);
         backtrack();
         delIdv(tmp, idvtmp);
     }
@@ -445,6 +475,7 @@ bool Solver::delIdv(Variable *x, int idv) {
 
     notifyDomainReduction(x, idv);
     x->delIdv(idv, decisionLevel());
+    dataset[firstIndexInDataset[x->idx] + idv] = 0;
 
     if(x->addToTrail)
         trail.push(x);
@@ -478,6 +509,9 @@ bool Solver::assignToVal(Variable *x, int v) {
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
 
+    for(int i = 0; i < x->domain.maxSize(); i++) dataset[firstIndexInDataset[x->idx] + i] = 0;
+    dataset[firstIndexInDataset[x->idx] + idv] = 1;
+
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
     x->assignToIdv(idv, decisionLevel());
@@ -497,6 +531,9 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
+
+    for(int i = 0; i < x->domain.maxSize(); i++) dataset[firstIndexInDataset[x->idx] + i] = 0;
+    dataset[firstIndexInDataset[x->idx] + idv] = 1;
 
     // if(d.size()==1) return true;
     nbDeletedValuesByAVariable += x->size() - 1;
@@ -635,6 +672,7 @@ void Solver::notifyDomainAssignment(Variable *x, int idv) {
 
 
 void Solver::updateStatisticsWithNewConflict() {
+    dataset.last() = 0;   // Conflict
     if(localstatistics[minDepth] == 0 || localstatistics[minDepth] > decisionLevel())
         localstatistics[minDepth] = decisionLevel();
 

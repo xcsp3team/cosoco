@@ -50,7 +50,6 @@ class Problem {
     int  maximumDomainSize();
     void nbTypeOfConstraints(std::map<std::string, int> &);
 
-
     // Minor methods
     void display(bool allDetails = false);
     bool checkSolution();
