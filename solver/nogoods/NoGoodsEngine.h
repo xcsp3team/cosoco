@@ -45,6 +45,8 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     bool propagate(Variable *x);                           // Propagate x=idv in database of nogoods
     bool isSupport(Variable *x, int idv);                  // is definitively a support for the nogoœod
 
+    void generateNogoodFromSolution();
+
     // Callbacks to store and delete the current branch
     void notifyNewDecision(Variable *x, Solver &s) override;
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;

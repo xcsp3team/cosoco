@@ -36,6 +36,18 @@ std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
     return stream;
 }
 //-----------------------------------------------------------------------
+// -- Block solution with nogood
+//-----------------------------------------------------------------------
+
+void NoGoodsEngine::generateNogoodFromSolution() {
+    vec<Lit> nogood;
+    for(Variable *x : solver.problem.variables)
+        if(x->useless == false)
+            nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
+    addNoGood(nogood);
+}
+
+//-----------------------------------------------------------------------
 // -- No good generation and recording
 //-----------------------------------------------------------------------
 
@@ -144,15 +156,15 @@ bool NoGoodsEngine::propagate(Variable *x) {
             int       idv2 = getIndexIn(nogood[k]);
             if(z->containsIdv(idv2) == false || z->size() > 1) {
                 // Find a new watcher
-                nogood[falsePosition] = nogood[k];               // put the new watch in good position
+                nogood[falsePosition] = nogood[k];   // put the new watch in good position
                 nogood[k]             = ng;
                 addWatcher(nogood[falsePosition], ngposition);   // ADd it to the watcher list
                 goto nextNoGood;
             }
         }
-        watchers[position][j++] = ngposition;      // The nogood stay in the watcher, it has to be propagated
+        watchers[position][j++] = ngposition;   // The nogood stay in the watcher, it has to be propagated
         statistics[props]++;
-        if(solver.delIdv(y, idv) == false) {       // The nogood is false
+        if(solver.delIdv(y, idv) == false) {   // The nogood is false
             statistics[cfl]++;
             while(i < watchers[position].size())   // Copy the remaining watches
                 watchers[position][j++] = watchers[position][i++];

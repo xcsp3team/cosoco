@@ -16,7 +16,7 @@
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
-//#include "heuristics/variables/PickOnDom.h"
+// #include "heuristics/variables/PickOnDom.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
 using namespace Cosoco;
 using namespace std;
@@ -207,6 +207,9 @@ bool Solver::manageSolution() {
 
     if(displayModels)
         displayCurrentSolution();
+
+    if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
+        noGoodsEngine->generateNogoodFromSolution();
 
     if(nbSolutions == nbWishedSolutions) {
         status = REACH_GOAL;

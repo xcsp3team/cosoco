@@ -9,7 +9,7 @@
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicVarCACD.h"
-//#include "PickOnDom.h"
+// #include "PickOnDom.h"
 #include "PickOnDom.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
@@ -103,8 +103,8 @@ int main(int argc, char **argv) {
 
         parseOptions(argc, argv, true);
         std::cout << orestarts << endl;
-        if((nbSolutions > 1 || nbSolutions == 0) && orestarts) {
-            cout << "c count solutions and restarts is impossible" << endl;
+        if((nbSolutions > 1 || nbSolutions == 0) && nogoods == false) {
+            cout << "c count solutions without nogoods is impossible" << endl;
             exit(1);
         }
 
