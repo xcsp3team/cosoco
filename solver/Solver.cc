@@ -234,6 +234,9 @@ bool Solver::manageSolution() {
     if(displayModels)
         displayCurrentSolution();
 
+    if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
+        noGoodsEngine->generateNogoodFromSolution();
+
     if(nbSolutions == nbWishedSolutions) {
         status = REACH_GOAL;
         return true;
