@@ -25,7 +25,7 @@ file(GLOB_RECURSE Cosoco_SOURCES
         ${PROJECT_SOURCE_DIR}/problems/*.cc
         ${PROJECT_SOURCE_DIR}/solver/*.cc
         ${PROJECT_SOURCE_DIR}/utils/*.cc
-        )
+)
 
 file(GLOB_RECURSE Cosoco_HEADERS
         ${PROJECT_SOURCE_DIR}/constraints/*.h
@@ -36,7 +36,7 @@ file(GLOB_RECURSE Cosoco_HEADERS
         ${PROJECT_SOURCE_DIR}/problems/*.h
         ${PROJECT_SOURCE_DIR}/solver/*.h
         ${PROJECT_SOURCE_DIR}/utils/*.h
-        )
+)
 
 set(LIBRARY_NAME libcosoco)
 
@@ -58,7 +58,9 @@ include_directories(
 )
 
 
-add_library(${LIBRARY_NAME} STATIC ${Cosoco_SOURCES})
+add_library(${LIBRARY_NAME} STATIC ${Cosoco_SOURCES}
+        solver/utils/ManageIntension.cc
+        solver/utils/ManageIntension.h)
 
 
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../XCSP3-CPP-Parser/lib)
