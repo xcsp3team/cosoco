@@ -30,14 +30,14 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
 
-    vec<Variable *> &toMyVariables(vector<XVariable *> &src, vec<Variable *> &dest, int coreNumber) {
+    vec<Variable *> &toMyVariables(vector<XVariable *> &src, vec<Variable *> &dest) {
         dest.clear();
-        for(unsigned int i = 0; i < src.size(); i++) dest.push(problems[coreNumber]->mapping[src[i]->id]);
+        for(unsigned int i = 0; i < src.size(); i++) dest.push(problem->mapping[src[i]->id]);
         return dest;
     }
 
 
-    vec<Variable *> &toMyVariables(vector<XVariable *> &src, int coreNumber) { return toMyVariables(src, vars, coreNumber); }
+    vec<Variable *> &toMyVariables(vector<XVariable *> &src) { return toMyVariables(src, vars); }
 
 
     Range possibleValuesForExpressionInRange(Node *node) {
@@ -46,7 +46,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
         if(node->type == OVAR) {
             auto     *nx = dynamic_cast<NodeVariable *>(node);
-            Variable *x  = problems[0]->mapping[nx->var];
+            Variable *x  = problem->mapping[nx->var];
             return {x->minimum(), x->maximum()};
         }
         if(node->type == ODECIMAL) {
@@ -54,6 +54,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             return {nx->val, nx->val};
         }
 
+        assert(node->parameters.size() > 0);   // To be sure
         assert(node->parameters.size() > 0);   // To be sure
         vec<Range> ranges;
 
@@ -149,7 +150,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             values.insert(tree->evaluate(tuple));
             return;
         }
-        Variable *x = problems[0]->mapping[tree->listOfVariables[idx]];   // Take core 0 is ok
+        Variable *x = problem->mapping[tree->listOfVariables[idx]];   // Take core 0 is ok
         for(int idv : x->domain) {
             tuple[tree->listOfVariables[idx]] = x->domain.toVal(idv);
             possibleValuesForExpression(tree, tuple, values, idx + 1);
@@ -174,6 +175,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     int                    nbcores;
     unsigned long long     intension2extensionLimit;
     vec<Cosoco::Problem *> problems;
+    Cosoco::Problem       *problem;
     bool                   optimizationProblem;
     bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
     vec<vec<Variable *>> decisionVariables;
@@ -224,7 +226,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
 
     void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples, bool support,
-                                   bool hasStar, int core) const;
+                                   bool hasStar) const;
 
     void buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support, bool hasStar) override;
 
@@ -246,7 +248,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     // Language  constraints
     //--------------------------------------------------------------------------------------
 
-    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list, int core);
+    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list);
 
     void buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) override;
 
@@ -294,7 +296,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) override;
 
-    void buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc, int core);
+    void buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc);
 
     void buildConstraintSum(string id, vector<XVariable *> &list, vector<XVariable *> &coeffs, XCondition &xc) override;
 
@@ -431,11 +433,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) override;
 
-    void buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+    void buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs);
 
     void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
 
-    void buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+    void buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs);
 
     void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
 
