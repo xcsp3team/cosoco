@@ -17,8 +17,56 @@
 
 using namespace Cosoco;
 using namespace std;
-
 namespace XCSP3Core {
+class CosocoCallbacks;
+
+
+class Primitive {
+   public:
+    Tree                       *canonized, pattern;
+    std::vector<int>            constants;
+    std::vector<std::string>    variables;
+    std::vector<ExpressionType> operators;
+    XCSP3Core::CosocoCallbacks &callbacks;
+
+    std::string id;
+
+
+    Primitive(XCSP3Core::CosocoCallbacks &m, string expr) : pattern(expr), callbacks(m) { }
+
+
+    virtual ~Primitive() { }
+
+
+    Primitive *setTarget(std::string _id, Tree *c) {
+        id        = _id;
+        canonized = c;
+        return this;
+    }
+
+
+    virtual bool post() = 0;
+
+
+    bool match() {
+        constants.clear();
+        variables.clear();
+        operators.clear();
+        return Node::areSimilar(canonized->root, pattern.root, operators, constants, variables) && post();
+    }
+};
+
+
+class ManageIntension {
+   public:
+    vec<Primitive *> patterns;
+    CosocoCallbacks &callbacks;
+    explicit ManageIntension(CosocoCallbacks &callbacks);
+    void createPrimitives();
+    void intension(std::string id, Tree *tree);
+    bool recognizePrimitives(std::string id, Tree *tree);
+};
+
 
 class CosocoCallbacks : public XCSP3CoreCallbacks {
    protected:
@@ -178,12 +226,16 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     Cosoco::Problem       *problem;
     bool                   optimizationProblem;
     bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
-    vec<vec<Variable *>> decisionVariables;
-    int                  nbInitialsVariables;
-
+    vec<vec<Variable *>>               decisionVariables;
+    int                                nbInitialsVariables;
+    std::map<std::string, XVariable *> mappingXV;
+    ManageIntension                   *manageIntension;
 
     CosocoCallbacks(int ncores, unsigned long long i2e)
-        : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) { }
+        : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) {
+        recognizeSpecialIntensionCases = false;
+        manageIntension                = new ManageIntension(*this);
+    }
 
     void beginInstance(InstanceType type) override;
 

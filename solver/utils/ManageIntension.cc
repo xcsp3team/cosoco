@@ -2,150 +2,95 @@
 // Created by audemard on 30/03/24.
 //
 
-#include "ManageIntension.h"
+#include <utility>
 
-using namespace Cosoco;
+#include "CosocoCallbacks.h"
 
+using namespace XCSP3Core;
+
+
+void ManageIntension::intension(std::string id, Tree *tree) {
+    if(tree->arity() == 1) {
+        std::map<std::string, int> tuple;
+        vec<Variable *>            scope;
+        Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
+        vec<int>                   values;
+        for(int idv : x->domain) {
+            tuple[x->_name] = x->domain.toVal(idv);
+            if(tree->evaluate(tuple))
+                values.push(x->domain.toVal(idv));
+        }
+        FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
+        return;
+    }
+    if(recognizePrimitives(std::move(id), tree))
+        return;
+}
+
+
+static OrderType expressionTypeToOrderType(ExpressionType e) {
+    if(e == OLE)
+        return LE;
+    if(e == OLT)
+        return LT;
+    if(e == OGE)
+        return GE;
+    if(e == OGT)
+        return GT;
+    if(e == OEQ)
+        return XCSP3Core::EQ;
+    if(e == ONE)
+        return NE;
+    assert(false);
+    return LE;
+}
+
+
+static bool createXopYk(Problem *problem, ExpressionType ope, std::string x, std::string y, int k) {
+    vec<Variable *> vars;
+    vars.push(problem->mapping[x]);
+    vars.push(problem->mapping[y]);
+    order op = expressionTypeToOrderType(ope);
+
+    if(k == 0 && (op == XCSP3Core::EQ || op == NE)) {
+        if(op == XCSP3Core::EQ)
+            FactoryConstraints::createConstraintAllEqual(problem, "", vars);
+        else
+            FactoryConstraints::createConstraintAllDiff(problem, "", vars);
+        return true;
+    }
+    if(op == LE || op == LT) {
+        FactoryConstraints::createConstraintLessThan(problem, "", vars[0], k, vars[1], op == LT);
+        return true;
+    }
+    if(op == XCSP3Core::EQ) {
+        FactoryConstraints::createConstraintXeqYplusk(problem, "", vars[0], vars[1], k);
+        return true;
+    }
+    return false;
+}
 //--------------------------------------------------------------------------------------
 // Classes used to recognized expressions.
 //--------------------------------------------------------------------------------------
 
-class PrimitivePattern {
+
+class PBinary1 : public Primitive {   // x <op> y
    public:
-    Tree                       *canonized, pattern;
-    std::vector<int>            constants;
-    std::vector<std::string>    variables;
-    std::vector<ExpressionType> operators;
-    CosocoCallbacks            &manager;
-    std::string                 id;
-
-
-    PrimitivePattern(CosocoCallbacks &m, string expr) : pattern(expr), manager(m) { }
-
-
-    virtual ~PrimitivePattern() { }
-
-
-    PrimitivePattern *setTarget(std::string _id, Tree *c) {
-        id        = _id;
-        canonized = c;
-        return this;
-    }
-
-
-    virtual bool post() = 0;
-
-
-    bool match() {
-        constants.clear();
-        variables.clear();
-        operators.clear();
-        return Node::areSimilar(canonized->root, pattern.root, operators, constants, variables) && post();
-    }
-};
-
-
-class PrimitiveUnary1 : public PrimitivePattern {   // x op k
-   public:
-    explicit PrimitiveUnary1(CosocoCallbacks &m) : PrimitivePattern(m, "eq(x,3)") { pattern.root->type = OFAKEOP; }
+    explicit PBinary1(CosocoCallbacks &m) : Primitive(m, "eq(x,y)") { pattern.root->type = OFAKEOP; }
 
 
     bool post() override {
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
-        if(operators[0] == OEQ || operators[0] == ONE) {
-            std::vector<int> values;
-            values.push_back(constants[0]);
-            manager.buildConstraintExtension(id, (XVariable *)manager.mapping[variables[0]], values, operators[0] == OEQ, false);
+        if(createXopYk(callbacks.problem, operators[0], variables[0], variables[1], 0))
             return true;
-        }
-        if(operators[0] == OLE) {
-            manager.buildConstraintPrimitive(id, LE, (XVariable *)manager.mapping[variables[0]], constants[0]);
-            return true;
-        }
         return false;
     }
 };
 
-class PrimitiveUnary2 : public PrimitivePattern {   // x op k
+class PBinary2 : public Primitive {   // x + 3 <op> y
    public:
-    explicit PrimitiveUnary2(CosocoCallbacks &m) : PrimitivePattern(m, "le(3,x)") { }
-
-
-    bool post() override {
-        manager.buildConstraintPrimitive(id, GE, (XVariable *)manager.mapping[variables[0]], constants[0]);
-        return true;
-    }
-};
-
-class PrimitiveUnary3 : public PrimitivePattern {   // x in {1,3 5...}
-   public:
-    explicit PrimitiveUnary3(CosocoCallbacks &m) : PrimitivePattern(m, "in(x,set(1,3,5))") { pattern.root->type = OFAKEOP; }
-
-
-    bool post() override {
-        if(operators.size() != 1 || (operators[0] != OIN && operators[0] != ONOTIN))
-            return false;
-
-        std::vector<int> values;
-        for(Node *n : canonized->root->parameters[1]->parameters) values.push_back((dynamic_cast<NodeConstant *>(n))->val);
-        if(values.size() == 0) {
-            if(operators[0] == OIN)
-                manager.buildConstraintFalse(id);
-            else
-                manager.buildConstraintTrue(id);
-            return true;
-        }
-        manager.buildConstraintExtension(id, (XVariable *)manager.mapping[variables[0]], values, operators[0] == OIN, false);
-        return true;
-    }
-};
-
-
-class PrimitiveUnary4 : public PrimitivePattern {   // x>=1 and x<=4
-   public:
-    explicit PrimitiveUnary4(CosocoCallbacks &m) : PrimitivePattern(m, "and(le(x,1),le(4,x))") { pattern.root->type = OFAKEOP; }
-
-
-    bool post() override {
-        if(variables[0] != variables[1] || operators.size() != 1 || (operators[0] != OAND && operators[0] != OOR))
-            return false;
-        if(operators[0] == OAND) {
-            if(constants[1] > constants[0])
-                manager.buildConstraintFalse(id);
-            else
-                manager.buildConstraintPrimitive(id, (XVariable *)manager.mapping[variables[0]], true, constants[1],
-                                                 constants[0]);
-            return true;
-        }
-        if(constants[0] > constants[1])
-            manager.buildConstraintTrue(id);
-        else
-            manager.buildConstraintPrimitive(id, (XVariable *)manager.mapping[variables[0]], false, constants[0] + 1,
-                                             constants[1] - 1);
-        return true;
-    }
-};
-
-
-class PrimitiveBinary1 : public XCSP3Core::PrimitivePattern {   // x <op> y
-   public:
-    PrimitiveBinary1(CosocoCallbacks &m) : PrimitivePattern(m, "eq(x,y)") { pattern.root->type = OFAKEOP; }
-
-
-    bool post() override {
-        if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
-            return false;
-        manager.callback->buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]),
-                                                   (XVariable *)manager.mapping[variables[0]], 0,
-                                                   (XVariable *)manager.mapping[variables[1]]);
-        return true;
-    }
-};
-
-class PrimitiveBinary2 : public XCSP3Core::PrimitivePattern {   // x + 3 <op> y
-   public:
-    PrimitiveBinary2(CosocoCallbacks &m) : PrimitivePattern(m, "eq(add(x,3),y)") {
+    explicit PBinary2(CosocoCallbacks &m) : Primitive(m, "eq(add(x,3),y)") {
         pattern.root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -153,18 +98,17 @@ class PrimitiveBinary2 : public XCSP3Core::PrimitivePattern {   // x + 3 <op> y
     bool post() override {
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
-        manager.callback->buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]),
-                                                   (XVariable *)manager.mapping[variables[0]], constants[0],
-                                                   (XVariable *)manager.mapping[variables[1]]);
+        callbacks.buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]), callbacks.mappingXV[variables[0]],
+                                           constants[0], callbacks.mappingXV[variables[1]]);
 
         return true;
     }
 };
 
 
-class PrimitiveBinary3 : public XCSP3Core::PrimitivePattern {   // x = y <op> 3
+class PBinary3 : public Primitive {   // x = y <op> 3
    public:
-    PrimitiveBinary3(CosocoCallbacks &m) : PrimitivePattern(m, "eq(y,add(x,3))") {
+    explicit PBinary3(CosocoCallbacks &m) : Primitive(m, "eq(y,add(x,3))") {
         pattern.root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -173,18 +117,17 @@ class PrimitiveBinary3 : public XCSP3Core::PrimitivePattern {   // x = y <op> 3
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
         constants[0] = -constants[0];
-        manager.callback->buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]),
-                                                   (XVariable *)manager.mapping[variables[0]], constants[0],
-                                                   (XVariable *)manager.mapping[variables[1]]);
+        callbacks.buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]), callbacks.mappingXV[variables[0]],
+                                           constants[0], callbacks.mappingXV[variables[1]]);
 
         return true;
     }
 };
 
 
-class PrimitiveTernary1 : public XCSP3Core::PrimitivePattern {   // x = y <op> 3
+class PTernary1 : public Primitive {   // x = y <op> 3
    public:
-    PrimitiveTernary1(CosocoCallbacks &m) : PrimitivePattern(m, "eq(add(y,z),x)") {
+    explicit PTernary1(CosocoCallbacks &m) : Primitive(m, "eq(add(y,z),x)") {
         pattern.root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -193,7 +136,7 @@ class PrimitiveTernary1 : public XCSP3Core::PrimitivePattern {   // x = y <op> 3
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
         std::vector<XVariable *> list;
-        for(string &s : variables) list.push_back((XVariable *)manager.mapping[s]);
+        for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
         vector<int> coefs;
         coefs.push_back(1);
         coefs.push_back(1);
@@ -202,45 +145,40 @@ class PrimitiveTernary1 : public XCSP3Core::PrimitivePattern {   // x = y <op> 3
         cond.operandType = INTEGER;
         cond.op          = expressionTypeToOrderType(operators[0]);
         cond.val         = 0;
-        manager.callback->buildConstraintSum(id, list, coefs, cond);
+        callbacks.buildConstraintSum(id, list, coefs, cond);
 
         return true;
     }
 };
 
 
-class PrimitiveTernary2 : public XCSP3Core::PrimitivePattern {   // x * y = z
+class PTernary2 : public Primitive {   // x * y = z
    public:
-    PrimitiveTernary2(CosocoCallbacks &m) : PrimitivePattern(m, "eq(mul(x,y),z)") { }
+    explicit PTernary2(CosocoCallbacks &m) : Primitive(m, "eq(mul(x,y),z)") { }
 
 
     bool post() override {
-        manager.callback->buildConstraintMult(id, (XVariable *)manager.mapping[variables[0]],
-                                              (XVariable *)manager.mapping[variables[1]],
-                                              (XVariable *)manager.mapping[variables[2]]);
+        callbacks.buildConstraintMult(id, callbacks.mappingXV[variables[0]], callbacks.mappingXV[variables[1]],
+                                      callbacks.mappingXV[variables[2]]);
         return true;
     }
 };
 
 
-bool CosocoCallbacks::recognizePrimitives(std::string id, Tree *tree) {
-    for(PrimitivePattern *p : patterns)
+bool ManageIntension::recognizePrimitives(std::string id, Tree *tree) {
+    for(Primitive *p : patterns)
         if(p->setTarget(id, tree)->match())
             return true;
     return false;
 }
 
+ManageIntension::ManageIntension(CosocoCallbacks &c) : callbacks(c) { createPrimitives(); }
 
-void CosocoCallbacks::createPrimitivePatterns() {
-    patterns.push_back(new PrimitiveUnary1(*this));
-    patterns.push_back(new PrimitiveUnary2(*this));
-    patterns.push_back(new PrimitiveUnary3(*this));
-    patterns.push_back(new PrimitiveUnary4(*this));
-    patterns.push_back(new PrimitiveBinary1(*this));
-    patterns.push_back(new PrimitiveBinary2(*this));
-    patterns.push_back(new PrimitiveBinary3(*this));
-    patterns.push_back(new PrimitiveTernary1(*this));
-    patterns.push_back(new PrimitiveTernary2(*this));
+
+void ManageIntension::createPrimitives() {
+    patterns.push(new PBinary1(callbacks));
+    patterns.push(new PBinary2(callbacks));
+    patterns.push(new PBinary3(callbacks));
+    patterns.push(new PTernary1(callbacks));
+    patterns.push(new PTernary2(callbacks));
 }
-
-void ManageIntension::intension(CosocoCallbacks callbacks, Tree *tree) { }

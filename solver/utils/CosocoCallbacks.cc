@@ -7,14 +7,15 @@ void CosocoCallbacks::beginInstance(InstanceType type) {
     problems.push(problem);
     decisionVariables.growTo(nbcores);
 
-    optimizationProblem         = type == COP;
-    invertOptimization          = false;
-    nbMDD                       = 0;
-    insideGroup                 = false;
-    auxiliaryIdx                = 0;
-    nbIntension2Extention       = 0;
-    nbSharedIntension2Extension = 0;
-    inArray                     = false;
+    optimizationProblem            = type == COP;
+    invertOptimization             = false;
+    nbMDD                          = 0;
+    insideGroup                    = false;
+    auxiliaryIdx                   = 0;
+    nbIntension2Extention          = 0;
+    nbSharedIntension2Extension    = 0;
+    inArray                        = false;
+    recognizeSpecialIntensionCases = false;
 }
 
 void CosocoCallbacks::endInstance() {
@@ -29,6 +30,7 @@ void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue
         problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray)
         problem->variablesArray.last().push(x);
+    mappingXV[id] = new XVariable(id, nullptr);
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
@@ -36,6 +38,7 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
         problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray)
         problem->variablesArray.last().push(x);
+    mappingXV[id] = new XVariable(id, nullptr);
 }
 
 void CosocoCallbacks::beginVariableArray(string id) {
@@ -124,6 +127,10 @@ void CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> 
 
 
 void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
+    manageIntension->intension(id, tree);
+    return;
+    
+
     vec<Variable *> scope;
     for(string &s : tree->listOfVariables) scope.push(problem->mapping[s]);
 
@@ -1414,13 +1421,13 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
             for(int idv : x->domain) b.insert(x->domain.toVal(idv));
         vector<int> bins;
         bins.assign(b.begin(), b.end());
-        for(int i = 0; i < bins.size(); i++) {
+        for(int bin : bins) {
             vector<Tree *> trees;
-            for(XVariable *x : list) trees.push_back(new Tree("eq(" + x->id + "," + std::to_string(bins[i]) + ")"));
+            for(XVariable *x : list) trees.push_back(new Tree("eq(" + x->id + "," + std::to_string(bin) + ")"));
             XCondition xc;
             xc.op          = LE;
             xc.operandType = VARIABLE;
-            xc.var         = capacities[bins[i]]->id;
+            xc.var         = capacities[bin]->id;
             buildConstraintSum(id, trees, sizes, xc);
         }
     }

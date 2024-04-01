@@ -60,7 +60,7 @@ include_directories(
 
 add_library(${LIBRARY_NAME} STATIC ${Cosoco_SOURCES}
         solver/utils/ManageIntension.cc
-        solver/utils/ManageIntension.h)
+)
 
 
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../XCSP3-CPP-Parser/lib)
