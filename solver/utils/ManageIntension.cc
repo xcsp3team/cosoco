@@ -23,7 +23,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 values.push(x->domain.toVal(idv));
         }
         if(values.size() == 0) {
-            callbacks.buildConstraintFalse();
+            callbacks.buildConstraintFalse("false");
             return;
         }
         FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
@@ -126,8 +126,63 @@ class PBinary3 : public Primitive {   // x = y <op> 3
         return true;
     }
 };
+class PBinary4 : public Primitive {   // x + y <op> 3
+   public:
+    explicit PBinary4(CosocoCallbacks &m) : Primitive(m, "le(add(y[0], x[0]), 3)") {
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
+    }
 
 
+    bool post() override {
+        if(isRelationalOperator(operators[0]) == false)
+            return false;
+        std::vector<XVariable *> list;
+        for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
+        XCondition cond;
+        cond.operandType = INTEGER;
+        cond.op          = expressionTypeToOrderType(operators[0]);
+        cond.val         = constants[0];
+        callbacks.buildConstraintSum(id, list, cond);
+        return true;
+    }
+};
+
+class PBinary5 : public Primitive {   // 3 <op> x + y
+   public:
+    explicit PBinary5(CosocoCallbacks &m) : Primitive(m, "le(3,add(y[0], x[0]))") {
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
+    }
+
+
+    bool post() override {
+        if(isRelationalOperator(operators[0]) == false)
+            return false;
+        std::vector<XVariable *> list;
+        for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
+        XCondition cond;
+        cond.operandType = INTEGER;
+        cond.op          = expressionTypeToOrderType(operators[0]);
+        cond.val         = -constants[0];
+        vector<int> coefs;
+        coefs.push_back(-1);
+        coefs.push_back(-1);
+        callbacks.buildConstraintSum(id, list, coefs, cond);
+        return true;
+    }
+};
+
+class PBinary6 : public Primitive {   // 3 <op> x + y
+   public:
+    explicit PBinary6(CosocoCallbacks &m) : Primitive(m, "eq(eq(y,3),x)") { }
+
+
+    bool post() override {
+        FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+                                                    callbacks.problem->mapping[variables[0]], constants[0]);
+        return true;
+    }
+};
+// x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
    public:
     explicit PTernary1(CosocoCallbacks &m) : Primitive(m, "eq(add(y,z),x)") {
@@ -176,6 +231,26 @@ class PTernary3 : public Primitive {
         return true;
     }
 };
+
+class PTernary4 : public Primitive {
+   public:
+    explicit PTernary4(CosocoCallbacks &m) : Primitive(m, "le(z,add(x,y))") { pattern->root->type = OFAKEOP; }
+    bool post() override {
+        std::vector<XVariable *> list;
+        for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
+        vector<int> coefs;
+        coefs.push_back(1);
+        coefs.push_back(-1);
+        coefs.push_back(-1);
+        XCondition cond;
+        cond.operandType = INTEGER;
+        cond.op          = expressionTypeToOrderType(operators[0]);
+        cond.val         = 0;
+        callbacks.buildConstraintSum(id, list, coefs, cond);
+        return true;
+    }
+};
+
 
 class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
                                            // do the job (see PNary1
@@ -226,8 +301,12 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary1(callbacks));
     patterns.push(new PBinary2(callbacks));
     patterns.push(new PBinary3(callbacks));
+    patterns.push(new PBinary4(callbacks));
+    patterns.push(new PBinary5(callbacks));
+    patterns.push(new PBinary6(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PTernary3(callbacks));
+    patterns.push(new PTernary4(callbacks));
     patterns.push(new PNary1(callbacks));
 }
