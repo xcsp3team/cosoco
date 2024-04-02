@@ -10,6 +10,8 @@ using namespace XCSP3Core;
 
 
 void ManageIntension::intension(std::string id, Tree *tree) {
+    tree->prefixe();
+    std::cout << "\n";
     if(tree->arity() == 1) {
         std::map<std::string, int> tuple;
         vec<Variable *>            scope;
@@ -19,6 +21,10 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             tuple[x->_name] = x->domain.toVal(idv);
             if(tree->evaluate(tuple))
                 values.push(x->domain.toVal(idv));
+        }
+        if(values.size() == 0) {
+            callbacks.buildConstraintFalse();
+            return;
         }
         FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
         return;
@@ -78,7 +84,7 @@ static bool createXopYk(Problem *problem, ExpressionType ope, std::string x, std
 
 class PBinary1 : public Primitive {   // x <op> y
    public:
-    explicit PBinary1(CosocoCallbacks &m) : Primitive(m, "eq(x,y)") { pattern.root->type = OFAKEOP; }
+    explicit PBinary1(CosocoCallbacks &m) : Primitive(m, "eq(x,y)") { pattern->root->type = OFAKEOP; }
 
 
     bool post() override {
@@ -91,7 +97,7 @@ class PBinary1 : public Primitive {   // x <op> y
 class PBinary2 : public Primitive {   // x + 3 <op> y
    public:
     explicit PBinary2(CosocoCallbacks &m) : Primitive(m, "eq(add(x,3),y)") {
-        pattern.root->type = OFAKEOP;   // We do not care between logical operator
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
 
@@ -107,7 +113,7 @@ class PBinary2 : public Primitive {   // x + 3 <op> y
 class PBinary3 : public Primitive {   // x = y <op> 3
    public:
     explicit PBinary3(CosocoCallbacks &m) : Primitive(m, "eq(y,add(x,3))") {
-        pattern.root->type = OFAKEOP;   // We do not care between logical operator
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
 
@@ -125,15 +131,13 @@ class PBinary3 : public Primitive {   // x = y <op> 3
 class PTernary1 : public Primitive {   // x = y <op> 3
    public:
     explicit PTernary1(CosocoCallbacks &m) : Primitive(m, "eq(add(y,z),x)") {
-        pattern.root->type = OFAKEOP;   // We do not care between logical operator
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
 
     bool post() override {
-        std::cout << "A1\n";
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
-        std::cout << "A2\n";
         std::vector<XVariable *> list;
         for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
         vector<int> coefs;
@@ -162,6 +166,51 @@ class PTernary2 : public Primitive {   // x * y = z
     }
 };
 
+class PTernary3 : public Primitive {
+   public:
+    explicit PTernary3(CosocoCallbacks &m) : Primitive(m, "eq(dist(x,y),z)") { }
+    bool post() override {
+        FactoryConstraints::createConstraintDistXYeqZ(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                      callbacks.problem->mapping[variables[1]],
+                                                      callbacks.problem->mapping[variables[2]]);
+        return true;
+    }
+};
+
+class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
+                                           // do the job (see PNary1
+   public:
+    explicit FakePrimitive(CosocoCallbacks &c) : Primitive(c) { }
+    bool match() override { return post(); }
+};
+
+class PNary1 : public FakePrimitive {
+   public:
+    explicit PNary1(CosocoCallbacks &c) : FakePrimitive(c) { }
+    bool post() override {
+        if(canonized->root->type == OEQ && canonized->root->parameters[0]->type == OOR &&
+           canonized->root->parameters[1]->type == OVAR) {
+            for(Node *n : canonized->root->parameters[0]->parameters)
+                if(n->type != OEQ || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL) {
+                    return false;
+                }
+            auto           *nv = dynamic_cast<NodeVariable *>(canonized->root->parameters[1]);
+            Variable       *r  = callbacks.problem->mapping[nv->var];
+            vec<Variable *> cl;
+            vec<int>        values;
+            for(Node *n : canonized->root->parameters[0]->parameters) {
+                auto *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+                auto *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
+                cl.push(callbacks.problem->mapping[nv2->var]);
+                values.push(nc2->val);
+            }
+            FactoryConstraints::createConstraintXeqOrYeqK(callbacks.problem, id, r, cl, values);
+            return true;
+        }
+        return false;
+    }
+};
+
 
 bool ManageIntension::recognizePrimitives(std::string id, Tree *tree) {
     for(Primitive *p : patterns)
@@ -179,4 +228,6 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary3(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
+    patterns.push(new PTernary3(callbacks));
+    patterns.push(new PNary1(callbacks));
 }

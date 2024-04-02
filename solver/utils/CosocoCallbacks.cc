@@ -129,46 +129,10 @@ void CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> 
 void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
     manageIntension->intension(id, tree);
     return;
-    
+
 
     vec<Variable *> scope;
     for(string &s : tree->listOfVariables) scope.push(problem->mapping[s]);
-
-
-    // Check x = y1=k1 or y2=k2...
-    bool match = true;
-    if(tree->root->type == OEQ && tree->root->parameters[0]->type == OVAR && tree->root->parameters[1]->type == OOR) {
-        for(Node *n : tree->root->parameters[1]->parameters)
-            if(n->type != OEQ || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL) {
-                match = false;
-                break;
-            }
-        if(match) {
-            auto           *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[0]);
-            Variable       *r  = problem->mapping[nv->var];
-            vec<Variable *> cl;
-            vec<int>        values;
-            for(Node *n : tree->root->parameters[1]->parameters) {
-                auto *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
-                auto *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
-                cl.push(problem->mapping[nv2->var]);
-                values.push(nc2->val);
-            }
-            FactoryConstraints::createConstraintXeqOrYeqK(problem, id, r, cl, values);
-
-            return;
-        }
-    }
-
-    // Check |x - y| = z
-    if(tree->root->type == OEQ && tree->root->parameters[0]->type == ODIST &&
-       tree->root->parameters[0]->parameters[0]->type == OVAR && tree->root->parameters[0]->parameters[1]->type == OVAR &&
-       tree->root->parameters[1]->type == OVAR) {
-        FactoryConstraints::createConstraintDistXYeqZ(problem, id, problem->mapping[tree->listOfVariables[1]],
-                                                      problem->mapping[tree->listOfVariables[2]],
-                                                      problem->mapping[tree->listOfVariables[0]]);
-        return;
-    }
 
 
     // Check x <= y + z

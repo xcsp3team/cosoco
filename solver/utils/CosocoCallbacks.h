@@ -2,6 +2,7 @@
 #define COSOCO_COSOCOCALLBACKS_H
 
 #include <numeric>
+#include <utility>
 
 #include "FactoryConstraints.h"
 #include "XCSP3Constants.h"
@@ -23,7 +24,7 @@ class CosocoCallbacks;
 
 class Primitive {
    public:
-    Tree                       *canonized, pattern;
+    Tree                       *canonized, *pattern;
     std::vector<int>            constants;
     std::vector<std::string>    variables;
     std::vector<ExpressionType> operators;
@@ -32,9 +33,8 @@ class Primitive {
     std::string id;
 
 
-    Primitive(XCSP3Core::CosocoCallbacks &m, string expr) : pattern(expr), callbacks(m) { }
-
-
+    Primitive(XCSP3Core::CosocoCallbacks &m, string expr) : pattern(new Tree(std::move(expr))), callbacks(m) { }
+    Primitive(XCSP3Core::CosocoCallbacks &m) : pattern(nullptr), callbacks(m) { }
     virtual ~Primitive() { }
 
 
@@ -48,11 +48,13 @@ class Primitive {
     virtual bool post() = 0;
 
 
-    bool match() {
+    virtual bool match() {
         constants.clear();
         variables.clear();
         operators.clear();
-        return Node::areSimilar(canonized->root, pattern.root, operators, constants, variables) && post();
+        canonized->prefixe();
+        std::cout << "\n";
+        return Node::areSimilar(canonized->root, pattern->root, operators, constants, variables) && post();
     }
 };
 
