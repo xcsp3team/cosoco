@@ -67,10 +67,13 @@ class ManageIntension {
     void createPrimitives();
     void intension(std::string id, Tree *tree);
     bool recognizePrimitives(std::string id, Tree *tree);
+    bool toExtension(std::string id, Tree *tree, vec<Variable *> &scope);
 };
 
 
 class CosocoCallbacks : public XCSP3CoreCallbacks {
+    friend class ManageIntension;
+
    protected:
     vec<int> &vector2vec(vector<int> &src) {
         vals.clear();

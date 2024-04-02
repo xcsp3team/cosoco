@@ -29,12 +29,62 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
         return;
     }
-    if(recognizePrimitives(std::move(id), tree))
+    // if(recognizePrimitives(std::move(id), tree))
+    //     return;
+
+    vec<Variable *> scope;
+    for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
+
+    // Help to compute extension
+    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
+        auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
+        if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
+            int pos = -1;
+            for(int i = 0; i < scope.size(); i++)
+                if(scope[i]->_name == nv->var)
+                    pos = i;
+            Variable *tmp2               = scope[pos];
+            scope[pos]                   = scope.last();
+            scope.last()                 = tmp2;
+            string tmp3                  = tree->listOfVariables[pos];
+            tree->listOfVariables[pos]   = tree->listOfVariables.back();
+            tree->listOfVariables.back() = tmp3;
+
+            assert(scope.last()->_name == nv->var);
+        }
+    }
+
+    if(toExtension(id, tree, scope))
         return;
-    // bug ternary 1 : gt(add(y[0],y[1]),x[1])
-    assert(false);
+
+    // Create intension
+    FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
 }
 
+
+bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
+    unsigned long long nbTuples = 1;
+    for(Variable *x : scope) nbTuples *= x->domain.maxSize();
+
+    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
+        nbTuples = nbTuples / scope.last()->domain.maxSize();
+    }
+
+    if(callbacks.startToParseObjective == false && callbacks.intension2extensionLimit &&
+       nbTuples < callbacks.intension2extensionLimit) {   // Create extension
+        callbacks.nbIntension2Extention++;
+        std::vector<std::vector<int>> tuples;
+        bool                          isSupport = false;
+        Constraint::toExtensionConstraint(tree, scope, tuples, isSupport);
+
+        vec<Variable *> varsCore;
+        for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
+        std::cout << tuples.size() << std::endl;
+        callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
+        return true;
+    }
+    return false;
+}
 
 static OrderType expressionTypeToOrderType(ExpressionType e) {
     if(e == OLE)
