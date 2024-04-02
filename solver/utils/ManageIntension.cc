@@ -25,6 +25,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     }
     if(recognizePrimitives(std::move(id), tree))
         return;
+    // bug ternary 1 : gt(add(y[0],y[1]),x[1])
+    assert(false);
 }
 
 
@@ -82,9 +84,7 @@ class PBinary1 : public Primitive {   // x <op> y
     bool post() override {
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
-        if(createXopYk(callbacks.problem, operators[0], variables[0], variables[1], 0))
-            return true;
-        return false;
+        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1], 0);
     }
 };
 
@@ -96,12 +96,10 @@ class PBinary2 : public Primitive {   // x + 3 <op> y
 
 
     bool post() override {
-        if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
+        if(isRelationalOperator(operators[0]) == false)
             return false;
-        callbacks.buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]), callbacks.mappingXV[variables[0]],
-                                           constants[0], callbacks.mappingXV[variables[1]]);
-
-        return true;
+        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1],
+                           operators[0] == OEQ ? -constants[0] : constants[0]);
     }
 };
 
@@ -114,11 +112,10 @@ class PBinary3 : public Primitive {   // x = y <op> 3
 
 
     bool post() override {
-        if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
+        if(isRelationalOperator(operators[0]) == false)
             return false;
-        constants[0] = -constants[0];
-        callbacks.buildConstraintPrimitive(id, expressionTypeToOrderType(operators[0]), callbacks.mappingXV[variables[0]],
-                                           constants[0], callbacks.mappingXV[variables[1]]);
+        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1],
+                           operators[0] == OEQ ? -constants[0] : constants[0]);
 
         return true;
     }
@@ -133,8 +130,10 @@ class PTernary1 : public Primitive {   // x = y <op> 3
 
 
     bool post() override {
+        std::cout << "A1\n";
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
+        std::cout << "A2\n";
         std::vector<XVariable *> list;
         for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
         vector<int> coefs;
@@ -146,7 +145,6 @@ class PTernary1 : public Primitive {   // x = y <op> 3
         cond.op          = expressionTypeToOrderType(operators[0]);
         cond.val         = 0;
         callbacks.buildConstraintSum(id, list, coefs, cond);
-
         return true;
     }
 };
