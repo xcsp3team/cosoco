@@ -1414,6 +1414,7 @@ void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+    assert(oc != nullptr);
     po->addObjectiveLB(oc, true);
 }
 
@@ -1588,7 +1589,9 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
     vector<string> auxiliaryVariables;
+    startToParseObjective = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
+    startToParseObjective = true;
     // Create the new objective
     // core duplication is here
     vars.clear();
@@ -1600,8 +1603,10 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tr
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
     vector<string> auxiliaryVariables;
 
+    startToParseObjective = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
-    // Create the new objective
+    startToParseObjective = false;
+
     // core duplication is here
     vars.clear();
     for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problem->mapping[auxiliaryVariable]);

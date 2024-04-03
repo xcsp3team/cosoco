@@ -7,12 +7,14 @@
 #include "CosocoCallbacks.h"
 
 using namespace XCSP3Core;
-
+// /data/csp/GolombRuler-11-a3.xml
 
 void ManageIntension::intension(std::string id, Tree *tree) {
+    if(callbacks.startToParseObjective == false)
+        tree->canonize();
     tree->prefixe();
     std::cout << "\n";
-    if(tree->arity() == 1) {
+    if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
         std::map<std::string, int> tuple;
         vec<Variable *>            scope;
         Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
@@ -29,8 +31,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
         return;
     }
-    // if(recognizePrimitives(std::move(id), tree))
-    //     return;
+    if(recognizePrimitives(std::move(id), tree))
+        return;
 
     vec<Variable *> scope;
     for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
@@ -170,8 +172,7 @@ class PBinary3 : public Primitive {   // x = y <op> 3
     bool post() override {
         if(isRelationalOperator(operators[0]) == false)
             return false;
-        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1],
-                           operators[0] == OEQ ? -constants[0] : constants[0]);
+        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1], constants[0]);
 
         return true;
     }
@@ -265,6 +266,8 @@ class PTernary2 : public Primitive {   // x * y = z
 
 
     bool post() override {
+        if(canonized->listOfVariables.size() != 3)   // something like x*x=y
+            return false;
         callbacks.buildConstraintMult(id, callbacks.mappingXV[variables[0]], callbacks.mappingXV[variables[1]],
                                       callbacks.mappingXV[variables[2]]);
         return true;
