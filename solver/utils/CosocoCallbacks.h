@@ -29,12 +29,13 @@ class Primitive {
     std::vector<std::string>    variables;
     std::vector<ExpressionType> operators;
     XCSP3Core::CosocoCallbacks &callbacks;
+    int                         arity;
 
     std::string id;
 
 
-    Primitive(XCSP3Core::CosocoCallbacks &m, string expr) : pattern(new Tree(std::move(expr))), callbacks(m) { }
-    Primitive(XCSP3Core::CosocoCallbacks &m) : pattern(nullptr), callbacks(m) { }
+    Primitive(XCSP3Core::CosocoCallbacks &m, string expr, int a) : pattern(new Tree(std::move(expr))), callbacks(m), arity(a) { }
+    Primitive(XCSP3Core::CosocoCallbacks &m) : pattern(nullptr), callbacks(m), arity(0) { }
     virtual ~Primitive() { }
 
 
@@ -54,15 +55,17 @@ class Primitive {
         operators.clear();
         canonized->prefixe();
         std::cout << "\n";
-        return Node::areSimilar(canonized->root, pattern->root, operators, constants, variables) && post();
+        return arity == canonized->arity() && Node::areSimilar(canonized->root, pattern->root, operators, constants, variables) &&
+               post();
     }
 };
 
 
 class ManageIntension {
    public:
-    vec<Primitive *> patterns;
-    CosocoCallbacks &callbacks;
+    vec<Primitive *>          patterns;
+    CosocoCallbacks          &callbacks;
+    map<string, Constraint *> cached_extensions;
     explicit ManageIntension(CosocoCallbacks &callbacks);
     void createPrimitives();
     void intension(std::string id, Tree *tree);

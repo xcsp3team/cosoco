@@ -152,6 +152,8 @@ class Domain {
     }
 
     virtual size_t hash() = 0;
+
+    virtual bool equals(Domain *d);
 };
 
 }   // namespace Cosoco

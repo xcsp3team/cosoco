@@ -53,6 +53,8 @@ class DomainRange : public Domain {
         std::hash<std::string> h;
         return h(s);
     }
+
+    bool equals(Domain *d) override;
 };
 }   // namespace Cosoco
 #endif

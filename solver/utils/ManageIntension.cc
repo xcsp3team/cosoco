@@ -5,15 +5,31 @@
 #include <utility>
 
 #include "CosocoCallbacks.h"
-
 using namespace XCSP3Core;
 // /data/csp/GolombRuler-11-a3.xml
+
+void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
+    size_t pos = input.find(replace_word);
+
+    // Iterate through the string and replace all
+    // occurrences
+    while(pos != std::string::npos) {
+        // Replace the substring with the specified string
+        input.replace(pos, replace_word.size(), replace_by);
+
+        // Find the next occurrence of the substring
+        pos = input.find(replace_word, pos + replace_by.size());
+    }
+}
 
 void ManageIntension::intension(std::string id, Tree *tree) {
     if(callbacks.startToParseObjective == false)
         tree->canonize();
     tree->prefixe();
     std::cout << "\n";
+
+    //----------------------------------------------------------------------------
+    // Unary constraints
     if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
         std::map<std::string, int> tuple;
         vec<Variable *>            scope;
@@ -31,6 +47,10 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
         return;
     }
+
+    //----------------------------------------------------------------------------
+    // Nary constraints
+
     if(recognizePrimitives(std::move(id), tree))
         return;
 
@@ -66,11 +86,29 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 
 bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
     unsigned long long nbTuples = 1;
+
+
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
 
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();
     }
+    std::string expr   = tree->toString();
+    char        letter = 'a';
+    for(Variable *x : scope) {
+        replace_all_occurrences(expr, x->_name, {letter});
+        letter++;
+    }
+    bool found = false;
+    if(cached_extensions.find(expr) != cached_extensions.end()) {
+        Constraint *c = cached_extensions[expr];
+        for(int i = 0; i < c->scope.size(); i++)
+            if(c->scope[i]->domain.equals(&(scope[i]->domain)) == false) {
+                found = false;
+                break;
+            }
+    }
+
 
     if(callbacks.startToParseObjective == false && callbacks.intension2extensionLimit &&
        nbTuples < callbacks.intension2extensionLimit) {   // Create extension
@@ -83,6 +121,9 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
         for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
         std::cout << tuples.size() << std::endl;
         callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
+        if(found == false)
+            cached_extensions[expr] = callbacks.problem->constraints.last();
+
         return true;
     }
     return false;
@@ -136,7 +177,7 @@ static bool createXopYk(Problem *problem, ExpressionType ope, std::string x, std
 
 class PBinary1 : public Primitive {   // x <op> y
    public:
-    explicit PBinary1(CosocoCallbacks &m) : Primitive(m, "eq(x,y)") { pattern->root->type = OFAKEOP; }
+    explicit PBinary1(CosocoCallbacks &m) : Primitive(m, "eq(x,y)", 2) { pattern->root->type = OFAKEOP; }
 
 
     bool post() override {
@@ -148,7 +189,7 @@ class PBinary1 : public Primitive {   // x <op> y
 
 class PBinary2 : public Primitive {   // x + 3 <op> y
    public:
-    explicit PBinary2(CosocoCallbacks &m) : Primitive(m, "eq(add(x,3),y)") {
+    explicit PBinary2(CosocoCallbacks &m) : Primitive(m, "eq(add(x,3),y)", 2) {
         pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -164,7 +205,7 @@ class PBinary2 : public Primitive {   // x + 3 <op> y
 
 class PBinary3 : public Primitive {   // x = y <op> 3
    public:
-    explicit PBinary3(CosocoCallbacks &m) : Primitive(m, "eq(y,add(x,3))") {
+    explicit PBinary3(CosocoCallbacks &m) : Primitive(m, "eq(y,add(x,3))", 2) {
         pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -179,7 +220,7 @@ class PBinary3 : public Primitive {   // x = y <op> 3
 };
 class PBinary4 : public Primitive {   // x + y <op> 3
    public:
-    explicit PBinary4(CosocoCallbacks &m) : Primitive(m, "le(add(y[0], x[0]), 3)") {
+    explicit PBinary4(CosocoCallbacks &m) : Primitive(m, "le(add(y[0], x[0]), 3)", 2) {
         pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -200,7 +241,7 @@ class PBinary4 : public Primitive {   // x + y <op> 3
 
 class PBinary5 : public Primitive {   // 3 <op> x + y
    public:
-    explicit PBinary5(CosocoCallbacks &m) : Primitive(m, "le(3,add(y[0], x[0]))") {
+    explicit PBinary5(CosocoCallbacks &m) : Primitive(m, "le(3,add(y[0], x[0]))", 2) {
         pattern->root->type = OFAKEOP;   // We do not care between logical operator
     }
 
@@ -224,7 +265,7 @@ class PBinary5 : public Primitive {   // 3 <op> x + y
 
 class PBinary6 : public Primitive {   // 3 <op> x + y
    public:
-    explicit PBinary6(CosocoCallbacks &m) : Primitive(m, "eq(eq(y,3),x)") { }
+    explicit PBinary6(CosocoCallbacks &m) : Primitive(m, "eq(eq(y,3),x)", 2) { }
 
 
     bool post() override {
@@ -236,58 +277,53 @@ class PBinary6 : public Primitive {   // 3 <op> x + y
 // x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
    public:
-    explicit PTernary1(CosocoCallbacks &m) : Primitive(m, "eq(add(y,z),x)") {
-        pattern->root->type = OFAKEOP;   // We do not care between logical operator
+    explicit PTernary1(CosocoCallbacks &m) : Primitive(m, "eq(add(y,z),x)", 3) {
+        pattern->root->type                = OFAKEOP;   // We do not care between logical operator
+        pattern->root->parameters[0]->type = OFAKEOP;
     }
 
 
     bool post() override {
-        if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
+        if(isRelationalOperator(operators[0]) == false)
             return false;
-        std::vector<XVariable *> list;
-        for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
-        vector<int> coefs;
-        coefs.push_back(1);
-        coefs.push_back(1);
-        coefs.push_back(-1);
-        XCondition cond;
-        cond.operandType = INTEGER;
-        cond.op          = expressionTypeToOrderType(operators[0]);
-        cond.val         = 0;
-        callbacks.buildConstraintSum(id, list, coefs, cond);
-        return true;
-    }
-};
 
+        if(operators[1] == OADD) {
+            std::vector<XVariable *> list;
+            for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
+            vector<int> coefs;
+            coefs.push_back(1);
+            coefs.push_back(1);
+            coefs.push_back(-1);
+            XCondition cond;
+            cond.operandType = INTEGER;
+            cond.op          = expressionTypeToOrderType(operators[0]);
+            cond.val         = 0;
+            callbacks.buildConstraintSum(id, list, coefs, cond);
+            return true;
+        }
 
-class PTernary2 : public Primitive {   // x * y = z
-   public:
-    explicit PTernary2(CosocoCallbacks &m) : Primitive(m, "eq(mul(x,y),z)") { }
-
-
-    bool post() override {
-        if(canonized->listOfVariables.size() != 3)   // something like x*x=y
+        if(operators[0] != OEQ)
             return false;
-        callbacks.buildConstraintMult(id, callbacks.mappingXV[variables[0]], callbacks.mappingXV[variables[1]],
-                                      callbacks.mappingXV[variables[2]]);
-        return true;
+
+        if(operators[1] == ODIST) {
+            FactoryConstraints::createConstraintDistXYeqZ(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                          callbacks.problem->mapping[variables[1]],
+                                                          callbacks.problem->mapping[variables[2]]);
+            return true;
+        }
+        if(operators[1] == OMUL) {   // something like x*x=y
+            callbacks.buildConstraintMult(id, callbacks.mappingXV[variables[0]], callbacks.mappingXV[variables[1]],
+                                          callbacks.mappingXV[variables[2]]);
+            return true;
+        }
+        return false;
     }
 };
 
-class PTernary3 : public Primitive {
-   public:
-    explicit PTernary3(CosocoCallbacks &m) : Primitive(m, "eq(dist(x,y),z)") { }
-    bool post() override {
-        FactoryConstraints::createConstraintDistXYeqZ(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
-                                                      callbacks.problem->mapping[variables[1]],
-                                                      callbacks.problem->mapping[variables[2]]);
-        return true;
-    }
-};
 
-class PTernary4 : public Primitive {
+class PTernary2 : public Primitive {
    public:
-    explicit PTernary4(CosocoCallbacks &m) : Primitive(m, "le(z,add(x,y))") { pattern->root->type = OFAKEOP; }
+    explicit PTernary2(CosocoCallbacks &m) : Primitive(m, "le(z,add(x,y))", 3) { pattern->root->type = OFAKEOP; }
     bool post() override {
         std::vector<XVariable *> list;
         for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
@@ -359,7 +395,5 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary6(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
-    patterns.push(new PTernary3(callbacks));
-    patterns.push(new PTernary4(callbacks));
     patterns.push(new PNary1(callbacks));
 }
