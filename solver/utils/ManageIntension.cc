@@ -10,87 +10,110 @@ using namespace XCSP3Core;
 
 void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
     size_t pos = input.find(replace_word);
-
-    // Iterate through the string and replace all
-    // occurrences
     while(pos != std::string::npos) {
-        // Replace the substring with the specified string
-        input.replace(pos, replace_word.size(), replace_by);
-
-        // Find the next occurrence of the substring
-        pos = input.find(replace_word, pos + replace_by.size());
+        input.replace(pos, replace_word.size(), replace_by);       // Replace the substring with the specified string
+        pos = input.find(replace_word, pos + replace_by.size());   // Find the next occurrence of the substring
     }
 }
 
 void ManageIntension::intension(std::string id, Tree *tree) {
-    if(callbacks.startToParseObjective == false)
-        tree->canonize();
+    bool            done = false;
+    vec<Variable *> scope;
+    while(done == false) {
+        scope.clear();
+        if(callbacks.startToParseObjective == false)
+            tree->canonize();
 
 
-    //----------------------------------------------------------------------------
-    // Unary constraints
-    if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
-        tree->prefixe();
-        std::cout << "\n";
-        std::map<std::string, int> tuple;
-        vec<Variable *>            scope;
-        Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
-        vec<int>                   values;
-        for(int idv : x->domain) {
-            tuple[x->_name] = x->domain.toVal(idv);
-            if(tree->evaluate(tuple))
-                values.push(x->domain.toVal(idv));
-        }
-        if(values.size() == 0) {
-            callbacks.buildConstraintFalse("false");
+        //----------------------------------------------------------------------------
+        // Unary constraints
+        if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
+            std::map<std::string, int> tuple;
+            vec<Variable *>            scope;
+            Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
+            vec<int>                   values;
+            for(int idv : x->domain) {
+                tuple[x->_name] = x->domain.toVal(idv);
+                if(tree->evaluate(tuple))
+                    values.push(x->domain.toVal(idv));
+            }
+            if(values.size() == 0) {
+                callbacks.buildConstraintFalse("false");
+                return;
+            }
+            FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
             return;
         }
-        FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
-        return;
-    }
 
-    //----------------------------------------------------------------------------
-    // Nary constraints
+        //----------------------------------------------------------------------------
+        // Nary constraints
 
-    if(recognizePrimitives(std::move(id), tree))
-        return;
+        if(recognizePrimitives(std::move(id), tree))
+            return;
 
-    //----------------------------------------------------------------------------
-    //
+        //----------------------------------------------------------------------------
+        //
 
 
-    vec<Variable *> scope;
-    for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
+        for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
 
-    // Help to compute extension
-    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
-        auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
-        if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
-            int pos = -1;
-            for(int i = 0; i < scope.size(); i++)
-                if(scope[i]->_name == nv->var)
-                    pos = i;
-            Variable *tmp2               = scope[pos];
-            scope[pos]                   = scope.last();
-            scope.last()                 = tmp2;
-            string tmp3                  = tree->listOfVariables[pos];
-            tree->listOfVariables[pos]   = tree->listOfVariables.back();
-            tree->listOfVariables.back() = tmp3;
+        // Help to compute extension
+        if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
+            auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
+            if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
+                int pos = -1;
+                for(int i = 0; i < scope.size(); i++)
+                    if(scope[i]->_name == nv->var)
+                        pos = i;
+                Variable *tmp2               = scope[pos];
+                scope[pos]                   = scope.last();
+                scope.last()                 = tmp2;
+                string tmp3                  = tree->listOfVariables[pos];
+                tree->listOfVariables[pos]   = tree->listOfVariables.back();
+                tree->listOfVariables.back() = tmp3;
 
-            assert(scope.last()->_name == nv->var);
+                assert(scope.last()->_name == nv->var);
+            }
         }
+
+        if(toExtension(id, tree, scope))
+            return;
+
+
+        //----------------------------------------------------------------------------
+        // decompose
+        if(decompose(id, tree) == false)
+            done = true;
     }
-
-    if(toExtension(id, tree, scope))
-        return;
-
     tree->prefixe();
     std::cout << "\n";
-
-    //----------------------------------------------------------------------------
-    //
-    // Create intension
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
+}
+
+
+bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
+    assert(tree->arity() > 1);
+    if(tree->root->type == OEQ)
+        return false;   // special for avoiding infinite recursive call
+    bool           modified = false;
+    vector<string> auxiliaryVariables;
+    vector<Tree *> trees;
+    for(int i = 0; i < tree->root->parameters.size(); i++) {
+        if(tree->root->parameters[i]->type == OVAR || tree->root->parameters[i]->type == ODECIMAL) {
+            continue;   // Nothing to do
+        }
+        modified = true;
+        trees.push_back(new Tree(tree->root->parameters[i]));
+        callbacks.createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
+        delete trees[0];
+        trees.pop_back();
+        tree->root->parameters[i] = new NodeVariable(auxiliaryVariables.back());
+    }
+    if(modified) {
+        tree->listOfVariables.clear();
+        tree->listOfVariables.assign(auxiliaryVariables.begin(), auxiliaryVariables.end());
+    }
+    return modified;
 }
 
 
