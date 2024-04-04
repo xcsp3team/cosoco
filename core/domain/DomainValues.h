@@ -40,7 +40,15 @@ class DomainValue : public Domain {
         return h(s);
     }
 
-    bool equals(Domain *d) override;
+    bool equals(Domain *d) override {
+        auto *dv = dynamic_cast<DomainValue *>(d);
+        if(dv == nullptr || values.size() != dv->values.size())
+            return false;
+        for(int i = 0; i < values.size(); i++)
+            if(values[i] != dv->values[i])
+                return false;
+        return true;
+    }
 };
 }   // namespace Cosoco
 #endif

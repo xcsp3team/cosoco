@@ -289,9 +289,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                                    bool hasStar) const;
 
     void buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support, bool hasStar) override;
-
-    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
-
+    
     void buildConstraintIntension(string id, Tree *tree) override;
 
     void buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k, XVariable *y) override;

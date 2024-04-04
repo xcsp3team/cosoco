@@ -54,6 +54,9 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     if(recognizePrimitives(std::move(id), tree))
         return;
 
+    //----------------------------------------------------------------------------
+    //
+
     vec<Variable *> scope;
     for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
 
@@ -79,6 +82,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     if(toExtension(id, tree, scope))
         return;
 
+    //----------------------------------------------------------------------------
+    //
     // Create intension
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
 }
@@ -87,46 +92,55 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
     unsigned long long nbTuples = 1;
 
-
+    // Compute artesian product
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
-
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();
     }
+
+    if(callbacks.startToParseObjective || callbacks.intension2extensionLimit == 0 ||
+       nbTuples >= callbacks.intension2extensionLimit)
+        return false;
+
+    // Create generic intension
     std::string expr   = tree->toString();
     char        letter = 'a';
     for(Variable *x : scope) {
         replace_all_occurrences(expr, x->_name, {letter});
         letter++;
     }
+
+    // Is in cache ?
     bool found = false;
     if(cached_extensions.find(expr) != cached_extensions.end()) {
         Constraint *c = cached_extensions[expr];
         for(int i = 0; i < c->scope.size(); i++)
             if(c->scope[i]->domain.equals(&(scope[i]->domain)) == false) {
                 found = false;
+                std::cout << "found: " << found << "\n";
                 break;
             }
     }
 
-
-    if(callbacks.startToParseObjective == false && callbacks.intension2extensionLimit &&
-       nbTuples < callbacks.intension2extensionLimit) {   // Create extension
-        callbacks.nbIntension2Extention++;
-        std::vector<std::vector<int>> tuples;
-        bool                          isSupport = false;
-        Constraint::toExtensionConstraint(tree, scope, tuples, isSupport);
-
-        vec<Variable *> varsCore;
-        for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
-        std::cout << tuples.size() << std::endl;
-        callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
-        if(found == false)
-            cached_extensions[expr] = callbacks.problem->constraints.last();
-
+    if(found) {   // expression is in cache
+        FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cached_extensions[expr]);
         return true;
     }
-    return false;
+
+
+    // Create extension
+    callbacks.nbIntension2Extention++;
+    std::vector<std::vector<int>> tuples;
+    bool                          isSupport = false;
+    Constraint::toExtensionConstraint(tree, scope, tuples, isSupport);
+
+    vec<Variable *> varsCore;
+    for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
+    std::cout << tuples.size() << std::endl;
+    callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
+    cached_extensions[expr] = callbacks.problem->constraints.last();
+
+    return true;
 }
 
 static OrderType expressionTypeToOrderType(ExpressionType e) {

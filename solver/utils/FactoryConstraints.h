@@ -199,23 +199,23 @@ class FactoryConstraints {
     }
 
 
-    static void createConstraintExtensionAs(Problem *p, std::string name, vec<Variable *> &vars, bool isSupport) {
+    static void createConstraintExtensionAs(Problem *p, std::string name, vec<Variable *> &vars, Constraint *c) {
         Extension *ctr            = nullptr;
-        Extension *sameConstraint = (Extension *)p->constraints.last();
+        auto      *sameConstraint = (Extension *)c;
         assert(sameConstraint->scope.size() == vars.size());
 
         Extension::nbShared++;
 
         if(vars.size() == 1) {
-            p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values, isSupport));
+            p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values, sameConstraint->isSupport));
             return;
         }
 
         if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
 
         if(vars.size() > 2) {
-            if(isSupport)
+            if(sameConstraint->isSupport)
                 ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
             else
                 ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);

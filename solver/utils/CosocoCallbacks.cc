@@ -121,10 +121,6 @@ void CosocoCallbacks::buildConstraintExtension(string id, XVariable *variable, v
     FactoryConstraints::createConstraintUnary(problem, id, problem->mapping[variable->id], vector2vec(tuples), support);
 }
 
-void CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) {
-    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), support);
-}
-
 
 void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
     manageIntension->intension(id, tree);
@@ -211,7 +207,7 @@ void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) {
             nbIntension2Extention++;
             vec<Variable *> varsCore;
             for(string &s : tree->listOfVariables) varsCore.push(problem->mapping[s]);
-            FactoryConstraints::createConstraintExtensionAs(problem, id, varsCore, c->isSupport);
+            // FactoryConstraints::createConstraintExtensionAs(problem, id, varsCore, c->isSupport);
             return;
         }
     }
