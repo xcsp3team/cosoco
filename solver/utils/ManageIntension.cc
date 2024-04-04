@@ -51,7 +51,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     //----------------------------------------------------------------------------
     // Nary constraints
 
-    if(recognizePrimitives(std::move(id), tree))
+    if(0 && recognizePrimitives(std::move(id), tree))
         return;
 
     //----------------------------------------------------------------------------
@@ -111,19 +111,22 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     }
 
     // Is in cache ?
-    bool found = false;
-    if(cached_extensions.find(expr) != cached_extensions.end()) {
-        Constraint *c = cached_extensions[expr];
+    bool existInCache = true;
+    if(cachedExtensions.find(expr) != cachedExtensions.end()) {
+        Constraint *c = cachedExtensions[expr];
         for(int i = 0; i < c->scope.size(); i++)
             if(c->scope[i]->domain.equals(&(scope[i]->domain)) == false) {
-                found = false;
-                std::cout << "found: " << found << "\n";
+                std::cout << c->scope[i]->_name << " " << scope[i]->_name << "\n";
+                existInCache = false;
                 break;
             }
-    }
+    } else
+        existInCache = false;
 
-    if(found) {   // expression is in cache
-        FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cached_extensions[expr]);
+
+    if(existInCache) {   // expression is in cache
+        FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cachedExtensions[expr]);
+        std::cout << "ici " << std::endl;
         return true;
     }
 
@@ -138,7 +141,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
     std::cout << tuples.size() << std::endl;
     callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
-    cached_extensions[expr] = callbacks.problem->constraints.last();
+    cachedExtensions[expr] = callbacks.problem->constraints.last();
 
     return true;
 }

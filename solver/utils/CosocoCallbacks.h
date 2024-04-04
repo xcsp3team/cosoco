@@ -65,7 +65,7 @@ class ManageIntension {
    public:
     vec<Primitive *>          patterns;
     CosocoCallbacks          &callbacks;
-    map<string, Constraint *> cached_extensions;
+    map<string, Constraint *> cachedExtensions;
     explicit ManageIntension(CosocoCallbacks &callbacks);
     void createPrimitives();
     void intension(std::string id, Tree *tree);
@@ -289,7 +289,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                                    bool hasStar) const;
 
     void buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support, bool hasStar) override;
-    
+
     void buildConstraintIntension(string id, Tree *tree) override;
 
     void buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k, XVariable *y) override;

@@ -143,7 +143,6 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
-
         if(nbcores > 1)
             verb = 0;
 
@@ -347,7 +346,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
             if(iter.first == "Extension")
                 printf("Extension: %d  (nb tuples: %d..%d) -- (shared: %d)\nc |                          ", iter.second,
                        solvingProblem->minimumTuplesInExtension(), solvingProblem->maximumTuplesInExtension(),
-                       Extension::nbShared);
+                       solvingProblem->nbExtensionsSharded);
             else
                 printf("%s: %d\nc |                          ", iter.first.c_str(), iter.second);
         }

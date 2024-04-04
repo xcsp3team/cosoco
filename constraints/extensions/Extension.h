@@ -1,4 +1,4 @@
-    /*
+/*
  * File:   Extension.h
  * Author: audemard
  *
@@ -15,10 +15,9 @@
 namespace Cosoco {
 class Extension : public Constraint {
    public:
-    thread_local static int nbShared;
-    bool                    isSupport;
-    vec<vec<int> > &        tuples;         // BE CAREFUL :  indices of domain values are stored
-    vec<vec<int> >          tuplesStored;   // Can be empty if tuples are related to other constraint( see constraint group)
+    bool            isSupport;
+    vec<vec<int> > &tuples;         // BE CAREFUL :  indices of domain values are stored
+    vec<vec<int> >  tuplesStored;   // Can be empty if tuples are related to other constraint( see constraint group)
 
 
     Extension(Problem &p, std::string n, vec<Variable *> &vars, bool support)

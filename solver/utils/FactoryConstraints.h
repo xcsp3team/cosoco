@@ -203,9 +203,7 @@ class FactoryConstraints {
         Extension *ctr            = nullptr;
         auto      *sameConstraint = (Extension *)c;
         assert(sameConstraint->scope.size() == vars.size());
-
-        Extension::nbShared++;
-
+        p->nbExtensionsSharded++;
         if(vars.size() == 1) {
             p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values, sameConstraint->isSupport));
             return;
