@@ -53,8 +53,6 @@ class Primitive {
         constants.clear();
         variables.clear();
         operators.clear();
-        canonized->prefixe();
-        std::cout << "\n";
         return arity == canonized->arity() && Node::areSimilar(canonized->root, pattern->root, operators, constants, variables) &&
                post();
     }
@@ -284,6 +282,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
                                   bool hasStar) override;
 
+
+    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar);
 
     void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples, bool support,
                                    bool hasStar) const;

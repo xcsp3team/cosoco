@@ -98,6 +98,9 @@ void CosocoCallbacks::buildConstraintExtension(string id, vector<XVariable *> li
     buildConstraintExtension2(id, vars, origTuples, support, hasStar);
 }
 
+void CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) {
+    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), problem->constraints.last());
+}
 
 void CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples,
                                                 bool support, bool hasStar) const {

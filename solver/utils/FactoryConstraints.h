@@ -205,7 +205,8 @@ class FactoryConstraints {
         assert(sameConstraint->scope.size() == vars.size());
         p->nbExtensionsSharded++;
         if(vars.size() == 1) {
-            p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values, sameConstraint->isSupport));
+            p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values,
+                                       ((Unary *)p->constraints.last())->areSupports));
             return;
         }
 

@@ -25,12 +25,13 @@ void replace_all_occurrences(std::string &input, const std::string &replace_word
 void ManageIntension::intension(std::string id, Tree *tree) {
     if(callbacks.startToParseObjective == false)
         tree->canonize();
-    tree->prefixe();
-    std::cout << "\n";
+
 
     //----------------------------------------------------------------------------
     // Unary constraints
     if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
+        tree->prefixe();
+        std::cout << "\n";
         std::map<std::string, int> tuple;
         vec<Variable *>            scope;
         Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
@@ -51,11 +52,12 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     //----------------------------------------------------------------------------
     // Nary constraints
 
-    if(0 && recognizePrimitives(std::move(id), tree))
+    if(recognizePrimitives(std::move(id), tree))
         return;
 
     //----------------------------------------------------------------------------
     //
+
 
     vec<Variable *> scope;
     for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
@@ -81,6 +83,9 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 
     if(toExtension(id, tree, scope))
         return;
+
+    tree->prefixe();
+    std::cout << "\n";
 
     //----------------------------------------------------------------------------
     //
@@ -116,7 +121,6 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
         Constraint *c = cachedExtensions[expr];
         for(int i = 0; i < c->scope.size(); i++)
             if(c->scope[i]->domain.equals(&(scope[i]->domain)) == false) {
-                std::cout << c->scope[i]->_name << " " << scope[i]->_name << "\n";
                 existInCache = false;
                 break;
             }
@@ -126,7 +130,8 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
 
     if(existInCache) {   // expression is in cache
         FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cachedExtensions[expr]);
-        std::cout << "ici " << std::endl;
+        callbacks.nbSharedIntension2Extension++;
+
         return true;
     }
 
@@ -139,7 +144,6 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
 
     vec<Variable *> varsCore;
     for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
-    std::cout << tuples.size() << std::endl;
     callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
     cachedExtensions[expr] = callbacks.problem->constraints.last();
 
