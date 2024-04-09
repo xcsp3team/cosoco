@@ -442,20 +442,20 @@ class PQuater1 : public Primitive {
             int val = vars[2]->domain.toVal(idv);
             if(vars[3]->containsValue(val)) {
                 tuples.push();
-                tuples.last().push(0);
+                tuples.last().push(vars[0]->domain.toIdv(0));
                 tuples.last().push(STAR);
-                tuples.last().push(val);
-                tuples.last().push(val);
+                tuples.last().push(idv);
+                tuples.last().push(vars[3]->domain.toIdv(val));
             }
         }
         for(int idv : vars[1]->domain) {
             int val = vars[1]->domain.toVal(idv);
             if(vars[3]->containsValue(val)) {
                 tuples.push();
-                tuples.last().push(1);
-                tuples.last().push(val);
+                tuples.last().push(vars[0]->domain.toIdv(1));
+                tuples.last().push(idv);
                 tuples.last().push(STAR);
-                tuples.last().push(val);
+                tuples.last().push(vars[3]->domain.toIdv(val));
             }
         }
         FactoryConstraints::createConstraintExtension(callbacks.problem, "", vars, tuples, true, true);
