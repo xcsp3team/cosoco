@@ -132,7 +132,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             return ranges[0].addRange(ranges[1].negRange());
 
         if(node->type == ODIV) {
-            assert(false);
+            return ranges[0];
         }
 
         if(node->type == OMOD) {

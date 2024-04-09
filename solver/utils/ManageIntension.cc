@@ -77,7 +77,9 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         }
 
         if(toExtension(id, tree, scope)) {
-            std::cout << "extension : " << tree->root->toString() << "\n";
+            std::cout << "extension : " << tree->root->toString();
+            for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+            std::cout << "\n";
             return;
         }
 
@@ -429,6 +431,37 @@ class PTernary2 : public Primitive {
     }
 };
 
+class PQuater1 : public Primitive {
+   public:
+    explicit PQuater1(CosocoCallbacks &m) : Primitive(m, "eq(if(x,y,z),w)", 4) { }
+    bool post() override {
+        vec<Variable *> vars;
+        for(const auto &v : variables) vars.push(callbacks.problem->mapping[v]);
+        vec<vec<int>> tuples;
+        for(int idv : vars[2]->domain) {
+            int val = vars[2]->domain.toVal(idv);
+            if(vars[3]->containsValue(val)) {
+                tuples.push();
+                tuples.last().push(0);
+                tuples.last().push(STAR);
+                tuples.last().push(val);
+                tuples.last().push(val);
+            }
+        }
+        for(int idv : vars[1]->domain) {
+            int val = vars[1]->domain.toVal(idv);
+            if(vars[3]->containsValue(val)) {
+                tuples.push();
+                tuples.last().push(1);
+                tuples.last().push(val);
+                tuples.last().push(STAR);
+                tuples.last().push(val);
+            }
+        }
+        FactoryConstraints::createConstraintExtension(callbacks.problem, "", vars, tuples, true, true);
+        return true;
+    }
+};
 
 class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
                                            // do the job (see PNary1
@@ -484,5 +517,6 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary6(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
+    patterns.push(new PQuater1(callbacks));
     patterns.push(new PNary1(callbacks));
 }

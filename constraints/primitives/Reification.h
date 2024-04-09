@@ -36,18 +36,6 @@ class ReifLT : public Ternary {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
-class ReifIFT : public Ternary {
-   public:
-    int k;
-    // Constructors
-    ReifIFT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
-
-    // filtering
-    bool filter(Variable *x) override;
-    bool instantiated(Variable *a, Variable *b);
-    // checking
-    bool isSatisfiedBy(vec<int> &tuple) override;
-};
 
 }   // namespace Cosoco
 
