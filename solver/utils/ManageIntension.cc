@@ -91,40 +91,68 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 }
 
 
-bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
-    assert(tree->arity() > 1);
-    if(tree->root->type == OEQ)
-        return false;   // special for avoiding infinite recursive call
+bool ManageIntension::decompose(XCSP3Core::Node *node) {
+    if(node->type == OVAR || node->type == ODECIMAL)
+        return false;
+
     bool           modified = false;
     vector<string> auxiliaryVariables;
     vector<Tree *> trees;
-    for(int i = 0; i < tree->root->parameters.size(); i++) {
-        if(tree->root->parameters[i]->type == OVAR || tree->root->parameters[i]->type == ODECIMAL) {
+    for(unsigned int i = 0; i < node->parameters.size(); i++) {
+        if(node->parameters[i]->type == OVAR || node->parameters[i]->type == ODECIMAL) {
             continue;   // Nothing to do
         }
         modified = true;
-        trees.push_back(new Tree(tree->root->parameters[i]));
+        trees.push_back(new Tree(node->parameters[i]));
         callbacks.createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
         delete trees[0];
         trees.pop_back();
-        tree->root->parameters[i] = new NodeVariable(auxiliaryVariables.back());
-    }
-    if(modified) {
-        tree->listOfVariables.clear();
-        tree->listOfVariables.assign(auxiliaryVariables.begin(), auxiliaryVariables.end());
+        node->parameters[i] = new NodeVariable(auxiliaryVariables.back());
     }
     return modified;
 }
 
+
+bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
+    assert(tree->arity() > 1);
+    bool modified = false;
+    // std::cout << "ici " << tree->root->toString() << "\n";
+
+    if(tree->root->type == OEQ && (tree->root->parameters[0]->type == OVAR || tree->root->parameters[1]->type == OVAR)) {
+        if(tree->root->parameters[0]->type == OVAR)
+            modified = decompose(tree->root->parameters[1]);
+        else
+            modified = decompose(tree->root->parameters[0]);
+    } else
+        modified = decompose(tree->root);
+    if(modified) {
+        tree->listOfVariables.clear();
+        extractVariables(tree->root, tree->listOfVariables);
+    }
+    // std::cout << "la " << tree->root->toString() << "  " << modified << "\n";
+    return modified;
+}
+
+void ManageIntension::extractVariables(XCSP3Core::Node *node, vector<std::string> &listOfVariables) {
+    if(node->type == ODECIMAL)
+        return;
+    if(node->type == OVAR) {
+        auto *nodeVariable = dynamic_cast<NodeVariable *>(node);
+        if(find(listOfVariables.begin(), listOfVariables.end(), nodeVariable->var) == listOfVariables.end())
+            listOfVariables.push_back(nodeVariable->var);
+        return;
+    }
+    for(Node *n : node->parameters) extractVariables(n, listOfVariables);
+}
 
 bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
     unsigned long long nbTuples = 1;
 
     // Compute artesian product
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
-    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {   // Easy to compute
+    if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();
-    }
+
 
     if(callbacks.startToParseObjective || callbacks.intension2extensionLimit == 0 ||
        nbTuples >= callbacks.intension2extensionLimit)
@@ -358,6 +386,12 @@ class PTernary1 : public Primitive {   // x = y <op> 3
         if(operators[1] == OMUL) {   // something like x*x=y
             callbacks.buildConstraintMult(id, callbacks.mappingXV[variables[0]], callbacks.mappingXV[variables[1]],
                                           callbacks.mappingXV[variables[2]]);
+            return true;
+        }
+        if(operators[1] == OLE) {
+            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+                                                  callbacks.problem->mapping[variables[0]],
+                                                  callbacks.problem->mapping[variables[1]], operators[1]);
             return true;
         }
         return false;

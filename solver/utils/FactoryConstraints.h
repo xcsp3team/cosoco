@@ -14,6 +14,7 @@
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
 #include "Precedence.h"
+#include "Reification.h"
 #include "XCSP3Constants.h"
 #include "constraints/globals/connection/element/ElementMatrix.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
@@ -113,6 +114,15 @@ class FactoryConstraints {
 
     static void createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
         p->addConstraint(new XeqYeqK(*p, name, x, y, k));
+    }
+
+    static void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op) {
+        assert(x != y && x != z && y != z);
+        if(op == OLE) {
+            p->addConstraint(new ReifLE(*p, name, x, y, z));
+            return;
+        }
+        assert(false);
     }
 
     static void createConstraintMult(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {

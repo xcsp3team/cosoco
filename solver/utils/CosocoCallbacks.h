@@ -70,6 +70,8 @@ class ManageIntension {
     bool recognizePrimitives(std::string id, Tree *tree);
     bool toExtension(std::string id, Tree *tree, vec<Variable *> &scope);
     bool decompose(std::string id, Tree *tree);
+    bool decompose(Node *node);
+    void extractVariables(Node *node, vector<string> &listOfVariables);
 };
 
 
