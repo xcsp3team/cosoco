@@ -14,6 +14,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool ReifLE::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] <= tuple[2]); }
+bool ReifLT::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] < tuple[2]); }
 
 
 //----------------------------------------------
@@ -51,6 +52,36 @@ bool ReifLE::filter(Variable *dummy) {
 }
 
 
+bool ReifLT::filter(Variable *dummy) {
+    if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y > z
+        if(solver->isAssigned(y) == false)
+            if(solver->delValuesLowerOrEqualThan(y, z->minimum() - 1) == false)
+                return false;
+
+        if(solver->isAssigned(z) == false)
+            if(solver->delValuesGreaterOrEqualThan(z, y->maximum() + 1) == false)
+                return false;
+        return true;
+    }
+    if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 0  => y > z
+        if(solver->isAssigned(y) == false)
+            if(solver->delValuesGreaterOrEqualThan(y, z->maximum()) == false)
+                return false;
+
+        if(solver->isAssigned(z) == false)
+            if(solver->delValuesLowerOrEqualThan(z, y->minimum()) == false)
+                return false;
+        return true;
+    }
+    if(y->maximum() < z->minimum())   // for sure x = 1
+        return solver->assignToVal(x, 1);
+
+    if(y->minimum() >= z->maximum())   // for sure x = 0
+        return solver->assignToVal(x, 0);
+    return true;
+}
+
+
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -58,4 +89,9 @@ bool ReifLE::filter(Variable *dummy) {
 ReifLE::ReifLE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y <= Z)";
+}
+
+ReifLT::ReifLT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+    assert(xx->domain.maxSize() == 2);
+    type = "X = (Y < Z)";
 }

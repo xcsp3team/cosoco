@@ -76,8 +76,10 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             }
         }
 
-        if(toExtension(id, tree, scope))
+        if(toExtension(id, tree, scope)) {
+            std::cout << "extension : " << tree->root->toString() << "\n";
             return;
+        }
 
 
         //----------------------------------------------------------------------------
@@ -85,7 +87,10 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         if(decompose(id, tree) == false)
             done = true;
     }
-    tree->prefixe();
+    std::cout << "intension : " << tree->root->toString();
+
+    for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+
     std::cout << "\n";
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
 }
@@ -389,6 +394,12 @@ class PTernary1 : public Primitive {   // x = y <op> 3
             return true;
         }
         if(operators[1] == OLE) {
+            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+                                                  callbacks.problem->mapping[variables[0]],
+                                                  callbacks.problem->mapping[variables[1]], operators[1]);
+            return true;
+        }
+        if(operators[1] == OLT) {
             FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
                                                   callbacks.problem->mapping[variables[0]],
                                                   callbacks.problem->mapping[variables[1]], operators[1]);

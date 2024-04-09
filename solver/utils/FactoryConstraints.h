@@ -122,6 +122,10 @@ class FactoryConstraints {
             p->addConstraint(new ReifLE(*p, name, x, y, z));
             return;
         }
+        if(op == OLT) {
+            p->addConstraint(new ReifLT(*p, name, x, y, z));
+            return;
+        }
         assert(false);
     }
 
