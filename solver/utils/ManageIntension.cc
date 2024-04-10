@@ -407,6 +407,12 @@ class PTernary1 : public Primitive {   // x = y <op> 3
                                                   callbacks.problem->mapping[variables[1]], operators[1]);
             return true;
         }
+        if(operators[1] == OEQ) {
+            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+                                                  callbacks.problem->mapping[variables[0]],
+                                                  callbacks.problem->mapping[variables[1]], operators[1]);
+            return true;
+        }
         return false;
     }
 };

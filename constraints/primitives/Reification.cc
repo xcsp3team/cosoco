@@ -15,6 +15,7 @@ using namespace Cosoco;
 
 bool ReifLE::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] <= tuple[2]); }
 bool ReifLT::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] < tuple[2]); }
+bool ReifEQ::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] == tuple[2]); }
 
 
 //----------------------------------------------
@@ -81,6 +82,41 @@ bool ReifLT::filter(Variable *dummy) {
     return true;
 }
 
+bool ReifEQ::filter(Cosoco::Variable *dummy) {
+    if(y->size() == 1 && z->size() == 1)
+        return solver->assignToVal(x, y->value() == z->value() ? 1 : 0);
+
+
+    if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y != z
+        if(y->size() == 1)
+            return solver->delVal(z, y->value());
+        if(z->size() == 1)
+            return solver->delVal(y, z->value());
+    }
+
+
+    if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 1  => y = z
+        for(int idv : y->domain)
+            if(z->containsValue(y->domain.toVal(idv)) == false && solver->delIdv(y, idv) == false)
+                return false;
+        for(int idv : z->domain)
+            if(y->containsValue(z->domain.toVal(idv)) == false && solver->delIdv(z, idv) == false)
+                return false;
+    }
+    // support for x = 1 ?
+    if(residue != INT_MAX && y->containsValue(residue) && z->containsValue(residue))
+        return true;
+
+    residue = INT_MAX;   // look for a residue
+    for(int idv : y->domain)
+        if(z->containsValue(y->domain.toVal(idv))) {
+            residue = y->domain.toVal(idv);
+            break;
+        }
+    if(residue == INT_MAX && solver->delVal(x, 1) == false)
+        return false;
+    return true;
+}
 
 //----------------------------------------------
 // Construction and initialisation
@@ -94,4 +130,10 @@ ReifLE::ReifLE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *
 ReifLT::ReifLT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y < Z)";
+}
+
+ReifEQ::ReifEQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+    residue = INT_MAX;
+    assert(xx->domain.maxSize() == 2);
+    type = "X = (Y = Z)";
 }

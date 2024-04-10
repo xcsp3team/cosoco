@@ -11,31 +11,26 @@
 namespace Cosoco {
 class ReifLE : public Ternary {
    public:
-    int k;
-    // Constructors
     ReifLE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
-
-    // filtering
     bool filter(Variable *x) override;
-    bool instantiated(Variable *a, Variable *b);
-    // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
 
 class ReifLT : public Ternary {
    public:
-    int k;
-    // Constructors
     ReifLT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
-
-    // filtering
     bool filter(Variable *x) override;
-    bool instantiated(Variable *a, Variable *b);
-    // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
+class ReifEQ : public Ternary {
+   public:
+    int residue;
+    ReifEQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
 
 }   // namespace Cosoco
 

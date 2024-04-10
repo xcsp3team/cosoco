@@ -126,6 +126,10 @@ class FactoryConstraints {
             p->addConstraint(new ReifLT(*p, name, x, y, z));
             return;
         }
+        if(op == OEQ) {
+            p->addConstraint(new ReifEQ(*p, name, x, y, z));
+            return;
+        }
         assert(false);
     }
 
