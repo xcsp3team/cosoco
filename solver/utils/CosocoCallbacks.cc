@@ -48,7 +48,10 @@ void CosocoCallbacks::beginVariableArray(string id) {
 
 void CosocoCallbacks::endVariableArray() { inArray = false; }
 
-void CosocoCallbacks::endVariables() { nbInitialsVariables = problem->nbVariables(); }
+void CosocoCallbacks::endVariables() {
+    nbInitialsVariables     = problem->nbVariables();
+    problem->nbOriginalVars = problem->nbVariables();
+}
 
 void CosocoCallbacks::initGroups() {
     insideGroup = true;

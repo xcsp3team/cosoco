@@ -130,6 +130,10 @@ class FactoryConstraints {
             p->addConstraint(new ReifEQ(*p, name, x, y, z));
             return;
         }
+        if(op == ONE) {
+            p->addConstraint(new ReifNE(*p, name, x, y, z));
+            return;
+        }
         assert(false);
     }
 

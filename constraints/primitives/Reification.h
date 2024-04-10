@@ -32,6 +32,13 @@ class ReifEQ : public Ternary {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
+class ReifNE : public Ternary {
+   public:
+    int residue;
+    ReifNE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
 }   // namespace Cosoco
 
 

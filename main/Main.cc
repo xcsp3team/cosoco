@@ -308,7 +308,8 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
         colorize(termcolor::blue, colors);
         printf("Variables:");
         resetcolors();
-        printf(" %d\n", solvingProblem->nbVariables());
+        printf(" %d (original: %d -- auxiliary: %d)\n", solvingProblem->nbVariables(), solvingProblem->nbOriginalVars,
+               solvingProblem->nbVariables() - solvingProblem->nbOriginalVars);
         printf("c |            ");
         colorize(termcolor::blue, colors);
         printf("Domain Sizes: ");
