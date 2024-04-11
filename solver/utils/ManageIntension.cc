@@ -76,6 +76,20 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             }
         }
 
+        // Compute cartesian product
+        /*unsigned long long nbTuples = 1;
+        for(Variable *x : scope) nbTuples *= x->domain.maxSize();
+        if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
+            nbTuples = nbTuples / scope.last()->domain.maxSize();
+
+        // If the constraint is small enough -> intension
+        std::cout << nbTuples << " " << scope.size() << std::endl;
+        if(nbTuples < 1000) {
+            FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
+            return;
+        }
+         */
+
         if(toExtension(id, tree, scope)) {
             std::cout << "extension : " << tree->root->toString();
             for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
@@ -155,7 +169,7 @@ void ManageIntension::extractVariables(XCSP3Core::Node *node, vector<std::string
 bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
     unsigned long long nbTuples = 1;
 
-    // Compute artesian product
+    // Compute cartesian product
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();
@@ -260,6 +274,8 @@ class PBinary1 : public Primitive {   // x <op> y
 
 
     bool post() override {
+        if(operators[0] == OIFF)
+            return createXopYk(callbacks.problem, OEQ, variables[0], variables[1], 0);
         if(operators.size() != 1 || isRelationalOperator(operators[0]) == false)
             return false;
         return createXopYk(callbacks.problem, operators[0], variables[0], variables[1], 0);

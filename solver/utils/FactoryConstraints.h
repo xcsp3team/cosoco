@@ -391,7 +391,6 @@ class FactoryConstraints {
 
 
     static void createConstraintAllEqual(Problem *p, std::string name, vec<Variable *> &vars) {
-        verbose.log(NORMAL, "c AllEqual constraint using %d generic x=y constraints \n", vars.size() - 1);
         for(int i = 0; i < vars.size() - 1; i++) p->addConstraint(new EQ(*p, name, vars[i], vars[i + 1]));
     }
 
