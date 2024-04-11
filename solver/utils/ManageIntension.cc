@@ -509,6 +509,27 @@ class PNary1 : public FakePrimitive {
     }
 };
 
+class PNary2 : public FakePrimitive {   // or(x1,x2,x3..)
+   public:
+    explicit PNary2(CosocoCallbacks &c) : FakePrimitive(c) { }
+    bool post() override {
+        if(canonized->root->type == OOR) {
+            for(Node *n : canonized->root->parameters)
+                if(n->type != OVAR)
+                    return false;
+
+            vec<Variable *> cl;
+            for(Node *n : canonized->root->parameters) {
+                auto *nv = dynamic_cast<NodeVariable *>(n);
+                cl.push(callbacks.problem->mapping[nv->var]);
+            }
+            FactoryConstraints::createConstraintAtLeast(callbacks.problem, id, cl, 1, 1);
+            return true;
+        }
+        return false;
+    }
+};
+
 
 bool ManageIntension::recognizePrimitives(std::string id, Tree *tree) {
     for(Primitive *p : patterns)
@@ -531,4 +552,5 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PNary1(callbacks));
+    patterns.push(new PNary2(callbacks));
 }
