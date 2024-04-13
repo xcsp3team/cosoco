@@ -546,6 +546,32 @@ class PNary2 : public FakePrimitive {   // or(x1,x2,x3..)
     }
 };
 
+class PNary3 : public FakePrimitive {   // or(x1,x2,x3..)
+   public:
+    explicit PNary3(CosocoCallbacks &c) : FakePrimitive(c) { }
+    bool post() override {
+        if(canonized->root->type != OEQ || canonized->root->parameters[1]->type != OVAR)
+            return false;
+        if(canonized->root->parameters[0]->type != OMIN && canonized->root->parameters[0]->type != OMAX)
+            return false;
+        for(Node *n : canonized->root->parameters[0]->parameters)
+            if(n->type != OVAR)
+                return false;
+
+        vec<Variable *> vars;
+        for(Node *n : canonized->root->parameters[0]->parameters) {
+            auto *nv = dynamic_cast<NodeVariable *>(n);
+            vars.push(callbacks.problem->mapping[nv->var]);
+        }
+        Variable *value = callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var];
+        if(canonized->root->parameters[0]->type == OMIN)
+            FactoryConstraints::createConstraintMinimumVariableEQ(callbacks.problem, id, vars, value);
+        if(canonized->root->parameters[0]->type == OMAX)
+            FactoryConstraints::createConstraintMaximumVariableEQ(callbacks.problem, id, vars, value);
+        return true;
+    }
+};
+
 
 bool ManageIntension::recognizePrimitives(std::string id, Tree *tree) {
     for(Primitive *p : patterns)
@@ -569,4 +595,5 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PNary1(callbacks));
     patterns.push(new PNary2(callbacks));
+    patterns.push(new PNary3(callbacks));
 }
