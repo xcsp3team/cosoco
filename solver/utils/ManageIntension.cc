@@ -46,7 +46,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         }
 
         //----------------------------------------------------------------------------
-        // Nary constraints
+        // Primitive recognition
 
         if(recognizePrimitives(std::move(id), tree))
             return;
@@ -90,6 +90,10 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         }
          */
 
+        //----------------------------------------------------------------------------
+        // to Extension constraints
+        //----------------------------------------------------------------------------
+
         if(toExtension(id, tree, scope)) {
             std::cout << "extension : " << tree->root->toString();
             for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
@@ -99,7 +103,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 
 
         //----------------------------------------------------------------------------
-        // decompose
+        // decomposition
+        //----------------------------------------------------------------------------
         if(decompose(id, tree) == false)
             done = true;
     }
@@ -108,10 +113,11 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
 
     std::cout << "\n";
+    // This is the end... nothing else than an intension constraint
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
 }
 
-
+/********************************************************************************************************************/
 bool ManageIntension::decompose(XCSP3Core::Node *node) {
     if(node->type == OVAR || node->type == ODECIMAL)
         return false;
@@ -153,6 +159,8 @@ bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
     // std::cout << "la " << tree->root->toString() << "  " << modified << "\n";
     return modified;
 }
+
+/********************************************************************************************************************/
 
 void ManageIntension::extractVariables(XCSP3Core::Node *node, vector<std::string> &listOfVariables) {
     if(node->type == ODECIMAL)
@@ -417,7 +425,7 @@ class PBinary7 : public Primitive {   // x=  mul(y,y)
 };
 
 
-class PBinary8 : public Primitive {   // x=  (y = 3)
+class PBinary8 : public Primitive {   // x=  (y <= 3)
    public:
     explicit PBinary8(CosocoCallbacks &m) : Primitive(m, "eq(le(62,z),x)", 2) { }
 
@@ -637,8 +645,9 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
    public:
     explicit PNary4(CosocoCallbacks &c) : FakePrimitive(c) { }
     bool post() override {
-        if(isRelationalOperator(canonized->root->type) == false || canonized->root->parameters[0]->type != OADD ||
-           canonized->root->parameters[1]->type != OVAR)
+        if(isRelationalOperator(canonized->root->type) == false || canonized->root->parameters[0]->type != OADD)
+            return false;
+        if(canonized->root->parameters[1]->type != OVAR && canonized->root->parameters[1]->type != ODECIMAL)
             return false;
         int             sum = 0;
         vec<Variable *> vars;
@@ -652,9 +661,14 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
             else
                 return false;
         coefs.growTo(vars.size(), 1);
-        coefs.push(-1);
-        vars.push(callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var]);
-        FactoryConstraints::createConstraintSum(callbacks.problem, id, vars, coefs, -sum,
+        int k = 0;
+        if(canonized->root->parameters[1]->type == OVAR) {
+            coefs.push(-1);
+            vars.push(callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var]);
+        } else {
+            k = (dynamic_cast<NodeConstant *>(canonized->root->parameters[1]))->val;
+        }
+        FactoryConstraints::createConstraintSum(callbacks.problem, id, vars, coefs, -sum + k,
                                                 expressionTypeToOrderType(canonized->root->type));
         return true;
     }
