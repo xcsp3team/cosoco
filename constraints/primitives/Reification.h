@@ -6,6 +6,7 @@
 #define COSOCO_REIFICATION_H
 
 
+#include "Binary.h"
 #include "constraints/Ternary.h"
 
 namespace Cosoco {
@@ -39,6 +40,23 @@ class ReifNE : public Ternary {
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
+
+class XeqYeqK : public Binary {
+   public:
+    int k;
+    XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+class XeqKleY : public Binary {
+   public:
+    int k;
+    XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
 }   // namespace Cosoco
 
 

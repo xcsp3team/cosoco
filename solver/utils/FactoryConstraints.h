@@ -61,7 +61,6 @@
 #include "primitives/LE.h"
 #include "primitives/LEUnary.h"
 #include "primitives/LT.h"
-#include "primitives/XeqYeqK.h"
 #include "primitives/xEqOryk.h"
 #include "utils/Verbose.h"
 
@@ -114,6 +113,10 @@ class FactoryConstraints {
 
     static void createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
         p->addConstraint(new XeqYeqK(*p, name, x, y, k));
+    }
+
+    static void createConstraintXeqKleY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+        p->addConstraint(new XeqKleY(*p, name, x, y, k));
     }
 
     static void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op) {

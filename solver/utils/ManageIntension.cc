@@ -360,13 +360,26 @@ class PBinary5 : public Primitive {   // 3 <op> x + y
 
 class PBinary6 : public Primitive {   // x=  (y = 3)
    public:
-    explicit PBinary6(CosocoCallbacks &m) : Primitive(m, "eq(eq(y,3),x)", 2) { }
+    explicit PBinary6(CosocoCallbacks &m) : Primitive(m, "eq(eq(y,3),x)", 2) { pattern->root->parameters[0]->type = OFAKEOP; }
 
 
     bool post() override {
-        FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
-                                                    callbacks.problem->mapping[variables[0]], constants[0]);
-        return true;
+        if(operators[1] == XCSP3Core::OEQ) {
+            FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+                                                        callbacks.problem->mapping[variables[0]], constants[0]);
+            return true;
+        }
+        // std::cout << "ici";
+        // canonized->prefixe();
+        // std::cout << (operators[1] == OSUB) << std::endl;
+        // TODO : problem ??
+        if(operators[1] == XCSP3Core::ONE) {
+            assert(false);
+            FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+                                                        callbacks.problem->mapping[variables[0]], constants[0]);
+            return true;
+        }
+        return false;
     }
 };
 
@@ -402,6 +415,20 @@ class PBinary7 : public Primitive {   // x=  mul(y,y)
         return true;
     }
 };
+
+
+class PBinary8 : public Primitive {   // x=  (y = 3)
+   public:
+    explicit PBinary8(CosocoCallbacks &m) : Primitive(m, "eq(le(62,z),x)", 2) { }
+
+
+    bool post() override {
+        FactoryConstraints::createConstraintXeqKleY(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+                                                    callbacks.problem->mapping[variables[0]], constants[0]);
+        return true;
+    }
+};
+
 
 // x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
@@ -606,6 +633,33 @@ class PNary3 : public FakePrimitive {   // or(x1,x2,x3..)
     }
 };
 
+class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
+   public:
+    explicit PNary4(CosocoCallbacks &c) : FakePrimitive(c) { }
+    bool post() override {
+        if(isRelationalOperator(canonized->root->type) == false || canonized->root->parameters[0]->type != OADD ||
+           canonized->root->parameters[1]->type != OVAR)
+            return false;
+        int             sum = 0;
+        vec<Variable *> vars;
+        vec<int>        coefs;
+
+        for(Node *n : canonized->root->parameters[0]->parameters)
+            if(n->type == OVAR)
+                vars.push(callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(n))->var]);
+            else if(n->type == ODECIMAL)
+                sum += (dynamic_cast<NodeConstant *>(n))->val;
+            else
+                return false;
+        coefs.growTo(vars.size(), 1);
+        coefs.push(-1);
+        vars.push(callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var]);
+        FactoryConstraints::createConstraintSum(callbacks.problem, id, vars, coefs, -sum,
+                                                expressionTypeToOrderType(canonized->root->type));
+        return true;
+    }
+};
+
 
 bool ManageIntension::recognizePrimitives(std::string id, Tree *tree) {
     for(Primitive *p : patterns)
@@ -625,10 +679,12 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary5(callbacks));
     patterns.push(new PBinary6(callbacks));
     patterns.push(new PBinary7(callbacks));
+    patterns.push(new PBinary8(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PNary1(callbacks));
     patterns.push(new PNary2(callbacks));
     patterns.push(new PNary3(callbacks));
+    patterns.push(new PNary4(callbacks));
 }

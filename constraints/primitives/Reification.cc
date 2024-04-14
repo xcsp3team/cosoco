@@ -18,6 +18,9 @@ bool ReifLT::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1
 bool ReifEQ::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] == tuple[2]); }
 bool ReifNE::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] != tuple[2]); }
 
+bool XeqYeqK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] == k); }
+bool XeqKleY::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (k <= tuple[1]); }
+
 
 //----------------------------------------------
 // Filtering
@@ -133,7 +136,7 @@ bool ReifNE::filter(Cosoco::Variable *dummy) {
     }
 
 
-    if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 0  => y = z
+    if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y = z
         for(int idv : y->domain)
             if(z->containsValue(y->domain.toVal(idv)) == false && solver->delIdv(y, idv) == false)
                 return false;
@@ -153,6 +156,65 @@ bool ReifNE::filter(Cosoco::Variable *dummy) {
         }
     if(residue == INT_MAX && solver->delVal(x, 0) == false)
         return false;
+    return true;
+}
+
+bool XeqYeqK::filter(Variable *dummy) {
+    if(x->size() == 1) {
+        if(x->value() == 0) {
+            if(solver->delVal(y, k) == false)
+                return false;
+            solver->entail(this);
+            return true;
+        }
+        if(solver->assignToVal(y, k) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+    if(y->containsValue(k) == false) {
+        if(solver->assignToVal(x, 0) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+
+    if(y->size() == 1) {
+        if(solver->assignToVal(x, y->value() == k) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+    return true;
+}
+
+bool XeqKleY::filter(Variable *dummy) {
+    if(x->size() == 1) {
+        if(x->value() == 0) {   // y < k
+            if(solver->delValuesGreaterOrEqualThan(y, k) == false)
+                return false;
+            solver->entail(this);
+            return true;
+        }
+        // y >= k
+
+        if(solver->delValuesLowerOrEqualThan(y, k - 1) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+
+    if(y->minimum() >= k) {
+        solver->assignToVal(x, 1);
+        solver->entail(this);
+        return true;
+    }
+
+    if(y->maximum() < k) {
+        solver->assignToVal(x, 0);
+        solver->entail(this);
+        return true;
+    }
     return true;
 }
 
@@ -181,4 +243,12 @@ ReifNE::ReifNE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *
     residue = INT_MAX;
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y != Z)";
+}
+
+XeqYeqK::XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
+    type = "X = (Y = k)";
+}
+
+XeqKleY::XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
+    type = "X = (k <= Y)";
 }
