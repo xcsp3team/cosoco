@@ -166,6 +166,19 @@ void ManageIntension::extractVariables(XCSP3Core::Node *node, vector<std::string
     for(Node *n : node->parameters) extractVariables(n, listOfVariables);
 }
 
+
+bool ManageIntension::existInCacheExtension(string &expr, vec<Variable *> &scope) {
+    // Is in cache ?
+    if(cachedExtensions.find(expr) != cachedExtensions.end()) {
+        Constraint *c = cachedExtensions[expr];
+        for(int i = 0; i < c->scope.size(); i++)
+            if(c->scope[i]->domain.equals(&(scope[i]->domain)) == false)
+                return false;
+    } else
+        return false;
+    return true;
+}
+
 bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
     unsigned long long nbTuples = 1;
 
@@ -187,23 +200,10 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
         letter++;
     }
 
-    // Is in cache ?
-    bool existInCache = true;
-    if(cachedExtensions.find(expr) != cachedExtensions.end()) {
-        Constraint *c = cachedExtensions[expr];
-        for(int i = 0; i < c->scope.size(); i++)
-            if(c->scope[i]->domain.equals(&(scope[i]->domain)) == false) {
-                existInCache = false;
-                break;
-            }
-    } else
-        existInCache = false;
 
-
-    if(existInCache) {   // expression is in cache
+    if(existInCacheExtension(expr, scope)) {   // expression is in cache
         FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cachedExtensions[expr]);
         callbacks.nbSharedIntension2Extension++;
-
         return true;
     }
 
@@ -358,7 +358,7 @@ class PBinary5 : public Primitive {   // 3 <op> x + y
     }
 };
 
-class PBinary6 : public Primitive {   // 3 <op> x + y
+class PBinary6 : public Primitive {   // x=  (y = 3)
    public:
     explicit PBinary6(CosocoCallbacks &m) : Primitive(m, "eq(eq(y,3),x)", 2) { }
 
@@ -369,6 +369,40 @@ class PBinary6 : public Primitive {   // 3 <op> x + y
         return true;
     }
 };
+
+
+class PBinary7 : public Primitive {   // x=  mul(y,y)
+   public:
+    explicit PBinary7(CosocoCallbacks &m) : Primitive(m, "eq(mul(y,y),x)", 2) { }
+
+
+    bool post() override {
+        if(variables[0] != variables[1])
+            return false;
+
+
+        vector<vector<int>> tuples;
+        vec<Variable *>     scope;
+        scope.push(callbacks.problem->mapping[variables[0]]);
+        scope.push(callbacks.problem->mapping[variables[2]]);
+        string expr = "eq(mul(a,a),b)";
+
+        if(callbacks.manageIntension->existInCacheExtension(expr, scope)) {   // expression is in cache
+            FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope,
+                                                            callbacks.manageIntension->cachedExtensions[expr]);
+            callbacks.nbSharedIntension2Extension++;
+            return true;
+        }
+        for(int idv : scope[0]->domain) {
+            int v = scope[0]->domain.toVal(idv);
+            tuples.push_back({v, v * v});
+        }
+        callbacks.buildConstraintExtension2(id, scope, tuples, true, false);
+        callbacks.manageIntension->cachedExtensions[expr] = callbacks.problem->constraints.last();
+        return true;
+    }
+};
+
 // x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
    public:
@@ -590,6 +624,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary4(callbacks));
     patterns.push(new PBinary5(callbacks));
     patterns.push(new PBinary6(callbacks));
+    patterns.push(new PBinary7(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));

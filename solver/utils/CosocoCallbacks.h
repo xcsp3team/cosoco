@@ -69,6 +69,7 @@ class ManageIntension {
     void intension(std::string id, Tree *tree);
     bool recognizePrimitives(std::string id, Tree *tree);
     bool toExtension(std::string id, Tree *tree, vec<Variable *> &scope);
+    bool existInCacheExtension(string &expr, vec<Variable *> &scope);
     bool decompose(std::string id, Tree *tree);
     bool decompose(Node *node);
     void extractVariables(Node *node, vector<string> &listOfVariables);
@@ -226,7 +227,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     int                 auxiliaryIdx;
     map<string, string> expressionsToAuxiliaryVariables;
     vector<XVariable *> previousArgument;
-    int                 nbIntension2Extention, nbSharedIntension2Extension;
+    int                 nbIntension2Extention;
 
    public:
     int                    nbcores;
@@ -522,6 +523,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
                                   bool zeroIgnored) override;
+    int  nbSharedIntension2Extension;
 };
 
 
