@@ -29,7 +29,6 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         // Unary constraints
         if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
             std::map<std::string, int> tuple;
-            vec<Variable *>            scope;
             Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
             vec<int>                   values;
             for(int idv : x->domain) {
@@ -96,7 +95,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 
         if(toExtension(id, tree, scope)) {
             std::cout << "extension : " << tree->root->toString();
-            for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+            for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
             std::cout << "\n";
             return;
         }
@@ -110,7 +109,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     }
     std::cout << "intension : " << tree->root->toString();
 
-    for(auto s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+    for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
 
     std::cout << "\n";
     // This is the end... nothing else than an intension constraint
@@ -300,6 +299,7 @@ class PBinary2 : public Primitive {   // x + 3 <op> y
     bool post() override {
         if(isRelationalOperator(operators[0]) == false)
             return false;
+
         return createXopYk(callbacks.problem, operators[0], variables[0], variables[1],
                            operators[0] == OEQ ? -constants[0] : constants[0]);
     }
@@ -372,6 +372,7 @@ class PBinary6 : public Primitive {   // x=  (y = 3)
 
 
     bool post() override {
+        std::cout << operators.size() << std::endl;
         if(operators[1] == XCSP3Core::OEQ) {
             FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
                                                         callbacks.problem->mapping[variables[0]], constants[0]);
