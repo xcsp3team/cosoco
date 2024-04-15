@@ -119,6 +119,10 @@ class FactoryConstraints {
         p->addConstraint(new XeqKleY(*p, name, x, y, k));
     }
 
+    static void createConstraintXeqYleK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+        p->addConstraint(new XeqYleK(*p, name, x, y, k));
+    }
+
     static void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op) {
         assert(x != y && x != z && y != z);
         if(op == OLE) {

@@ -372,8 +372,7 @@ class PBinary6 : public Primitive {   // x=  (y = 3)
 
 
     bool post() override {
-        std::cout << operators.size() << std::endl;
-        if(operators[1] == XCSP3Core::OEQ) {
+        if(operators[0] == XCSP3Core::OEQ) {
             FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
                                                         callbacks.problem->mapping[variables[0]], constants[0]);
             return true;
@@ -433,6 +432,19 @@ class PBinary8 : public Primitive {   // x=  (y <= 3)
 
     bool post() override {
         FactoryConstraints::createConstraintXeqKleY(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+                                                    callbacks.problem->mapping[variables[0]], constants[0]);
+        return true;
+    }
+};
+
+class PBinary9 : public Primitive {   // x=  (3 <= z)
+   public:
+    explicit PBinary9(CosocoCallbacks &m) : Primitive(m, "eq(le(z,62),x)", 2) { }
+
+
+    bool post() override {
+        return false;   // TODO
+        FactoryConstraints::createConstraintXeqYleK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
                                                     callbacks.problem->mapping[variables[0]], constants[0]);
         return true;
     }
@@ -695,6 +707,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary6(callbacks));
     patterns.push(new PBinary7(callbacks));
     patterns.push(new PBinary8(callbacks));
+    patterns.push(new PBinary9(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));

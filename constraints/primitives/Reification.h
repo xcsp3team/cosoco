@@ -57,6 +57,13 @@ class XeqKleY : public Binary {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
+class XeqYleK : public Binary {
+   public:
+    int k;
+    XeqYleK(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
 }   // namespace Cosoco
 
 

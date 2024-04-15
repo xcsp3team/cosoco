@@ -20,6 +20,7 @@ bool ReifNE::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1
 
 bool XeqYeqK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] == k); }
 bool XeqKleY::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (k <= tuple[1]); }
+bool XeqYleK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] <= k); }
 
 
 //----------------------------------------------
@@ -219,6 +220,36 @@ bool XeqKleY::filter(Variable *dummy) {
 }
 
 
+bool XeqYleK::filter(Variable *dummy) {
+    if(x->size() == 1) {
+        if(x->value() == 0) {   // y > k
+            if(solver->delValuesLowerOrEqualThan(y, k) == false)
+                return false;
+            solver->entail(this);
+            return true;
+        }
+        // y <= k
+        if(solver->delValuesGreaterOrEqualThan(y, k + 1) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+
+    if(y->maximum() <= k) {
+        solver->assignToVal(x, 1);
+        solver->entail(this);
+        return true;
+    }
+
+    if(y->minimum() > k) {
+        solver->assignToVal(x, 0);
+        solver->entail(this);
+        return true;
+    }
+    return true;
+}
+
+
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -251,4 +282,7 @@ XeqYeqK::XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) 
 
 XeqKleY::XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
     type = "X = (k <= Y)";
+}
+XeqYleK::XeqYleK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
+    type = "X = (Y <= k)";
 }
