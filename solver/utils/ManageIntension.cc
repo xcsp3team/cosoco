@@ -47,7 +47,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         //----------------------------------------------------------------------------
         // Primitive recognition
 
-        if(recognizePrimitives(std::move(id), tree))
+        if(callbacks.startToParseObjective == false && recognizePrimitives(std::move(id), tree))
             return;
 
         //----------------------------------------------------------------------------
@@ -118,6 +118,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
 
 /********************************************************************************************************************/
 bool ManageIntension::decompose(XCSP3Core::Node *node) {
+    if(callbacks.startToParseObjective)
+        return false;
     if(node->type == OVAR || node->type == ODECIMAL)
         return false;
 
@@ -653,7 +655,6 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
    public:
     explicit PNary4(CosocoCallbacks &c) : FakePrimitive(c) { }
     bool post() override {
-        return false;
         if(isRelationalOperator(canonized->root->type) == false || canonized->root->parameters[0]->type != OADD)
             return false;
         if(canonized->root->parameters[1]->type != OVAR && canonized->root->parameters[1]->type != ODECIMAL)
