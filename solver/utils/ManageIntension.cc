@@ -377,13 +377,8 @@ class PBinary6 : public Primitive {   // x=  (y = 3)
                                                         callbacks.problem->mapping[variables[0]], constants[0]);
             return true;
         }
-        // std::cout << "ici";
-        // canonized->prefixe();
-        // std::cout << (operators[1] == OSUB) << std::endl;
-        // TODO : problem ??
-        if(operators[1] == XCSP3Core::ONE) {
-            assert(false);
-            FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+        if(operators[0] == XCSP3Core::ONE) {
+            FactoryConstraints::createConstraintXeqYneK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
                                                         callbacks.problem->mapping[variables[0]], constants[0]);
             return true;
         }
@@ -443,7 +438,6 @@ class PBinary9 : public Primitive {   // x=  (3 <= z)
 
 
     bool post() override {
-        return false;   // TODO
         FactoryConstraints::createConstraintXeqYleK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
                                                     callbacks.problem->mapping[variables[0]], constants[0]);
         return true;

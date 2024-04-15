@@ -19,6 +19,7 @@ bool ReifEQ::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1
 bool ReifNE::isSatisfiedBy(vec<int> &tuple) { return (tuple[0] == 1) == (tuple[1] != tuple[2]); }
 
 bool XeqYeqK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] == k); }
+bool XeqYneK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] != k); }
 bool XeqKleY::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (k <= tuple[1]); }
 bool XeqYleK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] <= k); }
 
@@ -189,6 +190,37 @@ bool XeqYeqK::filter(Variable *dummy) {
     return true;
 }
 
+
+bool XeqYneK::filter(Variable *dummy) {
+    if(x->size() == 1) {
+        if(x->value() == 0) {   // y = k
+            if(solver->assignToVal(y, k) == false)
+                return false;
+            solver->entail(this);
+            return true;
+        }
+        if(solver->delVal(y, k) == false)   // y != k
+            return false;
+        solver->entail(this);
+        return true;
+    }
+    if(y->containsValue(k) == false) {
+        if(solver->assignToVal(x, 1) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+
+    if(y->size() == 1) {
+        if(solver->assignToVal(x, y->value() != k) == false)
+            return false;
+        solver->entail(this);
+        return true;
+    }
+    return true;
+}
+
+
 bool XeqKleY::filter(Variable *dummy) {
     if(x->size() == 1) {
         if(x->value() == 0) {   // y < k
@@ -278,6 +310,10 @@ ReifNE::ReifNE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *
 
 XeqYeqK::XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
     type = "X = (Y = k)";
+}
+
+XeqYneK::XeqYneK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
+    type = "X = (Y != k)";
 }
 
 XeqKleY::XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {

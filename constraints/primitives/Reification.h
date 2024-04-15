@@ -49,6 +49,15 @@ class XeqYeqK : public Binary {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
+class XeqYneK : public Binary {
+   public:
+    int k;
+    XeqYneK(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+
 class XeqKleY : public Binary {
    public:
     int k;

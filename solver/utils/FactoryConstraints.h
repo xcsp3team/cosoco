@@ -115,6 +115,10 @@ class FactoryConstraints {
         p->addConstraint(new XeqYeqK(*p, name, x, y, k));
     }
 
+    static void createConstraintXeqYneK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+        p->addConstraint(new XeqYneK(*p, name, x, y, k));
+    }
+
     static void createConstraintXeqKleY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
         p->addConstraint(new XeqKleY(*p, name, x, y, k));
     }
