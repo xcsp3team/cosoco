@@ -28,6 +28,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "mtl/IntTypes.h"
 #include "mtl/Vec.h"
+#include "solver/utils/Options.h"
 #include "utils/ParseUtils.h"
 
 namespace Cosoco {
@@ -35,6 +36,7 @@ namespace Cosoco {
 //==================================================================================================
 // Top-level option parse/help functions:
 
+extern void ParseOptions(char** argv, Options& options);
 
 extern void parseOptions(int& argc, char** argv, bool strict = false);
 extern void printUsageAndExit(int argc, char** argv, bool verbose = false);
@@ -132,8 +134,8 @@ class DoubleOption : public Option {
         // FIXME: set LC_NUMERIC to "C" to make sure that strtof/strtod parses decimal point correctly.
     }
 
-                  operator double(void) const { return value; }
-                  operator double&(void) { return value; }
+    operator double(void) const { return value; }
+    operator double&(void) { return value; }
     DoubleOption& operator=(double x) {
         value = x;
         return *this;
@@ -188,8 +190,8 @@ class IntOption : public Option {
     IntOption(const char* c, const char* n, const char* d, int32_t def = int32_t(), IntRange r = IntRange(INT32_MIN, INT32_MAX))
         : Option(n, d, c, "<int32>"), range(r), value(def) { }
 
-               operator int32_t(void) const { return value; }
-               operator int32_t&(void) { return value; }
+    operator int32_t(void) const { return value; }
+    operator int32_t&(void) { return value; }
     IntOption& operator=(int32_t x) {
         value = x;
         return *this;
@@ -254,8 +256,8 @@ class Int64Option : public Option {
                 Int64Range r = Int64Range(INT64_MIN, INT64_MAX))
         : Option(n, d, c, "<int64>"), range(r), value(def) { }
 
-                 operator int64_t(void) const { return value; }
-                 operator int64_t&(void) { return value; }
+    operator int64_t(void) const { return value; }
+    operator int64_t&(void) { return value; }
     Int64Option& operator=(int64_t x) {
         value = x;
         return *this;
@@ -318,8 +320,8 @@ class StringOption : public Option {
     StringOption(const char* c, const char* n, const char* d, const char* def = NULL)
         : Option(n, d, c, "<string>"), value(def) { }
 
-                  operator const char*(void) const { return value; }
-                  operator const char*&(void) { return value; }
+    operator const char*(void) const { return value; }
+    operator const char*&(void) { return value; }
     StringOption& operator=(const char* x) {
         value = x;
         return *this;
@@ -355,8 +357,8 @@ class BoolOption : public Option {
    public:
     BoolOption(const char* c, const char* n, const char* d, bool v) : Option(n, d, c, "<bool>"), value(v) { }
 
-                operator bool(void) const { return value; }
-                operator bool&(void) { return value; }
+    operator bool(void) const { return value; }
+    operator bool&(void) { return value; }
     BoolOption& operator=(bool b) {
         value = b;
         return *this;

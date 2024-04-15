@@ -20,8 +20,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "utils/Options.h"
 
 #include "mtl/Sort.h"
+#include "solver/utils/Options.h"
 
 using namespace Cosoco;
+
+void Cosoco::ParseOptions(char** argv, Options& options) { }
+
 
 void Cosoco::parseOptions(int& argc, char** argv, bool strict) {
     int i, j;
