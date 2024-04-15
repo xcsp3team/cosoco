@@ -140,7 +140,8 @@ bool ManageIntension::decompose(XCSP3Core::Node *node) {
 
 
 bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
-    assert(tree->arity() > 1);
+    if(tree->arity() == 1)   // => objective see MultiAgen in XCSP22 for instance
+        return false;
     bool modified = false;
     // std::cout << "ici " << tree->root->toString() << "\n";
 
@@ -652,6 +653,7 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
    public:
     explicit PNary4(CosocoCallbacks &c) : FakePrimitive(c) { }
     bool post() override {
+        return false;
         if(isRelationalOperator(canonized->root->type) == false || canonized->root->parameters[0]->type != OADD)
             return false;
         if(canonized->root->parameters[1]->type != OVAR && canonized->root->parameters[1]->type != ODECIMAL)
