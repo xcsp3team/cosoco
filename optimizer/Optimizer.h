@@ -29,9 +29,8 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     bool                 useDicothomicMode;   // TODO: class inheritence ?
     bool                 progressSaving;
     bool                 firstCall;
-    bool                 colors;   // Add colors to terminal
 
-    explicit Optimizer(Problem &p);
+    explicit Optimizer(Problem &p, Options &options);
 
     int  solve(vec<RootPropagation> &assumps) override;
     void printFinalStats() override;

@@ -19,78 +19,82 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "utils/Options.h"
 
+#include <iostream>
+
 #include "mtl/Sort.h"
 #include "solver/utils/Options.h"
 
 using namespace Cosoco;
 
-void Cosoco::ParseOptions(char** argv, Options& options) { }
 
+void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
+    int i;
+    for(i = 2; i < argc; i++) {
+        std::string str = std::string(argv[i]);
+        if(str == "--help")
+            printUsageAndExit(options);
 
-void Cosoco::parseOptions(int& argc, char** argv, bool strict) {
-    int i, j;
-    for(i = j = 1; i < argc; i++) {
-        const char* str = argv[i];
-        if(match(str, "--") && match(str, Option::getHelpPrefixString()) && match(str, "help")) {
-            if(*str == '\0')
-                printUsageAndExit(argc, argv);
-            else if(match(str, "-verb"))
-                printUsageAndExit(argc, argv, true);
-        } else {
-            bool parsed_ok = false;
-
-            for(int k = 0; !parsed_ok && k < Option::getOptionList().size(); k++) {
-                parsed_ok = Option::getOptionList()[k]->parse(argv[i]);
-
-                // fprintf(stderr, "checking %d: %s against flag <%s> (%s)\n", i, argv[i], Option::getOptionList()[k]->name,
-                // parsed_ok ? "ok" : "skip");
-            }
-
-            if(!parsed_ok) {
-                if(strict && match(argv[i], "-"))
-                    fprintf(stderr, "ERROR! Unknown flag \"%s\". Use '--%shelp' for help.\n", argv[i],
-                            Option::getHelpPrefixString()),
-                        exit(1);
-                else
-                    argv[j++] = argv[i];
-            }
+        str      = str.substr(1, str.size());
+        auto pos = str.find('=');
+        if(pos == std::string::npos) {
+            std::cout << "miss = in option" << str << "\n";
+            exit(1);
         }
+        std::string o = str.substr(0, pos);
+        std::string v = str.substr(pos + 1, str.size());
+
+        // string options
+        if(options.stringOptions.find(o) != options.stringOptions.end()) {
+            options.stringOptions[o].value = v;
+            continue;
+        }
+        // bool option
+        if(options.boolOptions.find(o) != options.boolOptions.end()) {
+            if(v != "1" && v != "0") {
+                std::cout << "value for bool option is 0 or 1\n";
+                exit(1);
+            }
+            options.boolOptions[o].value = v == "1";
+            continue;
+        }
+
+        // int option
+        if(options.intOptions.find(o) != options.intOptions.end()) {
+            int newvalue;
+            try {
+                newvalue = std::stoi(v);
+            } catch(std::invalid_argument const& ex) {
+                std::cout << "option " << o << " needs an integer " << v << "is passed\n";
+                exit(1);
+            }
+            if(newvalue < options.intOptions[o].min || newvalue > options.intOptions[o].max) {
+                std::cout << "option " << o << " must be  in range " << options.intOptions[o].min << " .. "
+                          << options.intOptions[o].max << "\n";
+                exit(1);
+            }
+            options.intOptions[o].value = newvalue;
+            continue;
+        }
+        // int option
+        if(options.doubleOptions.find(o) != options.doubleOptions.end()) {
+            double newvalue;
+            try {
+                newvalue = std::stod(v);
+            } catch(std::invalid_argument const& ex) {
+                std::cout << "option " << o << " needs a double " << v << "is passed\n";
+                exit(1);
+            }
+            if(newvalue < options.doubleOptions[o].min || newvalue > options.doubleOptions[o].max) {
+                std::cout << "option " << o << " must be  in range " << options.doubleOptions[o].min << " .. "
+                          << options.doubleOptions[o].max << "\n";
+                exit(1);
+            }
+            options.doubleOptions[o].value = newvalue;
+            continue;
+        }
+
+        std::cout << "unknown option " << o << "\n";
+        exit(1);
     }
-
-    argc -= (i - j);
 }
-
-
-void Cosoco::setUsageHelp(const char* str) { Option::getUsageString() = str; }
-void Cosoco::setHelpPrefixStr(const char* str) { Option::getHelpPrefixString() = str; }
-void Cosoco::printUsageAndExit(int argc, char** argv, bool verbose) {
-    const char* usage = Option::getUsageString();
-    if(usage != nullptr)
-        fprintf(stderr, usage, argv[0]);
-
-    sort(Option::getOptionList(), Option::OptionLt());
-
-    const char* prev_cat  = nullptr;
-    const char* prev_type = nullptr;
-
-    for(auto& opt : Option::getOptionList()) {
-        const char* cat  = opt->category;
-        const char* type = opt->type_name;
-
-        if(cat != prev_cat)
-            fprintf(stderr, "\n%s OPTIONS:\n\n", cat);
-        else if(type != prev_type)
-            fprintf(stderr, "\n");
-
-        opt->help(verbose);
-
-        prev_cat  = opt->category;
-        prev_type = opt->type_name;
-    }
-
-    fprintf(stderr, "\nHELP OPTIONS:\n\n");
-    fprintf(stderr, "  --%shelp        Print help message.\n", Option::getHelpPrefixString());
-    fprintf(stderr, "  --%shelp-verb   Print verbose help message.\n", Option::getHelpPrefixString());
-    fprintf(stderr, "\n");
-    exit(0);
-}
+void Cosoco::printUsageAndExit(Options& options) { exit(0); }

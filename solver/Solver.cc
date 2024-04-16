@@ -8,15 +8,20 @@
 #include <solver/restarts/LubyRestart.h>
 #include <utils/System.h>
 
+#include <fstream>
 #include <iomanip>
 
+#include "HeuristicValASGS.h"
+#include "HeuristicValOccs.h"
+#include "HeuristicValRoundRobin.h"
+#include "PickOnDom.h"
+#include "PoolOfHeuristicsValues.h"
 #include "constraints/Constraint.h"
 #include "core/Variable.h"
 #include "heuristics/values/HeuristicValFirst.h"
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
-// #include "heuristics/variables/PickOnDom.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
 using namespace Cosoco;
 using namespace std;
@@ -25,17 +30,15 @@ using namespace std;
 //----------------------------------------------
 
 
-Solver::Solver(Problem &p, int nbc)
-    : AbstractSolver(p),
+Solver::Solver(Problem &p, Options &options)
+    : AbstractSolver(p, options),
       problem(p),
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
       queue(p.nbVariables(), p.variables) {
-    heuristicVar = new HeuristicVarDomWdeg(*this);   // new PickOnDom(*this);   // new HeuristicVarDomWdeg(*this);
-    // new HeuristicVarDomWdeg(*this); //new LastConflictReasoning(*this, new HeuristicVarDomWdeg(*this));
-    heuristicVal = new HeuristicValFirst(*this);
-    // new HeuristicValLast(*this);//new HeuristicValFirst(*this);//new HeuristicValRandom(*this);//;new HeuristicValFirst(*this);
+    heuristicVar = nullptr;
+    heuristicVal = nullptr;
     statistics.growTo(NBSTATS, 0);
     localstatistics.growTo(NBLOCALSTATS, 0);
     problem.attachSolver(this);
@@ -43,6 +46,84 @@ Solver::Solver(Problem &p, int nbc)
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;
+
+
+    if(options.stringOptions["val"].value == "first")
+        heuristicVal = new HeuristicValFirst(*this);
+    if(options.stringOptions["val"].value == "rand")
+        heuristicVal = new HeuristicValRandom(*this);
+    if(options.stringOptions["val"].value == "last")
+        heuristicVal = new HeuristicValLast(*this);
+    if(options.stringOptions["val"].value == "robin")
+        heuristicVal = new HeuristicValRoundRobin(*this, options.stringOptions["robin"].value);
+    if(options.stringOptions["val"].value == "occs")
+        heuristicVal = new HeuristicValOccs(*this);
+    if(options.stringOptions["val"].value == "asgs")
+        heuristicVal = new HeuristicValASGS(*this);
+    if(options.stringOptions["val"].value == "pool")
+        heuristicVal = new PoolOfHeuristicsValues(*this);
+    if(heuristicVal == nullptr) {
+        std::cerr << "unknown heuristic value " << options.stringOptions["val"].value << "\n";
+        exit(1);
+    }
+
+
+    if(options.stringOptions["var"].value == "wdeg")
+        heuristicVar = new HeuristicVarDomWdeg(*this);
+    if(options.stringOptions["var"].value == "cacd")
+        heuristicVar = new HeuristicVarCACD(*this);
+    if(options.stringOptions["var"].value == "pick")
+        heuristicVar = new PickOnDom(*this);
+    if(heuristicVar == nullptr) {
+        std::cerr << "unknown heuristic value " << options.stringOptions["var"].value << "\n";
+        exit(1);
+    }
+
+
+    /*if(options.stringOptions["warmstart" != "") {
+        std::ifstream warmFile(warmStart);
+        vec<int>      values;
+        for(std::string line; std::getline(warmFile, line);) {
+            std::vector<std::string> stringValues = split1(line, ' ');
+            for(const std::string &v : stringValues) {
+                if(v.find("x") != std::string::npos) {
+                    std::vector<std::string> compact = split1(v, 'x');
+                    int                      tmp     = compact[0].find("*") != std::string::npos ? STAR : std::stoi(compact[0]);
+                    for(int i = 0; i < std::stoi(compact[1]); i++) values.push(tmp);
+                } else {
+                    if(v.find("*") != std::string::npos) {
+                        values.push(STAR);
+                    } else {
+                        values.push(std::stoi(v));
+                    }
+                }
+            }
+        }
+        S->warmStart    = true;
+        S->heuristicVal = new ForceIdvs(*S, S->heuristicVal, false, &values);
+    }*/
+
+    if(options.intOptions["lc"].value > 0)
+        addLastConflictReasoning();
+    if(options.boolOptions["stick"].value)
+        addStickingValue();
+    if(options.boolOptions["restarts"].value)
+        addRestart();
+    if(options.boolOptions["nogoods"].value)
+        addNoGoodsFromRestarts();
+
+    /*if(annotations && cb.decisionVariables[core].size() != 0)
+        S->setDecisionVariables(cb.decisionVariables[core]);
+    else {
+        if(0 && cb.nbInitialsVariables != solvingProblems[0]->nbVariables()) {
+            vec<Variable *> tmp;
+            for(int i = 0; i < cb.nbInitialsVariables; i++) tmp.push(solvingProblems[0]->variables[i]);
+            S->setDecisionVariables(tmp);
+            printf("%d\n", tmp.size());
+            if(core == 0)
+                S->verbose.log(NORMAL, "c Limit decision variables to initial ones (%d vars)\n", cb.nbInitialsVariables);
+        }
+    }*/
 }
 
 void Solver::addNoGoodsFromRestarts() {
@@ -50,7 +131,9 @@ void Solver::addNoGoodsFromRestarts() {
     noGoodsEngine       = new NoGoodsEngine(*this);
 }
 
-void Solver::addLastConflictReasoning(int nVars) { heuristicVar = new LastConflictReasoning(*this, heuristicVar, nVars); }
+void Solver::addLastConflictReasoning() {
+    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options.intOptions["lc"].value);
+}
 
 
 void Solver::addRandomizationFirstDescent() { heuristicVar = new RandomizeFirstDescent(*this, heuristicVar); }
@@ -211,7 +294,7 @@ bool Solver::manageSolution() {
     if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
         noGoodsEngine->generateNogoodFromSolution();
 
-    if(nbSolutions == nbWishedSolutions) {
+    if(nbSolutions == options.intOptions["nbsols"].value) {
         status = REACH_GOAL;
         return true;
     }

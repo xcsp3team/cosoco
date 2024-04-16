@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "FactoryConstraints.h"
+#include "Options.h"
 #include "XCSP3Constants.h"
 #include "XCSP3Constraint.h"
 #include "XCSP3CoreCallbacks.h"
@@ -216,10 +217,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
 
-    bool                insideGroup;
-    int                 nbIntension;
-    bool                inArray;
-    int                 i2eNumber;
+    bool insideGroup;
+    int  nbIntension;
+    bool inArray;
+
     int                 nbMDD;
     vec<Variable *>     vars;   // Not so beautiful, but efficient...
     vec<int>            vals;   // Avoid std::move and save lines...
@@ -240,11 +241,14 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     int                                nbInitialsVariables;
     std::map<std::string, XVariable *> mappingXV;
     ManageIntension                   *manageIntension;
-
-    CosocoCallbacks(int ncores, unsigned long long i2e)
-        : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) {
+    Options                           &options;
+    CosocoCallbacks(int ncores, Options &options) : startToParseObjective(false), nbcores(ncores), options(options) {
         recognizeSpecialIntensionCases = false;
         manageIntension                = new ManageIntension(*this);
+        if(options.stringOptions["removeClasses"].value != "") {
+            std::vector<std::string> classes = split1(std::string(options.stringOptions["removeClasses"].value), ',');
+            for(const std::string &c : classes) addClassToDiscard(c);
+        }
     }
 
     void beginInstance(InstanceType type) override;

@@ -57,7 +57,6 @@ void CosocoCallbacks::initGroups() {
     insideGroup = true;
     nbMDD       = 0;
     nbIntension = -1;
-    i2eNumber   = -1;
 }
 
 

@@ -5,6 +5,7 @@
 #include <solver/restarts/Restart.h>
 
 #include "AbstractSolver.h"
+#include "Options.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
@@ -34,9 +35,8 @@ typedef struct {
 
 class Solver : public AbstractSolver {
    public:
-    Problem &problem;                 // The problem to solve
-    int      nbWishedSolutions = 1;   // The number of solutions to find
-    vec<int> lastSolution;            // The last solution found
+    Problem &problem;        // The problem to solve
+    vec<int> lastSolution;   // The last solution found
 #ifdef COMPARESOLUTIONS
     vec<vec<int> > allSolutions;
 #endif
@@ -55,7 +55,6 @@ class Solver : public AbstractSolver {
     double seed          = 91648253;     // A seed value
     bool   checkSolution = true;         // Check solution or not
     int    nbDeletedValuesByAVariable;   // count the number of deleted values by a filtering on one variable
-    bool   colors;                       // Display colors in terminal
 
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables
@@ -68,10 +67,9 @@ class Solver : public AbstractSolver {
     bool                 stopSearch = false;   // Stop the search usefull, in // with the optimizer
     bool                 warmStart;
     // -- Heuristics ------------------------------------------------------------------------
-    HeuristicVar *heuristicVar;                         // The heuristic to choose variables
-    HeuristicVal *heuristicVal;                         // The heuristic to choose values
-    Restart      *restart                  = nullptr;   // The restart strategy
-    int           intension2extensionLimit = 100000;    // Transform intension -> extension : limit of the cartesian product
+    HeuristicVar *heuristicVar;        // The heuristic to choose variables
+    HeuristicVal *heuristicVal;        // The heuristic to choose values
+    Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
     SparseSetOfVariables queue;                       // Propagation queue
     Constraint          *currentFilteredConstraint;   // The constraint that is filtered
@@ -94,8 +92,8 @@ class Solver : public AbstractSolver {
     // Construction and initialisation
     // --------------------------------------------------------------------------------------
 
-    Solver(Problem &p, int nbc = 0);
-    void addLastConflictReasoning(int nVars);
+    Solver(Problem &p, Options &options);
+    void addLastConflictReasoning();
     void addRandomizationFirstDescent();
     void addStickingValue();
     void addRestart(bool luby = false);
