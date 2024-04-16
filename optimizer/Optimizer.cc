@@ -8,8 +8,8 @@
 using namespace Cosoco;
 
 
-Optimizer::Optimizer(Problem &p)
-    : AbstractSolver(p),
+Optimizer::Optimizer(Problem &p, Options &o)
+    : AbstractSolver(p, o),
       invertBestCost(false),
       callToSolver(0),
       solver(nullptr),
@@ -20,9 +20,8 @@ Optimizer::Optimizer(Problem &p)
 
 
 void Optimizer::setSolver(Solver *s, Solution *solution) {
-    solver                    = s;
-    bestSolution              = solution;
-    solver->nbWishedSolutions = 1;
+    solver       = s;
+    bestSolution = solution;
     solver->setVerbosity(1);
     optimtype   = (static_cast<OptimizationProblem &>(solver->problem)).type;
     objectiveLB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
@@ -81,7 +80,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
-                bestSolution->end(colors);
+                bestSolution->end(options.boolOptions["colors"].value);
 
                 if(progressSaving) {
                     vec<int> idvalues;

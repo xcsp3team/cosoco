@@ -198,8 +198,8 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
         nbTuples = nbTuples / scope.last()->domain.maxSize();
 
 
-    if(callbacks.startToParseObjective || callbacks.intension2extensionLimit == 0 ||
-       nbTuples >= callbacks.intension2extensionLimit)
+    if(callbacks.startToParseObjective || callbacks.options.intOptions["i2e"].value == 0 ||
+       nbTuples >= ((unsigned long long)callbacks.options.intOptions["i2e"].value))
         return false;
 
     // Create generic intension

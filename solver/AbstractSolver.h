@@ -1,6 +1,7 @@
 #ifndef ABSTRACTSOLVER_H
 #define ABSTRACTSOLVER_H
 
+#include "Options.h"
 #include "core/Problem.h"
 #include "utils/Verbose.h"
 namespace Cosoco {
@@ -31,6 +32,7 @@ class AbstractSolver {
     int        lastSolutionRun;
     Verbose    verbose;       // The level of verbose mode 0..3
     double     random_seed;   // The seed used by the solver
+    Options   &options;
     inline int solve() {
         vec<RootPropagation> assumps;
         return solve(assumps);
@@ -41,8 +43,8 @@ class AbstractSolver {
 
     virtual void displayCurrentSolution() = 0;   // displayCurrentBranch the current solution
 
-    AbstractSolver(Problem &pp)
-        : problem(pp), core(0), status(RUNNING), displayModels(false), nbSolutions(0), random_seed(91648253) { }
+    AbstractSolver(Problem &pp, Options &o)
+        : problem(pp), core(0), status(RUNNING), displayModels(false), nbSolutions(0), random_seed(91648253), options(o) { }
 
 
     void setVerbosity(int vv) {
