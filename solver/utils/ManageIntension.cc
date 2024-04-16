@@ -142,6 +142,8 @@ bool ManageIntension::decompose(XCSP3Core::Node *node) {
 
 
 bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
+    if(callbacks.options.boolOptions["decompose"].value == false)
+        return false;
     if(tree->arity() == 1)   // => objective see MultiAgen in XCSP22 for instance
         return false;
     bool modified = false;

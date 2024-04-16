@@ -63,6 +63,7 @@ class Options {
         intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000,
                              0, INT_MAX};
         stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
+        boolOptions["decompose"]       = {"PARSE", "decompose intension using reification.", true};
     }
 };
 
