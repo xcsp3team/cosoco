@@ -48,13 +48,13 @@ class Options {
         boolOptions["model"]  = {"MAIN", "Display models", 0};
         boolOptions["colors"] = {"MAIN", "Add colors to output", 1};
 
-        boolOptions["nogoods"]  = {"SEARCH", "Learn nogoods from restarts", false};
+        boolOptions["nogoods"]  = {"SEARCH", "Learn nogoods from restarts", true};
         intOptions["lc"]        = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
-        boolOptions["stick"]    = {"SEARCH", "Sticking Value on heuristic val", 0};
-        boolOptions["restarts"] = {"SEARCH", "Enable restarts", 1};
+        boolOptions["stick"]    = {"SEARCH", "Sticking Value on heuristic val", false};
+        boolOptions["restarts"] = {"SEARCH", "Enable restarts", true};
         stringOptions["val"]    = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first"};
         stringOptions["robin"]  = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
-        stringOptions["var"]    = {"SEARCH", "Heuristic for values (wdeg, cacd, pick)", "wdeg"};
+        stringOptions["var"]    = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick)", "wdeg"};
 
         boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
         stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};

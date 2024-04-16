@@ -75,7 +75,7 @@ Solver::Solver(Problem &p, Options &options)
     if(options.stringOptions["var"].value == "pick")
         heuristicVar = new PickOnDom(*this);
     if(heuristicVar == nullptr) {
-        std::cerr << "unknown heuristic value " << options.stringOptions["var"].value << "\n";
+        std::cerr << "unknown heuristic variable " << options.stringOptions["var"].value << "\n";
         exit(1);
     }
 
