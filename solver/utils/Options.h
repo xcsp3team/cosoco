@@ -48,17 +48,18 @@ class Options {
         boolOptions["model"]  = {"MAIN", "Display models", 0};
         boolOptions["colors"] = {"MAIN", "Add colors to output", 1};
 
-        boolOptions["nogoods"]  = {"SEARCH", "Learn nogoods from restarts", true};
-        intOptions["lc"]        = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
-        boolOptions["stick"]    = {"SEARCH", "Sticking Value on heuristic val", false};
-        boolOptions["restarts"] = {"SEARCH", "Enable restarts", true};
-        stringOptions["val"]    = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first"};
-        stringOptions["robin"]  = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
-        stringOptions["var"]    = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick)", "wdeg"};
-
+        boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
+        intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
+        boolOptions["stick"]       = {"SEARCH", "Sticking Value on heuristic val", false};
+        boolOptions["restarts"]    = {"SEARCH", "Enable restarts", true};
+        stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first"};
+        stringOptions["robin"]     = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
+        stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick)", "wdeg"};
+        intOptions["limitac3card"] = {"SEARCH", "Max size to perform AC3 on intensional constraints", 1000, 0, INT_MAX};
         boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
         stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
         boolOptions["bs"]          = {"SEARCH", "Enable progress saving (only after a new solution)", true};
+
 
         intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000,
                              0, INT_MAX};
