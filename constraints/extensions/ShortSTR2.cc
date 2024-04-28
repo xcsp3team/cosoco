@@ -1,8 +1,8 @@
 #include "ShortSTR2.h"
 
 #include "XCSP3Constants.h"
+#include "mtl/Matrix.h"
 #include "solver/Solver.h"
-
 // TODO restore lastsize when backtracking
 
 using namespace Cosoco;
@@ -13,10 +13,10 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool ShortSTR2::isSatisfiedBy(vec<int> &tuple) {
-    for(auto &currentTuple : tuples) {
+    for(unsigned int i = 0; i < tuples->nrows(); i++) {
         int nb = 0;
         for(int j = 0; j < scope.size(); j++) {
-            if(currentTuple[j] != STAR && tuple[j] != scope[j]->domain.toVal(currentTuple[j]))
+            if((*tuples)[i][j] != STAR && tuple[j] != scope[j]->domain.toVal((*tuples)[i][j]))
                 break;
             nb++;
         }
@@ -27,12 +27,7 @@ bool ShortSTR2::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
-bool ShortSTR2::isCorrectlyDefined() {
-    for(vec<int> &v : tuples)
-        if(v.size() != scope.size())
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": ShortSTR2 has a tuple with bad size");
-    return true;
-}
+bool ShortSTR2::isCorrectlyDefined() { return true; }
 
 
 //----------------------------------------------
@@ -64,7 +59,7 @@ bool ShortSTR2::filter(Variable *dummy) {
 
     // Check tuple validity and construct Ssup
     for(int tupidx : reverse(validTuples)) {   // Reverse traversal because of deletion
-        vec<int> &currentTuple = tuples[tupidx];
+        int *currentTuple = (*tuples)[tupidx];
         if(isValidTuple(currentTuple)) {
             for(int xpos : reverse(Ssup)) {   // Reverse traversal because of deletion
                 if(currentTuple[xpos] == STAR)
@@ -97,7 +92,7 @@ bool ShortSTR2::filter(Variable *dummy) {
 // Tuples methods
 //----------------------------------------------
 
-bool ShortSTR2::isValidTuple(vec<int> &tupleIdvs) {
+bool ShortSTR2::isValidTuple(int *tupleIdvs) {
     for(int posx : Sval)
         if(tupleIdvs[posx] != STAR && scope[posx]->containsIdv(tupleIdvs[posx]) == false)
             return false;
@@ -127,14 +122,14 @@ void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 // Constructors and initialisation
 //----------------------------------------------
 
-ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars)
-    : Extension(p, n, vars, true), Sval(vars.size()), Ssup(vars.size()), validTuples() {
+ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples)
+    : Extension(p, n, vars, max_n_tuples, true), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
     type = "Extension";
 }
 
 
-ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, vec<vec<int> > &tuplesFromOtherConstraint)
+ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
     type = "Extension";
@@ -144,7 +139,7 @@ ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, vec<vec<i
 void ShortSTR2::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     for(Variable *x : scope) gacIdValues.push(new SparseSet(x->domain.maxSize()));
-    validTuples.setCapacity(tuples.size(), true);
+    validTuples.setCapacity(tuples->nrows(), true);
 }
 
 

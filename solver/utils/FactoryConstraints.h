@@ -214,14 +214,14 @@ class FactoryConstraints {
             ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
         else {
             if(isSupport)
-                ctr = new ShortSTR2(*p, name, vars);
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
             else {
                 assert(hasStar == false);   // TODO
-                ctr = new STRNeg(*p, name, vars);
+                ctr = new STRNeg(*p, name, vars, tuples.size());
             }
         }
 
-        for(int i = 0; i < tuples.size(); i++) ctr->addTuple(tuples[i]);
+        for(auto &tuple : tuples) ctr->addTuple(tuple);
         return ctr;
     }
 

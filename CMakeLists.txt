@@ -67,7 +67,8 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES OUTPUT_NAME "cosoco")
 
 
 link_libraries(xcsp3parser)
-add_executable(cosoco main/Main.cc)
+add_executable(cosoco main/Main.cc
+        mtl/Matrix.h)
 target_link_libraries(cosoco ${LIBRARY_NAME})
 target_link_libraries(cosoco ${LIBXML2_LIBRARIES})
 
