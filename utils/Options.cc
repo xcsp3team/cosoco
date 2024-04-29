@@ -19,7 +19,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "utils/Options.h"
 
+#include <iomanip>
 #include <iostream>
+#include <set>
 
 #include "mtl/Sort.h"
 #include "solver/utils/Options.h"
@@ -28,6 +30,10 @@ using namespace Cosoco;
 
 
 void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
+    std::cout << "idi\n";
+    std::string str = std::string(argv[1]);
+    if(str == "--help")
+        printUsageAndExit(options);
     int i;
     for(i = 2; i < argc; i++) {
         std::string str = std::string(argv[i]);
@@ -97,4 +103,36 @@ void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
         exit(1);
     }
 }
-void Cosoco::printUsageAndExit(Options& options) { exit(0); }
+void Cosoco::printUsageAndExit(Options& options) {
+    std::set<std::string> categories;
+
+    for(auto const& it : options.doubleOptions) categories.insert(it.second.category);
+    for(auto const& it : options.stringOptions) categories.insert(it.second.category);
+    for(auto const& it : options.intOptions) categories.insert(it.second.category);
+    for(auto const& it : options.boolOptions) categories.insert(it.second.category);
+
+    for(auto const& cat : categories) {
+        std::cout << "\n\n" << cat << " options\n";
+        for(auto const& it : options.doubleOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
+                          << " = <double>   : " << it.second.verbose << " (default: " << it.second.value << ")\n";
+
+        for(auto const& it : options.intOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
+                          << " = <int>      : " << it.second.verbose << " (default: " << it.second.value << ")\n";
+
+        for(auto const& it : options.stringOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
+                          << " = <string>   : " << it.second.verbose << " (default: " << it.second.value << ")\n";
+
+        for(auto const& it : options.boolOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
+                          << " = <0/1>      : " << it.second.verbose << " (default: " << it.second.value << ")\n";
+    }
+    std::cout << "\n";
+    exit(1);
+}
