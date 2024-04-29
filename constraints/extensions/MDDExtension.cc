@@ -125,7 +125,7 @@ MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, vec
     : MDDExtension(p, n, vars, new MDD(transitions, vars)) { }
 
 
-MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m) : Extension(p, n, vars, true), mdd(m) {
+MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m) : Extension(p, n, vars, 0, true), mdd(m) {
     type          = "MDD";
     trueTimestamp = falseTimestamp = 1;
     nbValuesWithoutSupports.growTo(vars.size());

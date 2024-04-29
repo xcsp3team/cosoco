@@ -14,6 +14,7 @@
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
 #include "Precedence.h"
+#include "Reification.h"
 #include "XCSP3Constants.h"
 #include "constraints/globals/connection/element/ElementMatrix.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
@@ -60,7 +61,6 @@
 #include "primitives/LE.h"
 #include "primitives/LEUnary.h"
 #include "primitives/LT.h"
-#include "primitives/XeqYeqK.h"
 #include "primitives/xEqOryk.h"
 #include "utils/Verbose.h"
 
@@ -84,6 +84,11 @@ class FactoryConstraints {
     //--------------------------------------------------------------------------------------
     // Basic constraints
     //--------------------------------------------------------------------------------------
+
+    static void createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l) {
+        l.push(x);
+        p->addConstraint(new XeqAndY(*p, name, l));
+    }
 
     static void createConstraintXeqOrYeqK(Problem *p, std::string name, Variable *res, vec<Variable *> &cl, vec<int> &vals) {
         p->addConstraint(new xEqOryk(*p, name, res, cl, vals));
@@ -113,6 +118,39 @@ class FactoryConstraints {
 
     static void createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
         p->addConstraint(new XeqYeqK(*p, name, x, y, k));
+    }
+
+    static void createConstraintXeqYneK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+        p->addConstraint(new XeqYneK(*p, name, x, y, k));
+    }
+
+    static void createConstraintXeqKleY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+        p->addConstraint(new XeqKleY(*p, name, x, y, k));
+    }
+
+    static void createConstraintXeqYleK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+        p->addConstraint(new XeqYleK(*p, name, x, y, k));
+    }
+
+    static void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op) {
+        assert(x != y && x != z && y != z);
+        if(op == OLE) {
+            p->addConstraint(new ReifLE(*p, name, x, y, z));
+            return;
+        }
+        if(op == OLT) {
+            p->addConstraint(new ReifLT(*p, name, x, y, z));
+            return;
+        }
+        if(op == OEQ) {
+            p->addConstraint(new ReifEQ(*p, name, x, y, z));
+            return;
+        }
+        if(op == ONE) {
+            p->addConstraint(new ReifNE(*p, name, x, y, z));
+            return;
+        }
+        assert(false);
     }
 
     static void createConstraintMult(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
@@ -181,14 +219,14 @@ class FactoryConstraints {
             ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
         else {
             if(isSupport)
-                ctr = new ShortSTR2(*p, name, vars);
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
             else {
                 assert(hasStar == false);   // TODO
-                ctr = new STRNeg(*p, name, vars);
+                ctr = new STRNeg(*p, name, vars, tuples.size());
             }
         }
 
-        for(int i = 0; i < tuples.size(); i++) ctr->addTuple(tuples[i]);
+        for(auto &tuple : tuples) ctr->addTuple(tuple);
         return ctr;
     }
 
@@ -199,23 +237,22 @@ class FactoryConstraints {
     }
 
 
-    static void createConstraintExtensionAs(Problem *p, std::string name, vec<Variable *> &vars, bool isSupport) {
+    static void createConstraintExtensionAs(Problem *p, std::string name, vec<Variable *> &vars, Constraint *c) {
         Extension *ctr            = nullptr;
-        Extension *sameConstraint = (Extension *)p->constraints.last();
+        auto      *sameConstraint = (Extension *)c;
         assert(sameConstraint->scope.size() == vars.size());
-
-        Extension::nbShared++;
-
+        p->nbExtensionsSharded++;
         if(vars.size() == 1) {
-            p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values, isSupport));
+            p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values,
+                                       ((Unary *)p->constraints.last())->areSupports));
             return;
         }
 
         if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
 
         if(vars.size() > 2) {
-            if(isSupport)
+            if(sameConstraint->isSupport)
                 ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
             else
                 ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
@@ -370,7 +407,6 @@ class FactoryConstraints {
 
 
     static void createConstraintAllEqual(Problem *p, std::string name, vec<Variable *> &vars) {
-        verbose.log(NORMAL, "c AllEqual constraint using %d generic x=y constraints \n", vars.size() - 1);
         for(int i = 0; i < vars.size() - 1; i++) p->addConstraint(new EQ(*p, name, vars[i], vars[i + 1]));
     }
 

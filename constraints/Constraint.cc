@@ -176,7 +176,6 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
 
     for(int i = 0; i < x->domain.maxSize(); i++) {
         tuple[x->_name] = x->domain.toVal(i);
-
         if(posx == scope.size() - 2 && tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {
             auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
             if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
@@ -188,6 +187,11 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
                     tuple[scope.last()->_name] = eval;
                     assert(tuple.size() == scope.size());
                     for(auto &x : scope) supports.last().push(tuple[x->_name]);
+                } else {
+                    conflicts.push();
+                    tuple[scope.last()->_name] = eval;
+                    assert(tuple.size() == scope.size());
+                    for(auto &x : scope) conflicts.last().push(tuple[x->_name]);
                 }
                 continue;
             }

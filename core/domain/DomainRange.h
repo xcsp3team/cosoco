@@ -53,6 +53,13 @@ class DomainRange : public Domain {
         std::hash<std::string> h;
         return h(s);
     }
+
+    bool equals(Domain *d) override {
+        auto *dr = dynamic_cast<DomainRange *>(d);
+        if(dr == nullptr)
+            return false;
+        return min == dr->min && max == dr->max;
+    }
 };
 }   // namespace Cosoco
 #endif

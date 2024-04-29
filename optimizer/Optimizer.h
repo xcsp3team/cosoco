@@ -17,7 +17,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
    protected:
     long lower, upper;   // The current lower et upper bound
 
-    Solution *bestSolution;   // The solution manager (used to avoid problems if the solver is killed during solution storing
+    Solution *bestSolution;   // The solution callbacks (used to avoid problems if the solver is killed during solution storing
     long      best;           // Best value until now
    public:
     bool                 invertBestCost;   // usefull with sum and minimize, we invert the cost due to SumGE implementation only
@@ -29,9 +29,8 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     bool                 useDicothomicMode;   // TODO: class inheritence ?
     bool                 progressSaving;
     bool                 firstCall;
-    bool                 colors;   // Add colors to terminal
 
-    explicit Optimizer(Problem &p);
+    explicit Optimizer(Problem &p, Options &options);
 
     int  solve(vec<RootPropagation> &assumps) override;
     void printFinalStats() override;

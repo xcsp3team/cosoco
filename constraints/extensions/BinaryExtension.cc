@@ -7,7 +7,6 @@
 
 using namespace Cosoco;
 
-thread_local int Extension::nbShared = 0;   // Initialisation of static C++ fields is horrible :(
 
 //----------------------------------------------------------
 // check validity and correct definition

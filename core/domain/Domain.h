@@ -25,7 +25,7 @@ class Domain {
     using reverse_iterator = LinkedSetIterator;
 
     // Constructors and initialisation
-    explicit Domain(int sz) : idvs(sz, true) { }
+    Domain(int sz) : idvs(sz, true) { }
 
 
     void delayedConstruction(int nbVars) { }
@@ -152,6 +152,8 @@ class Domain {
     }
 
     virtual size_t hash() = 0;
+
+    virtual bool equals(Domain *d) = 0;
 };
 
 }   // namespace Cosoco

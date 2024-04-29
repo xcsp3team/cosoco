@@ -111,11 +111,12 @@ class Solution {   // This class comes from pseudo boolean competition and was p
 
         printf("v <values>");
         for(int i = 0; i < problem.nbVariables(); i++) {
-            if(problem.variables[i]->_name.rfind("__av", 0) != 0)
+            if(problem.variables[i]->_name.rfind("__av", 0) != 0) {
                 if((*preserved)[i] == STAR)
                     std::cout << "* ";
                 else
                     std::cout << (*preserved)[i] << " ";
+            }
         }
         printf("</values>\n");
 

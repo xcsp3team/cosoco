@@ -34,7 +34,7 @@ bool AdapterAC3rm::isItTimeToStartFiltering() {
     for(Variable *x : scope) {
         assert(x->size() > 0);
         nb *= x->size();
-        if(nb > 1000)
+        if(nb > maxSize)
             return false;
     }
     assert(nb > 0);
@@ -116,6 +116,7 @@ void AdapterAC3rm::reinitialize() { constraint->reinitialize(); }
 void AdapterAC3rm::attachSolver(Solver *s) {
     Constraint::attachSolver(s);
     constraint->attachSolver(s);
+    maxSize = solver->options.intOptions["limitac3card"].value;
 }
 
 void AdapterAC3rm::display(bool d) { constraint->display(d); }
