@@ -22,6 +22,18 @@ bool XeqYeqK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] == k
 bool XeqYneK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] != k); }
 bool XeqKleY::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (k <= tuple[1]); }
 bool XeqYleK::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] <= k); }
+bool XeqAndY::isSatisfiedBy(vec<int> &tuple) {
+    if(tuple.last() == 0) {
+        for(int i = 0; i < tuple.size() - 1; i++)
+            if(tuple[i] == 0)
+                return true;
+        return false;
+    }
+    for(int i = 0; i < tuple.size() - 1; i++)
+        if(tuple[i] == 0)
+            return false;
+    return true;
+}
 
 
 //----------------------------------------------
@@ -281,6 +293,63 @@ bool XeqYleK::filter(Variable *dummy) {
     return true;
 }
 
+Variable *XeqAndY::findSentinel(Cosoco::Variable *other) {
+    for(Variable *y : list)
+        if(y != other && y->minimum() == 0)
+            return y;
+    return nullptr;
+}
+
+bool XeqAndY::filter(Cosoco::Variable *dummy) {
+    for(Variable *y : list)
+        if(y->maximum() == 0) {                      // at least one var is false
+            if(solver->assignToVal(x, 0) == false)   // so x is false
+                return false;
+            solver->entail(this);
+            return true;
+        }
+
+    if(x->minimum() == 1) {   // x is true, all are true
+        for(Variable *y : list) solver->assignToVal(y, 1);
+        solver->entail(this);
+        return true;
+    }
+
+    if(x->maximum() == 0) {        // At least 1 y must be false
+        if(s1->minimum() == 1) {   // this is not a sentinel
+            Variable *tmp = findSentinel(s2);
+            if(tmp == nullptr) {   // no other sentinel
+                if(solver->assignToVal(s2, 0) == false)
+                    return false;
+                solver->entail(this);
+                return true;
+            }
+            s1 = tmp;
+        }
+        if(s2->minimum() == 1) {   // this is not a sentinel
+            Variable *tmp = findSentinel(s1);
+            if(tmp == nullptr) {   // no other sentinel
+                if(solver->assignToVal(s1, 0) == false)
+                    return false;
+                solver->entail(this);
+                return true;
+            }
+            s2 = tmp;
+        }
+        return true;
+    }
+
+    if(s1->minimum() == 0 || s2->minimum() == 0)
+        return true;   // everything is possible
+    for(Variable *y : list)
+        if(y->minimum() == 0) {
+            s1 = y;
+            return true;
+        }
+    solver->delVal(x, 0);
+    solver->entail(this);
+    return true;
+}
 
 //----------------------------------------------
 // Construction and initialisation
@@ -321,4 +390,13 @@ XeqKleY::XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) 
 }
 XeqYleK::XeqYleK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
     type = "X = (Y <= k)";
+}
+
+XeqAndY::XeqAndY(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &vars) : Constraint(p, n, vars) {
+    type = "X = AND(Y_i)";
+    x    = vars.last();
+    vars.copyTo(list);
+    list.pop();   // x is the last var
+    s1 = list[0];
+    s2 = list[1];
 }

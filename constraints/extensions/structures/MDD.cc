@@ -3,6 +3,8 @@
 #include <map>
 #include <set>
 
+#include "MDD.h"
+
 using namespace Cosoco;
 
 

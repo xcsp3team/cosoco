@@ -85,6 +85,11 @@ class FactoryConstraints {
     // Basic constraints
     //--------------------------------------------------------------------------------------
 
+    static void createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l) {
+        l.push(x);
+        p->addConstraint(new XeqAndY(*p, name, l));
+    }
+
     static void createConstraintXeqOrYeqK(Problem *p, std::string name, Variable *res, vec<Variable *> &cl, vec<int> &vals) {
         p->addConstraint(new xEqOryk(*p, name, res, cl, vals));
     }
