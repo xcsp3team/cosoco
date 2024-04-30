@@ -32,6 +32,8 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
     best                     = optimtype == Minimize ? LONG_MAX : LONG_MIN;
     solution->invertBestCost = invertBestCost;
     solution->optimType      = optimtype;
+    if(options.boolOptions["bs"].value)
+        addProgressSaving();
 }
 
 
