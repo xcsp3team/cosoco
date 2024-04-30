@@ -36,6 +36,7 @@ class MDD {
     MDDNode *root;
     MDDNode *trueNode;
     int      nbNodes;
+    u_char  *memoryNodes;   // Stores nodes in a contiguous memory zone
 
 
     MDD(vec<XCSP3Core::XTransition *> &transitions, vec<Variable *> &scope);

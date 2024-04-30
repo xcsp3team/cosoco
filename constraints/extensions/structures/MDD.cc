@@ -1,10 +1,10 @@
 #include "MDD.h"
 
 #include <map>
+#include <new>
 #include <set>
 
 #include "MDD.h"
-
 using namespace Cosoco;
 
 
@@ -31,9 +31,21 @@ MDD::MDD(vec<XCSP3Core::XTransition *> &transitions, vec<Variable *> &scope) {
     assert(possibleLeaves.size() == 1);
     assert(possibleRoots.size() == 1);
 
-    root                  = new MDDNode(*possibleRoots.begin(), nb++, 0, scope[0]->domain.maxSize());
-    nodes[root->name]     = root;
-    trueNode              = new MDDNode(*possibleLeaves.begin(), -1, -1, 0);
+    std::set<string> nodeNames;
+    for(XCSP3Core::XTransition *tr : transitions) {
+        nodeNames.insert(tr->from);
+        nodeNames.insert(tr->to);
+    }
+    memoryNodes = new u_char[sizeof(MDDNode) * nodeNames.size()];
+    u_char *ptr = memoryNodes;
+
+
+    root = new(ptr) MDDNode(*possibleRoots.begin(), nb++, 0, scope[0]->domain.maxSize());
+    ptr += sizeof(MDDNode);
+    nodes[root->name] = root;
+
+    trueNode = new(ptr) MDDNode(*possibleLeaves.begin(), -1, -1, 0);
+    ptr += sizeof(MDDNode);
     nodes[trueNode->name] = trueNode;
 
     for(XCSP3Core::XTransition *tr : transitions) {
@@ -43,7 +55,8 @@ MDD::MDD(vec<XCSP3Core::XTransition *> &transitions, vec<Variable *> &scope) {
         MDDNode *tgt = nodes[tr->to];
         if(tgt == nullptr) {
             assert(src->level + 1 < scope.size());
-            tgt              = new MDDNode(tr->to, nb++, src->level + 1, scope[src->level + 1]->domain.maxSize());
+            tgt = new(ptr) MDDNode(tr->to, nb++, src->level + 1, scope[src->level + 1]->domain.maxSize());
+            ptr += sizeof(MDDNode);
             nodes[tgt->name] = tgt;
         }
         src->addChild(idv, tgt);
