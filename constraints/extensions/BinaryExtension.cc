@@ -66,7 +66,12 @@ bool BinaryExtension::filter(Variable *dummy) {
 //----------------------------------------------------------
 
 BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variable *xx, Variable *yy)
-    : Extension(p, n, support, xx, yy), x(xx), y(yy), maxConflictsx(x->size() + 1), maxConflictsy(y->size() + 1), nbtuples(0) {
+    : Extension(p, n, createScopeVec(xx, yy), 0, support),
+      x(xx),
+      y(yy),
+      maxConflictsx(x->size() + 1),
+      maxConflictsy(y->size() + 1),
+      nbtuples(0) {
     matrix = new bool *[x->domain.maxSize()];
     for(int i = 0; i < x->domain.maxSize(); i++) {
         matrix[i] = new bool[y->domain.maxSize()];
@@ -77,7 +82,11 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
 
 BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variable *xx, Variable *yy,
                                  BinaryExtension *hasSameTuples)
-    : Extension(p, n, support, xx, yy), x(xx), y(yy), maxConflictsx(x->size() + 1), maxConflictsy(y->size() + 1) {
+    : Extension(p, n, createScopeVec(xx, yy), 0, support),
+      x(xx),
+      y(yy),
+      maxConflictsx(x->size() + 1),
+      maxConflictsy(y->size() + 1) {
     matrix   = hasSameTuples->matrix;
     nbtuples = hasSameTuples->nbtuples;
 }

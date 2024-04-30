@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include <utility>
+
 #include "XCSP3Tree.h"
 #include "mtl/Map.h"
 #include "solver/utils/FactoryConstraints.h"
@@ -13,61 +15,12 @@ using namespace Cosoco;
 
 
 // Constructors and delayed initialisation
+Constraint::Constraint(Problem &p, std::string n)
+    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
 
 Constraint::Constraint(Problem &p, std::string n, vec<Variable *> &vars)
-    : indexesAreValues(true), problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    scopeInitialisation(vars);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, Variable *xx, Variable *yy)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    vec<Variable *> v;
-    v.push(xx);
-    v.push(yy);
-    scopeInitialisation(v);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, Variable *x)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    vec<Variable *> v;
-    v.push(x);
-    scopeInitialisation(v);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, Variable *x, Variable *y, Variable *z)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    vec<Variable *> v;
-    v.push(x);
-    v.push(y);
-    v.push(z);
-    scopeInitialisation(v);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, int sz)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
-
-
-void Constraint::scopeInitialisation(vec<Variable *> &vars) {
-    assert(scope.size() == 0);   // Do it only one
-    vars.copyTo(scope);
-    idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
-    arity            = scope.size();
-    indexesAreValues = true;
-    unassignedVariablesIdx.setCapacity(arity, true);
-    assert(unassignedVariablesIdx.size() == arity);
-    for(int i = 0; i < vars.size(); i++) {
-        // indexesAreValues = indexesAreValues &&
-        //                   (vars[i]->domain[0] == 0 && vars[i]->domain[vars[i]->size() - 1] == vars[i]->size() - 1);
-        idxToScopePosition[vars[i]->idx] = i;
-    }
-    // TODO a bug occurs here
-    indexesAreValues = false;
-    current.growTo(vars.size());
-    wdeg.growTo(vars.size());
+    : indexesAreValues(true), problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
+    addToScope(vars);
 }
 
 
@@ -85,14 +38,35 @@ bool Constraint::scopeIsOk() {
     return true;
 }
 
+void Constraint::addToScope(Variable *x) { scope.push(x); }
+
+
+void Constraint::addToScope(vec<Variable *> &vars) {
+    for(Variable *v : vars) scope.push(v);
+}
+
 
 void Constraint::delayedConstruction(int id) {
-    if(idxToScopePosition.size() < problem.variables.size())
-        idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
-
+    for(Variable *x : scope) std::cout << x->_name << std::endl;
+    std::cout << "\n";
     assert(scope.size() > 0);   // scopeInitialisation have to be done
+    idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
+    arity            = scope.size();
+    indexesAreValues = true;
+    unassignedVariablesIdx.setCapacity(arity, true);
+    assert(unassignedVariablesIdx.size() == arity);
+    for(int i = 0; i < scope.size(); i++) {
+        // indexesAreValues = indexesAreValues &&
+        //                   (vars[i]->domain[0] == 0 && vars[i]->domain[vars[i]->size() - 1] == vars[i]->size() - 1);
+        idxToScopePosition[scope[i]->idx] = i;
+    }
+    // TODO a bug occurs here
+    indexesAreValues = false;
+    current.growTo(scope.size());
+    wdeg.growTo(scope.size());
     idc = id;
     for(Variable *v : scope) v->addConstraint(this);
+    std::cout << "la fin \n";
 }
 
 

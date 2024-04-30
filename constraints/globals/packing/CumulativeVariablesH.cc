@@ -59,4 +59,6 @@ CumulativeVariablesH::CumulativeVariablesH(Problem &p, std::string n, vec<Variab
 
 CumulativeVariablesHLimitV::CumulativeVariablesHLimitV(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l,
                                                        vec<Variable *> &h, Variable *_limit)
-    : CumulativeVariablesH(p, n, vars, l, h, _limit->maximum()), limitvar(_limit) { }
+    : CumulativeVariablesH(p, n, vars, l, h, _limit->maximum()), limitvar(_limit) {
+    addToScope(_limit);
+}

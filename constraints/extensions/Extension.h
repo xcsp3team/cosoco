@@ -30,13 +30,7 @@ class Extension : public Constraint {
         : Constraint(p, n, vars), isSupport(support), tuples(tuplesFromOtherConstraint) {
         type = "Extension";
     }
-
-
-    Extension(Problem &p, std::string n, bool support, Variable *xx, Variable *yy)
-        : Constraint(p, n, xx, yy), isSupport(support) {
-        type = "Extension";
-    }
-
+    
 
     virtual void addTuple(vec<int> &tupleIdv) {
         // Check if tuples are inside domains

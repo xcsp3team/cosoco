@@ -46,17 +46,12 @@ class Constraint {
 
     // Constructors and delayed initialisation
     Constraint(Problem &p, std::string n, vec<Variable *> &vars);
-    Constraint(Problem &p, std::string n, Variable *x);                             // For unary constraints
-    Constraint(Problem &p, std::string n, Variable *x, Variable *y);                // For binary constraints
-    Constraint(Problem &p, std::string n, Variable *x, Variable *y, Variable *z);   // For Ternary constraints
-    Constraint(Problem &p, std::string n,
-               int nbVars);   // For global constraint when scope is related to many different vars.
-                              // Do not forget to call scopeInitialisation and to specify nb vars in scope
+    Constraint(Problem &p, std::string n);   // For global constraints, the scope is managed by themselves
+    bool         scopeIsOk();                // is the scope is correctly defined?
+    virtual bool isCorrectlyDefined();       // is the constraint is correctly defined?
+    void         addToScope(vec<Variable *> &vars);
+    void         addToScope(Variable *x);
 
-    bool         scopeIsOk();            // is the scope is correctly defined?
-    virtual bool isCorrectlyDefined();   // is the constraint is correctly defined?
-    void         scopeInitialisation(
-                vec<Variable *> &vars);         // Usefull  when scope has to be built with different vars (global constraint)
     virtual void delayedConstruction(int id);   // Called at the end of the construction of the problems
 
     // Filtering method, return false if a conflict occurs

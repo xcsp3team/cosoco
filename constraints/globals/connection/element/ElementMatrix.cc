@@ -116,7 +116,7 @@ ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m
         cindexPosition = vars.size() - 1;
     }
 
-    scopeInitialisation(vars);
+    addToScope(vars);
 
     rsentinels.growTo(matrix.size(), -1);
     csentinels.growTo(matrix.size(), -1);

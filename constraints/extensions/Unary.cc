@@ -16,7 +16,7 @@ bool Cosoco::Unary::isSatisfiedBy(Cosoco::vec<int> &tuple) { return values.conta
 //----------------------------------------------------------
 
 Unary::Unary(Problem &p, std::string n, Variable *xx, const vec<int> &vals, bool areS)
-    : Constraint(p, n, xx), x(xx), done(false), areSupports(areS) {
+    : Constraint(p, n, createScopeVec(xx)), x(xx), done(false), areSupports(areS) {
     vals.copyTo(values);
     type = "Unary";
 }
