@@ -23,7 +23,9 @@ bool CumulativeVariablesH::isSatisfiedBy(vec<int> &tuple) {
     return Cumulative::isSatisfiedBy(st);
 }
 
-
+bool CumulativeVariablesHLimitV::isSatisfiedBy(vec<int> &tuple) {
+    return true;   // TODO
+}
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
@@ -36,6 +38,14 @@ bool CumulativeVariablesH::filter(Variable *dummy) {
     return true;
 }
 
+bool CumulativeVariablesHLimitV::filter(Variable *dummy) {
+    for(int i = 0; i < starts.size(); i++) wheights[i] = heightVariables[i]->minimum();
+    limit = limitvar->maximum();
+    if(Cumulative::filter(dummy) == false)
+        return false;
+    filterHeightVariables(heightVariables);
+    return true;
+}
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -46,3 +56,7 @@ CumulativeVariablesH::CumulativeVariablesH(Problem &p, std::string n, vec<Variab
     h.copyTo(heightVariables);
     wheights.growTo(h.size(), 0);
 }
+
+CumulativeVariablesHLimitV::CumulativeVariablesHLimitV(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l,
+                                                       vec<Variable *> &h, Variable *_limit)
+    : CumulativeVariablesH(p, n, vars, l, h, _limit->maximum()), limitvar(_limit) { }

@@ -1071,9 +1071,10 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
     vals.copyTo(l);
     toMyVariables(varHeights, myvarHeights);
     toMyVariables(origins, vars);
-    if(xc.operandType == VARIABLE) {
-        throw std::runtime_error("Cumulative with var Heights and condition variable is not yet implemented");
-    } else
+    if(xc.operandType == VARIABLE)
+        FactoryConstraints::createConstraintCumulativeHeightVariableLV(problem, id, vars, l, myvarHeights,
+                                                                       problem->mapping[xc.var]);
+    else
         FactoryConstraints::createConstraintCumulativeHeightVariable(problem, id, vars, l, myvarHeights, xc.val);
 }
 

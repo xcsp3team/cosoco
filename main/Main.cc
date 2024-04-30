@@ -315,15 +315,16 @@ static void SIGINT_exit(int signum) {
             colorize(termcolor::bright_green, options.boolOptions["colors"].value);
             if(solvers[0]->nbSolutions >= 1)
                 printf("d N_SOLUTIONS %d\n", solvers[0]->nbSolutions);
+            resetcolors();
+
             if(optimize) {
                 if(solvers[0]->hasSolution()) {
                     printf("s SATISFIABLE\n");
                     printf("c Best value found: %ld\n\n", ((Optimizer *)solvers[0])->bestCost());
-                    if(solvers[0]->displayModels)
+                    if(solvers[0]->options.boolOptions["model"].value)
                         solvers[0]->displayCurrentSolution();
                 } else
                     printf("c No Bound found!\n\ns UNKNOWN\n");
-
             } else {
                 if(solvers[0]->nbSolutions > 0)
                     printf("s SATISFIABLE\n");

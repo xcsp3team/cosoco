@@ -30,7 +30,6 @@ using namespace Cosoco;
 
 
 void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
-    std::cout << "idi\n";
     std::string str = std::string(argv[1]);
     if(str == "--help")
         printUsageAndExit(options);

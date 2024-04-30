@@ -747,6 +747,11 @@ class FactoryConstraints {
         p->addConstraint(new CumulativeVariablesH(*p, name, vars, lengths, heights, limit));
     }
 
+    static void createConstraintCumulativeHeightVariableLV(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
+                                                           vec<Variable *> &heights, Variable *limit) {
+        p->addConstraint(new CumulativeVariablesHLimitV(*p, name, vars, lengths, heights, limit));
+    }
+
     static void createConstraintCumulativeWidthVariables(Problem *p, std::string name, vec<Variable *> &vars,
                                                          vec<Variable *> &lengths, vec<int> &heights, int limit) {
         p->addConstraint(new CumulativeVariablesW(*p, name, vars, lengths, heights, limit));
