@@ -47,8 +47,6 @@ void Constraint::addToScope(vec<Variable *> &vars) {
 
 
 void Constraint::delayedConstruction(int id) {
-    for(Variable *x : scope) std::cout << x->_name << std::endl;
-    std::cout << "\n";
     assert(scope.size() > 0);   // scopeInitialisation have to be done
     idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
     arity            = scope.size();
@@ -66,7 +64,6 @@ void Constraint::delayedConstruction(int id) {
     wdeg.growTo(scope.size());
     idc = id;
     for(Variable *v : scope) v->addConstraint(this);
-    std::cout << "la fin \n";
 }
 
 
