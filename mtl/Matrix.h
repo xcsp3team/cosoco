@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Vec.h"
+#include "XCSP3Constants.h"
 namespace Cosoco {
 class Matrix {
     size_t                 _nrows;
@@ -17,8 +18,9 @@ class Matrix {
     std::unique_ptr<int[]> data;
 
    public:
+    bool starred;
     Matrix(size_t rows, size_t columns)
-        : _nrows {rows}, _ncolumns {columns}, _maxrows(0), data {std::make_unique<int[]>(rows * columns)} { }
+        : _nrows {rows}, _ncolumns {columns}, _maxrows(0), data {std::make_unique<int[]>(rows * columns)}, starred(false) { }
 
     size_t nrows() const { return _maxrows; }
 
@@ -28,7 +30,12 @@ class Matrix {
     int &operator()(size_t row, size_t column) { return data[row * _ncolumns + column]; }
     void addTuple(vec<int> &tuple) {
         int i = 0;
-        for(int idv : tuple) (*this)(_maxrows, i++) = idv;
+        for(int idv : tuple) {
+            if(idv == STAR)
+                starred = true;
+            (*this)(_maxrows, i++) = idv;
+        }
+
         _maxrows++;
     }
 };

@@ -288,7 +288,7 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
-    if(displayModels)
+    if(options.boolOptions["model"].value)
         displayCurrentSolution();
 
     if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
@@ -308,6 +308,7 @@ bool Solver::manageSolution() {
 
 void Solver::newDecision(Variable *x, int idv) {
     decisions++;
+    nodes++;
     assert(x->size() >= 1);
     unassignedVariables.del(x);   // Now, x is assigned
     decisionVariables.del(x);
@@ -414,6 +415,7 @@ void Solver::handleFailure(Variable *x, int idv) {
         idvtmp = decisionVariablesId.last();
         backtrack();
         delIdv(tmp, idvtmp);
+        nodes++;
     }
 }
 
