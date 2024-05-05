@@ -44,7 +44,6 @@ bool CompactTable::filter(Variable *dummy) {
         Variable *x = scope[posx];
         // std::cout << "modify mask for " << x->_name << " " << x->size() << std::endl;
         if(0 && x->size() > 1 && deltaSizes[posx] <= x->size()) {
-            std::cout << "la \n";
             for(int cnt = deltaSizes[posx] - 1, idv = x->domain.lastRemoved(); cnt >= 0; cnt--) {
                 addToMask(!starred ? masks[posx][idv] : masksStarred[posx][idv]);
                 idv = x->domain.prevRemoved(idv);
@@ -232,7 +231,7 @@ void CompactTable::delayedConstruction(int id) {
         }
     } else {
         for(int posx = 0; posx < scope.size(); posx++) {
-            for(int i = 0; i < tuples->nrows(); i++) {
+            for(size_t i = 0; i < tuples->nrows(); i++) {
                 auto idInCurrent = i / SIZEW;   // The word in current
                 auto pos         = i % SIZEW;
                 if((*tuples)[i][posx] != STAR)
