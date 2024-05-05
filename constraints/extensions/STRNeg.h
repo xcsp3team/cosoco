@@ -20,7 +20,7 @@ class STRNeg : public Extension, ObserverDeleteDecision {
    public:
     // Constructors and construction
     STRNeg(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
-    STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix *tuplesFromOtherConstraint);
+    STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
     void delayedConstruction(int id) override;
     bool isCorrectlyDefined() override;
     void attachSolver(Solver *s) override;

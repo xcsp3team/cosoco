@@ -141,7 +141,7 @@ STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tu
 }
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix *tuplesFromOtherConstraint)
+STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, false, tuplesFromOtherConstraint) {
     type = "Extension";
 }
