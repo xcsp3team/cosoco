@@ -36,13 +36,13 @@ bool CompactTable::filter(Variable *dummy) {
     if(firstCall && onFirstCall() == false)
         return false;
     beforeFiltering();
-    std::cout << "\nbefore\n";
-    displayCurrent(current);
-    // we compute in mask the bit vector denoting all deleted tuples (and then we inverse it)
+    // std::cout << "\nbefore\n";
+    // displayCurrent(current);
+    //  we compute in mask the bit vector denoting all deleted tuples (and then we inverse it)
     clearMask();
     for(int posx : SVal) {
         Variable *x = scope[posx];
-        std::cout << "modify mask for " << x->_name << " " << x->size() << std::endl;
+        // std::cout << "modify mask for " << x->_name << " " << x->size() << std::endl;
         if(0 && x->size() > 1 && deltaSizes[posx] <= x->size()) {
             std::cout << "la \n";
             for(int cnt = deltaSizes[posx] - 1, idv = x->domain.lastRemoved(); cnt >= 0; cnt--) {
@@ -50,21 +50,19 @@ bool CompactTable::filter(Variable *dummy) {
                 idv = x->domain.prevRemoved(idv);
             }
         } else if(x->size() == 1) {
-            std::cout << " ici \n";
             addInverseToMask(masks[posx][x->domain[0]]);
         } else {
             fillTo0(tmp);
             for(int idv : x->domain) make_or(tmp, masks[posx][idv]);
             addInverseToMask(tmp);
         }
-        displayCurrent(mask);
+        // displayCurrent(mask);
     }
     // we update the current table (array 'current') while possibly deleting words at 0 in nonZeros
     intersectWithMask();
-    std::cout << "\nafter\n";
-    displayCurrent(current);
+    // displayCurrent(current);
 
-    std::cout << "size non zeros: " << nonZeros.size() << " max size " << nonZeros.maxSize() << std::endl;
+    // std::cout << "size non zeros: " << nonZeros.size() << " max size " << nonZeros.maxSize() << std::endl;
     if(nonZeros.size() == 0)
         return false;   // inconsistency detected
 
@@ -95,7 +93,7 @@ void CompactTable::beforeFiltering() {
     }
     if(SVal.size() == 1)
         SSup.remove(SVal[0]);
-    std::cout << "sval szie:" << SVal.size() << " SSup size " << SSup.size() << "\n";
+    // std::cout << "sval szie:" << SVal.size() << " SSup size " << SSup.size() << "\n";
 }
 
 void CompactTable::manageLastPastVar() {
@@ -151,10 +149,9 @@ void CompactTable::wordModified(int index, BITSET oldValue) {
 
 
 void CompactTable::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    std::cout << "stacks\n";
-    for(auto &s : stackStructure) std::cout << "(level:" << s.level << ",nb:" << s.nb << ")";
-    std::cout << std::endl;
-    std::cout << "decision level" << s.decisionLevel() << "\n";
+    // std::cout << "stacks\n";
+    // for(auto &s : stackStructure) std::cout << "(level:" << s.level << ",nb:" << s.nb << ")";
+    // std::cout << std::endl;
     if(stackedWords.size() > 0 && stackStructure.last().level == s.decisionLevel() + 1) {
         for(int i = stackStructure.last().nb - 1; i >= 0; i--) {
             current[stackedIndexes.last()] = stackedWords.last();
@@ -175,9 +172,9 @@ void CompactTable::intersectWithMask() {
         BITSET l = current[id] & ~mask[id];   // we inverse mask
         if(current[id] != l) {
             wordModified(id, current[id]);
-            std::cout << id << "=> " << std::bitset<SIZEW>(l) << "\n";
-            std::cout << "c=> " << std::bitset<SIZEW>(current[id]) << "\n";
-            std::cout << "m=> " << std::bitset<SIZEW>(~mask[id]) << "\n";
+            // std::cout << id << "=> " << std::bitset<SIZEW>(l) << "\n";
+            // std::cout << "c=> " << std::bitset<SIZEW>(current[id]) << "\n";
+            // std::cout << "m=> " << std::bitset<SIZEW>(~mask[id]) << "\n";
             current[id] = l;
 
             if(l == BZERO) {
@@ -207,9 +204,7 @@ CompactTable::CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Mat
 void CompactTable::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     // Create space
-    nWords = (int)ceil(((double)tuples->nrows()) / ((double)SIZEW));
-    std::cout << " " << nWords << " "
-              << "\n";
+    nWords         = (int)ceil(((double)tuples->nrows()) / ((double)SIZEW));
     current        = new BITSET[nWords];
     mask           = new BITSET[nWords];
     tmp            = new BITSET[nWords];
@@ -232,25 +227,30 @@ void CompactTable::delayedConstruction(int id) {
         for(size_t i = 0; i < tuples->nrows(); i++) {   // For each tuple
             auto idInCurrent = i / SIZEW;               // The word in current
             auto pos         = i % SIZEW;               // Bit position
-            for(size_t j = 0; j < tuples->ncolumns(); j++)
-                masks[j][(*tuples)[i][j]][idInCurrent] |= SETBIT(pos);   // the idv for x is in this tuple
+            for(size_t posx = 0; posx < tuples->ncolumns(); posx++)
+                masks[posx][(*tuples)[i][posx]][idInCurrent] |= SETBIT(pos);   // the idv for x is in this tuple
         }
     } else {
-        assert(false);
-        /*for(int posx = 0; posx < scope.size(); posx++) {
-            for(int j = 0; j < tuples->nrows(); j++)
-                if((*tuples)[j][posx] != STAR)
-                    masks[j][(*tuples)[j][posx]][idInCurrent] |= SETBIT(pos);
-                else
-                    for(int a = 0; a < mask.length; a++) Bit.setTo1(mask[a], j);
+        for(int posx = 0; posx < scope.size(); posx++) {
+            for(int i = 0; i < tuples->nrows(); i++) {
+                auto idInCurrent = i / SIZEW;   // The word in current
+                auto pos         = i % SIZEW;
+                if((*tuples)[i][posx] != STAR)
+                    masks[posx][(*tuples)[i][posx]][idInCurrent] |= SETBIT(pos);
+                else {
+                    for(int idv = 0; idv < scope[posx]->domain.maxSize(); idv++) masks[posx][idv][idInCurrent] |= SETBIT(pos);
+                }
+            }
+            /*
+           createMemoryForMask(masksStarred);
+           for(int x = 0; x < scp.length; x++) {
+               long[][] mask = masksS[x];
+               for(int j = 0; j < tuples.length; j++)
+                   if(tuples[j][x] != Constants.STAR)
+                       Bit.setTo1(mask[tuples[j][x]], j);
+           }
+           */
         }
-        createMemoryForMask(masksStarred);
-        for(int x = 0; x < scp.length; x++) {
-            long[][] mask = masksS[x];
-            for(int j = 0; j < tuples.length; j++)
-                if(tuples[j][x] != Constants.STAR)
-                    Bit.setTo1(mask[tuples[j][x]], j);
-        }*/
     }
 
     modifiedWords.growTo(nWords, false);
@@ -262,14 +262,13 @@ void CompactTable::delayedConstruction(int id) {
     firstCall = true;
     lastSizes.growTo(scope.size(), 0);
     lastTimestamps = 0;
-    displaySupports();
+    // displaySupports();
 }
 
 
 bool CompactTable::onFirstCall() {
     firstCall = false;
     int posx  = 0;
-    std::cout << lastSizes.size() << std::endl;
     for(Variable *x : scope) {
         for(int idv : x->domain) {
             int r = firstNonNullIntersectionIndex(current, masks[posx][idv]);
