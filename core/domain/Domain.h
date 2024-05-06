@@ -96,6 +96,10 @@ class Domain {
 
     inline int lastId() { return idvs.last(); }
 
+    inline int lastRemoved() { return idvs.lastRemoved(); }
+
+    inline int prevRemoved(int id) { return idvs.prevRemoved(id); }
+
 
     // return the next valid index in the domain, -1 if none exists (in such a case, idx is equal to the max
     /*inline int nextValidIndex(int currentIdv) {

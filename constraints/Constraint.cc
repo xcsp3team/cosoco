@@ -107,13 +107,19 @@ void Constraint::unassignVariable(Variable *x) {
 int Constraint::toScopePosition(int idx) {
     switch(scope.size()) {
         case 2:
-            return scope[0]->idx == idx ? 0 : 1;
+            if(scope[0]->idx == idx)
+                return 0;
+            if(scope[1]->idx == idx)
+                return 1;
+            return NOTINSCOPE;
         case 3:
             if(scope[0]->idx == idx)
                 return 0;
             if(scope[1]->idx == idx)
                 return 1;
-            return 2;
+            if(scope[2]->idx == idx)
+                return 2;
+            return NOTINSCOPE;
     }
     return idxToScopePosition[idx];
 }

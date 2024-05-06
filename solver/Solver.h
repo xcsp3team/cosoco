@@ -41,7 +41,7 @@ class Solver : public AbstractSolver {
     vec<vec<int> > allSolutions;
 #endif
     // -- Main Stats ------------------------------------------------------------------------
-    uint64_t decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0;
+    uint64_t decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0, nodes = 0;
     uint64_t filterCalls = 0;
 
 
@@ -194,9 +194,10 @@ class Solver : public AbstractSolver {
     void displayHeaderCurrentSearchSpace();
     void displayCurrentSearchSpace();
 
-    void updateStatisticsWithNewConflict();
-    bool hasASolution() { return lastSolution.size() > 0; }
-    void displayTrail();
+    uint64_t globalTimestamps() { return conflicts + decisions + nodes; }
+    void     updateStatisticsWithNewConflict();
+    bool     hasASolution() { return lastSolution.size() > 0; }
+    void     displayTrail();
 
     void interrupt();   // Trigger a (potentially asynchronous) interruption of the solver.
 

@@ -24,10 +24,9 @@ class RootPropagation {   // x equal idv ??
 
 class AbstractSolver {
    public:
-    Problem   &problem;   // The problem to solve
-    int        core;      // The id of the core (used in // track)
-    STATE      status;    // The status of the solver
-    bool       displayModels;
+    Problem   &problem;       // The problem to solve
+    int        core;          // The id of the core (used in // track)
+    STATE      status;        // The status of the solver
     int        nbSolutions;   // Number of solutions already found
     int        lastSolutionRun;
     Verbose    verbose;       // The level of verbose mode 0..3
@@ -44,7 +43,7 @@ class AbstractSolver {
     virtual void displayCurrentSolution() = 0;   // displayCurrentBranch the current solution
 
     AbstractSolver(Problem &pp, Options &o)
-        : problem(pp), core(0), status(RUNNING), displayModels(false), nbSolutions(0), random_seed(91648253), options(o) { }
+        : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253), options(o) { }
 
 
     void setVerbosity(int vv) {

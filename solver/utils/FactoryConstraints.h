@@ -6,6 +6,7 @@
 
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
+#include "CompactTable.h"
 #include "Constraint.h"
 #include "CumulativeVariablesC.h"
 #include "CumulativeVariablesH.h"
@@ -218,9 +219,10 @@ class FactoryConstraints {
         if(vars.size() == 2)
             ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
         else {
-            if(isSupport)
-                ctr = new ShortSTR2(*p, name, vars, tuples.size());
-            else {
+            if(isSupport) {
+                ctr = new CompactTable(*p, name, vars, tuples.size());
+                // ctr = new ShortSTR2(*p, name, vars, tuples.size());
+            } else {
                 assert(hasStar == false);   // TODO
                 ctr = new STRNeg(*p, name, vars, tuples.size());
             }

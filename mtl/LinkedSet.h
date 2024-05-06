@@ -34,14 +34,14 @@ class LinkedSet {
     vec<int> nexts;
 
 
-    int lastRemoved;   // The last dropped element of the list.
+    int _lastRemoved;   // The last dropped element of the list.
 
     /**
      * The backward linking of all absent elements of the list (from last to first). An array index corresponds to an element. An
      * array value gives the previous absent element of the list or -1 if it does not exist. Hence, <code> prevsDel[i] == j
      * </code> means that j is the previously deleted element of the list before i.
      */
-    vec<int> prevRemoved;
+    vec<int> _prevRemoved;
 
     /**
      * The level at which absent elements have been removed from the list. An array index corresponds to an element. An array
@@ -70,12 +70,12 @@ class LinkedSet {
         else
             prevs[next] = prev;
         // add to the end of the list of absent elements
-        prevRemoved[a] = lastRemoved;
-        lastRemoved    = a;
+        _prevRemoved[a] = _lastRemoved;
+        _lastRemoved    = a;
     }
 
     inline void add(const int a) {
-        assert(lastRemoved == a);
+        assert(_lastRemoved == a);
         // add to the list of present elements (works only if elements are managed as in a stack)
         int prev = prevs[a], next = nexts[a];
         if(prev == -1)
@@ -87,7 +87,7 @@ class LinkedSet {
         else
             prevs[next] = a;
         // remove from the list of absent elements
-        lastRemoved = prevRemoved[a];
+        _lastRemoved = _prevRemoved[a];
     }
 
    public:
@@ -104,7 +104,7 @@ class LinkedSet {
         _last  = cap - 1;
         prevs.growTo(cap);
         nexts.growTo(cap);
-        prevRemoved.growTo(cap, -1);
+        _prevRemoved.growTo(cap, -1);
         removedLevels.growTo(cap, -1);
         fill();
     }
@@ -118,8 +118,8 @@ class LinkedSet {
         for(int i = 0; i < prevs.size(); i++) prevs[i] = i - 1;
         for(int i = 0; i < nexts.size(); i++) nexts[i] = i + 1;
         nexts.last() = -1;
-        lastRemoved  = -1;
-        prevRemoved.fill(-1);
+        _lastRemoved = -1;
+        _prevRemoved.fill(-1);
         removedLevels.fill(-1);
     }
 
@@ -191,6 +191,9 @@ class LinkedSet {
 
     int last() { return _last; }
 
+    int lastRemoved() const { return _lastRemoved; }
+
+    int prevRemoved(int id) { return _prevRemoved[id]; }
 
     int next(int a) {
         assert(a >= 0 && a < maxSize());
@@ -221,9 +224,7 @@ class LinkedSet {
         return prev;
     }
 
-    int lastRemovedLevel() {
-        return lastRemoved == -1 ? -1 : removedLevels[lastRemoved];
-    }
+    int lastRemovedLevel() { return _lastRemoved == -1 ? -1 : removedLevels[_lastRemoved]; }
 
     bool isLimitRecordedAtLevel(int level) { return level < limits.size() && limits[level] != NOT_STORED; }
 
@@ -236,16 +237,16 @@ class LinkedSet {
     }
 
     void restoreLastDropped() {
-        assert(lastRemoved != -1 && !contains(lastRemoved));
-        removedLevels[lastRemoved] = -1;
+        assert(_lastRemoved != -1 && !contains(_lastRemoved));
+        removedLevels[_lastRemoved] = -1;
         _size++;
-        add(lastRemoved);
+        add(_lastRemoved);
     }
 
 
     void restoreLimit(int level) {
-        assert(lastRemoved == -1 || removedLevels[lastRemoved] <= level);
-        for(int a = lastRemoved; a != -1 && removedLevels[a] >= level; a = lastRemoved) restoreLastDropped();
+        assert(_lastRemoved == -1 || removedLevels[_lastRemoved] <= level);
+        for(int a = _lastRemoved; a != -1 && removedLevels[a] >= level; a = _lastRemoved) restoreLastDropped();
         limits[level] = NOT_STORED;
     }
 
