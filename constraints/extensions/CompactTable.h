@@ -9,15 +9,15 @@
 #include "Extension.h"
 #include "ObserverDecision.h"
 #include "SparseSetMultiLevel.h"
-#define BITSET  unsigned long long
-#define SIZEW   (8 * sizeof(BITSET))
-#define ONLYONE 0xFFFFFFFFFFFFFFFF
-#define BONE    1uLL
-#define BZERO   0uLL
+#define BITSET      unsigned long long
+#define SIZEW       (8 * sizeof(BITSET))
+#define BIT_ALL_ONE 0xFFFFFFFFFFFFFFFF
+#define BIT_ONE     1uLL
+#define BIT_ZERO    0uLL
 
-#define ONETO(n)         ((BONE << n) - 1)
-#define ZEROTO(n)        (~((BONE << n) - 1))
-#define SETBIT(position) (BONE << position)
+#define ONETO(n)         ((BIT_ONE << n) - 1)
+#define ZEROTO(n)        (~((BIT_ONE << n) - 1))
+#define SETBIT(position) (BIT_ONE << position)
 
 
 namespace Cosoco {
@@ -53,12 +53,12 @@ class CompactTable : public Extension, ObserverDeleteDecision {
 
     // Bitset methods
     void fillTo1(BITSET *bitset) const {
-        for(int i = 0; i < nWords; i++) bitset[i] = ONLYONE;
+        for(int i = 0; i < nWords; i++) bitset[i] = BIT_ALL_ONE;
         bitset[nWords - 1] = lastWord1Then0;
     }
 
     void fillTo0(BITSET *bitset, bool except_end = true) const {
-        for(int i = 0; i < nWords; i++) bitset[i] = BZERO;
+        for(int i = 0; i < nWords; i++) bitset[i] = BIT_ZERO;
         if(except_end)
             bitset[nWords - 1] = lastWord0Then1;
     }
@@ -80,7 +80,7 @@ class CompactTable : public Extension, ObserverDeleteDecision {
 
     int firstNonNullIntersectionIndex(const BITSET *t1, const BITSET *t2) {
         for(int idx : nonZeros)
-            if((t1[idx] & t2[idx]) != BZERO)
+            if((t1[idx] & t2[idx]) != BIT_ZERO)
                 return idx;
         return -1;
     }

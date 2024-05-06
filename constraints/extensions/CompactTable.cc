@@ -113,7 +113,7 @@ void CompactTable::updateDomains() {   // we update domains (inconsistency is no
         Variable *x = scope[posx];
         for(int idv : x->domain) {
             int r = residues[posx][idv];
-            if((current[r] & masks[posx][idv][r]) != BZERO)   //  residue is still ok
+            if((current[r] & masks[posx][idv][r]) != BIT_ZERO)   //  residue is still ok
                 continue;
             r = firstNonNullIntersectionIndex(current, masks[posx][idv]);
             if(r != -1) {
@@ -173,7 +173,7 @@ void CompactTable::intersectWithMask() {
             // std::cout << "m=> " << std::bitset<SIZEW>(~mask[id]) << "\n";
             current[id] = l;
 
-            if(l == BZERO) {
+            if(l == BIT_ZERO) {
                 if(nonZeros.isLimitRecordedAtLevel(level) == false)
                     nonZeros.recordLimit(level);
                 nonZeros.del(id);
@@ -204,7 +204,7 @@ void CompactTable::delayedConstruction(int id) {
     current        = new BITSET[nWords];
     mask           = new BITSET[nWords];
     tmp            = new BITSET[nWords];
-    lastWord1Then0 = tuples->nrows() % SIZEW != 0 ? ONETO(tuples->nrows() % 64) : ONLYONE;
+    lastWord1Then0 = tuples->nrows() % SIZEW != 0 ? ONETO(tuples->nrows() % 64) : BIT_ALL_ONE;
     lastWord0Then1 = tuples->nrows() % SIZEW != 0 ? ZEROTO(tuples->nrows() % 64) : 0uLL;
     fillTo1(current);
     starred = tuples->starred;
