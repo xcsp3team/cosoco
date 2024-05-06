@@ -191,7 +191,7 @@ CompactTable::CompactTable(Cosoco::Problem &p, std::string n, vec<Cosoco::Variab
 }
 
 
-CompactTable::CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Matrix *tuplesFromOtherConstraint)
+CompactTable::CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint), nonZeros() {
     type = "Extension";
 }

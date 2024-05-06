@@ -16,7 +16,7 @@ using namespace Cosoco;
 bool BinaryExtension::isSatisfiedBy(vec<int> &tuple) {
     int idvx = x->domain.toIdv(tuple[0]);
     int idvy = y->domain.toIdv(tuple[1]);
-    return ((isSupport && matrix[idvx][idvy]) || (!isSupport && matrix[idvx][idvy] == false));
+    return ((isSupport && (*matrix)[idvx][idvy]) || (!isSupport && (*matrix)[idvx][idvy] == false));
 }
 
 //----------------------------------------------------------
