@@ -10,9 +10,9 @@ class BinaryExtension : public Extension {
     vec<int>  resy;    // residue for y
     Variable *x, *y;   // Do not want to extends Binary
 
-    int    maxConflictsx, maxConflictsy;
-    int    nbtuples;
-    bool **matrix;
+    int           maxConflictsx, maxConflictsy;
+    int           nbtuples;
+    Matrix<bool> *matrix;
 
    public:
     // Constructors and initialisation
@@ -30,7 +30,7 @@ class BinaryExtension : public Extension {
 
     void delayedConstruction(int id) override;
 
-    int nbTuples() override;
+    size_t nbTuples() override;
 };
 }   // namespace Cosoco
 

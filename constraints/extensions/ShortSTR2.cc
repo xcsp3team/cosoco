@@ -129,7 +129,7 @@ ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, size_t ma
 }
 
 
-ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix *tuplesFromOtherConstraint)
+ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
     type = "Extension";

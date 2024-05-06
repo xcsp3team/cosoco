@@ -16,21 +16,21 @@
 namespace Cosoco {
 class Extension : public Constraint {
    public:
-    bool    isSupport;
-    Matrix *tuples;
+    bool         isSupport;
+    Matrix<int> *tuples;
 
     Extension(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples, bool support)
         : Constraint(p, n, vars), isSupport(support) {
         type   = "Extension";
-        tuples = new Matrix(max_n_tuples, vars.size());
+        tuples = new Matrix<int>(max_n_tuples, vars.size());
     }
 
 
-    Extension(Problem &p, std::string n, vec<Variable *> &vars, bool support, Matrix *tuplesFromOtherConstraint)
+    Extension(Problem &p, std::string n, vec<Variable *> &vars, bool support, Matrix<int> *tuplesFromOtherConstraint)
         : Constraint(p, n, vars), isSupport(support), tuples(tuplesFromOtherConstraint) {
         type = "Extension";
     }
-    
+
 
     virtual void addTuple(vec<int> &tupleIdv) {
         // Check if tuples are inside domains
@@ -41,7 +41,7 @@ class Extension : public Constraint {
     }
 
 
-    virtual int nbTuples() { return tuples->nrows(); }
+    virtual size_t nbTuples() { return tuples->nrows(); }
 };
 }   // namespace Cosoco
 

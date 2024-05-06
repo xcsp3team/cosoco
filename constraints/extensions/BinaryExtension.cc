@@ -31,7 +31,7 @@ bool BinaryExtension::filter(Variable *dummy) {
                 continue;
             bool found = false;
             for(int idvy : y->domain) {
-                if((isSupport && matrix[idvx][idvy] == true) || (!isSupport && matrix[idvx][idvy] == false)) {
+                if((isSupport && (*matrix)[idvx][idvy] == true) || (!isSupport && (*matrix)[idvx][idvy] == false)) {
                     resx[idvx] = idvy;
                     found      = true;
                     break;
@@ -47,7 +47,7 @@ bool BinaryExtension::filter(Variable *dummy) {
                 continue;
             bool found = false;
             for(int idvx : x->domain) {
-                if((isSupport && matrix[idvx][idvy] == true) || (!isSupport && matrix[idvx][idvy] == false)) {
+                if((isSupport && (*matrix)[idvx][idvy] == true) || (!isSupport && (*matrix)[idvx][idvy] == false)) {
                     resy[idvy] = idvx;
                     found      = true;
                     break;
@@ -72,11 +72,8 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
       maxConflictsx(x->size() + 1),
       maxConflictsy(y->size() + 1),
       nbtuples(0) {
-    matrix = new bool *[x->domain.maxSize()];
-    for(int i = 0; i < x->domain.maxSize(); i++) {
-        matrix[i] = new bool[y->domain.maxSize()];
-        std::fill_n(matrix[i], y->domain.maxSize(), false);
-    }
+    matrix = new Matrix<bool>(x->domain.maxSize(), y->domain.maxSize());
+    matrix->setToFalse();
 }
 
 
@@ -106,15 +103,15 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
     assert(idv1 >= 0 && (idv1 == STAR || idv1 < x->domain.maxSize()));
     assert(idv2 >= 0 && (idv2 == STAR || idv2 < y->domain.maxSize()));
     if(idv1 == STAR) {
-        for(int i = 0; i < x->domain.maxSize(); i++) matrix[i][idv2] = true;
+        for(int i = 0; i < x->domain.maxSize(); i++) (*matrix)[i][idv2] = true;
         return;
     }
     if(idv2 == STAR) {
-        for(int i = 0; i < y->domain.maxSize(); i++) matrix[idv1][i] = true;
+        for(int i = 0; i < y->domain.maxSize(); i++) (*matrix)[idv1][i] = true;
         return;
     }
 
-    matrix[idv1][idv2] = true;
+    (*matrix)[idv1][idv2] = true;
     nbtuples++;
 }
 
@@ -126,7 +123,7 @@ void BinaryExtension::delayedConstruction(int id) {
 }
 
 
-int BinaryExtension::nbTuples() { return nbtuples; }
+size_t BinaryExtension::nbTuples() { return nbtuples; }
 
 
 struct CSPPropagation {   // x equal idv ??
