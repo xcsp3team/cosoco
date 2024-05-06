@@ -86,7 +86,7 @@ class CompactTable : public Extension, ObserverDeleteDecision {
     }
 
 
-    bool updateDomains();
+    void updateDomains();
     void beforeFiltering();
     void manageLastPastVar();
     void wordModified(int id, BITSET oldValue);

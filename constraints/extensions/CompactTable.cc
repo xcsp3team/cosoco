@@ -38,7 +38,7 @@ bool CompactTable::filter(Variable *dummy) {
     beforeFiltering();
     // std::cout << "\nbefore\n";
     // displayCurrent(current);
-    //  we compute in mask the bit vector denoting all deleted tuples (and then we inverse it)
+    //   we compute in mask the bit vector denoting all deleted tuples (and then we inverse it)
     clearMask();
     for(int posx : SVal) {
         Variable *x = scope[posx];
@@ -57,15 +57,14 @@ bool CompactTable::filter(Variable *dummy) {
         }
         // displayCurrent(mask);
     }
-    // we update the current table (array 'current') while possibly deleting words at 0 in nonZeros
-    intersectWithMask();
+    intersectWithMask();   // Update current table
     // displayCurrent(current);
 
-    // std::cout << "size non zeros: " << nonZeros.size() << " max size " << nonZeros.maxSize() << std::endl;
     if(nonZeros.size() == 0)
         return false;   // inconsistency detected
 
-    return updateDomains();
+    updateDomains();   //
+    return true;
 }
 
 void CompactTable::beforeFiltering() {
@@ -109,8 +108,7 @@ void CompactTable::manageLastPastVar() {
 }
 
 
-bool CompactTable::updateDomains() {
-    // we update domains (inconsistency is no more possible)
+void CompactTable::updateDomains() {   // we update domains (inconsistency is no more possible)
     for(int posx : SSup) {
         Variable *x = scope[posx];
         for(int idv : x->domain) {
@@ -128,7 +126,6 @@ bool CompactTable::updateDomains() {
         lastSizes[posx] = x->size();
         assert(x->size() > 0);
     }
-    return true;
 }
 
 void CompactTable::wordModified(int index, BITSET oldValue) {
@@ -259,7 +256,7 @@ void CompactTable::delayedConstruction(int id) {
     residues.growTo(scope.size());
     for(int i = 0; i < residues.size(); i++) residues[i].growTo(scope[i]->domain.maxSize());
     firstCall = true;
-    lastSizes.growTo(scope.size(), 0);
+    for(Variable *x : scope) lastSizes.push(x->size());
     lastTimestamps = 0;
     // displaySupports();
 }
@@ -273,10 +270,11 @@ bool CompactTable::onFirstCall() {
             int r = firstNonNullIntersectionIndex(current, masks[posx][idv]);
             if(r != -1)
                 residues[posx][idv] = r;
-            else if(solver->delIdv(x, idv) == false)
-                return false;
+            else {
+                if(solver->delIdv(x, idv) == false)
+                    return false;
+            }
         }
-        lastSizes[posx] = x->size();
         posx++;
     }
     return true;
@@ -291,10 +289,11 @@ void CompactTable::attachSolver(Solver *s) {
 // Debug methods
 
 void CompactTable::displaySupports() {
+    std::cout << "nW" << nWords << "\n";
     for(int i = 0; i < scope.size(); i++) {
         std::cout << "--------\n";
         for(int j = 0; j < scope[i]->domain.maxSize(); j++) {
-            std::cout << "support for " << scope[i]->_name << "=" << j << "\n";
+            std::cout << "support for " << scope[i]->_name << "=" << scope[i]->domain.toVal(j) << "\n";
             for(int k = 0; k < nWords; k++) std::cout << std::bitset<SIZEW>(masks[i][j][k]) << "\n";
         }
     }
