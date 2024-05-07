@@ -44,7 +44,7 @@ void MDDExtension::beforeFiltering() {
         int domSize = scope[pos]->size();
         nbTotalValuesWithoutSupports += domSize;
         nbValuesWithoutSupports[pos] = domSize;
-        gac[pos].fill(false);
+        gac.fillRow(pos, false);
     }
     trueTimestamp++;
 }
@@ -125,16 +125,19 @@ MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, vec
     : MDDExtension(p, n, vars, new MDD(transitions, vars)) { }
 
 
-MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m) : Extension(p, n, vars, 0, true), mdd(m) {
+MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m)
+    : Extension(p, n, vars, 0, true), mdd(m), gac(Matrix<bool>()) {
     type          = "MDD";
     trueTimestamp = falseTimestamp = 1;
     nbValuesWithoutSupports.growTo(vars.size());
     trueNodes.growTo(mdd->nbNodes);
     falseNodes.growTo(mdd->nbNodes);
-    for(auto &var : vars) {
-        gac.push();
-        gac.last().growTo(var->domain.maxSize(), false);
-    }
+    int maxSize = vars[0]->domain.maxSize();
+    for(Variable *x : vars)
+        if(x->domain.maxSize() > maxSize)
+            maxSize = x->domain.maxSize();
+    gac.initialize(vars.size(), maxSize);
+    gac.growTo(vars.size());
 }
 
 

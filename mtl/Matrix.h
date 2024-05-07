@@ -20,14 +20,26 @@ class Matrix {
 
    public:
     bool starred;
-    Matrix(size_t rows, size_t columns) : _nrows {rows}, _ncolumns {columns}, _maxrows(0), data {std::make_unique<T[]>(rows * columns)} { }
+    Matrix() : data(nullptr) { }
+
+    Matrix(size_t rows, size_t columns)
+        : _nrows {rows}, _ncolumns {columns}, _maxrows(0), data {std::make_unique<T[]>(rows * columns)} { }
+
+    void initialize(size_t rows, size_t columns) {
+        _nrows    = rows;
+        _ncolumns = columns;
+        _maxrows  = 0;
+        data      = std::make_unique<T[]>(rows * columns);
+    }
 
     size_t nrows() const { return _maxrows; }
 
     size_t ncolumns() const { return _ncolumns; }
 
-    T   *operator[](size_t row) { return row * _ncolumns + data.get(); }
-    T   &operator()(size_t row, size_t column) { return data[row * _ncolumns + column]; }
+    T *operator[](size_t row) { return row * _ncolumns + data.get(); }
+
+    T &operator()(size_t row, size_t column) { return data[row * _ncolumns + column]; }
+
     void addTuple(vec<T> &tuple) {
         int i = 0;
         for(int idv : tuple) {
@@ -35,11 +47,14 @@ class Matrix {
                 starred = true;
             (*this)(_maxrows, i++) = idv;
         }
-
         _maxrows++;
     }
 
-    void setToFalse() { _maxrows = _nrows; }
+    void growTo(int _nr) { _maxrows = _nr; }
+
+    void fillRow(size_t r, T value) {
+        for(size_t j = 0; j < _ncolumns; j++) (*this)(r, j) = value;
+    }
 };
 }   // namespace Cosoco
 

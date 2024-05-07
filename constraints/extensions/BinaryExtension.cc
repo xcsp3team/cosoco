@@ -73,7 +73,7 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
       maxConflictsy(y->size() + 1),
       nbtuples(0) {
     matrix = new Matrix<bool>(x->domain.maxSize(), y->domain.maxSize());
-    matrix->setToFalse();
+    matrix->growTo(x->domain.maxSize());
 }
 
 

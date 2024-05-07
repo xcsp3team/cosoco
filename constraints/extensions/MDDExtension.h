@@ -28,7 +28,7 @@ class MDDExtension : public Extension, ObserverDeleteDecision {
     int      trueTimestamp, falseTimestamp;
     vec<int> falseNodes, trueNodes;
 
-    vec<vec<bool> > gac;   // a boolean for each literal (x,a) // TODO init??
+    Matrix<bool> gac;   // a boolean for each literal (x,a) // TODO init??
 
     void beforeFiltering();
     bool exploreMDD(MDDNode *node);
