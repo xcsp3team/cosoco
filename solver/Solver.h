@@ -96,7 +96,6 @@ class Solver : public AbstractSolver {
     void addLastConflictReasoning();
     void addRandomizationFirstDescent();
     void addStickingValue();
-    void addRestart(bool luby = false);
 
 
     // --------------------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 #include <solver/heuristics/variables/HeuristicVarCACD.h>
 #include <solver/heuristics/variables/HeuristicVarFirst.h>
 #include <solver/restarts/GeometricRestart.h>
+#include <solver/restarts/InnerOuter.h>
 #include <solver/restarts/LubyRestart.h>
 #include <utils/System.h>
 
@@ -107,8 +108,18 @@ Solver::Solver(Problem &p, Options &options)
         addLastConflictReasoning();
     if(options.boolOptions["stick"].value)
         addStickingValue();
-    if(options.boolOptions["restarts"].value)
-        addRestart();
+    if(options.stringOptions["restarts"].value == "geo")
+        restart = new GeometricRestart(this);
+    if(options.stringOptions["restarts"].value == "luby")
+        restart = new LubyRestart(this);
+    if(options.stringOptions["restarts"].value == "io")
+        restart = new InnerOuterRestart(this);
+    if(restart == nullptr && options.stringOptions["restarts"].value != "no") {
+        std::cerr << "unknown heuristic restart " << options.stringOptions["restart"].value << "\n";
+        exit(1);
+    }
+
+
     if(options.boolOptions["nogoods"].value)
         addNoGoodsFromRestarts();
 
@@ -140,14 +151,6 @@ void Solver::addRandomizationFirstDescent() { heuristicVar = new RandomizeFirstD
 
 
 void Solver::addStickingValue() { heuristicVal = new HeuristicValStickingValue(*this, heuristicVal); }
-
-
-void Solver::addRestart(bool luby) {
-    if(luby)
-        restart = new LubyRestart(this);
-    else
-        restart = new GeometricRestart(this);
-}
 
 
 void Solver::setDecisionVariables(vec<Variable *> &vars) {

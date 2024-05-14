@@ -51,7 +51,7 @@ class Options {
         boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
         intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
         boolOptions["stick"]       = {"SEARCH", "Sticking Value on heuristic val", false};
-        boolOptions["restarts"]    = {"SEARCH", "Enable restarts", true};
+        stringOptions["restarts"]  = {"SEARCH", "Restarts: no (no restarts), luby, geo, io (inner outer)", "geo"};
         stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first"};
         stringOptions["robin"]     = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
         stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick)", "wdeg"};

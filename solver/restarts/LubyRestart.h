@@ -36,7 +36,7 @@ class LubyRestart : public Restart {
 
 
    public:
-    LubyRestart(Solver *s) : Restart(s), factor(32), curr_restarts(0) { limit = luby(2, curr_restarts) * factor; }
+    explicit LubyRestart(Solver *s) : Restart(s), factor(32), curr_restarts(0) { limit = luby(2, curr_restarts) * factor; }
 
 
     void initialize() override {
