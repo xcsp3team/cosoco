@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
 
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core], options);
+                S->displaySolution        = false;
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
                 optimizer->core = core;

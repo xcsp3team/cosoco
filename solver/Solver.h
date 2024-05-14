@@ -52,7 +52,8 @@ class Solver : public AbstractSolver {
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double seed          = 91648253;     // A seed value
+    double seed = 91648253;   // A seed value
+    bool   displaySolution;
     bool   checkSolution = true;         // Check solution or not
     int    nbDeletedValuesByAVariable;   // count the number of deleted values by a filtering on one variable
 

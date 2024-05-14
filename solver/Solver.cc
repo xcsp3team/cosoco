@@ -47,6 +47,7 @@ Solver::Solver(Problem &p, Options &options)
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;
+    displaySolution     = options.boolOptions["model"].value;
 
 
     if(options.stringOptions["val"].value == "first")
@@ -291,7 +292,7 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
-    if(options.boolOptions["model"].value)
+    if(displaySolution)
         displayCurrentSolution();
 
     if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
