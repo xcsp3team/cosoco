@@ -164,11 +164,6 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
                     tuple[scope.last()->_name] = eval;
                     assert(tuple.size() == scope.size());
                     for(auto &x : scope) supports.last().push(tuple[x->_name]);
-                } else {
-                    conflicts.push();
-                    tuple[scope.last()->_name] = eval;
-                    assert(tuple.size() == scope.size());
-                    for(auto &x : scope) conflicts.last().push(tuple[x->_name]);
                 }
                 continue;
             }
