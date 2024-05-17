@@ -48,6 +48,11 @@ void Constraint::addToScope(vec<Variable *> &vars) {
 
 void Constraint::delayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
+    makeDelayedConstruction(id);
+}
+
+void Constraint::makeDelayedConstruction(int id) {
+    assert(scope.size() > 0);   // scopeInitialisation have to be done
     idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
     arity            = scope.size();
     indexesAreValues = true;

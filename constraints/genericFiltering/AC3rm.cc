@@ -105,10 +105,8 @@ AdapterAC3rm::AdapterAC3rm(Constraint *c)
 
 bool AdapterAC3rm::isCorrectlyDefined() { return constraint->isCorrectlyDefined(); }
 
-void AdapterAC3rm::delayedConstruction(int id) {
-    Constraint::delayedConstruction(id);
-    constraint->delayedConstruction(id);
-}
+void AdapterAC3rm::delayedConstruction(int id) { constraint->makeDelayedConstruction(id); }
+
 State AdapterAC3rm::status() { return constraint->status(); }
 
 

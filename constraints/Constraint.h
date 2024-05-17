@@ -53,7 +53,7 @@ class Constraint {
     void         addToScope(Variable *x);
 
     virtual void delayedConstruction(int id);   // Called at the end of the construction of the problems
-
+    void         makeDelayedConstruction(int id);
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
    protected:
