@@ -168,83 +168,76 @@ int main(int argc, char **argv) {
 
 
 void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
-    if(optimize)
-        printf("c enable optimization\n");
-
-    if(options.intOptions["verb"].value > 0) {
-        printf("c ========================================[ Problem Statistics ]===========================================\n");
-        printf("c |                                                                                                       \n");
-    }
-
+    printf("c ========================================[ Problem Statistics ]===========================================\n");
+    printf("c |                                                                                                       \n");
 
     double parsed_time = cpuTime();
-    if(options.intOptions["verb"].value > 0) {
-        printf("c |  Parse time        : %12.2f s \n", parsed_time - initial_time);
-        printf("c |\n");
 
+    printf("c |  Parse time        : %12.2f s \n", parsed_time - initial_time);
+    printf("c |\n");
+
+    printf("c |               ");
+    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    printf("Variables:");
+    resetcolors();
+    printf(" %d (original: %d -- auxiliary: %d)\n", solvingProblem->nbVariables(), solvingProblem->nbOriginalVars,
+           solvingProblem->nbVariables() - solvingProblem->nbOriginalVars);
+    printf("c |            ");
+    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    printf("Domain Sizes: ");
+    resetcolors();
+    printf("%d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
+    printf("c |\n");
+    printf("c |             ");
+    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    printf("Constraints: ");
+    resetcolors();
+    printf("%d\n", solvingProblem->nbConstraints());
+    printf("c |                   ");
+    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    printf("Arity: ");
+    resetcolors();
+    printf("%d..%d", solvingProblem->minimumArity(), solvingProblem->maximumArity());
+    int nb;
+    if((nb = solvingProblem->nbConstraintsOfSize(1)) > 0)
+        printf("  -- Unary: %d", nb);
+    if((nb = solvingProblem->nbConstraintsOfSize(2)) > 0)
+        printf("  -- Binary: %d", nb);
+    if((nb = solvingProblem->nbConstraintsOfSize(3)) > 0)
+        printf("  -- Ternary: %d", nb);
+
+    printf("\nc | \n");
+    printf("c |                   ");
+    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    printf("Types: ");
+    resetcolors();
+    printf("\nc |                          ");
+
+    std::map<std::string, int> typeOfConstraints;
+    solvingProblem->nbTypeOfConstraints(typeOfConstraints);
+    for(auto &iter : typeOfConstraints) {
+        if(iter.first == "Extension")
+            printf("Extension: %d  (nb tuples: %d..%d) -- (shared: %d)\nc |                          ", iter.second,
+                   solvingProblem->minimumTuplesInExtension(), solvingProblem->maximumTuplesInExtension(),
+                   solvingProblem->nbExtensionsSharded);
+        else
+            printf("%s: %d\nc |                          ", iter.first.c_str(), iter.second);
+    }
+
+    if(optimize) {
+        ObjectiveConstraint *objective;
+        printf("\n");
         printf("c |               ");
         colorize(termcolor::blue, options.boolOptions["colors"].value);
-        printf("Variables:");
+        printf("Objective: ");
         resetcolors();
-        printf(" %d (original: %d -- auxiliary: %d)\n", solvingProblem->nbVariables(), solvingProblem->nbOriginalVars,
-               solvingProblem->nbVariables() - solvingProblem->nbOriginalVars);
-        printf("c |            ");
-        colorize(termcolor::blue, options.boolOptions["colors"].value);
-        printf("Domain Sizes: ");
-        resetcolors();
-        printf("%d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
-        printf("c |\n");
-        printf("c |             ");
-        colorize(termcolor::blue, options.boolOptions["colors"].value);
-        printf("Constraints: ");
-        resetcolors();
-        printf("%d\n", solvingProblem->nbConstraints());
-        printf("c |                   ");
-        colorize(termcolor::blue, options.boolOptions["colors"].value);
-        printf("Arity: ");
-        resetcolors();
-        printf("%d..%d", solvingProblem->minimumArity(), solvingProblem->maximumArity());
-        int nb;
-        if((nb = solvingProblem->nbConstraintsOfSize(1)) > 0)
-            printf("  -- Unary: %d", nb);
-        if((nb = solvingProblem->nbConstraintsOfSize(2)) > 0)
-            printf("  -- Binary: %d", nb);
-        if((nb = solvingProblem->nbConstraintsOfSize(3)) > 0)
-            printf("  -- Ternary: %d", nb);
-
-        printf("\nc | \n");
-        printf("c |                   ");
-        colorize(termcolor::blue, options.boolOptions["colors"].value);
-        printf("Types: ");
-        resetcolors();
-        printf("\nc |                          ");
-
-        std::map<std::string, int> typeOfConstraints;
-        solvingProblem->nbTypeOfConstraints(typeOfConstraints);
-        for(auto &iter : typeOfConstraints) {
-            if(iter.first == "Extension")
-                printf("Extension: %d  (nb tuples: %d..%d) -- (shared: %d)\nc |                          ", iter.second,
-                       solvingProblem->minimumTuplesInExtension(), solvingProblem->maximumTuplesInExtension(),
-                       solvingProblem->nbExtensionsSharded);
-            else
-                printf("%s: %d\nc |                          ", iter.first.c_str(), iter.second);
-        }
-
-        if(optimize) {
-            ObjectiveConstraint *objective;
-            printf("\n");
-            printf("c |               ");
-            colorize(termcolor::blue, options.boolOptions["colors"].value);
-            printf("Objective: ");
-            resetcolors();
-            auto *o   = (Optimizer *)solvers[0];
-            objective = (o->optimtype == Minimize) ? o->objectiveUB : o->objectiveLB;
-            auto *c   = dynamic_cast<Constraint *>(objective);
-            printf("%s %s\n",
-                   o->optimtype == Minimize || (o->optimtype == Maximize && o->invertBestCost) ? "Minimize" : "Maximize",
-                   c->type.c_str());
-        }
+        auto *o   = (Optimizer *)solvers[0];
+        objective = (o->optimtype == Minimize) ? o->objectiveUB : o->objectiveLB;
+        auto *c   = dynamic_cast<Constraint *>(objective);
+        printf("%s %s\n", o->optimtype == Minimize || (o->optimtype == Maximize && o->invertBestCost) ? "Minimize" : "Maximize",
+               c->type.c_str());
     }
+
     printf("\n");
     printf("c =========================================================================================================\n");
 }
