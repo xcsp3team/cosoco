@@ -15,6 +15,7 @@
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicValRoundRobin.h"
+#include "HeuristicVarFRBA.h"
 #include "PickOnDom.h"
 #include "PoolOfHeuristicsValues.h"
 #include "constraints/Constraint.h"
@@ -76,6 +77,8 @@ Solver::Solver(Problem &p, Options &options)
         heuristicVar = new HeuristicVarCACD(*this);
     if(options.stringOptions["var"].value == "pick")
         heuristicVar = new PickOnDom(*this);
+    if(options.stringOptions["var"].value == "frba")
+        heuristicVar = new HeuristicVarFRBA(*this);
     if(heuristicVar == nullptr) {
         std::cerr << "unknown heuristic variable " << options.stringOptions["var"].value << "\n";
         exit(1);
