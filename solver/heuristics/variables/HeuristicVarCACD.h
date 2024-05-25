@@ -23,10 +23,13 @@ class HeuristicVarCACD : public HeuristicVar, ObserverConflict, ObserverNewDecis
     explicit HeuristicVarCACD(Solver &s);
     void      reset();
     Variable *select() override;
-    void      notifyConflict(Constraint *c, int level) override;
-    void      notifyDeleteDecision(Variable *x, int v, Solver &s) override;
-    void      notifyFullBacktrack() override;
-    void      notifyNewDecision(Variable *x, Solver &s) override;
+
+
+    // Observers
+    void notifyConflict(Constraint *c, int level) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyFullBacktrack() override;
+    void notifyNewDecision(Variable *x, Solver &s) override;
 };
 
 }   // namespace Cosoco

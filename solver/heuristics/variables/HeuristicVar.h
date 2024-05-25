@@ -5,12 +5,23 @@
 namespace Cosoco {
 class Solver;
 class HeuristicVar {
+   protected:
+    bool freezed;
+
    public:
     Solver &solver;
-    HeuristicVar(Solver &s) : solver(s) { }
+    explicit HeuristicVar(Solver &s) : freezed(false), solver(s) { }
 
-    virtual Variable *select() = 0;              // How to select a variable, return nullptr if none exist
-    virtual bool      stop() { return false; }   //  Stop the search with this heuristic (only useful with LNS)
+    virtual Variable *select() = 0;   // How to select a variable, return nullptr if none exist
+    virtual bool      stop() {        //  Stop the search with this heuristic
+        freezed = true;
+        return true;
+    }
+
+    virtual bool start() {   // start the search with this heuristic
+        freezed = false;
+        return true;
+    }
 };
 }   // namespace Cosoco
 

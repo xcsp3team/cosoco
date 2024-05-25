@@ -54,7 +54,7 @@ class Options {
         stringOptions["restarts"]  = {"SEARCH", "Restarts: no (no restarts), luby, geo, io (inner outer)", "geo"};
         stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first"};
         stringOptions["robin"]     = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
-        stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick, frba)", "wdeg"};
+        stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick, frba, robin)", "wdeg"};
         intOptions["limitac3card"] = {"SEARCH", "Max size to perform AC3 on intensional constraints", 1000, 0, INT_MAX};
         boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
         stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
