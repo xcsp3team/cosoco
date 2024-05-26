@@ -12,8 +12,9 @@
 using namespace Cosoco;
 
 HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s) : HeuristicVar(s) {
+    s.addObserverDeleteDecision(this);
+
     std::string sequence = "WPFC";
-    current              = 0;
     nbrestarts           = 10;
     for(auto c : sequence) {
         if(c == 'W')
@@ -26,10 +27,18 @@ HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s) : HeuristicVar
             heuristics.push(new HeuristicVarCACD(s));
         for(int i = 1; i < heuristics.size(); i++) heuristics[i]->stop();
     }
+    current = heuristics.size() - 1;
 }
 
 
 Variable *HeuristicVarRoundRobin::select() { return heuristics[current]->select(); }
 
-
-void HeuristicVarRoundRobin::notifyFullBacktrack() { std::cout << solver.statistics[restarts] << std::endl; }
+void HeuristicVarRoundRobin::notifyFullBacktrack() {
+    if(solver.statistics[restarts] % nbrestarts == 0) {
+        heuristics[current]->stop();
+        current++;
+        if(current >= heuristics.size())
+            current = 0;
+        heuristics[current]->start();
+    }
+}

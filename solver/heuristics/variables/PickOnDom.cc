@@ -10,6 +10,7 @@ using namespace Cosoco;
 PickOnDom::PickOnDom(Solver &s) : HeuristicVar(s) {
     s.addObserverConflict(this);
     s.addObserverDeleteDecision(this);
+    variablesWeights.growTo(s.problem.nbVariables(), 0);
 }
 
 
@@ -29,6 +30,8 @@ Variable *PickOnDom::select() {
 
 
 void PickOnDom::notifyConflict(Constraint *c, int level) {
+    if(freezed)
+        return;
     if(mode == 0) {
         for(PickVariables &p : solver.pickVariables) p.x->wdeg += 1;
         return;
@@ -47,10 +50,23 @@ void PickOnDom::notifyConflict(Constraint *c, int level) {
 
 
 void PickOnDom::notifyFullBacktrack() {
+    if(freezed)
+        return;
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
         for(Constraint *c : solver.problem.constraints) c->wdeg.fill(0);
         for(Variable *x : solver.problem.variables) x->wdeg = 0;
     }
+}
+
+bool PickOnDom::start() {
+    for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = solver.problem.variables[i]->wdeg;
+    return false;
+}
+
+
+bool PickOnDom::stop() {
+    for(int i = 0; i < variablesWeights.size(); i++) solver.problem.variables[i]->wdeg = variablesWeights[i];
+    return false;
 }

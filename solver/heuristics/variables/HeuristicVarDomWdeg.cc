@@ -8,6 +8,10 @@ HeuristicVarDomWdeg::HeuristicVarDomWdeg(Solver &s) : HeuristicVar(s) {
     s.addObserverDeleteDecision(this);
     s.addObserverNewDecision(this);
     mode = V2021;
+    constraintsWeights.growTo(s.problem.nbConstraints());
+    for(int i = 0; i < constraintsWeights.size(); i++)
+        constraintsWeights[i].growTo(solver.problem.constraints[i]->scope.size(), 0);
+    variablesWeights.growTo(s.problem.nbVariables(), 0);
 }
 
 
@@ -72,6 +76,8 @@ Variable *HeuristicVarDomWdeg::select() {
 
 
 void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
+    if(freezed)
+        return;
     int notThisposition = NOTINSCOPE;
     if(c->unassignedVariablesIdx.size() == 1)
         notThisposition = c->unassignedVariablesIdx[0];   // c->toScopePosition(c->unassignedVariablesIdx[0]);
@@ -102,6 +108,8 @@ void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
 
 
 void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
+    if(freezed)
+        return;
     for(Constraint *c : x->constraints) {
         if(c->unassignedVariablesIdx.size() == 1)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg -= c->wdeg[c->unassignedVariablesIdx[0]];
@@ -110,6 +118,8 @@ void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
 
 
 void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+    if(freezed)
+        return;
     for(Constraint *c : x->constraints) {
         if(c->unassignedVariablesIdx.size() == 2)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg += c->wdeg[c->unassignedVariablesIdx[0]];
@@ -118,26 +128,25 @@ void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarDomWdeg::notifyFullBacktrack() {
-    /*    printf("erer\n");
-        Variable *y;
-        double    wd = 0;
-        for(Variable *x : solver.problem.variables) {
-            if(x->wdeg > wd) {
-                wd = x->wdeg;
-                y  = x;
-            }
-        }
-        std::cout << y->_name << std::endl;
-        for(Constraint *c : y->constraints) {
-            double v = 0;
-            for(double tmp : c->wdeg) v += tmp;
-            std::cout << c->type << " " << v << std::endl;
-        }
-    */
+    if(freezed)
+        return;
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
         for(Constraint *c : solver.problem.constraints) c->wdeg.fill(0);
         for(Variable *x : solver.problem.variables) x->wdeg = 0;
     }
+}
+
+bool HeuristicVarDomWdeg::start() {
+    for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = solver.problem.variables[i]->wdeg;
+    for(int i = 0; i < constraintsWeights.size(); i++) solver.problem.constraints[i]->wdeg.copyTo(constraintsWeights[i]);
+    return false;
+}
+
+
+bool HeuristicVarDomWdeg::stop() {
+    for(int i = 0; i < variablesWeights.size(); i++) solver.problem.variables[i]->wdeg = variablesWeights[i];
+    for(int i = 0; i < constraintsWeights.size(); i++) constraintsWeights[i].copyTo(solver.problem.constraints[i]->wdeg);
+    return false;
 }

@@ -57,6 +57,8 @@ Variable *HeuristicVarCACD::select() {
 
 
 void HeuristicVarCACD::notifyConflict(Constraint *c, int level) {
+    if(freezed)
+        return;
     double increment = 1;
     cscores[c->idc] += increment;   // just +1 in that case (can be useful for other objects, but not directly for wdeg)
 

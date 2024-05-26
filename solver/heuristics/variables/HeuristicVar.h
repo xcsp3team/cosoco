@@ -15,7 +15,7 @@ class HeuristicVar {
     virtual Variable *select() = 0;   // How to select a variable, return nullptr if none exist
     virtual bool      stop() {        //  Stop the search with this heuristic
         freezed = true;
-        return true;
+        return false;
     }
 
     virtual bool start() {   // start the search with this heuristic

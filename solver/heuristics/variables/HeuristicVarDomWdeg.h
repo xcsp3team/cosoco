@@ -7,19 +7,24 @@
 #include "solver/observers/ObserverConflict.h"
 #include "solver/observers/ObserverDecision.h"
 
-enum Mode   { V2004, ABSCON, NEWWDEG, V2021};
+enum Mode { V2004, ABSCON, NEWWDEG, V2021 };
 
 namespace Cosoco {
 class HeuristicVarDomWdeg : public HeuristicVar, ObserverConflict, ObserverNewDecision, ObserverDeleteDecision {
-   unsigned long next;
+    unsigned long    next;
+    vec<vec<double>> constraintsWeights;
+    vec<double>      variablesWeights;
+
    public:
     HeuristicVarDomWdeg(Solver &s);
-    Mode               mode;
+    Mode              mode;
     virtual Variable *select() override;
     virtual void      notifyConflict(Constraint *c, int level) override;
     virtual void      notifyDeleteDecision(Variable *x, int v, Solver &s) override;
     void              notifyFullBacktrack() override;
     virtual void      notifyNewDecision(Variable *x, Solver &s) override;
+    bool              stop() override;
+    bool              start() override;
 };
 
 }   // namespace Cosoco
