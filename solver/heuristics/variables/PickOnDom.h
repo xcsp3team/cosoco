@@ -14,12 +14,15 @@ namespace Cosoco {
 class PickOnDom : public HeuristicVar, ObserverConflict, ObserverDeleteDecision {
     unsigned long next;
     int           mode = 0;
+    vec<double>   variablesWeights;
 
    public:
     PickOnDom(Solver &s);
     Variable *select() override;
     void      notifyConflict(Constraint *c, int level) override;
     void      notifyFullBacktrack() override;
+    bool      stop() override;
+    bool      start() override;
 };
 
 }   // namespace Cosoco

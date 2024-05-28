@@ -29,10 +29,16 @@ Variable *HeuristicVarFRBA::select() {
     return x;
 }
 
-void HeuristicVarFRBA::notifyNewDecision(Cosoco::Variable *x, Cosoco::Solver &s) { data[x->idx].nAssignments++; }
+void HeuristicVarFRBA::notifyNewDecision(Cosoco::Variable *x, Cosoco::Solver &s) {
+    if(freezed)
+        return;
+    data[x->idx].nAssignments++;
+}
 
 
 void HeuristicVarFRBA::notifyConflict(Constraint *c, int level) {
+    if(freezed)
+        return;
     Variable *last = solver.decisionVariableAtLevel(solver.decisionLevel());
     nFailedAssignments++;
     data[last->idx].nFailed++;
@@ -44,6 +50,9 @@ void HeuristicVarFRBA::notifyDeleteDecision(Variable *x, int v, Solver &s) { }
 
 
 void HeuristicVarFRBA::notifyFullBacktrack() {
+    if(freezed)
+        return;
+    
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
