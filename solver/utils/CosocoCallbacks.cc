@@ -237,6 +237,31 @@ void CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, v
 void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &list, string start, vector<string> &final,
                                              vector<XTransition> &transitions) {
     toMyVariables(list, vars);
+
+    // Some variables can appear multiple times.... We replace by a new variable and an allequal
+    for(Variable *x : vars) x->fake = 0;
+    for(int i = 0; i < vars.size(); i++) {
+        if(vars[i]->fake == 1) {
+            string       auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            DomainRange *dr     = nullptr;
+            if((dr = dynamic_cast<DomainRange *>(&vars[i]->domain)) != nullptr) {
+                buildVariableInteger(auxVar, dr->minimum(), dr->maximum());
+            } else {
+                auto *dv = dynamic_cast<DomainValue *>(&vars[i]->domain);
+                assert(dv != nullptr);
+                vector<int> values;
+                for(int idv : *dv) values.push_back(idv);
+                buildVariableInteger(auxVar, values);
+            }
+            vec<Variable *> tmp;
+            tmp.push(vars[i]);
+            tmp.push(problem->variables.last());
+            FactoryConstraints::createConstraintAllEqual(problem, id, tmp);
+            vars[i] = problem->variables.last();
+        }
+        vars[i]->fake = 1;
+    }
+
     Cosoco::MDD *mdd = nullptr;
     if((mdd = sameMDDAsPrevious(vars)) != nullptr)
         FactoryConstraints::createConstraintMDD(problem, id, vars, mdd);
