@@ -22,7 +22,7 @@ Options               options;
 bool   optimize = false;
 double realTimeStart;
 
-string version("2.2");
+string version("2.4");
 
 void displayProblemStatistics(Problem *solvingProblem, double initial_time);
 

@@ -6,7 +6,6 @@
 
 #include "CosocoCallbacks.h"
 using namespace XCSP3Core;
-// /data/csp/GolombRuler-11-a3.xml
 
 void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
     size_t pos = input.find(replace_word);
@@ -75,31 +74,16 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             }
         }
 
-        // Compute cartesian product
-        /*unsigned long long nbTuples = 1;
-        for(Variable *x : scope) nbTuples *= x->domain.maxSize();
-        if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
-            nbTuples = nbTuples / scope.last()->domain.maxSize();
-
-        // If the constraint is small enough -> intension
-        std::cout << nbTuples << " " << scope.size() << std::endl;
-        if(nbTuples < 1000) {
-            FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
-            return;
-        }
-         */
-
         //----------------------------------------------------------------------------
         // to Extension constraints
         //----------------------------------------------------------------------------
 
         if(toExtension(id, tree, scope)) {
-            std::cout << "extension : " << tree->root->toString();
-            for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
-            std::cout << "\n";
+            // std::cout << "extension : " << tree->root->toString();
+            // for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+            // std::cout << "\n";
             return;
         }
-
 
         //----------------------------------------------------------------------------
         // decomposition
@@ -107,11 +91,11 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         if(decompose(id, tree) == false)
             done = true;
     }
-    std::cout << "intension : " << tree->root->toString();
 
-    for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+    // std::cout << "intension : " << tree->root->toString();
+    // for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+    // std::cout << "\n";
 
-    std::cout << "\n";
     // This is the end... nothing else than an intension constraint
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
 }
@@ -160,7 +144,6 @@ bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
         tree->listOfVariables.clear();
         extractVariables(tree->root, tree->listOfVariables);
     }
-    // std::cout << "la " << tree->root->toString() << "  " << modified << "\n";
     return modified;
 }
 
@@ -573,7 +556,7 @@ class PQuater1 : public Primitive {
 };
 
 class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
-                                           // do the job (see PNary1
+                                           // do the job (see PNary1)
    public:
     explicit FakePrimitive(CosocoCallbacks &c) : Primitive(c) { }
     bool match() override { return post(); }
