@@ -61,12 +61,14 @@ void PickOnDom::notifyFullBacktrack() {
 }
 
 bool PickOnDom::start() {
+    freezed = false;
     for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = solver.problem.variables[i]->wdeg;
     return false;
 }
 
 
 bool PickOnDom::stop() {
+    freezed = true;
     for(int i = 0; i < variablesWeights.size(); i++) solver.problem.variables[i]->wdeg = variablesWeights[i];
     return false;
 }

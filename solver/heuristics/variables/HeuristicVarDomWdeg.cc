@@ -139,6 +139,7 @@ void HeuristicVarDomWdeg::notifyFullBacktrack() {
 }
 
 bool HeuristicVarDomWdeg::start() {
+    freezed = false;
     for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = solver.problem.variables[i]->wdeg;
     for(int i = 0; i < constraintsWeights.size(); i++) solver.problem.constraints[i]->wdeg.copyTo(constraintsWeights[i]);
     return false;
@@ -146,6 +147,7 @@ bool HeuristicVarDomWdeg::start() {
 
 
 bool HeuristicVarDomWdeg::stop() {
+    freezed = true;
     for(int i = 0; i < variablesWeights.size(); i++) solver.problem.variables[i]->wdeg = variablesWeights[i];
     for(int i = 0; i < constraintsWeights.size(); i++) constraintsWeights[i].copyTo(solver.problem.constraints[i]->wdeg);
     return false;
