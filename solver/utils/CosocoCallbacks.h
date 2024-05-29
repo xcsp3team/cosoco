@@ -420,6 +420,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex, XCondition &xc) override;
 
+    void buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex, XCondition &xc) override;
+
+
     void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex, int startColIndex,
                                 XVariable *colIndex, XVariable *value) override;
 

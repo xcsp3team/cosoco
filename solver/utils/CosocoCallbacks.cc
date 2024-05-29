@@ -809,6 +809,17 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
     FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
 }
 
+void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex, XCondition &xc) {
+    vector<XVariable *> aux;
+    for(int value : list) {
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        buildVariableInteger(auxVar, value, value);
+        auto *x = new XVariable(auxVar, nullptr);
+        aux.push_back(x);
+    }
+    buildConstraintElement(id, aux, index, startIndex, xc);
+}
+
 void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
                                              XCondition &xc) {
     if(xc.op == EQ) {
