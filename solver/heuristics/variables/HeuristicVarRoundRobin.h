@@ -12,13 +12,14 @@ namespace Cosoco {
 class HeuristicVarRoundRobin : public HeuristicVar, ObserverDeleteDecision {
     vec<HeuristicVar *> heuristics;
     int                 current;
-    int                 nbrestarts;
+    int                 nbrestarts, last, nb;
 
 
    public:
     explicit HeuristicVarRoundRobin(Solver &s);
     Variable *select() override;
     void      notifyFullBacktrack() override;
+    void      notifyNewSolution() override;
 };
 }   // namespace Cosoco
 

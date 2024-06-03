@@ -291,6 +291,7 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) allSolutions.last().push(x->useless ? 0 : x->value());
 #endif
+    for(ObserverDeleteDecision *od : observersDeleteDecision) od->notifyNewSolution();
 
     if(checkSolution)
         problem.checkSolution();
