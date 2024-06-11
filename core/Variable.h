@@ -48,6 +48,8 @@ class Variable {
     bool delVal(int v, int lvl);     // Do not use directly, use solver's one
     bool delIdv(int idv, int lvl);   // Do not use directly, use solver's one
 
+    bool isReduceAtLevel(int lvl);   // Is the domain of the variable is reduced at level.
+
     // Assign method
     void assignToIdv(int idv, int lvl);   // Do not use directly, use solver's one
     void assignToVal(int v, int lvl);     // Do not use directly, use solver's one

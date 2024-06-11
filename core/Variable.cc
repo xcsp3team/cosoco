@@ -21,6 +21,8 @@ void Variable::delayedConstruction(int id, int nbVars) {
 void Variable::addConstraint(Constraint *c) { constraints.push(c); }
 
 
+bool Variable::isReduceAtLevel(int level) { return domain.idvs.isLimitRecordedAtLevel(level); }
+
 // Delete Methods
 bool Variable::delVal(int v, int level) {   // Do not use directly, use solver's one
     if(domain.idvs.isLimitRecordedAtLevel(level) == false) {

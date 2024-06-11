@@ -15,6 +15,7 @@
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicValRoundRobin.h"
+#include "HeuristicVarCRBS.h"
 #include "HeuristicVarFRBA.h"
 #include "HeuristicVarRoundRobin.h"
 #include "PickOnDom.h"
@@ -80,6 +81,8 @@ Solver::Solver(Problem &p, Options &options)
         heuristicVar = new PickOnDom(*this);
     if(options.stringOptions["var"].value == "frba")
         heuristicVar = new HeuristicVarFRBA(*this);
+    if(options.stringOptions["var"].value == "crbs")
+        heuristicVar = new HeuristicVarCRBS(*this);
     if(options.stringOptions["var"].value == "robin")
         heuristicVar = new HeuristicVarRoundRobin(*this);
     if(heuristicVar == nullptr) {
