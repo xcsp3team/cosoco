@@ -1,0 +1,119 @@
+\documentclass{llncs}
+
+%\usepackage{makeidx}  % allows for indexgeneration
+
+\usepackage{mathrsfs} % for mathscr
+\usepackage{algorithmic}
+\usepackage{algorithm}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks,linkcolor={red!50!black},citecolor={blue!50!black},urlcolor={blue!80!black}}
+
+\newcommand{\f}[1]{\mathtt{#1}} %\tt #1} % field
+\newcommand{\h}[1]{\textit{#1}} % heuristic
+\newcommand{\p}[1]{\textit{#1}} % problem
+
+%\ifx\pdftexversion\undefined
+%  \usepackage[dvips]{graphics}
+%\else
+%  \usepackage[pdftex]{graphics}
+%\fi
+
+%\newcommand{\sub}[1]{\xrightarrow[ _{#1}]{}}
+
+\begin{document}
+
+%\pagestyle{headings}  % switches on printing of running heads
+\pagestyle{empty}
+
+
+\title{CoSoCo 2.4\\ {\small XCSP3 Competition 2024}}
+
+\author{Gilles Audemard}
+
+\institute{CRIL-CNRS, UMR 8188\\
+Universit\'e d'Artois, F-62307 Lens France\\
+\email{audemard@cril.fr}\\
+}
+%\date{03 September 2017}
+
+%\begin{document}
+
+\maketitle
+
+
+
+
+ CoSoCo is a constraint solver written in
+C++. The main goal is to build
+a simple, but efficient constraint solver. Indeed, the main part of
+the solver contains less than 4,000 lines of code (including headers). CoSoCo is available on
+\href{https://github.com/xcsp3team/cosoco}{github}. CoSoCo recognizes XCSP3
+\cite{BLPPxcsp3} by using the C++ parser that can be downloaded at
+\href{https://github.com/xcsp3team/XCSP3-CPP-Parser}{https://github.com/xcsp3team/XCSP3-CPP-Parser}. It
+can deal with all XCSP3 Core constraints. The part related to
+all constraint propagators contains around 6,500 lines of codes (including headers).
+This is the sixth participation of CoSoCo to XCSP competitions.   This year new additional features are embeded:
+\begin{itemize}
+\item New primitive propagators for intensional constraints.
+\item Decomposition of intensional constraints using reification.
+\item new constraints are embedded.
+\item Different modes depending the track.
+  \item The inner/outer restart strategy \cite{inner}
+\end{itemize}  
+
+ 
+\bigskip
+CoSoCo performs backtrack search, enforcing (generalized) arc consistency at each node (when possible).  
+The main components are :
+\begin{itemize}
+\item \h{lexico} as value ordering heuristic;
+\item lc(1), last-conflict reasoning with a collecting parameter $k$ set to $1$, as described in \cite{LSTV_reasonning};
+\item a variable-oriented propagation scheme \cite{G_relational}, where a queue $Q$ records all variables with recently reduced domains (see Chapter 4 in \cite{L_constraint}).
+\item The solution saving technque \cite{vion2017}.
+\end{itemize}
+
+\medskip
+This year CoSoCo comes with 2 modes per track. The different options used are defined below (in bold, you can see which version obtained the best results).
+
+\begin{itemize}
+  \begin{itemize}
+  \item     COP and Mini COP
+    \begin{itemize}
+    \item   {\bf default}: {\tt -restarts=io -var=robin}
+    \item v2: {\tt -restarts=io -var=robin -lc=2}
+    \end{itemize}
+  \item Fast COP
+    \begin{itemize}
+    \item default: {\tt -restarts=io -var=robin}
+    \item {\bf v2}: no options
+    \end{itemize}
+  \item CSP and Mini CSP
+    \begin{itemize}
+    \item \textbf{default}: {\tt  -restarts=io -stick=1}
+      \item v2: {\tt -stick=1 -lc=2}
+    \end{itemize}
+\end{itemize}
+
+
+
+
+
+\section*{Acknowledgements}
+This work would not have taken place without Christophe Lecoutre. I  would like to thank him  very warmly for his support.
+
+
+\bibliographystyle{plain} %alpha}
+\bibliography{globalBiblio}
+
+
+\end{document}
+
