@@ -1,10 +1,10 @@
-% LLNCS DOCUMENT CLASS -- version 2.20 (24-JUN-2015)
+% LLNCS DOCUMENT CLASS -- version 2.24 (29-Jan-2024)
 % Springer Verlag LaTeX2e support for Lecture Notes in Computer Science
 %
 %%
 %% \CharacterTable
 %%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
-%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\nSlots\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
 %%   Digits        \0\1\2\3\4\5\6\7\8\9
 %%   Exclamation   \!     Double quote  \"     Hash (number) \#
 %%   Dollar        \$     Percent       \%     Ampersand     \&
@@ -19,7 +19,7 @@
 %%   Right brace   \}     Tilde         \~}
 %%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{llncs}[2015/06/24 v2.20
+\ProvidesClass{llncs}[2024/01/29 v2.24
 ^^J LaTeX document class for Lecture Notes in Computer Science]
 % Options
 \let\if@envcntreset\iffalse
@@ -68,7 +68,7 @@
      \@tempdima #3\relax
      \advance\leftskip \@tempdima \null\nobreak\hskip -\leftskip
      {#4}\nobreak
-     \leaders\hbox{$\nSlots@th
+     \leaders\hbox{$\m@th
         \mkern \@dotsep mu\hbox{.}\mkern \@dotsep
         mu$}\hfill
      \nobreak
@@ -77,40 +77,41 @@
   \fi}
 %
 \def\switcht@albion{%
-\def\abstractname{Abstract.}%
-\def\ackname{Acknowledgement.}%
-\def\andname{and}%
-\def\lastandname{\unskip, and}%
-\def\appendixname{Appendix}%
-\def\chaptername{Chapter}%
-\def\claimname{Claim}%
-\def\conjecturename{Conjecture}%
-\def\contentsname{Table of Contents}%
-\def\corollaryname{Corollary}%
-\def\definitionname{Definition}%
-\def\examplename{Example}%
-\def\exercisename{Exercise}%
-\def\figurename{Fig.}%
-\def\keywordname{{\bf Keywords:}}%
-\def\indexname{Index}%
-\def\lemmaname{Lemma}%
-\def\contriblistname{List of Contributors}%
-\def\listfigurename{List of Figures}%
-\def\listtablename{List of Tables}%
-\def\mailname{{\it Correspondence to\/}:}%
-\def\noteaddname{Note added in proof}%
-\def\notename{Note}%
-\def\partname{Part}%
-\def\problemname{Problem}%
-\def\proofname{Proof}%
-\def\propertyname{Property}%
-\def\propositionname{Proposition}%
-\def\questionname{Question}%
-\def\remarkname{Remark}%
-\def\seename{see}%
-\def\solutionname{Solution}%
-\def\subclassname{{\it Subject Classifications\/}:}%
-\def\tablename{Table}%
+\def\abstractname{Abstract.}
+\def\ackname{Acknowledgments.}
+\def\andname{and}
+\def\lastandname{\unskip, and}
+\def\appendixname{Appendix}
+\def\chaptername{Chapter}
+\def\claimname{Claim}
+\def\conjecturename{Conjecture}
+\def\contentsname{Table of Contents}
+\def\corollaryname{Corollary}
+\def\definitionname{Definition}
+\def\discintname{Disclosure of Interests.}
+\def\examplename{Example}
+\def\exercisename{Exercise}
+\def\figurename{Fig.}
+\def\keywordname{{\bf Keywords:}}
+\def\indexname{Index}
+\def\lemmaname{Lemma}
+\def\contriblistname{List of Contributors}
+\def\listfigurename{List of Figures}
+\def\listtablename{List of Tables}
+\def\mailname{{\it Correspondence to\/}:}
+\def\noteaddname{Note added in proof}
+\def\notename{Note}
+\def\partname{Part}
+\def\problemname{Problem}
+\def\proofname{Proof}
+\def\propertyname{Property}
+\def\propositionname{Proposition}
+\def\questionname{Question}
+\def\remarkname{Remark}
+\def\seename{see}
+\def\solutionname{Solution}
+\def\subclassname{{\it Subject Classifications\/}:}
+\def\tablename{Table}
 \def\theoremname{Theorem}}
 \switcht@albion
 % Names of theorem like environments are already defined
@@ -129,6 +130,7 @@
  \def\contentsname{Table des mati\`eres}%
  \def\corollaryname{Corollaire}%
  \def\definitionname{D\'efinition}%
+ \def\discintname{Mention des Int\'{e}r\^{e}ts.}
  \def\examplename{Exemple}%
  \def\exercisename{Exercice}%
  \def\figurename{Fig.}%
@@ -168,6 +170,7 @@
  \def\contentsname{Inhaltsverzeichnis}%
  \def\corollaryname{Korollar}%
 %\def\definitionname{Definition}%
+ \def\discintname{Offenlegung von Interessen.}
  \def\examplename{Beispiel}%
  \def\exercisename{\"Ubung}%
  \def\figurename{Abb.}%
@@ -209,6 +212,20 @@
                \itemsep0\p@}%
    \belowdisplayskip \abovedisplayskip
 }
+
+% Switch to small font size for the credits at the end of the paper
+% (i.e. Acknowlegments and Disclosure of Interests)
+\newenvironment{credits}{%
+\begingroup\small%
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+        {-12\p@ \@plus -4\p@ \@minus -4\p@}%
+        {-0.5em \@plus -0.22em \@minus -0.1em}%
+        {\normalfont\small\bfseries\boldmath}}
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+        {-8\p@ \@plus -4\p@ \@minus -4\p@}%
+        {-0.5em \@plus -0.22em \@minus -0.1em}%
+        {\normalfont\small\itshape}}%
+}{\endgroup}
 
 \frenchspacing
 \widowpenalty=10000
@@ -287,7 +304,7 @@
                     \global\@topnum\z@
                     \@afterindentfalse
                     \secdef\@chapter\@schapter}
-\def\@chapter[#1]#2{\ifnum \c@secnumdepth >\nSlots@ne
+\def\@chapter[#1]#2{\ifnum \c@secnumdepth >\m@ne
                        \if@mainmatter
                          \refstepcounter{chapter}%
                          \typeout{\@chapapp\space\thechapter.}%
@@ -311,7 +328,7 @@
 \def\@makechapterhead#1{%
 % \vspace*{50\p@}%
   {\centering
-    \ifnum \c@secnumdepth >\nSlots@ne
+    \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter
         \large\bfseries \@chapapp{} \thechapter
         \par\nobreak
@@ -374,7 +391,7 @@ You should not use \verb|\subparagraph| with this class.\vskip0.5cm}
 \let\footnotesize\small
 
 \if@custvec
-\def\vec#1{\mathchoice{\mbox{\boldmath$\displaystyle#1$}}
+\DeclareRobustCommand\vec[1]{\mathchoice{\mbox{\boldmath$\displaystyle#1$}}
 {\mbox{\boldmath$\textstyle#1$}}
 {\mbox{\boldmath$\scriptstyle#1$}}
 {\mbox{\boldmath$\scriptscriptstyle#1$}}}
@@ -502,7 +519,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
               \partopsep \p@ \@plus\z@ \@minus\p@}
 
 \renewcommand\labelitemi{\normalfont\bfseries --}
-\renewcommand\labelitemii{$\nSlots@th\bullet$}
+\renewcommand\labelitemii{$\m@th\bullet$}
 
 \setlength\arraycolsep{1.4\p@}
 \setlength\tabcolsep{1.4\p@}
@@ -574,7 +591,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
  {\large\bfseries\boldmath#1}\ifx0#2\hfil\null
  \else
       \nobreak
-      \leaders\hbox{$\nSlots@th \mkern \@dotsep mu.\mkern
+      \leaders\hbox{$\m@th \mkern \@dotsep mu.\mkern
       \@dotsep mu$}\hfill
       \nobreak\hbox to\@pnumwidth{\hss #2}%
  \fi\par
@@ -589,7 +606,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
  \parfillskip -\rightskip \pretolerance=10000
  \leavevmode \advance\leftskip\@tempdima \hskip -\leftskip
  #1\nobreak
- \leaders\hbox{$\nSlots@th \mkern \@dotsep mu.\mkern
+ \leaders\hbox{$\m@th \mkern \@dotsep mu.\mkern
  \@dotsep mu$}\hfill
  \nobreak\hbox to\@pnumwidth{\hss #2}\par
  \penalty\@highpenalty \endgroup}
@@ -685,7 +702,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
         \renewcommand\newblock{\hskip .11em \@plus.33em \@minus.07em}%
       \fi
       \sloppy\clubpenalty4000\widowpenalty4000%
-      \sfcode`\.=\@nSlots}
+      \sfcode`\.=\@m}
      {\def\@noitemerr
        {\@latex@warning{Empty `thebibliography' environment}}%
       \endlist}
@@ -694,25 +711,25 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
      \write\@auxout{\string\bibcite{#2}{#1}}}\fi\ignorespaces}
 \newcount\@tempcntc
 \def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
-  \@tempcnta\z@\@tempcntb\nSlots@ne\def\@citea{}\@cite{\@for\@citeb:=#2\do
+  \@tempcnta\z@\@tempcntb\m@ne\def\@citea{}\@cite{\@for\@citeb:=#2\do
     {\@ifundefined
-       {b@\@citeb}{\@citeo\@tempcntb\nSlots@ne\@citea\def\@citea{,}{\bfseries
+       {b@\@citeb}{\@citeo\@tempcntb\m@ne\@citea\def\@citea{,}{\bfseries
         ?}\@warning
        {Citation `\@citeb' on page \thepage \space undefined}}%
     {\setbox\z@\hbox{\global\@tempcntc0\csname b@\@citeb\endcsname\relax}%
-     \ifnum\@tempcntc=\z@ \@citeo\@tempcntb\nSlots@ne
+     \ifnum\@tempcntc=\z@ \@citeo\@tempcntb\m@ne
        \@citea\def\@citea{,}\hbox{\csname b@\@citeb\endcsname}%
      \else
       \advance\@tempcntb\@ne
       \ifnum\@tempcntb=\@tempcntc
-      \else\advance\@tempcntb\nSlots@ne\@citeo
+      \else\advance\@tempcntb\m@ne\@citeo
       \@tempcnta\@tempcntc\@tempcntb\@tempcntc\fi\fi}}\@citeo}{#1}}
 \def\@citeo{\ifnum\@tempcnta>\@tempcntb\else
                \@citea\def\@citea{,\,\hskip\z@skip}%
                \ifnum\@tempcnta=\@tempcntb\the\@tempcnta\else
                {\advance\@tempcnta\@ne\ifnum\@tempcnta=\@tempcntb \else
                 \def\@citea{--}\fi
-      \advance\@tempcnta\nSlots@ne\the\@tempcnta\@citea\the\@tempcntb}\fi\fi}
+      \advance\@tempcnta\m@ne\the\@tempcnta\@citea\the\@tempcntb}\fi\fi}
 \else
 \renewenvironment{thebibliography}[1]
      {\section*{\refname}
@@ -737,7 +754,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
         \renewcommand\newblock{\hskip .11em \@plus.33em \@minus.07em}%
       \fi
       \sloppy\clubpenalty4000\widowpenalty4000%
-      \sfcode`\.=\@nSlots}
+      \sfcode`\.=\@m}
      {\def\@noitemerr
        {\@latex@warning{Empty `thebibliography' environment}}%
       \endlist}
@@ -875,8 +892,10 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
    \or \ddagger\ddagger \else\@ctrerr\fi}}
 
 \def\inst#1{\unskip$^{#1}$}
+\def\orcidID#1{\unskip$^{[#1]}$} % added MR 2018-03-10
 \def\fnmsep{\unskip$^,$}
 \def\email#1{{\tt#1}}
+
 \AtBeginDocument{\@ifundefined{url}{\def\url#1{#1}}{}%
 \@ifpackageloaded{babel}{%
 \@ifundefined{extrasenglish}{}{\addto\extrasenglish{\switcht@albion}}%
@@ -884,8 +903,12 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 \@ifundefined{extrasgerman}{}{\addto\extrasgerman{\switcht@deutsch}}%
 \@ifundefined{extrasngerman}{}{\addto\extrasngerman{\switcht@deutsch}}%
 }{\switcht@@therlang}%
-\providecommand{\keywords}[1]{\par\addvspace\baselineskip
+\providecommand{\keywords}[1]{\def\and{{\textperiodcentered} }%
+\par\addvspace\baselineskip
 \noindent\keywordname\enspace\ignorespaces#1}%
+\@ifpackageloaded{hyperref}{%
+\def\doi#1{\href{https://doi.org/\detokenize{#1}}{\url{https://doi.org/#1}}}}{
+\def\doi#1{https://doi.org/\detokenize{#1}}}
 }
 \def\homedir{\~{ }}
 
@@ -946,6 +969,8 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 %
     \if!\the\tocauthor!\relax
       {\def\and{\noexpand\protect\noexpand\and}%
+       \def\inst##1{}%    added MR 2017-09-20 to remove inst numbers from the TOC
+       \def\orcidID##1{}% added MR 2017-09-20 to remove ORCID ids from the TOC
       \protected@xdef\toc@uthor{\@author}}%
     \else
       \def\\{\noexpand\protect\noexpand\newline}%
@@ -961,7 +986,9 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
        \else
          \edef\@author{\the\authorrunning}%
        \fi
-       \global\setbox\authrun=\hbox{\small\unboldmath\@author\unskip}%
+       \global\setbox\authrun=\hbox{\def\inst##1{}%    added MR 2017-09-20 to remove inst numbers from the runninghead
+                                    \def\orcidID##1{}% added MR 2017-09-20 to remove ORCID ids from the runninghead
+                                    \small\unboldmath\@author\unskip}%
        \ifdim\wd\authrun>\instindent
           \typeout{Names of authors too long for running head. Please supply}%
           \typeout{a shorter form with \string\authorrunning\space prior to
@@ -1028,17 +1055,25 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\def\@thmcountersep{}
-\def\@thmcounterend{.}
+\edef\@thmcountersep{}
+\edef\@thmcounterend{.}
 
 \def\spnewtheorem{\@ifstar{\@sthm}{\@Sthm}}
 
 % definition of \spnewtheorem with number
 
-\def\@spnthm#1#2{%
-  \@ifnextchar[{\@spxnthm{#1}{#2}}{\@spynthm{#1}{#2}}}
+\def\@spnthm#1#2{\@ifnextchar[{\@spxnthm{#1}{#2}}{\@spynthm{#1}{#2}}}
 \def\@Sthm#1{\@ifnextchar[{\@spothm{#1}}{\@spnthm{#1}}}
 
+% theorem-like environment with standard counter
+\def\@spynthm#1#2#3#4{\expandafter\@ifdefinable\csname #1\endcsname
+   {\@definecounter{#1}%
+   \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
+   \expandafter\xdef\csname #1name\endcsname{#2}%
+   \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#3}{#4}}%
+                               \global\@namedef{end#1}{\@endtheorem}}}
+
+% theorem-like environment with section-wise counter (envcountsect)
 \def\@spxnthm#1#2[#3]#4#5{\expandafter\@ifdefinable\csname #1\endcsname
    {\@definecounter{#1}\@addtoreset{#1}{#3}%
    \expandafter\xdef\csname the#1\endcsname{\expandafter\noexpand
@@ -1047,23 +1082,24 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
    \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#4}{#5}}%
                               \global\@namedef{end#1}{\@endtheorem}}}
 
-\def\@spynthm#1#2#3#4{\expandafter\@ifdefinable\csname #1\endcsname
-   {\@definecounter{#1}%
-   \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
-   \expandafter\xdef\csname #1name\endcsname{#2}%
-   \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#3}{#4}}%
-                               \global\@namedef{end#1}{\@endtheorem}}}
-
+% theorem-like environment with shared counter (envcountsame)
 \def\@spothm#1[#2]#3#4#5{%
   \@ifundefined{c@#2}{\@latexerr{No theorem environment `#2' defined}\@eha}%
   {\expandafter\@ifdefinable\csname #1\endcsname
   {\newaliascnt{#1}{#2}%
   \expandafter\xdef\csname #1name\endcsname{#3}%
+  \if@envcntsect
+    % the following line, introduced in v2.24, fixes incorrect hypertexnames
+    % when envcountsect is used in combination with envcountsame
+    \@addtoreset{#1}{section}
+  \fi
   \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#4}{#5}}%
   \global\@namedef{end#1}{\@endtheorem}}}}
 
+
+
 \def\@spthm#1#2#3#4{\topsep 7\p@ \@plus2\p@ \@minus4\p@
-\refstepcounter{#1}\phantomsection
+\refstepcounter{#1}%
 \@ifnextchar[{\@spythm{#1}{#2}{#3}{#4}}{\@spxthm{#1}{#2}{#3}{#4}}}
 
 \def\@spxthm#1#2#3#4{\@spbegintheorem{#2}{\csname the#1\endcsname}{#3}{#4}%
@@ -1113,7 +1149,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
    \fi
 \fi
 
-%definition of divers theorem environments
+%definition of various theorem environments
 \spnewtheorem*{claim}{Claim}{\itshape}{\rmfamily}
 \spnewtheorem*{proof}{Proof}{\itshape}{\rmfamily}
 \if@envcntsame % alle Umgebungen wie Theorem.

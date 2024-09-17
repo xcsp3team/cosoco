@@ -60,17 +60,9 @@ the solver contains less than 4,000 lines of code (including headers). CoSoCo is
 \cite{BLPPxcsp3} by using the C++ parser that can be downloaded at
 \href{https://github.com/xcsp3team/XCSP3-CPP-Parser}{https://github.com/xcsp3team/XCSP3-CPP-Parser}. It
 can deal with all XCSP3 Core constraints. The part related to
-all constraint propagators contains around 6,500 lines of codes (including headers).
-This is the sixth participation of CoSoCo to XCSP competitions.   This year new additional features are embeded:
-\begin{itemize}
-\item New primitive propagators for intensional constraints.
-\item Decomposition of intensional constraints using reification.
-\item new constraints are embedded.
-\item Different modes depending the track.
-  \item The inner/outer restart strategy \cite{inner}
-\end{itemize}  
+all constraint propagators contains around 6,000 lines of codes (including headers).
+This is the sixth participation of CoSoCo to XCSP competitions.
 
- 
 \bigskip
 CoSoCo performs backtrack search, enforcing (generalized) arc consistency at each node (when possible).  
 The main components are :
@@ -78,14 +70,26 @@ The main components are :
 \item \h{lexico} as value ordering heuristic;
 \item lc(1), last-conflict reasoning with a collecting parameter $k$ set to $1$, as described in \cite{LSTV_reasonning};
 \item a variable-oriented propagation scheme \cite{G_relational}, where a queue $Q$ records all variables with recently reduced domains (see Chapter 4 in \cite{L_constraint}).
-\item The solution saving technque \cite{vion2017}.
+\item The solution saving technique \cite{vion2017}.
 \end{itemize}
+
+
+
+This year new additional features are embedded:
+\begin{itemize}
+\item New primitive propagators for intensional constraints.
+\item Decomposition of intensional constraints using reification.
+\item new constraints are embedded (BinPacking, special cumulative).
+\item The inner/outer restart strategy \cite{inner}.
+  \item A round robin selection of heuristics using wdeg \cite{BHLS_boosting}, pick \cite{pick} and frba \cite{LYL_fra}.
+\end{itemize}  
+
+ 
 
 \medskip
 This year CoSoCo comes with 2 modes per track. The different options used are defined below (in bold, you can see which version obtained the best results).
 
 \begin{itemize}
-  \begin{itemize}
   \item     COP and Mini COP
     \begin{itemize}
     \item   {\bf default}: {\tt -restarts=io -var=robin}
@@ -110,8 +114,7 @@ This year CoSoCo comes with 2 modes per track. The different options used are de
 \section*{Acknowledgements}
 This work would not have taken place without Christophe Lecoutre. I  would like to thank him  very warmly for his support.
 
-
-\bibliographystyle{plain} %alpha}
+\bibliographystyle{plain}
 \bibliography{globalBiblio}
 
 
