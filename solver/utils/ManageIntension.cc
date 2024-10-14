@@ -287,7 +287,6 @@ class PBinary2 : public Primitive {   // x + 3 <op> y
     bool post() override {
         if(isRelationalOperator(operators[0]) == false)
             return false;
-
         return createXopYk(callbacks.problem, operators[0], variables[0], variables[1],
                            operators[0] == OEQ ? -constants[0] : constants[0]);
     }
@@ -304,7 +303,8 @@ class PBinary3 : public Primitive {   // x = y <op> 3
     bool post() override {
         if(isRelationalOperator(operators[0]) == false)
             return false;
-        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1], constants[0]);
+        return createXopYk(callbacks.problem, operators[0], variables[0], variables[1],
+                           operators[0] == OEQ ? constants[0] : -constants[0]);
 
         return true;
     }
