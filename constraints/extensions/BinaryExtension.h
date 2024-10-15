@@ -13,6 +13,7 @@ class BinaryExtension : public Extension {
     int           maxConflictsx, maxConflictsy;
     int           nbtuples;
     Matrix<bool> *matrix;
+    bool          first_call = true;
 
    public:
     // Constructors and initialisation

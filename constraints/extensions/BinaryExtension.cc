@@ -25,7 +25,7 @@ bool BinaryExtension::isSatisfiedBy(vec<int> &tuple) {
 
 
 bool BinaryExtension::filter(Variable *dummy) {
-    if(solver->isAssigned(x) == false /*&& x->size()<maxConflictsx*/) {
+    if(solver->isAssigned(x) == false) {
         for(int idvx : reverse(x->domain)) {
             if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
                 continue;
@@ -41,7 +41,7 @@ bool BinaryExtension::filter(Variable *dummy) {
                 return false;
         }
     }
-    if(solver->isAssigned(y) == false /*&& y->size() < maxConflictsy */) {
+    if(solver->isAssigned(y) == false && y->size() < 100 && x->size() < 100) {
         for(int idvy : reverse(y->domain)) {
             if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
                 continue;
@@ -86,6 +86,8 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
       maxConflictsy(y->size() + 1) {
     matrix   = hasSameTuples->matrix;
     nbtuples = hasSameTuples->nbtuples;
+    hasSameTuples->resx.copyTo(resx);
+    hasSameTuples->resy.copyTo(resy);
 }
 
 
@@ -111,6 +113,16 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
         return;
     }
 
+    if(resx.size() == 0) {
+        resx.growTo(x->domain.maxSize(), -1);
+        resy.growTo(y->domain.maxSize(), -1);
+    }
+    assert(idv1 < x->domain.maxSize());
+    assert(idv2 < y->domain.maxSize());
+    resx[idv1] = idv2;
+    resy[idv2] = idv1;
+
+
     (*matrix)[idv1][idv2] = true;
     nbtuples++;
 }
@@ -118,8 +130,17 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
 
 void BinaryExtension::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
-    resx.growTo(x->domain.maxSize(), -1);
-    resy.growTo(y->domain.maxSize(), -1);
+    if(resx.size() == 0) {
+        auto *ctr = dynamic_cast<BinaryExtension *>(problem.constraints[idc - 1]);
+        if(ctr == nullptr) {
+            std::cout << "nulll\n";
+            // resx.growTo(x->domain.maxSize(), -1);
+            // resy.growTo(y->domain.maxSize(), -1);
+        } else {
+            ctr->resx.copyTo(resx);
+            ctr->resy.copyTo(resy);
+        }
+    }
 }
 
 
