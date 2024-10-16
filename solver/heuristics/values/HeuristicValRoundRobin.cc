@@ -27,10 +27,4 @@ HeuristicValRoundRobin::HeuristicValRoundRobin(Solver &s, std::string &sequence)
     }
 }
 
-int HeuristicValRoundRobin::select(Variable *x) {
-    if(x->_name[0] == 'y' && x->domain.containsValue(1)) {
-        return 1;
-    }
-
-    return heuristics[solver.statistics[restarts] % heuristics.size()]->select(x);
-}
+int HeuristicValRoundRobin::select(Variable *x) { return heuristics[solver.statistics[restarts] % heuristics.size()]->select(x); }
