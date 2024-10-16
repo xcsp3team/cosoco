@@ -14,6 +14,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "Div.h"
 #include "Precedence.h"
 #include "Reification.h"
 #include "XCSP3Constants.h"
@@ -85,6 +86,33 @@ class FactoryConstraints {
     //--------------------------------------------------------------------------------------
     // Basic constraints
     //--------------------------------------------------------------------------------------
+
+
+    bool static createConstraintPrimitiveDiv(Problem *p, Variable *x, int kk, ExpressionType op, Variable *y) {
+        if(op == OLE) {
+            p->addConstraint(new DivLE(*p, "", x, kk, y));
+            return true;
+        }
+        if(op == OLT) {
+            return false;
+        }
+
+        if(op == OGE) {
+            p->addConstraint(new DivGE(*p, "", x, kk, y));
+            return true;
+        }
+        if(op == OGT) {
+            return false;
+        }
+        if(op == OEQ) {
+            p->addConstraint(new DivLE(*p, "", x, kk, y));
+            p->addConstraint(new DivGE(*p, "", x, kk, y));
+            return true;
+        }
+
+        return false;
+    }
+
 
     static void createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l) {
         l.push(x);

@@ -277,6 +277,38 @@ class PBinary1 : public Primitive {   // x <op> y
     }
 };
 
+class PBinaryDiv : public Primitive {   // x + 3 <op> y
+   public:
+    explicit PBinaryDiv(CosocoCallbacks &m) : Primitive(m, "eq(div(x,3),y)", 2) {
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
+    }
+
+
+    bool post() override {
+        if(isRelationalOperator(operators[0]) == false)
+            return false;
+        return FactoryConstraints::createConstraintPrimitiveDiv(callbacks.problem, callbacks.problem->mapping[variables[0]],
+                                                                constants[0], operators[0],
+                                                                callbacks.problem->mapping[variables[1]]);
+    }
+};
+
+class PBinaryDiv2 : public Primitive {   // x + 3 <op> y
+   public:
+    explicit PBinaryDiv2(CosocoCallbacks &m) : Primitive(m, "eq(y,div(x,3))", 2) { }
+
+
+    bool post() override {
+        canonized->prefixe();
+        std::cout << std::endl;
+        if(isRelationalOperator(operators[0]) == false)
+            return false;
+        return FactoryConstraints::createConstraintPrimitiveDiv(callbacks.problem, callbacks.problem->mapping[variables[1]],
+                                                                constants[0], OGE, callbacks.problem->mapping[variables[0]]);
+    }
+};
+
+
 class PBinary2 : public Primitive {   // x + 3 <op> y
    public:
     explicit PBinary2(CosocoCallbacks &m) : Primitive(m, "eq(add(x,3),y)", 2) {
@@ -703,6 +735,8 @@ ManageIntension::ManageIntension(CosocoCallbacks &c) : callbacks(c) { createPrim
 
 
 void ManageIntension::createPrimitives() {
+    patterns.push(new PBinaryDiv(callbacks));
+    patterns.push(new PBinaryDiv2(callbacks));
     patterns.push(new PBinary1(callbacks));
     patterns.push(new PBinary2(callbacks));
     patterns.push(new PBinary3(callbacks));
