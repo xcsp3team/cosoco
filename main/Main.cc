@@ -187,7 +187,12 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     printf("Domain Sizes: ");
     resetcolors();
     printf("%d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
-    printf("c |\n");
+    printf("c |            ");
+    resetcolors();
+    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    printf("      Values: ");
+    resetcolors();
+    printf("%ld\n", solvingProblem->nbValues());
     printf("c |             ");
     colorize(termcolor::blue, options.boolOptions["colors"].value);
     printf("Constraints: ");

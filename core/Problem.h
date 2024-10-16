@@ -44,6 +44,7 @@ class Problem {
     int  nbVariables() const;
     int  nbConstraints() const;
     int  nbConstraintsOfSize(int size);
+    long nbValues();
     int  minimumArity();
     int  maximumArity();
     int  maximumTuplesInExtension();

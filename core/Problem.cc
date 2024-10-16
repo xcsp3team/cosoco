@@ -134,6 +134,11 @@ int Problem::nbConstraintsOfSize(int size) {
     return nb;
 }
 
+long Problem::nbValues() {
+    long tmp = 0;
+    for(Variable *x : variables) tmp += x->size();
+    return tmp;
+}
 
 int Problem::minimumArity() {
     int tmp = constraints[0]->scope.size();
