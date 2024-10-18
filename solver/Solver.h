@@ -6,6 +6,7 @@
 
 #include "AbstractSolver.h"
 #include "Options.h"
+#include "Profiling.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
@@ -27,6 +28,7 @@ enum OneRunStats { maxDepth, minDepth, sumDepth, nbConflicts };
 
 class Restart;
 class NoGoodsEngine;
+class Profiling;
 
 typedef struct {
     Variable *x;
@@ -41,9 +43,10 @@ class Solver : public AbstractSolver {
     vec<vec<int> > allSolutions;
 #endif
     // -- Main Stats ------------------------------------------------------------------------
-    uint64_t decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0, nodes = 0;
-    uint64_t filterCalls = 0;
-
+    uint64_t   decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0, nodes = 0;
+    uint64_t   filterCalls = 0;
+    Profiling *profiling;
+    bool       doProfiling;
 
     // -- Minor Stats -----------------------------------------------------------------------
     vec<uint64_t> statistics;                          // global statistics
