@@ -34,20 +34,14 @@ bool BinaryExtension::filter(Variable *dummy) {
 
     for(int idvx : x->domain) {
         int pos = 0;
-        std::cout << " X=" << idvx << ":  ";
-        for(int idvy : supportsForX[idvx]) std::cout << idvy << " ";
-        std::cout << "\n";
-
-
         for(int idvy : supportsForX[idvx]) {
-            //  std::cout << " " << idvy << std::endl;
             if(y->containsIdv(idvy))
                 break;
             pos++;
         }
         if(pos == supportsForX[idvx].size() && solver->delIdv(x, idvx) == false)
             return false;
-        if(supportsForX[idvx].size() == 0 || pos == 0)
+        if(pos == supportsForX[idvx].size() || supportsForX[idvx].size() == 0 || pos == 0)
             continue;
         assert(supportsForX[idvx].size() > 0);
         int tmp                 = supportsForX[idvx][0];
@@ -56,26 +50,21 @@ bool BinaryExtension::filter(Variable *dummy) {
     }
 
     for(int idvy : y->domain) {
-        std::cout << " Y=" << idvy << ":  ";
-        for(int idvx : supportsForY[idvy]) std::cout << idvx << " ";
-        std::cout << "\n";
-
-        int pos2 = 0;
+        int pos = 0;
         for(int idvx : supportsForY[idvy]) {
             if(x->containsIdv(idvx))
                 break;
-            pos2++;
+            pos++;
         }
-        std::cout << pos2 << " " << supportsForY[idvy].size() << std::endl;
-        if(pos2 == supportsForY[idvy].size() && solver->delIdv(y, idvy) == false)
+        if(pos == supportsForY[idvy].size() && solver->delIdv(y, idvy) == false)
             return false;
-        if(supportsForY[idvy].size() == 0 || pos2 == 0)
+        if(pos == supportsForY[idvy].size() || supportsForY[idvy].size() == 0 || pos == 0)
             continue;
         assert(supportsForY[idvy].size() > 0);
 
-        int tmp                  = supportsForY[idvy][0];
-        supportsForY[idvy][0]    = supportsForY[idvy][pos2];
-        supportsForY[idvy][pos2] = tmp;
+        int tmp                 = supportsForY[idvy][0];
+        supportsForY[idvy][0]   = supportsForY[idvy][pos];
+        supportsForY[idvy][pos] = tmp;
     }
     return true;
 }
@@ -117,15 +106,14 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
     assert(idv2 >= 0 && (idv2 == STAR || idv2 < y->domain.maxSize()));
     if(idv1 == STAR) {
         for(int i = 0; i < x->domain.maxSize(); i++) supportsForY[idv2].push(i);
+        nbtuples += x->domain.maxSize();
         return;
     }
     if(idv2 == STAR) {
         for(int i = 0; i < y->domain.maxSize(); i++) supportsForX[idv1].push(i);
+        nbtuples += y->domain.maxSize();
         return;
     }
-    std::cout << idv1 << " " << idv2 << std::endl;
-    assert(idv1 >= 0 && idv1 <= supportsForX.size());
-    assert(idv2 >= 0 && idv2 <= supportsForY.size());
     supportsForX[idv1].push(idv2);
     supportsForY[idv2].push(idv1);
     nbtuples++;
