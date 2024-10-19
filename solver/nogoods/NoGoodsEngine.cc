@@ -5,6 +5,7 @@
 #include "NoGoodsEngine.h"
 
 #include "System.h"
+#include "XCSP3Constants.h"
 using namespace Cosoco;
 
 Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
@@ -50,6 +51,27 @@ void NoGoodsEngine::generateNogoodFromSolution() {
         if(x->useless == false)
             nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
     addNoGood(nogood);
+}
+
+
+//-----------------------------------------------------------------------
+// -- Create conflict table
+//-----------------------------------------------------------------------
+
+void NoGoodsEngine::addConflictTable(vec<Cosoco::Variable *> &scope, vec<vec<int>> &tuples) {
+    for(auto &tuple : tuples) {
+        vec<Lit> nogood;
+        bool     add = true;
+        for(int i = 0; i < tuple.size(); i++) {
+            if(tuple[i] == STAR)
+                throw std::runtime_error("Conflict table with star are not yet implemented");
+            if(tuple[i] < 0 || tuple[i] > scope[i]->domain.maxSize())
+                add = false;
+            nogood.push(getNegativeDecisionFor(scope[i], tuple[i]));
+        }
+        if(add)
+            addNoGood(nogood);
+    }
 }
 
 //-----------------------------------------------------------------------

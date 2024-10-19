@@ -14,6 +14,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "FakeForNoGood.h"
 #include "Precedence.h"
 #include "Reification.h"
 #include "XCSP3Constants.h"
@@ -220,6 +221,9 @@ class FactoryConstraints {
             if(isSupport)
                 ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
             else {
+                assert(hasStar == false);   // TODO
+                ctr = new FakeForNoGood(*p, "", vars);
+                p->noGoodsEngine->addConflictTable(vars, tuples);
             }
         } else {
             if(isSupport) {
@@ -238,7 +242,9 @@ class FactoryConstraints {
 
     static void createConstraintExtension(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                           bool isSupport, bool hasStar = false) {
-        p->addConstraint(newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar));
+        Constraint *c = newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar);
+        if(c != nullptr)
+            p->addConstraint(c);
     }
 
 
@@ -254,8 +260,14 @@ class FactoryConstraints {
         }
 
         if(vars.size() == 2) {
-            // TODO ARGL j'ai pas la contrainte :(
-            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            if(sameConstraint->isSupport)
+                ctr =
+                    new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            else {
+                FakeForNoGood *fk = dynamic_cast<FakeForNoGood *>(c);
+                p->noGoodsEngine->addConflictTable(vars, fk->getTuples());
+                ctr = new FakeForNoGood(*p, name, vars, fk);
+            }
         }
         if(vars.size() > 2) {
             if(sameConstraint->isSupport)

@@ -853,6 +853,10 @@ void Solver::interrupt() { }
 
 void Solver::printFinalStats() {
     double cpu_time = cpuTime();
+    if(cpu_time == 0)
+        cpu_time = 1;
+    if(filterCalls == 0)
+        filterCalls = 1;
 
     printf("c restarts              : %lu\n", statistics[restarts]);
     printf("c decisions             : %lu (%.0f /sec)\n", decisions, decisions / cpu_time);

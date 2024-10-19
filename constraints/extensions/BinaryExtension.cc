@@ -78,6 +78,7 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
     : Extension(p, n, createScopeVec(xx, yy), 0, support), x(xx), y(yy), nbtuples(0) {
     supportsForX.growTo(x->domain.maxSize());
     supportsForY.growTo(y->domain.maxSize());
+    type = "Binary Extension";
 }
 
 
@@ -88,6 +89,7 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
     supportsForY.growTo(yy->domain.maxSize());
     for(int i = 0; i < hasSameTuples->supportsForX.size(); i++) hasSameTuples->supportsForX[i].copyTo(supportsForX[i]);
     for(int i = 0; i < hasSameTuples->supportsForY.size(); i++) hasSameTuples->supportsForY[i].copyTo(supportsForY[i]);
+    type = "Binary Extension";
 }
 
 

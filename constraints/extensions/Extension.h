@@ -21,8 +21,9 @@ class Extension : public Constraint {
 
     Extension(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples, bool support)
         : Constraint(p, n, vars), isSupport(support) {
-        type   = "Extension";
-        tuples = new Matrix<int>(max_n_tuples, vars.size());
+        type = "Extension";
+        if(max_n_tuples > 0)
+            tuples = new Matrix<int>(max_n_tuples, vars.size());
     }
 
 

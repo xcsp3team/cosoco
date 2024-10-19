@@ -47,6 +47,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     bool isSupport(Variable *x, int idv);                  // is definitively a support for the nogoœod
 
     void generateNogoodFromSolution();
+    void addConflictTable(vec<Variable *> &scope, vec<vec<int>> &tuples);
 
     // Callbacks to store and delete the current branch
     void notifyNewDecision(Variable *x, Solver &s) override;

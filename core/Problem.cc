@@ -143,6 +143,8 @@ long Problem::nbValues() {
 }
 
 int Problem::minimumArity() {
+    if(constraints.size() == 0)
+        return 0;
     int tmp = constraints[0]->scope.size();
     for(Constraint *c : constraints)
         if(c->scope.size() < tmp)
