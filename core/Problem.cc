@@ -46,8 +46,10 @@ void Problem::delayedConstruction() {
 void Problem::attachSolver(Solver *s) {
     solver = s;
     for(Constraint *c : constraints) c->attachSolver(solver);
+    noGoodsEngine->attachSolver(solver);
 }
 
+void Problem::createNoGoodEngine() { noGoodsEngine = new NoGoodsEngine(*this); }
 
 void Problem::addConstraint(Constraint *c) {
     if(isConstructionDone)

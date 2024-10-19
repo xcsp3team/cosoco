@@ -29,6 +29,7 @@ enum OneRunStats { maxDepth, minDepth, sumDepth, nbConflicts };
 class Restart;
 class NoGoodsEngine;
 class Profiling;
+class ObserverConflict;
 
 typedef struct {
     Variable *x;
@@ -100,6 +101,7 @@ class Solver : public AbstractSolver {
     void addLastConflictReasoning();
     void addRandomizationFirstDescent();
     void addStickingValue();
+    void delayedConstruction();
 
 
     // --------------------------------------------------------------------------------------
@@ -141,12 +143,8 @@ class Solver : public AbstractSolver {
     Constraint *propagateComplete();                          // fill the queue and propagate everything
     bool        isGACGuaranted();                             // Return trus if GAC is ensured
 
-    void entail(Constraint *c) {
-        if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
-            entailedConstraints.recordLimit(decisionLevel());
-        entailedConstraints.add(c->idc);
-    }
-    bool isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }
+    void entail(Constraint *c);
+    bool isEntailed(Constraint *c);
     // --------------------------------------------------------------------------------------
     // Domain variable modifications (add/remove values)
     // --------------------------------------------------------------------------------------

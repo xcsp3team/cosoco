@@ -149,7 +149,7 @@ Solver::Solver(Problem &p, Options &options)
 
 void Solver::addNoGoodsFromRestarts() {
     nogoodsFromRestarts = true;
-    noGoodsEngine       = new NoGoodsEngine(*this);
+    noGoodsEngine       = problem.noGoodsEngine;
 }
 
 void Solver::addLastConflictReasoning() {
@@ -170,6 +170,11 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
     for(Variable *v : vars) decisionVariables.add(v);
 }
 
+void Solver::delayedConstruction() {
+    if(doProfiling)
+        profiling->initialize();
+}
+
 //----------------------------------------------
 // Search methods
 //----------------------------------------------
@@ -177,10 +182,9 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
 int Solver::solve(vec<RootPropagation> &assumps) {
     bool firstCall = nbSolutions == 0;
 
-    if(doProfiling && firstCall)
-        profiling->initialize();
+    if(firstCall)
+        delayedConstruction();
 
-    
     fullBacktrack();
 
     if(problem.isConstructionDone == false)
@@ -421,13 +425,11 @@ void Solver::handleFailure(Variable *x, int idv) {
     int       idvtmp = idv;
     delIdv(tmp, idvtmp);
     assert(tmp->size() == 0);
-    int round = 0;
     while(tmp->size() == 0 || propagate() != nullptr) {
         if(decisionLevel() == 0) {
             status = FULL_EXPLORATION;
             break;
         }
-        round++;
         tmp    = decisionVariableAtLevel(decisionLevel());
         idvtmp = decisionVariablesId.last();
         backtrack();
@@ -540,6 +542,14 @@ Constraint *Solver::propagateComplete() {
 
 
 bool Solver::isGACGuaranted() { return false; }
+
+void Solver::entail(Constraint *c) {
+    if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
+        entailedConstraints.recordLimit(decisionLevel());
+    entailedConstraints.add(c->idc);
+}
+
+bool Solver::isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }
 
 //----------------------------------------------------------
 // Variable modifications : assign/remove values from domain

@@ -216,9 +216,12 @@ class FactoryConstraints {
     static Constraint *newExtensionConstraint(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                               bool isSupport, bool hasStar = false) {
         Extension *ctr = nullptr;
-        if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
-        else {
+        if(vars.size() == 2) {
+            if(isSupport)
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+            else {
+            }
+        } else {
             if(isSupport) {
                 ctr = new CompactTable(*p, name, vars, tuples.size());
                 // ctr = new ShortSTR2(*p, name, vars, tuples.size());
@@ -250,9 +253,10 @@ class FactoryConstraints {
             return;
         }
 
-        if(vars.size() == 2)
+        if(vars.size() == 2) {
+            // TODO ARGL j'ai pas la contrainte :(
             ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
-
+        }
         if(vars.size() > 2) {
             if(sameConstraint->isSupport)
                 ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);

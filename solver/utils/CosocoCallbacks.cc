@@ -51,6 +51,7 @@ void CosocoCallbacks::endVariableArray() { inArray = false; }
 void CosocoCallbacks::endVariables() {
     nbInitialsVariables     = problem->nbVariables();
     problem->nbOriginalVars = problem->nbVariables();
+    problem->createNoGoodEngine();
 }
 
 void CosocoCallbacks::initGroups() {

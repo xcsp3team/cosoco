@@ -17,7 +17,7 @@ typedef long long Lit;
 
 
 class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
-    Solver &solver;
+    Solver *solver;
     // vec<vec<Lit>>      nogoods;        // list of all nogoods
     std::map<Lit, int>     watcherPosition;   // the position pos in th watchers vector of this tuple x!=idv
     vec<vec<unsigned int>> watchers;          // watchers[pos] provides all nogoods watcherd by the tuple ix!=idv
@@ -36,7 +36,8 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
    public:
     static Constraint *fake;
     vec<long>          statistics;
-    explicit NoGoodsEngine(Solver &s);
+    explicit NoGoodsEngine(Problem &p);
+    void attachSolver(Solver *s);
 
     bool generateNogoodsFromRestarts();                    // Generate different nogoods
     void addNoGood(vec<Lit> &nogood);                      // Add a no good to the database

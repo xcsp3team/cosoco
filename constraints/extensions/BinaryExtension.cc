@@ -121,10 +121,3 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
 
 
 size_t BinaryExtension::nbTuples() { return nbtuples; }
-
-
-struct CSPPropagation {   // x equal idv ??
-    Variable *x;
-    int       idv;
-    bool      equal;
-};

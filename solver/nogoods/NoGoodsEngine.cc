@@ -10,26 +10,31 @@ using namespace Cosoco;
 Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
 
 
-NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0) {
+NoGoodsEngine::NoGoodsEngine(Problem &problem) : maxArity(1000), capacity(0) {
     // std::cout << n1 << " " << n2 << " " << sizeof(long) * 8 << std::endl;
-
+    std::cout << solver << std::endl;
     // if(n1 + n2 <= sizeof(long) * 8)
-    auto n1 = (unsigned int)ceil(log2(s.problem.nbVariables()));
-    auto n2 = (unsigned int)ceil(log2(s.problem.maximumDomainSize()));
+    auto n1 = (unsigned int)ceil(log2(problem.nbVariables()));
+    auto n2 = (unsigned int)ceil(log2(problem.maximumDomainSize()));
     if(n1 + n2 > 8 * sizeof(Lit) - 1)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
     OFFSET    = (unsigned int)pow(2, n2 + 1);   // +1 because 0 excluded ???
     totalTime = 0;
     statistics.growTo(NOGOODSSTATS, 0);
-    s.addObserverNewDecision(this);
-    s.addObserverDeleteDecision(this);
 
     // Manage space
     last    = 0;
     nogoods = (Lit *)malloc(sizeof(Lit));
     enlargeNogoodStructure(1024 * 1024);
 }
+
+void NoGoodsEngine::attachSolver(Cosoco::Solver *s) {
+    solver = s;
+    s->addObserverNewDecision(this);
+    s->addObserverDeleteDecision(this);
+}
+
 
 std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
     stream << tuple.x->_name << (tuple.eq ? "=" : "!=") << tuple.idv << " ";
@@ -41,7 +46,7 @@ std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
 
 void NoGoodsEngine::generateNogoodFromSolution() {
     vec<Lit> nogood;
-    for(Variable *x : solver.problem.variables)
+    for(Variable *x : solver->problem.variables)
         if(x->useless == false)
             nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
     addNoGood(nogood);
@@ -164,7 +169,7 @@ bool NoGoodsEngine::propagate(Variable *x) {
         }
         watchers[position][j++] = ngposition;   // The nogood stay in the watcher, it has to be propagated
         statistics[props]++;
-        if(solver.delIdv(y, idv) == false) {   // The nogood is false
+        if(solver->delIdv(y, idv) == false) {   // The nogood is false
             statistics[cfl]++;
             while(i < watchers[position].size())   // Copy the remaining watches
                 watchers[position][j++] = watchers[position][i++];
@@ -186,7 +191,7 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
     for(Lit lit : nogoodsOfSize1) {
         Variable *x   = getVariableIn(lit);
         int       idv = getIndexIn(lit);
-        solver.delIdv(x, idv);
+        solver->delIdv(x, idv);
     }
 }
 
@@ -215,7 +220,7 @@ void NoGoodsEngine::notifyFullBacktrack() { currentBranch.clear(); }
 // -- From x=idv to int and vice-versa
 //-----------------------------------------------------------------------
 
-Variable *NoGoodsEngine::getVariableIn(int number) { return solver.problem.variables[abs(number) / OFFSET]; }
+Variable *NoGoodsEngine::getVariableIn(int number) { return solver->problem.variables[abs(number) / OFFSET]; }
 
 inline int NoGoodsEngine::getIndexIn(int number) const { return abs(number) % OFFSET - 1; }
 

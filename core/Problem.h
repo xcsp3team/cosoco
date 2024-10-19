@@ -8,18 +8,19 @@
 #include "core/Variable.h"
 #include "mtl/Vec.h"
 #include "optimizer/ObjectiveConstraint.h"
-
+#include "solver/nogoods/NoGoodsEngine.h"
 namespace Cosoco {
 
 
 class Solver;
-
+class NoGoodsEngine;
 
 class Problem {
    public:
     const std::string     name;                  // The name of the problem
     Solver               *solver;                // The attached solver (initialized to nullptr)
     vec<Constraint *>     constraints;           // The set of constraints
+    NoGoodsEngine        *noGoodsEngine;         // Usefull to store conflict tables
     vec<Variable *>       variables;             // The set of variables
     vec<vec<Variable *> > variablesArray;        // The different arrays of Variables
     bool                  isConstructionDone;    // true if the construction of the problem is done
@@ -38,7 +39,7 @@ class Problem {
 
     Variable *createVariable(std::string n, Domain &d, int array = -1);   // Add a new variable
     void      addConstraint(Constraint *c);                               // Add a new constraint
-
+    void      createNoGoodEngine();
 
     // Problem Statistics
     int  nbVariables() const;
