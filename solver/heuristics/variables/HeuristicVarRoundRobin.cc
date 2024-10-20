@@ -34,7 +34,6 @@ HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s) : HeuristicVar
 Variable *HeuristicVarRoundRobin::select() { return heuristics[current]->select(); }
 
 void HeuristicVarRoundRobin::notifyFullBacktrack() {
-    std::cout << solver.nbSolutions << solver.decisionVariables.size() << std::endl;
     if(solver.statistics[restarts] % nbrestarts == 0) {
         heuristics[current]->stop();
         current++;
