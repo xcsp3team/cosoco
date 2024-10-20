@@ -222,8 +222,10 @@ class FactoryConstraints {
                 ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
             else {
                 assert(hasStar == false);   // TODO
-                ctr = new FakeForNoGood(*p, "", vars);
-                p->noGoodsEngine->addConflictTable(vars, tuples);
+                assert(hasStar == false);   // TODO
+                ctr = new STRNeg(*p, name, vars, tuples.size());
+                // ctr = new FakeForNoGood(*p, "", vars);
+                // p->noGoodsEngine->addConflictTable(vars, tuples);
             }
         } else {
             if(isSupport) {
@@ -264,9 +266,10 @@ class FactoryConstraints {
                 ctr =
                     new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
             else {
-                FakeForNoGood *fk = dynamic_cast<FakeForNoGood *>(c);
-                p->noGoodsEngine->addConflictTable(vars, fk->getTuples());
-                ctr = new FakeForNoGood(*p, name, vars, fk);
+                ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
+                // FakeForNoGood *fk = dynamic_cast<FakeForNoGood *>(c);
+                // p->noGoodsEngine->addConflictTable(vars, fk->getTuples());
+                // ctr = new FakeForNoGood(*p, name, vars, fk);
             }
         }
         if(vars.size() > 2) {
