@@ -638,7 +638,7 @@ bool Solver::assignToIdv(Variable *x, int idv) {
 bool Solver::delValuesGreaterOrEqualThan(Variable *x, int max) {
     if(x->minimum() >= max)
         return false;
-    for(int idv : reverse(x->domain)) {   // Reverse traversal because of deletion
+    for(int idv : x->domain) {
         if(x->domain.toVal(idv) < max)
             return true;
         if(delIdv(x, idv) == false)
@@ -670,7 +670,7 @@ bool Solver::delValuesInDomain(Variable *x, Domain &d) {
 
 
 bool Solver::delValuesNotInDomain(Variable *x, Domain &d) {
-    for(int idv : reverse(x->domain)) {
+    for(int idv : x->domain) {
         int v = x->domain.toVal(idv);
         if(d.containsValue(v) == false && delIdv(x, idv) == false)
             return false;
@@ -680,8 +680,8 @@ bool Solver::delValuesNotInDomain(Variable *x, Domain &d) {
 
 
 bool Solver::changeDomain(Variable *x, SparseSet &newidvalues) {
-    assert(newidvalues.size() > 0);     // Initial nodmain must be equal
-    for(int idv : reverse(x->domain))   // Reverse traversal : delete values
+    assert(newidvalues.size() > 0);   // Initial nodmain must be equal
+    for(int idv : x->domain)
         if(newidvalues.contains(idv) == false)
             delIdv(x, idv);
     return true;

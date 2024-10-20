@@ -57,7 +57,7 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
         return false;
 
 
-    for(int idv : reverse(value->domain)) {
+    for(int idv : value->domain) {
         int v = value->domain.toVal(idv);
         if(sentinels[idv]->containsValue(v) == false) {
             Variable *s = findNewSentinelFor(v, nullptr);
@@ -80,7 +80,7 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
     int       valLimit = computeLimitForSentinel(sentinel);
     if(valLimit == max)
         return true;   // because another sentinel exists
-    for(int idv : reverse(sentinel->domain)) {
+    for(int idv : sentinel->domain) {
         int v = sentinel->domain.toVal(idv);
         if(v == max)
             continue;   // First element, skip it

@@ -18,16 +18,18 @@ bool EQ::filter(Variable *xx) {
     if(x->size() == 1) {
         if(solver->assignToVal(y, x->value() - k) == false)
             return false;
+        solver->entail(this);
         return true;
     }
     if(y->size() == 1) {
         if(solver->assignToVal(x, y->value() + k) == false)
             return false;
+        solver->entail(this);
         return true;
     }
 
 
-    for(int idv : reverse(y->domain)) {
+    for(int idv : y->domain) {
         int v = y->domain.toVal(idv) + k;
         if(x->containsValue(v) == false && solver->delIdv(y, idv) == false)
             return false;
@@ -36,7 +38,7 @@ bool EQ::filter(Variable *xx) {
     if(x->size() == y->size())
         return true;
 
-    for(int idv : reverse(x->domain)) {
+    for(int idv : x->domain) {
         int v = x->domain.toVal(idv) - k;
         if(y->containsValue(v) == false && solver->delIdv(x, idv) == false)
             return false;

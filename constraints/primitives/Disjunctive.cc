@@ -23,7 +23,7 @@ bool Disjunctive::filterDomain(Variable *z, int lbValue, int ubValue) {
         int v = z->value();
         return !(lbValue <= v && v <= ubValue);
     }
-    for(int idv : reverse(z->domain)) {
+    for(int idv : z->domain) {
         int v = z->domain.toVal(idv);
         if(v >= lbValue && v <= lbValue && solver->delVal(z, v) == false)
             return false;

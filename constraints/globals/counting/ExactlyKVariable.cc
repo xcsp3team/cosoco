@@ -48,7 +48,7 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
         if(positionOfKInList != -1) {
             if(k->containsValue(value)) {
                 bool deleted = false;
-                for(int idk : reverse(k->domain)) {   // Reverse traversal because of deletion
+                for(int idk : k->domain) {
                     int v = k->domain.toVal(idk);
                     if(v == value) {
                         if(value < nbGuaranteedOccurrences + 1 ||

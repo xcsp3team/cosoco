@@ -21,7 +21,7 @@ bool DistNE::filter(Variable *dummy) { return revise(x, y) && revise(y, x); }
 
 
 bool DistNE::revise(Variable *z1, Variable *z2) {
-    for(int idv1 : reverse(z1->domain))
+    for(int idv1 : z1->domain)
         if(isASupportFor(z1->domain.toVal(idv1), z2) == false && solver->delIdv(z1, idv1) == false)
             return false;
     return true;

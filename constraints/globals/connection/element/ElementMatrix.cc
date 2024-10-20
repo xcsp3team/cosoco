@@ -24,13 +24,13 @@ bool ElementMatrix::filter(Variable *x) {
     // filtering the domain of rindex
 
     if(solver->decisionLevel() == 0) {
-        for(int idv : reverse(rindex->domain)) {
+        for(int idv : rindex->domain) {
             int v = rindex->domain.toVal(idv);
             if((v < 0 || v > matrix.size()) && solver->delIdv(rindex, idv) == false)
                 return false;
         }
 
-        for(int idv : reverse(cindex->domain)) {
+        for(int idv : cindex->domain) {
             int v = cindex->domain.toVal(idv);
             if((v < 0 || v > matrix[0].size()) && solver->delIdv(cindex, idv) == false)
                 return false;
@@ -38,13 +38,13 @@ bool ElementMatrix::filter(Variable *x) {
     }
 
     if(rindex->size() > 1) {
-        for(int idv : reverse(rindex->domain)) {
+        for(int idv : rindex->domain) {
             int rv = rindex->domain.toVal(idv);
             int cv = rsentinels[rv];
             if(cv != -1 && cindex->containsValue(cv) && matrix[rv][cv]->containsValue(value))
                 continue;
             bool found = false;
-            for(int b : reverse(cindex->domain)) {
+            for(int b : cindex->domain) {
                 int cv2 = cindex->domain.toVal(b);
                 if(matrix[rv][cv2]->containsValue(value)) {
                     found          = true;
@@ -59,13 +59,13 @@ bool ElementMatrix::filter(Variable *x) {
 
     // filtering the domain of cindex
     if(cindex->size() > 1) {
-        for(int idv : reverse(cindex->domain)) {
+        for(int idv : cindex->domain) {
             int cv = cindex->domain.toVal(idv);
             int rv = csentinels[cv];
             if(rv != -1 && rindex->containsValue(rv) && matrix[rv][cv]->containsValue(value))
                 continue;
             bool found = false;
-            for(int a : reverse(rindex->domain)) {
+            for(int a : rindex->domain) {
                 int rv2 = rindex->domain.toVal(a);
                 if(matrix[rv2][cv]->containsValue(value)) {
                     found          = true;

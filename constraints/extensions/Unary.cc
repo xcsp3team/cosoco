@@ -46,7 +46,7 @@ bool Cosoco::Unary::filter(Cosoco::Variable *dummy) {
             return ret;
         }
 
-        for(int idv : reverse(x->domain)) {
+        for(int idv : x->domain) {
             int v = x->domain.toVal(idv);
             if(values.contains(v) == false && solver->delVal(x, v) == false)
                 return false;

@@ -55,7 +55,7 @@ bool AtLeastK::filter(Variable *x) {
     }
 
     // No new sentinels found, need to assign all k remaining variables to value
-    for(int posIdx2 : reverse(sentinels))
+    for(int posIdx2 : sentinels)
         if(posIdx2 != posIdx && solver->assignToVal(scope[posIdx2], value) == false)
             return false;
     solver->entail(this);

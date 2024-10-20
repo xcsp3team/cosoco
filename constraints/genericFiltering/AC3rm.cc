@@ -43,7 +43,7 @@ bool AdapterAC3rm::isItTimeToStartFiltering() {
 
 
 bool AdapterAC3rm::revise(Variable *x, int posx) {
-    for(int idv : reverse(x->domain)) {
+    for(int idv : x->domain) {
         vec<int> *currentResidue = residue(posx, idv);
         assert(currentResidue == nullptr || (*currentResidue)[posx] == idv);
 
