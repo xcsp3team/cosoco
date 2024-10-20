@@ -13,7 +13,6 @@ Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
 
 NoGoodsEngine::NoGoodsEngine(Problem &problem) : maxArity(1000), capacity(0) {
     // std::cout << n1 << " " << n2 << " " << sizeof(long) * 8 << std::endl;
-    std::cout << solver << std::endl;
     // if(n1 + n2 <= sizeof(long) * 8)
     auto n1 = (unsigned int)ceil(log2(problem.nbVariables()));
     auto n2 = (unsigned int)ceil(log2(problem.maximumDomainSize()));

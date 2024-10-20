@@ -505,7 +505,7 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                 filterCalls++;
                 nbDeletedValuesByAVariable = 0;
                 currentFilteredConstraint  = c;
-
+                // std::cout << c->type << "\n";
                 doProfiling && profiling->beforeConstraintCall(c);
                 bool noConflict = c->filterFrom(x);
                 doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);

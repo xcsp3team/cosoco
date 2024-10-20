@@ -78,7 +78,6 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
     : Extension(p, n, createScopeVec(xx, yy), 0, support), x(xx), y(yy), nbtuples(0) {
     supportsForX.growTo(x->domain.maxSize());
     supportsForY.growTo(y->domain.maxSize());
-    type = "Binary Extension";
 }
 
 
@@ -89,7 +88,7 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
     supportsForY.growTo(yy->domain.maxSize());
     for(int i = 0; i < hasSameTuples->supportsForX.size(); i++) hasSameTuples->supportsForX[i].copyTo(supportsForX[i]);
     for(int i = 0; i < hasSameTuples->supportsForY.size(); i++) hasSameTuples->supportsForY[i].copyTo(supportsForY[i]);
-    type = "Binary Extension";
+    nbtuples = hasSameTuples->nbtuples;
 }
 
 
@@ -107,12 +106,18 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
     assert(idv1 >= 0 && (idv1 == STAR || idv1 < x->domain.maxSize()));
     assert(idv2 >= 0 && (idv2 == STAR || idv2 < y->domain.maxSize()));
     if(idv1 == STAR) {
-        for(int i = 0; i < x->domain.maxSize(); i++) supportsForY[idv2].push(i);
+        for(int i = 0; i < x->domain.maxSize(); i++) {
+            supportsForY[idv2].push(i);
+            supportsForX[i].push(idv2);
+        }
         nbtuples += x->domain.maxSize();
         return;
     }
     if(idv2 == STAR) {
-        for(int i = 0; i < y->domain.maxSize(); i++) supportsForX[idv1].push(i);
+        for(int i = 0; i < y->domain.maxSize(); i++) {
+            supportsForX[idv1].push(i);
+            supportsForY[i].push(idv2);
+        }
         nbtuples += y->domain.maxSize();
         return;
     }
