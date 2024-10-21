@@ -101,7 +101,7 @@ int Problem::nbConstraints() const { return constraints.size(); }
 
 
 int Problem::maximumTuplesInExtension() {
-    int tmp = 0;
+    unsigned int tmp = 0;
     for(Constraint *c : constraints) {
         Extension *ext;
         if((ext = dynamic_cast<Extension *>(c)) == nullptr)
@@ -114,7 +114,7 @@ int Problem::maximumTuplesInExtension() {
 
 
 int Problem::minimumTuplesInExtension() {
-    int tmp = INT_MAX;
+    unsigned int tmp = INT_MAX;
     for(Constraint *c : constraints) {
         Extension *ext;
         if((ext = dynamic_cast<Extension *>(c)) == nullptr)

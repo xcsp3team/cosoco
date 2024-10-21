@@ -180,7 +180,7 @@ int Solver::solve(vec<RootPropagation> &assumps) {
     if(doProfiling && firstCall)
         profiling->initialize();
 
-    
+
     fullBacktrack();
 
     if(problem.isConstructionDone == false)
@@ -641,7 +641,7 @@ bool Solver::delValuesGreaterOrEqualThan(Variable *x, int max) {
 bool Solver::delValuesLowerOrEqualThan(Variable *x, int min) {
     if(x->maximum() <= min)
         return false;
-    for(int idv : x->domain) {
+    for(int idv : reverse(x->domain)) {
         if(x->domain.toVal(idv) > min)
             return true;
         if(delIdv(x, idv) == false)
