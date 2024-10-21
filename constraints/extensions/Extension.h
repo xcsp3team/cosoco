@@ -17,7 +17,7 @@ namespace Cosoco {
 class Extension : public Constraint {
    public:
     bool         isSupport;
-    Matrix<int> *tuples;
+    Matrix<int> *tuples = nullptr;
 
     Extension(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples, bool support)
         : Constraint(p, n, vars), isSupport(support) {
@@ -42,7 +42,7 @@ class Extension : public Constraint {
     }
 
 
-    virtual size_t nbTuples() { return tuples->nrows(); }
+    virtual size_t nbTuples() { return tuples == nullptr ? -1 : tuples->nrows(); }
 };
 }   // namespace Cosoco
 
