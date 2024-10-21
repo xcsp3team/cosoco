@@ -116,7 +116,7 @@ void BinaryExtension::addTuple(int idv1, int idv2) {
     if(idv2 == STAR) {
         for(int i = 0; i < y->domain.maxSize(); i++) {
             supportsForX[idv1].push(i);
-            supportsForY[i].push(idv2);
+            supportsForY[i].push(idv1);
         }
         nbtuples += y->domain.maxSize();
         return;
