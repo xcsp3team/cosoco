@@ -641,7 +641,7 @@ bool Solver::delValuesGreaterOrEqualThan(Variable *x, int max) {
 bool Solver::delValuesLowerOrEqualThan(Variable *x, int min) {
     if(x->maximum() <= min)
         return false;
-    for(int idv : reverse(x->domain)) {
+    for(int idv : (x->domain)) {
         if(x->domain.toVal(idv) > min)
             return true;
         if(delIdv(x, idv) == false)
