@@ -188,6 +188,7 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Var
     : GlobalConstraint(p, n, "Cumulative", scope), timetableReasoner(*this) {
     limit = lm;
 
+    isPostponable = true;
     vars.copyTo(starts);
 
 
