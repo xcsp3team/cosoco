@@ -6,6 +6,7 @@
 
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
+#include "CardinalityWeak.h"
 #include "CompactTable.h"
 #include "Constraint.h"
 #include "CumulativeVariablesC.h"
@@ -216,9 +217,12 @@ class FactoryConstraints {
     static Constraint *newExtensionConstraint(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                               bool isSupport, bool hasStar = false) {
         Extension *ctr = nullptr;
-        if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
-        else {
+        if(vars.size() == 2) {
+            if(isSupport)
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+            else
+                ctr = new STRNeg(*p, name, vars, tuples.size());
+        } else {
             if(isSupport) {
                 ctr = new CompactTable(*p, name, vars, tuples.size());
                 // ctr = new ShortSTR2(*p, name, vars, tuples.size());
@@ -250,12 +254,17 @@ class FactoryConstraints {
             return;
         }
 
-        if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
-
+        if(vars.size() == 2) {
+            if(sameConstraint->isSupport)
+                ctr =
+                    new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            else
+                ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
+        }
         if(vars.size() > 2) {
             if(sameConstraint->isSupport)
-                ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+                //    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+                ctr = new CompactTable(*p, name, vars, sameConstraint->tuples);
             else
                 ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
         }
@@ -606,6 +615,14 @@ class FactoryConstraints {
                     vars.size());
         if(occurs.size() != values.size())
             throw std::logic_error("Cardinality: Occurs and values must have the same size");
+
+        if(occurs[0].type == OCCURS_INTEGER && vars.size() > 1000) {
+            vec<int> occs;
+            for(Occurs &o : occurs) occs.push(o.value);
+            p->addConstraint(new CardinalityWeak(*p, name, vars, values, occs));
+            return;
+        }
+
         for(int i = 0; i < occurs.size(); i++) {
             if(occurs[i].type == OCCURS_INTEGER)
                 createConstraintExactly(p, name + "card as exactly", vars, values[i], occurs[i].value);

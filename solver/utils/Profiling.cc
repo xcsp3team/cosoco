@@ -16,12 +16,12 @@ void Profiling::initialize() {
 }
 
 bool Profiling::beforeConstraintCall(Constraint *c) {
-    currentTime = cpuTime();
+    currentTime = realTime();
     return true;
 }
 
 bool Profiling::afterConstraintCall(Constraint *c, int nbDeletedVariables) {
-    constraintsData[c->type].totalTime += (cpuTime() - currentTime);
+    constraintsData[c->type].totalTime += (realTime() - currentTime);
     constraintsData[c->type].nbCalls++;
     constraintsData[c->type].uselessCalls += (nbDeletedVariables > 0) ? 0 : 1;
     return true;

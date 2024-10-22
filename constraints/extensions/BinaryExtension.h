@@ -6,14 +6,10 @@
 namespace Cosoco {
 class BinaryExtension : public Extension {
    protected:
-    vec<int>  resx;    // residue for x
-    vec<int>  resy;    // residue for y
-    Variable *x, *y;   // Do not want to extends Binary
-
-    int           maxConflictsx, maxConflictsy;
+    Variable     *x, *y;   // Do not want to extends Binary
     int           nbtuples;
-    Matrix<bool> *matrix;
-    bool          first_call = true;
+    vec<vec<int>> supportsForX;
+    vec<vec<int>> supportsForY;
 
    public:
     // Constructors and initialisation
@@ -28,8 +24,6 @@ class BinaryExtension : public Extension {
 
     void addTuple(vec<int> &tupleIdv) override;
     void addTuple(int idv1, int idv2);
-
-    void delayedConstruction(int id) override;
 
     size_t nbTuples() override;
 };
