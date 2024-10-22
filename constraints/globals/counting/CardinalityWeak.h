@@ -14,6 +14,7 @@ class CardinalityWeak : public GlobalConstraint {
     std::map<int, CardData> data;
 
    public:
+    // A weak cardinality filtering used when list is too big
     CardinalityWeak(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &o);
 
 
