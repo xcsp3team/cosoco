@@ -126,7 +126,7 @@ bool ManageIntension::decompose(XCSP3Core::Node *node) {
 
 
 bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
-    if(callbacks.options.boolOptions["decompose"].value == false)
+    if(options::boolOptions["decompose"].value == false)
         return false;
     if(tree->arity() == 1)   // => objective see MultiAgen in XCSP22 for instance
         return false;
@@ -183,8 +183,8 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
         nbTuples = nbTuples / scope.last()->domain.maxSize();
 
 
-    if(callbacks.startToParseObjective || callbacks.options.intOptions["i2e"].value == 0 ||
-       nbTuples >= ((unsigned long long)callbacks.options.intOptions["i2e"].value))
+    if(callbacks.startToParseObjective || options::intOptions["i2e"].value == 0 ||
+       nbTuples >= ((unsigned long long)options::intOptions["i2e"].value))
         return false;
 
     // Create generic intension

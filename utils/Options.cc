@@ -29,15 +29,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 using namespace Cosoco;
 
 
-void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
+void Cosoco::parseOptions(int& argc, char** argv) {
     std::string str = std::string(argv[1]);
     if(str == "--help")
-        printUsageAndExit(options);
+        printUsageAndExit();
     int i;
     for(i = 2; i < argc; i++) {
         std::string str = std::string(argv[i]);
         if(str == "--help")
-            printUsageAndExit(options);
+            printUsageAndExit();
 
         str      = str.substr(1, str.size());
         auto pos = str.find('=');
@@ -49,22 +49,22 @@ void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
         std::string v = str.substr(pos + 1, str.size());
 
         // string options
-        if(options.stringOptions.find(o) != options.stringOptions.end()) {
-            options.stringOptions[o].value = v;
+        if(options::stringOptions.find(o) != options::stringOptions.end()) {
+            options::stringOptions[o].value = v;
             continue;
         }
         // bool option
-        if(options.boolOptions.find(o) != options.boolOptions.end()) {
+        if(options::boolOptions.find(o) != options::boolOptions.end()) {
             if(v != "1" && v != "0") {
                 std::cout << "value for bool option is 0 or 1\n";
                 exit(1);
             }
-            options.boolOptions[o].value = v == "1";
+            options::boolOptions[o].value = v == "1";
             continue;
         }
 
         // int option
-        if(options.intOptions.find(o) != options.intOptions.end()) {
+        if(options::intOptions.find(o) != options::intOptions.end()) {
             int newvalue;
             try {
                 newvalue = std::stoi(v);
@@ -72,16 +72,16 @@ void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
                 std::cout << "option " << o << " needs an integer " << v << "is passed\n";
                 exit(1);
             }
-            if(newvalue < options.intOptions[o].min || newvalue > options.intOptions[o].max) {
-                std::cout << "option " << o << " must be  in range " << options.intOptions[o].min << " .. "
-                          << options.intOptions[o].max << "\n";
+            if(newvalue < options::intOptions[o].min || newvalue > options::intOptions[o].max) {
+                std::cout << "option " << o << " must be  in range " << options::intOptions[o].min << " .. "
+                          << options::intOptions[o].max << "\n";
                 exit(1);
             }
-            options.intOptions[o].value = newvalue;
+            options::intOptions[o].value = newvalue;
             continue;
         }
         // int option
-        if(options.doubleOptions.find(o) != options.doubleOptions.end()) {
+        if(options::doubleOptions.find(o) != options::doubleOptions.end()) {
             double newvalue;
             try {
                 newvalue = std::stod(v);
@@ -89,12 +89,12 @@ void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
                 std::cout << "option " << o << " needs a double " << v << "is passed\n";
                 exit(1);
             }
-            if(newvalue < options.doubleOptions[o].min || newvalue > options.doubleOptions[o].max) {
-                std::cout << "option " << o << " must be  in range " << options.doubleOptions[o].min << " .. "
-                          << options.doubleOptions[o].max << "\n";
+            if(newvalue < options::doubleOptions[o].min || newvalue > options::doubleOptions[o].max) {
+                std::cout << "option " << o << " must be  in range " << options::doubleOptions[o].min << " .. "
+                          << options::doubleOptions[o].max << "\n";
                 exit(1);
             }
-            options.doubleOptions[o].value = newvalue;
+            options::doubleOptions[o].value = newvalue;
             continue;
         }
 
@@ -102,32 +102,32 @@ void Cosoco::parseOptions(int& argc, char** argv, Options& options) {
         exit(1);
     }
 }
-void Cosoco::printUsageAndExit(Options& options) {
+void Cosoco::printUsageAndExit() {
     std::set<std::string> categories;
 
-    for(auto const& it : options.doubleOptions) categories.insert(it.second.category);
-    for(auto const& it : options.stringOptions) categories.insert(it.second.category);
-    for(auto const& it : options.intOptions) categories.insert(it.second.category);
-    for(auto const& it : options.boolOptions) categories.insert(it.second.category);
+    for(auto const& it : options::doubleOptions) categories.insert(it.second.category);
+    for(auto const& it : options::stringOptions) categories.insert(it.second.category);
+    for(auto const& it : options::intOptions) categories.insert(it.second.category);
+    for(auto const& it : options::boolOptions) categories.insert(it.second.category);
 
     for(auto const& cat : categories) {
         std::cout << "\n\n" << cat << " options\n";
-        for(auto const& it : options.doubleOptions)
+        for(auto const& it : options::doubleOptions)
             if(it.second.category == cat)
                 std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
                           << " = <double>   : " << it.second.verbose << " (default: " << it.second.value << ")\n";
 
-        for(auto const& it : options.intOptions)
+        for(auto const& it : options::intOptions)
             if(it.second.category == cat)
                 std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
                           << " = <int>      : " << it.second.verbose << " (default: " << it.second.value << ")\n";
 
-        for(auto const& it : options.stringOptions)
+        for(auto const& it : options::stringOptions)
             if(it.second.category == cat)
                 std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
                           << " = <string>   : " << it.second.verbose << " (default: " << it.second.value << ")\n";
 
-        for(auto const& it : options.boolOptions)
+        for(auto const& it : options::boolOptions)
             if(it.second.category == cat)
                 std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(15) << std::setfill(' ')
                           << " = <0/1>      : " << it.second.verbose << " (default: " << it.second.value << ")\n";

@@ -17,7 +17,6 @@ using namespace XCSP3Core;
 
 AbstractSolver       *solver;
 vec<AbstractSolver *> solvers;
-Options               options;
 
 bool   optimize = false;
 double realTimeStart;
@@ -49,7 +48,7 @@ static void SIGINT_interrupt(int signum) {
 int main(int argc, char **argv) {
     realTimeStart = realTime();
     int nbcores   = 1;
-
+    options::createOptions();
     if(argc == 0) {
         std::cout << "c USAGE: %s [options] <input-file>\n\n  where input may be either in plain or gzipped XCSP3.\n";
         exit(1);
@@ -63,18 +62,18 @@ int main(int argc, char **argv) {
         for(int i = 0; i < argc; i++) printf("%s ", argv[i]);
         printf("\n");
 
-        parseOptions(argc, argv, options);
-        if((options.intOptions["nbsols"].value > 1 || options.intOptions["nbsols"].value == 0) &&
-           options.boolOptions["nogoods"].value == false) {
+        parseOptions(argc, argv);
+        if((options::intOptions["nbsols"].value > 1 || options::intOptions["nbsols"].value == 0) &&
+           options::boolOptions["nogoods"].value == false) {
             cout << "c count solutions without nogoods is impossible" << endl;
             exit(1);
         }
 
 
-        limitRessourcesUsage(options.intOptions["cpu_lim"].value, options.intOptions["mem_lim"].value);
+        limitRessourcesUsage(options::intOptions["cpu_lim"].value, options::intOptions["mem_lim"].value);
 
         // --------------------------- PARSING ----------------------------------------
-        CosocoCallbacks cb(nbcores, options);
+        CosocoCallbacks cb(nbcores);
         vec<Problem *>  solvingProblems;
 
         double initial_time = cpuTime();
@@ -90,7 +89,7 @@ int main(int argc, char **argv) {
             cout.flush();
             cout << "c " << e.what() << endl;
             if(strstr(e.what(), "not yet")) {
-                colorize(termcolor::bright_green, options.boolOptions["colors"].value);
+                colorize(termcolor::bright_green, options::boolOptions["colors"].value);
                 cout << "s UNSUPPORTED" << endl;
                 resetcolors();
             }
@@ -105,12 +104,12 @@ int main(int argc, char **argv) {
 
         auto *solution = new Solution(*solvingProblems[0], real_time);
         for(int core = 0; core < nbcores; core++) {
-            auto *S = new Solver(*solvingProblems[core], options);
+            auto *S = new Solver(*solvingProblems[core]);
             S->core = core;
             S->seed = S->seed * (core + 1);
 
             if(optimize) {
-                auto *optimizer           = new Optimizer(*solvingProblems[core], options);
+                auto *optimizer           = new Optimizer(*solvingProblems[core]);
                 S->displaySolution        = false;
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
@@ -121,10 +120,10 @@ int main(int argc, char **argv) {
             } else
                 solvers[core] = S;
 
-            solvers[core]->setVerbosity(options.intOptions["verb"].value);
+            solvers[core]->setVerbosity(options::intOptions["verb"].value);
         }
 
-        if(options.intOptions["verb"].value >= 2)
+        if(options::intOptions["verb"].value >= 2)
             solvingProblems[0]->display();
 
 
@@ -140,18 +139,18 @@ int main(int argc, char **argv) {
         // --------------------------- SOLVE ----------------------------------------
 
         int returnCode = solver->solve();
-        colorize(termcolor::bright_green, options.boolOptions["colors"].value);
+        colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
                : returnCode == R_SAT   ? "s SATISFIABLE\n"
                                        : "s UNKNOWN\n");
-        if(nbcores == 1 && options.boolOptions["model"].value == false && solver->nbSolutions >= 1)
+        if(nbcores == 1 && options::boolOptions["model"].value == false && solver->nbSolutions >= 1)
             printf("d N_SOLUTIONS %d\n\n", solvers[0]->nbSolutions);
         resetcolors();
         printStats(solvers[0]);
         printf("\n");
 
-        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options.boolOptions["model"].value && solver->hasSolution())
+        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::boolOptions["model"].value && solver->hasSolution())
             solver->displayCurrentSolution();
 
 
@@ -159,7 +158,7 @@ int main(int argc, char **argv) {
 
     } catch(OutOfMemoryException &) {
         printf("c =========================================================================================================\n");
-        colorize(termcolor::bright_green, options.boolOptions["colors"].value);
+        colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf("s UNKNOWN\n");
         resetcolors();
         exit(0);
@@ -177,29 +176,29 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     printf("c |\n");
 
     printf("c |               ");
-    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("Variables:");
     resetcolors();
     printf(" %d (original: %d -- auxiliary: %d)\n", solvingProblem->nbVariables(), solvingProblem->nbOriginalVars,
            solvingProblem->nbVariables() - solvingProblem->nbOriginalVars);
     printf("c |            ");
-    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("Domain Sizes: ");
     resetcolors();
     printf("%d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
     printf("c |            ");
     resetcolors();
-    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("      Values: ");
     resetcolors();
     printf("%ld\n", solvingProblem->nbValues());
     printf("c |             ");
-    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("Constraints: ");
     resetcolors();
     printf("%d\n", solvingProblem->nbConstraints());
     printf("c |                   ");
-    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("Arity: ");
     resetcolors();
     printf("%d..%d", solvingProblem->minimumArity(), solvingProblem->maximumArity());
@@ -213,7 +212,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
 
     printf("\nc | \n");
     printf("c |                   ");
-    colorize(termcolor::blue, options.boolOptions["colors"].value);
+    colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("Types: ");
     resetcolors();
     printf("\nc |                          ");
@@ -233,7 +232,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
         ObjectiveConstraint *objective;
         printf("\n");
         printf("c |               ");
-        colorize(termcolor::blue, options.boolOptions["colors"].value);
+        colorize(termcolor::blue, options::boolOptions["colors"].value);
         printf("Objective: ");
         resetcolors();
         auto *o   = (Optimizer *)solvers[0];
@@ -308,10 +307,10 @@ static void SIGINT_exit(int signum) {
     printf("c *** INTERRUPTED ***\n");
 
     if(true) {
-        if(options.intOptions["verb"].value >= 0) {
+        if(options::intOptions["verb"].value >= 0) {
             printStats(solvers[0]);
             printf("\n");
-            colorize(termcolor::bright_green, options.boolOptions["colors"].value);
+            colorize(termcolor::bright_green, options::boolOptions["colors"].value);
             if(solvers[0]->nbSolutions >= 1)
                 printf("d N_SOLUTIONS %d\n", solvers[0]->nbSolutions);
             resetcolors();
@@ -320,7 +319,7 @@ static void SIGINT_exit(int signum) {
                 if(solvers[0]->hasSolution()) {
                     printf("s SATISFIABLE\n");
                     printf("c Best value found: %ld\n\n", ((Optimizer *)solvers[0])->bestCost());
-                    if(solvers[0]->options.boolOptions["model"].value)
+                    if(options::boolOptions["model"].value)
                         solvers[0]->displayCurrentSolution();
                 } else
                     printf("c No Bound found!\n\ns UNKNOWN\n");
