@@ -563,7 +563,7 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list,
         buildConstraintSum(id, trees, xc);
         return;
     }
-    throw runtime_error("c some count with variables values constraint is not yet supported ");
+    throw runtime_error("c some fixed with variables values constraint is not yet supported ");
 }
 
 
@@ -577,7 +577,7 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
         buildConstraintSum(id, newtrees, xc);
         return;
     }
-    throw runtime_error("c some count with trees and multiple values constraint is not yet supported ");
+    throw runtime_error("c some fixed with trees and multiple values constraint is not yet supported ");
 }
 
 
@@ -592,7 +592,7 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
         buildConstraintSum(id, newtrees, xc);
         return;
     }
-    throw runtime_error("c some count with trees and multiple values variables constraint is not yet supported ");
+    throw runtime_error("c some fixed with trees and multiple values variables constraint is not yet supported ");
 }
 
 

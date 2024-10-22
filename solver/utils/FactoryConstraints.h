@@ -6,6 +6,7 @@
 
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
+#include "CardinalityWeak.h"
 #include "CompactTable.h"
 #include "Constraint.h"
 #include "CumulativeVariablesC.h"
@@ -625,6 +626,14 @@ class FactoryConstraints {
                     vars.size());
         if(occurs.size() != values.size())
             throw std::logic_error("Cardinality: Occurs and values must have the same size");
+
+        if(occurs[0].type == OCCURS_INTEGER && vars.size() > 100) {
+            vec<int> occs;
+            for(Occurs &o : occurs) occs.push(o.value);
+            p->addConstraint(new CardinalityWeak(*p, name, vars, values, occs));
+            return;
+        }
+
         for(int i = 0; i < occurs.size(); i++) {
             if(occurs[i].type == OCCURS_INTEGER)
                 createConstraintExactly(p, name + "card as exactly", vars, values[i], occurs[i].value);

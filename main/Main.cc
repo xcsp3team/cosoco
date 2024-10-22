@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
         parseOptions(argc, argv, options);
         if((options.intOptions["nbsols"].value > 1 || options.intOptions["nbsols"].value == 0) &&
            options.boolOptions["nogoods"].value == false) {
-            cout << "c count solutions without nogoods is impossible" << endl;
+            cout << "c fixed solutions without nogoods is impossible" << endl;
             exit(1);
         }
 

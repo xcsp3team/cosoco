@@ -95,7 +95,7 @@ start:
                     b->maxSizeObj = std::max(b->maxSizeObj, sizes[posx]);
                 }
             }
-            if(b->maxSizeObj != -1) {                 // the bin remains usable (as at least an object can enter it)
+            if(b->maxSizeObj != -1) {   // the bin remains usable (as at least an object can enter it)
                 cumulatedCapacities += b->capacity;
                 if(b->minSizeObj > b->capacity / 2)   // if only one object can enter
                     lost += b->capacity - b->maxSizeObj;
@@ -111,9 +111,9 @@ start:
             return false;
         for(int j = usableBins.size() - 1; j >= 0; j--) {
             Bin *b = bins[usableBins[j]];
-            if(b->maxSizeObj == -1)                            // no more useful bin
+            if(b->maxSizeObj == -1)   // no more useful bin
                 continue;
-            if(b->minSizeObj > b->capacity / 2)                // a form of lost space already computed (don't count it twice)
+            if(b->minSizeObj > b->capacity / 2)   // a form of lost space already computed (don't fixed it twice)
                 continue;
             if(b->minSizeObj + b->maxSizeObj <= b->capacity)   // no hope to remove any value (with our reasoning)
                 continue;

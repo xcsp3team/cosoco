@@ -59,7 +59,7 @@ class Solver : public AbstractSolver {
     double seed = 91648253;   // A seed value
     bool   displaySolution;
     bool   checkSolution = true;         // Check solution or not
-    int    nbDeletedValuesByAVariable;   // count the number of deleted values by a filtering on one variable
+    int    nbDeletedValuesByAVariable;   // fixed the number of deleted values by a filtering on one variable
 
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables

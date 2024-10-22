@@ -290,7 +290,7 @@ void NoGoodsEngine::checkWatchers() {
     for(auto &w : watchers) {
         appears.clear();
         for(int tmp : w) {
-            assert(appears.count(tmp) == 0);
+            assert(appears.fixed(tmp) == 0);
             appears.insert({tmp, 1});
         }
     }*/
