@@ -15,6 +15,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
 #include "XCSP3Constants.h"
@@ -224,8 +225,10 @@ class FactoryConstraints {
                 ctr = new STRNeg(*p, name, vars, tuples.size());
         } else {
             if(isSupport) {
-                ctr = new CompactTable(*p, name, vars, tuples.size());
-                // ctr = new ShortSTR2(*p, name, vars, tuples.size());
+                if(options::boolOptions["ct"].value)
+                    ctr = new CompactTable(*p, name, vars, tuples.size());
+                else
+                    ctr = new ShortSTR2(*p, name, vars, tuples.size());
             } else {
                 assert(hasStar == false);   // TODO
                 ctr = new STRNeg(*p, name, vars, tuples.size());
@@ -262,10 +265,13 @@ class FactoryConstraints {
                 ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
         }
         if(vars.size() > 2) {
-            if(sameConstraint->isSupport)
+            if(sameConstraint->isSupport) {
                 //    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
-                ctr = new CompactTable(*p, name, vars, sameConstraint->tuples);
-            else
+                if(options::boolOptions["ct"].value)
+                    ctr = new CompactTable(*p, name, vars, sameConstraint->tuples);
+                else
+                    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+            } else
                 ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
         }
         p->addConstraint(ctr);
