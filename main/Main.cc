@@ -219,6 +219,12 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
 
     std::map<std::string, int> typeOfConstraints;
     solvingProblem->nbTypeOfConstraints(typeOfConstraints);
+
+    std::set<string> bigConstraints;
+    for(Constraint *c : solvingProblem->constraints)
+        if(c->scope.size() > 100)
+            bigConstraints.insert(c->type);
+
     for(auto &iter : typeOfConstraints) {
         if(iter.first == "Extension")
             printf("Extension: %d  (nb tuples: %d..%d) -- (shared: %d)\nc |                          ", iter.second,
@@ -226,6 +232,14 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
                    solvingProblem->nbExtensionsSharded);
         else
             printf("%s: %d\nc |                          ", iter.first.c_str(), iter.second);
+    }
+    if(bigConstraints.size() > 0) {
+        printf("\nc |                   ");
+        colorize(termcolor::blue, options::boolOptions["colors"].value);
+        printf("Big constraints: ");
+        resetcolors();
+        for(auto &s : bigConstraints) std::cout << s << " ";
+        std::cout << "\n";
     }
 
     if(optimize) {
