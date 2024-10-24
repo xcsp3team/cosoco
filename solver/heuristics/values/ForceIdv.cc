@@ -2,13 +2,13 @@
 
 #include <core/OptimizationProblem.h>
 
+#include "Options.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;
 
-ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values)
-    : HeuristicVal(s), hv(h), conflictAlreadySeen(false), onlyOnce(oo) {
-    s.addObserverConflict(this);
+ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : HeuristicVal(s), hv(h) {
+    solver.addObserverDeleteDecision(this);
     idvs.growTo(solver.problem.nbVariables(), -1);
     if(values != nullptr) {
         int i = 0;
@@ -18,16 +18,9 @@ ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values)
             i++;
         }
     }
-}
-
-void ForceIdvs::notifyConflict(Constraint *c, int level) {
-    return;
-    if(onlyOnce == false)
-        return;
-    if(conflictAlreadySeen)
-        return;
-    idvs.fill(-1);
-    conflictAlreadySeen = true;
+    rr = options::boolOptions["rr"].value;
+    if(rr)
+        isDisabled = true;
 }
 
 
@@ -44,7 +37,11 @@ int ForceIdvs::select(Variable *x) {
     return hv->select(x);
 }
 
-void ForceIdvs::setIdValues(vec<int> &v) {
-    v.copyTo(idvs);
-    conflictAlreadySeen = false;
+void ForceIdvs::setIdValues(vec<int> &v) { v.copyTo(idvs); }
+
+void ForceIdvs::notifyFullBacktrack() {
+    if(rr && restartWithSolution == -1 && solver.nbSolutions == 1)
+        restartWithSolution = solver.statistics[restarts] + 12;
+    if(rr && solver.statistics[restarts] >= restartWithSolution)
+        isDisabled = false;
 }

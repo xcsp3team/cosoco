@@ -54,10 +54,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     void addProgressSaving() {
         assert(solver != nullptr);
         progressSaving       = true;
-        ForceIdvs *hval      = new ForceIdvs(*solver, solver->heuristicVal, false);
-        solver->heuristicVal = hval;
-        if(options::boolOptions["rr"].value)
-            hval->isDisabled = true;
+        solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
     }
 
 
