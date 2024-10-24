@@ -27,7 +27,7 @@ void createOptions() {
     boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
     stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
     boolOptions["bs"]          = {"SEARCH", "Enable progress saving (only after a new solution)", true};
-
+    boolOptions["rr"]          = {"SEARCH", "heuristic Var and Val Robin with Bs deactivated during first runs", false};
     boolOptions["ct"]          = {"CONSTRAINTS", "Enable Compact Table", true};
     intOptions["postponesize"] = {"CONSTRAINTS", "The size of postponed constraints (0=no postponed constraints)", 100, 0,
                                   INT_MAX};

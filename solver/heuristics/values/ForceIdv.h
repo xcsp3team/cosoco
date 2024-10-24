@@ -15,6 +15,7 @@ class ForceIdvs : public HeuristicVal, ObserverConflict {
     bool          onlyOnce;
 
    public:
+    bool isDisabled = false;
     ForceIdvs(Solver &s, HeuristicVal *h, bool oo = true, vec<int> *values = nullptr);
     int select(Variable *x) override;
 

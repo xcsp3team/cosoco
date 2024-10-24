@@ -6,7 +6,8 @@
 
 using namespace Cosoco;
 
-ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : HeuristicVal(s), hv(h), conflictAlreadySeen(false), onlyOnce(oo) {
+ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values)
+    : HeuristicVal(s), hv(h), conflictAlreadySeen(false), onlyOnce(oo) {
     s.addObserverConflict(this);
     idvs.growTo(solver.problem.nbVariables(), -1);
     if(values != nullptr) {
@@ -34,6 +35,8 @@ int ForceIdvs::select(Variable *x) {
     if(x->size() == 1) {
         return x->domain[0];
     }
+    if(isDisabled)
+        return hv->select(x);
 
     int lv = idvs[x->idx];
     if(lv != -1 && x->domain.containsIdv(lv))

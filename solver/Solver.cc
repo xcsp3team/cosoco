@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 
+#include "ForceIdv.h"
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicValRoundRobin.h"
@@ -75,7 +76,7 @@ Solver::Solver(Problem &p)
         exit(1);
     }
 
-
+    options::stringOptions["var"].value = "robin";
     if(options::stringOptions["var"].value == "wdeg")
         heuristicVar = new HeuristicVarDomWdeg(*this);
     if(options::stringOptions["var"].value == "cacd")
@@ -458,6 +459,14 @@ void Solver::doRestart() {
     reinitializeConstraints();
     if(nogoodsFromRestarts)
         noGoodsEngine->enqueueNoGoodsOfSize1();
+
+
+    if(options::boolOptions["rr"].value && statistics[restarts] >= 12) {
+        auto *hval       = dynamic_cast<ForceIdvs *>(heuristicVal);
+        hval->isDisabled = false;
+        // nbrestartsBeforeBS = 12;   // TODO // hval2->heuristics.size() * hvar->heuristics.size();
+    }
+
 
     propagate(true);
 }

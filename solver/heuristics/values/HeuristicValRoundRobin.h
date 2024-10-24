@@ -12,9 +12,8 @@
 namespace Cosoco {
 
 class HeuristicValRoundRobin : public HeuristicVal {
-    vec<HeuristicVal *> heuristics;
-
    public:
+    vec<HeuristicVal *> heuristics;
     HeuristicValRoundRobin(Solver &s, std::string &sequence);
 
 
