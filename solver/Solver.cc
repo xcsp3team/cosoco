@@ -493,13 +493,15 @@ bool Solver::filterConstraint(Cosoco::Constraint *c, Cosoco::Variable *x) {
     nbDeletedValuesByAVariable = 0;
     currentFilteredConstraint  = c;
 
+    c->timestamp = ++timestamp;
+
     doProfiling && profiling->beforeConstraintCall(c);
     bool noConflict = c->filterFrom(x);
     doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
 
     if(noConflict == false) {   // Inconsistent
         pickVariables.push({x, nbDeletedValuesByAVariable == 0 ? 1 : nbDeletedValuesByAVariable});
-        c->timestamp = ++timestamp;
+
         notifyConflict(c);
         currentFilteredConstraint = nullptr;
         return false;
@@ -528,18 +530,22 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
 
 
             for(Constraint *c : x->constraints) {
+                if(c->isDisabled)
+                    continue;
                 if(x->timestamp > c->timestamp && isEntailed(c) == false) {
                     if(c->postpone()) {   // Postpone the filtering of these constraints
                         postponeFiltering.insert(c);
                         c->postponedBy = x;
                         continue;
                     }
-                }
 
-                if(filterConstraint(c, x) == false)
-                    return c;
+
+                    if(filterConstraint(c, x) == false)
+                        return c;
+                }
             }
         }
+
 
         // Filter postponed constraints
         for(auto *c : postponeFiltering) {

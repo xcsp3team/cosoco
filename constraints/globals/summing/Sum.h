@@ -13,6 +13,7 @@ class Sum : public GlobalConstraint {
     Sum(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l)
         : GlobalConstraint(p, n, "Sum", vars), limit(l) {
         coefs.copyTo(coefficients);
+        isPostponable = true;
     }
     bool isCorrectlyDefined() override;   // Implementation inside SumEQ
 
