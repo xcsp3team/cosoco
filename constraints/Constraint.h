@@ -39,7 +39,9 @@ class Constraint {
     vec<Variable *> scope;                    // The scope of the constraint
     SparseSet       unassignedVariablesIdx;   // The id of the variables not assigned in the constraint
     unsigned long   timestamp;                // Last time constraint was checked
-
+    bool            isPostponable = false;    // If the tag is trus the constraint is filtered after the fixed point
+    Variable       *postponedBy;              // The variable wanted to make the filtering
+    bool            isDisabled = false;       // The constraint is enabled or not (useful an optimisation solving)
     // Special datas used for some algorithms (some heuristics and so on...)
     vec<double> wdeg;   // The wdeg value associated to each var of the constraint
 
@@ -56,6 +58,8 @@ class Constraint {
     void         makeDelayedConstruction(int id);
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
+    bool postpone();
+
    protected:
     virtual bool filter(Variable *x) = 0;   // Called by all constraints. protected because call is done by filterFrom
 
