@@ -10,8 +10,9 @@
 namespace Cosoco {
 
 class HeuristicVarRoundRobin : public HeuristicVar, ObserverDeleteDecision {
-    int current;
-    int nbrestarts;
+    int         current;
+    int         nbrestarts;
+    std::string sequence;
 
 
    public:

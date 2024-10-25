@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
 
         parseOptions(argc, argv);
         if(options::intOptions["rr"].value >= 1) {
-            std::cout << "ucu\n";
             options::boolOptions["bs"].value    = true;
             options::stringOptions["var"].value = "robin";
             options::stringOptions["val"].value = "robin";
