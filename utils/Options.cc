@@ -23,12 +23,20 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <iostream>
 #include <set>
 
+#include "XCSP3utils.h"
 #include "mtl/Sort.h"
 #include "solver/utils/Options.h"
 
 using namespace Cosoco;
 
-
+std::string trim(const std::string& str) {
+    size_t first = str.find_first_not_of(' ');
+    if(std::string::npos == first) {
+        return str;
+    }
+    size_t last = str.find_last_not_of(' ');
+    return str.substr(first, (last - first + 1));
+}
 void Cosoco::parseOptions(int& argc, char** argv) {
     std::string str = std::string(argv[1]);
     if(str == "--help")
@@ -45,8 +53,8 @@ void Cosoco::parseOptions(int& argc, char** argv) {
             std::cout << "miss = in option" << str << "\n";
             exit(1);
         }
-        std::string o = str.substr(0, pos);
-        std::string v = str.substr(pos + 1, str.size());
+        std::string o = trim(str.substr(0, pos));
+        std::string v = trim(str.substr(pos + 1, str.size()));
 
         // string options
         if(options::stringOptions.find(o) != options::stringOptions.end()) {
@@ -56,7 +64,8 @@ void Cosoco::parseOptions(int& argc, char** argv) {
         // bool option
         if(options::boolOptions.find(o) != options::boolOptions.end()) {
             if(v != "1" && v != "0") {
-                std::cout << "value for bool option is 0 or 1\n";
+                std::cout << "option " << o << ": value for bool option is 0 or 1 (" << v << " given)\n";
+                std::cout << "1" << "=" << v << "STOP\n";
                 exit(1);
             }
             options::boolOptions[o].value = v == "1";
@@ -69,7 +78,7 @@ void Cosoco::parseOptions(int& argc, char** argv) {
             try {
                 newvalue = std::stoi(v);
             } catch(std::invalid_argument const& ex) {
-                std::cout << "option " << o << " needs an integer " << v << "is passed\n";
+                std::cout << "option " << o << " needs an integer, " << v << " is passed\n";
                 exit(1);
             }
             if(newvalue < options::intOptions[o].min || newvalue > options::intOptions[o].max) {
@@ -134,4 +143,37 @@ void Cosoco::printUsageAndExit() {
     }
     std::cout << "\n";
     exit(1);
+}
+
+void Cosoco::displaySelectedOptions() {
+    std::set<std::string> categories;
+
+    for(auto const& it : options::doubleOptions) categories.insert(it.second.category);
+    for(auto const& it : options::stringOptions) categories.insert(it.second.category);
+    for(auto const& it : options::intOptions) categories.insert(it.second.category);
+    for(auto const& it : options::boolOptions) categories.insert(it.second.category);
+
+    for(auto const& cat : categories) {
+        std::cout << "\n\n" << cat << " options\n";
+        for(auto const& it : options::doubleOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " =  "
+                          << it.second.value << "\n";
+
+        for(auto const& it : options::intOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " = "
+                          << it.second.value << "\n";
+
+        for(auto const& it : options::stringOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " = "
+                          << it.second.value << "\n";
+
+        for(auto const& it : options::boolOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " = "
+                          << it.second.value << "\n";
+    }
+    std::cout << "\n";
 }

@@ -15,7 +15,7 @@ class ForceIdvs : public HeuristicVal, ObserverDeleteDecision {
 
     bool     isDisabled          = false;
     uint64_t restartWithSolution = -1;
-    bool     rr                  = false;
+    int      rr                  = false;
 
    public:
     ForceIdvs(Solver &s, HeuristicVal *h, bool oo = true, vec<int> *values = nullptr);

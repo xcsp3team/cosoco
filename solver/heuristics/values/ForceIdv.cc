@@ -7,7 +7,8 @@
 
 using namespace Cosoco;
 
-ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : HeuristicVal(s), hv(h) {
+ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values)
+    : HeuristicVal(s), hv(h), isDisabled(false), restartWithSolution(0) {
     solver.addObserverDeleteDecision(this);
     idvs.growTo(solver.problem.nbVariables(), -1);
     if(values != nullptr) {
@@ -18,7 +19,7 @@ ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : He
             i++;
         }
     }
-    rr = options::boolOptions["rr"].value;
+    rr = options::intOptions["rr"].value;
     if(rr)
         isDisabled = true;
 }
@@ -40,8 +41,16 @@ int ForceIdvs::select(Variable *x) {
 void ForceIdvs::setIdValues(vec<int> &v) { v.copyTo(idvs); }
 
 void ForceIdvs::notifyFullBacktrack() {
-    if(rr && restartWithSolution == -1 && solver.nbSolutions == 1)
-        restartWithSolution = solver.statistics[restarts] + 12;
-    if(rr && solver.statistics[restarts] >= restartWithSolution)
+    uint64_t nbrestarts = solver.statistics[restarts];
+    if(rr && restartWithSolution == 0 && solver.nbSolutions == 1)
+        restartWithSolution = nbrestarts + 12;
+    if(rr && isDisabled && restartWithSolution > 0 && solver.statistics[restarts] >= restartWithSolution) {
+        solver.verbose.log(NORMAL, "c Enable BS\n");
         isDisabled = false;
+    }
+    if(rr == 2 && isDisabled == false && restartWithSolution + 100 == nbrestarts) {
+        isDisabled = true;
+        solver.verbose.log(NORMAL, "c Disable BS\n");
+        restartWithSolution = nbrestarts + 12;
+    }
 }

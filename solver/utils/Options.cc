@@ -15,6 +15,7 @@ void createOptions() {
     boolOptions["model"]   = {"MAIN", "Display models", 0};
     boolOptions["colors"]  = {"MAIN", "Add colors to output", 1};
     boolOptions["profile"] = {"MAIN", "Profile the solver", 0};
+    boolOptions["options"] = {"MAIN", "Display Selected options", 0};
 
     boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
     intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
@@ -27,7 +28,7 @@ void createOptions() {
     boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
     stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
     boolOptions["bs"]          = {"SEARCH", "Enable progress saving (only after a new solution)", true};
-    boolOptions["rr"]          = {"SEARCH", "heuristic Var and Val Robin with Bs deactivated during first runs", false};
+    intOptions["rr"]           = {"SEARCH", "heuristic Var and Val Robin with Bs deactivated during first runs", 0, 0, 2};
     boolOptions["ct"]          = {"CONSTRAINTS", "Enable Compact Table", true};
     intOptions["postponesize"] = {"CONSTRAINTS", "The size of postponed constraints (0=no postponed constraints)", 100, 0,
                                   INT_MAX};

@@ -63,11 +63,14 @@ int main(int argc, char **argv) {
         printf("\n");
 
         parseOptions(argc, argv);
-        if(options::boolOptions["rr"].value) {
-            options::boolOptions["bs"].value  = true;
-            options::boolOptions["var"].value = "robin";
-            options::boolOptions["val"].value = "robin";
+        if(options::intOptions["rr"].value >= 1) {
+            std::cout << "ucu\n";
+            options::boolOptions["bs"].value    = true;
+            options::stringOptions["var"].value = "robin";
+            options::stringOptions["val"].value = "robin";
         }
+        if(options::boolOptions["options"].value)
+            displaySelectedOptions();
 
 
         if((options::intOptions["nbsols"].value > 1 || options::intOptions["nbsols"].value == 0) &&
