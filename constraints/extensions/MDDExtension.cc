@@ -1,5 +1,7 @@
 #include "MDDExtension.h"
 
+#ifdef USE_XCSP3
+
 #include "constraints/extensions/structures/MDD.h"
 #include "solver/Solver.h"
 
@@ -148,3 +150,5 @@ void MDDExtension::attachSolver(Solver *s) {
 
 
 void MDDExtension::notifyDeleteDecision(Variable *x, int v, Solver &s) { falseTimestamp++; }
+
+#endif /* USE_XCSP3 */

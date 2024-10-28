@@ -1,6 +1,8 @@
+#pragma once
 #ifndef COSOCO_MDDEXTENSION_H
 #define COSOCO_MDDEXTENSION_H
 
+#ifdef USE_XCSP3
 
 #include "Extension.h"
 #include "solver/observers/ObserverDecision.h"
@@ -36,5 +38,7 @@ class MDDExtension : public Extension, ObserverDeleteDecision {
     bool manageSuccessfulExploration(Variable *x, int idv, int level);
 };
 }   // namespace Cosoco
+
+#endif /* USE_XCSP3 */
 
 #endif   // COSOCO_MDDEXTENSION_H

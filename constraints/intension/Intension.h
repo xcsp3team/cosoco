@@ -1,18 +1,28 @@
 #ifndef INTENSION_H
 #define INTENSION_H
 
-#include "XCSP3Tree.h"
+#ifdef USE_XCSP3
+#include <map>
+
 #include "constraints/Constraint.h"
-using namespace XCSP3Core;
+#include "optimizer/ObjectiveConstraint.h"
+
+
+namespace XCSP3Core {
+class Tree;
+}
+
+
 namespace Cosoco {
 class Intension : public Constraint, public ObjectiveConstraint {
    protected:
-    Tree *                     evaluator;
+    XCSP3Core::Tree           *evaluator;
     std::map<std::string, int> tuple;
 
    public:
     // Constructors
-    Intension(Problem &p, std::string n, Tree *tree, vec<Variable *> &scope) : Constraint(p, n, scope), evaluator(tree) {
+    Intension(Problem &p, std::string n, XCSP3Core::Tree *tree, vec<Variable *> &scope)
+        : Constraint(p, n, scope), evaluator(tree) {
         type = "Intension";
     }
 
@@ -39,5 +49,5 @@ class Intension : public Constraint, public ObjectiveConstraint {
 };
 }   // namespace Cosoco
 
-
+#endif /* USE_XCSP3 */
 #endif /* INTENSION_H */

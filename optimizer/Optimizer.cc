@@ -1,9 +1,8 @@
 #include "Optimizer.h"
 
-#include <XCSP3Constants.h>
-
 #include "Options.h"
 #include "core/OptimizationProblem.h"
+#include "utils/Constants.h"
 #include "utils/System.h"
 
 using namespace Cosoco;

@@ -4,6 +4,8 @@
 
 #include "NoGoodsEngine.h"
 
+#include <cmath>
+
 #include "System.h"
 using namespace Cosoco;
 

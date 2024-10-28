@@ -1,8 +1,7 @@
 #ifndef FACTORYCONSTRAINTS_H
 #define FACTORYCONSTRAINTS_H
 
-#include <iostream>
-#include <regex>
+#ifdef USE_XCSP3
 
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
@@ -19,6 +18,7 @@
 #include "Precedence.h"
 #include "Reification.h"
 #include "XCSP3Constants.h"
+#include "XCSP3Tree.h"
 #include "constraints/globals/connection/element/ElementMatrix.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
 #include "constraints/globals/counting/NValuesEQVar.h"
@@ -68,7 +68,6 @@
 #include "utils/Verbose.h"
 
 namespace Cosoco {
-using namespace XCSP3Core;
 
 typedef struct Occurs Occurs;
 struct Occurs {
@@ -135,21 +134,22 @@ class FactoryConstraints {
         p->addConstraint(new XeqYleK(*p, name, x, y, k));
     }
 
-    static void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op) {
+    static void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z,
+                                  XCSP3Core::ExpressionType op) {
         assert(x != y && x != z && y != z);
-        if(op == OLE) {
+        if(op == XCSP3Core::OLE) {
             p->addConstraint(new ReifLE(*p, name, x, y, z));
             return;
         }
-        if(op == OLT) {
+        if(op == XCSP3Core::OLT) {
             p->addConstraint(new ReifLT(*p, name, x, y, z));
             return;
         }
-        if(op == OEQ) {
+        if(op == XCSP3Core::OEQ) {
             p->addConstraint(new ReifEQ(*p, name, x, y, z));
             return;
         }
-        if(op == ONE) {
+        if(op == XCSP3Core::ONE) {
             p->addConstraint(new ReifNE(*p, name, x, y, z));
             return;
         }
@@ -210,7 +210,8 @@ class FactoryConstraints {
                 scp.push(y);
             if(x != z && y != z)
                 scp.push(z);
-            createConstraintIntension(p, name, new Tree("eq(" + z->_name + ",mul(" + x->_name + "," + y->_name + "))"), scp);
+            createConstraintIntension(p, name, new XCSP3Core::Tree("eq(" + z->_name + ",mul(" + x->_name + "," + y->_name + "))"),
+                                      scp);
         } else
             p->addConstraint(new xTimesyEQz(*p, name, x, y, z));
     }
@@ -295,7 +296,8 @@ class FactoryConstraints {
     // Language constraints
     //--------------------------------------------------------------------------------------
 
-    static void createConstraintMDD(Problem *p, std::string name, vec<Variable *> &vars, vec<XTransition *> &transitions) {
+    static void createConstraintMDD(Problem *p, std::string name, vec<Variable *> &vars,
+                                    vec<XCSP3Core::XTransition *> &transitions) {
         p->addConstraint(new MDDExtension(*p, name, vars, transitions));
     }
 
@@ -306,7 +308,7 @@ class FactoryConstraints {
 
 
     static void createConstraintRegular(Problem *p, std::string name, vec<Variable *> &vars, string start,
-                                        std::vector<string> &final, vec<XTransition *> &transitions) {
+                                        std::vector<string> &final, vec<XCSP3Core::XTransition *> &transitions) {
         p->addConstraint(new MDDExtension(*p, name, vars, MDD::buildFromAutomata(name, vars, start, final, transitions)));
     }
 
@@ -464,8 +466,8 @@ class FactoryConstraints {
 
 
     static void createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &coeffs, long l,
-                                    OrderType order) {
-        if(order == LE) {
+                                    XCSP3Core::OrderType order) {
+        if(order == XCSP3Core::LE) {
             p->addConstraint(new SumScalarLEK(*p, name, vars, coeffs, l));
             return;
         }
@@ -473,8 +475,8 @@ class FactoryConstraints {
     }
 
     static void createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &coeffs, Variable *z,
-                                    OrderType order) {
-        if(order == LE) {
+                                    XCSP3Core::OrderType order) {
+        if(order == XCSP3Core::LE) {
             p->addConstraint(new SumScalarLEVar(*p, name, vars, coeffs, z));
             return;
         }
@@ -482,11 +484,11 @@ class FactoryConstraints {
     }
 
     static void createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &coeffs, long l,
-                                    OrderType order) {
+                                    XCSP3Core::OrderType order) {
         Sum *ctr = nullptr;
 
         // Rearrange coeffs.
-        if(order == OrderType::LE || order == OrderType::LT) {
+        if(order == XCSP3Core::OrderType::LE || order == XCSP3Core::OrderType::LT) {
             for(int i = 0; i < coeffs.size(); i++) coeffs[i] = -coeffs[i];
             l = -l;
         }
@@ -534,25 +536,25 @@ class FactoryConstraints {
         vars.shrink(i - j);
 
         switch(order) {
-            case OrderType::LE:
+            case XCSP3Core::OrderType::LE:
                 ctr = new SumGE(*p, name, vars, coeffs, l);
                 break;
-            case OrderType::LT:
+            case XCSP3Core::OrderType::LT:
                 ctr = new SumGE(*p, name, vars, coeffs, l + 1);
                 break;
-            case OrderType::GE:
+            case XCSP3Core::OrderType::GE:
                 ctr = new SumGE(*p, name, vars, coeffs, l);
                 break;
-            case OrderType::GT:
+            case XCSP3Core::OrderType::GT:
                 ctr = new SumGE(*p, name, vars, coeffs, l + 1);   // TODO
                 break;
-            case OrderType::IN:
+            case XCSP3Core::OrderType::IN:
                 throw runtime_error("This is forbidden to construct a sum with IN operator");
                 break;
-            case OrderType::EQ:
+            case XCSP3Core::OrderType::EQ:
                 ctr = new SumEQ(*p, name, vars, coeffs, l);
                 break;
-            case OrderType::NE:
+            case XCSP3Core::OrderType::NE:
                 ctr = new SumNE(*p, name, vars, coeffs, l);
                 break;
         }
@@ -643,35 +645,37 @@ class FactoryConstraints {
     }
 
 
-    static void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths, OrderType op) {
+    static void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths,
+                                        XCSP3Core::OrderType op) {
         for(int i = 0; i < vars.size() - 1; i++) {
             int k = lengths.size() == 0 ? 0 : lengths[i];
-            if(op == OrderType::LE)
+            if(op == XCSP3Core::OrderType::LE)
                 p->addConstraint(
                     new Le(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i], vars[i + 1], k));
-            if(op == OrderType::LT)
+            if(op == XCSP3Core::OrderType::LT)
                 p->addConstraint(
                     new Lt(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i], vars[i + 1], k));
 
-            if(op == OrderType::GE)
+            if(op == XCSP3Core::OrderType::GE)
                 p->addConstraint(
                     new Le(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i + 1], vars[i], -k));
-            if(op == OrderType::GT)
+            if(op == XCSP3Core::OrderType::GT)
                 p->addConstraint(
                     new Lt(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i + 1], vars[i], -k));
         }
     }
 
 
-    static void createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2, OrderType op) {
-        if(op == OrderType::LE)
+    static void createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2,
+                                    XCSP3Core::OrderType op) {
+        if(op == XCSP3Core::OrderType::LE)
             p->addConstraint(new Lexicographic(*p, name, vars1, vars2, false));
-        if(op == OrderType::LT)
+        if(op == XCSP3Core::OrderType::LT)
             p->addConstraint(new Lexicographic(*p, name, vars1, vars2, true));
 
-        if(op == OrderType::GE)
+        if(op == XCSP3Core::OrderType::GE)
             p->addConstraint(new Lexicographic(*p, name, vars2, vars1, false));
-        if(op == OrderType::GT)
+        if(op == XCSP3Core::OrderType::GT)
             p->addConstraint(new Lexicographic(*p, name, vars2, vars1, true));
     }
 
@@ -815,5 +819,7 @@ class FactoryConstraints {
 };
 
 }   // namespace Cosoco
+
+#endif /* USE_XCSP3 */
 
 #endif /* FACTORYCONSTRAINTS_H */

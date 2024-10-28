@@ -1,11 +1,12 @@
 //
 // Created by audemard on 30/03/24.
 //
-
+#ifdef USE_XCSP3
 #include <utility>
 
 #include "CosocoCallbacks.h"
 using namespace XCSP3Core;
+using namespace Cosoco;
 
 void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
     size_t pos = input.find(replace_word);
@@ -721,3 +722,5 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PNary4(callbacks));
     // patterns.push(new PNary5(callbacks));
 }
+
+#endif /* USE_XCSP3 */

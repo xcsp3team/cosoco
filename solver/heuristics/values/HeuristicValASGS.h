@@ -7,12 +7,12 @@
 
 #include "HeuristicVal.h"
 
-using namespace Cosoco;
+namespace Cosoco {
 class HeuristicValASGS : public HeuristicVal {
    public:
     explicit HeuristicValASGS(Solver &s);
-    
+
     int select(Variable *x) override;
 };
-
+}   // namespace Cosoco
 #endif   // COSOCO_HEURISTICVALASGS_H

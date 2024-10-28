@@ -10,8 +10,8 @@
 
 
 #include "Matrix.h"
-#include "XCSP3Constants.h"
 #include "constraints/Constraint.h"
+#include "utils/Constants.h"
 
 namespace Cosoco {
 class Extension : public Constraint {

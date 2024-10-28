@@ -1,16 +1,16 @@
 #ifndef COSOCO_SOLUTION_H
 #define COSOCO_SOLUTION_H
 
-#include <XCSP3Constants.h>
-#include <core/OptimizationProblem.h>
-#include <utils/System.h>
-
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <vector>
 
 #include "Termcolor.h"
+#include "core/OptimizationProblem.h"
 #include "mtl/Vec.h"
+#include "utils/Constants.h"
+#include "utils/System.h"
 
 
 namespace Cosoco {

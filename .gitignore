@@ -2,6 +2,13 @@
 main/cosoco
 main/cosoco.*
 
+# the clangd cache
+.cache
+# the build folder
+build
+# the default cmake makefile
+Makefile
+
 
 
 # instances

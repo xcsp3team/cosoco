@@ -4,11 +4,16 @@
 
 #include <utility>
 
+#ifdef USE_XCSP3
 #include "XCSP3Tree.h"
 #include "mtl/Map.h"
 #include "solver/utils/FactoryConstraints.h"
 #include "utils/Utils.h"
+#else
+#include "utils/Options.h"
+#endif /* #ifdef USE_XCSP3 */
 
+#include "core/Problem.h"
 
 using namespace std;
 using namespace Cosoco;
@@ -154,6 +159,7 @@ void Constraint::extractConstraintTupleFromInterpretation(const vec<int> &interp
     }
 }
 
+#ifdef USE_XCSP3
 
 void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<vec<int>> &conflicts, vec<vec<int>> &supports,
                   std::map<string, int> &tuple) {
@@ -162,8 +168,8 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
 
     for(int i = 0; i < x->domain.maxSize(); i++) {
         tuple[x->_name] = x->domain.toVal(i);
-        if(posx == scope.size() - 2 && tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {
-            auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
+        if(posx == scope.size() - 2 && tree->root->type == XCSP3Core::OEQ && tree->root->parameters[1]->type == XCSP3Core::OVAR) {
+            auto *nv = dynamic_cast<XCSP3Core::NodeVariable *>(tree->root->parameters[1]);
             if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
                 // we have expr = var
                 // we evaluate the expression and put the value in support
@@ -207,6 +213,7 @@ void Constraint::toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &s
     }
 }
 
+#endif /* USE_XCSP3 */
 
 // Display
 void Constraint::display(bool allDetails) {

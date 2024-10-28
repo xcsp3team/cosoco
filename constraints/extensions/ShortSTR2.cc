@@ -1,8 +1,8 @@
 #include "ShortSTR2.h"
 
-#include "XCSP3Constants.h"
 #include "mtl/Matrix.h"
 #include "solver/Solver.h"
+#include "utils/Constants.h"
 // TODO restore lastsize when backtracking
 
 using namespace Cosoco;

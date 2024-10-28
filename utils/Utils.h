@@ -1,11 +1,13 @@
 //
 // Created by audemard on 10/11/2015.
 //
-#include <sstream>
+#pragma once
 
 #ifndef COSOCO_UTILS_H
 #define COSOCO_UTILS_H
 
+#include <string>
+#include <vector>
 
 template <class T>
 const T &max(const T &a, const T &b) {
@@ -25,6 +27,11 @@ inline double drand(double &seed) {
 // Returns a random integer 0 <= x < size. Seed must never be 0.
 inline int irand(double &seed, int size) { return (int)(drand(seed) * size); }
 
+std::vector<std::string> &split1(const std::string &s, char delim, std::vector<std::string> &elems);
+std::vector<std::string>  split1(const std::string &s, char delim);
+
+#ifdef USE_XCSP3
+#include "XCSP3TreeNode.h"
 inline bool nodeContainsVar(XCSP3Core::Node *n, std::string name) {
     if(n->type == XCSP3Core::OVAR) {
         auto *nv = dynamic_cast<XCSP3Core::NodeVariable *>(n);
@@ -38,8 +45,8 @@ inline bool nodeContainsVar(XCSP3Core::Node *n, std::string name) {
             return true;
     return false;
 }
-std::vector<std::string> &split1(const std::string &s, char delim, std::vector<std::string> &elems);
-std::vector<std::string>  split1(const std::string &s, char delim);
+
+#endif /* USE_XCSP3 */
 
 
 #endif   // COSOCO_UTILS_H
