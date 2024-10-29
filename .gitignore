@@ -9,6 +9,9 @@ build
 # the default cmake makefile
 Makefile
 
+.vscode
+Testing
+
 
 
 # instances
@@ -19,6 +22,8 @@ cmake_install.cmake
 cmake-build-debug
 CMakeFiles
 CMakeCache.txt
+cosoco-test*_include.cmake
+CTestTestfile.cmake
 
 #
 lib

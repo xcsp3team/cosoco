@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.12)
 #set(CMAKE_C_COMPILER "gcc-7")
 #set(CMAKE_CXX_COMPILER "g++-7")
 project(cosoco)
@@ -6,13 +6,12 @@ project(cosoco)
 # Check if the 'no-xcsp3' option is enabled
 option(NO_XCSP3 "Disable XCSP3 support" OFF)
 
-# define some dirs
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/main")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-
 # define some c++ flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wno-parentheses -Wall -O3 -Wno-unused-label")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses -Wall -O3 -Wno-unused-label")
+
+# GoogleTest requires at least C++14
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -75,6 +74,7 @@ endif()
 
 set_target_properties(${LIBRARY_NAME} PROPERTIES OUTPUT_NAME "cosoco")
 
+#define the executable
 if(NOT NO_XCSP3)
     link_libraries(xcsp3parser)
     add_executable(cosoco main/Main.cc
@@ -85,4 +85,32 @@ if(NOT NO_XCSP3)
     
     
     target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+endif()
+
+
+#tests
+# Find Google Test (if not present, tests will not be compiled)
+find_package(GTest)
+
+if(GTEST_FOUND)
+    # Add test source files
+    file(GLOB_RECURSE Cosoco_TESTS
+            ${PROJECT_SOURCE_DIR}/test/*.cc
+    )
+    #define the test executable and its dependencies
+    add_executable(cosoco-test ${Cosoco_TESTS})
+    target_link_libraries(cosoco-test GTest::gtest_main)
+    target_link_libraries(cosoco-test ${LIBRARY_NAME})
+    if(NOT NO_XCSP3)
+            target_include_directories(cosoco-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../XCSP3-CPP-Parser/include/)
+            target_include_directories(cosoco-test PRIVATE ${LIBXML2_INCLUDE_DIRS})
+            target_link_libraries(cosoco-test ${LIBXML2_LIBRARIES})
+            target_link_libraries(cosoco-test xcsp3parser)
+            target_link_directories(cosoco-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../XCSP3-CPP-Parser/lib)
+    endif()
+    
+    enable_testing()
+    # Add a test target
+    include(GoogleTest)
+    gtest_discover_tests(cosoco-test)
 endif()
