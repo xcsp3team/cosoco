@@ -30,7 +30,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #else
 
-#include <IntTypes.h>
 #include <stdint.h>
 
 #endif

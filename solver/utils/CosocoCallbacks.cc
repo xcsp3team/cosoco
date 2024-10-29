@@ -1,8 +1,15 @@
 #include "CosocoCallbacks.h"
 
+
+#ifdef USE_XCSP3
+#include <vector>
+
+#include "core/OptimizationProblem.h"
+#include "core/domain/DomainValues.h"
+
 using namespace Cosoco;
 
-void CosocoCallbacks::beginInstance(InstanceType type) {
+void XCSP3Core::CosocoCallbacks::beginInstance(InstanceType type) {
     problem = type == CSP ? new Problem("") : new OptimizationProblem("");
     problems.push(problem);
     decisionVariables.growTo(nbcores);
@@ -18,14 +25,14 @@ void CosocoCallbacks::beginInstance(InstanceType type) {
     recognizeSpecialIntensionCases = false;
 }
 
-void CosocoCallbacks::endInstance() {
+void XCSP3Core::CosocoCallbacks::endInstance() {
     if(auxiliaryIdx > 0)
         std::cout << "c " << auxiliaryIdx << " auxiliary variables\n";
     problem->delayedConstruction();
     printf("c nb Intensions -> Extensions : %d (shared: %d)\n", nbIntension2Extention, nbSharedIntension2Extension);
 }
 
-void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
+void XCSP3Core::CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
     Variable *x =
         problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray)
@@ -33,7 +40,7 @@ void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue
     mappingXV[id] = new XVariable(id, nullptr);
 }
 
-void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
+void XCSP3Core::CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     Variable *x =
         problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray)
@@ -41,50 +48,50 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     mappingXV[id] = new XVariable(id, nullptr);
 }
 
-void CosocoCallbacks::beginVariableArray(string id) {
+void XCSP3Core::CosocoCallbacks::beginVariableArray(string id) {
     for(int core = 0; core < nbcores; core++) problem->variablesArray.push();
     inArray = true;
 }
 
-void CosocoCallbacks::endVariableArray() { inArray = false; }
+void XCSP3Core::CosocoCallbacks::endVariableArray() { inArray = false; }
 
-void CosocoCallbacks::endVariables() {
+void XCSP3Core::CosocoCallbacks::endVariables() {
     nbInitialsVariables     = problem->nbVariables();
     problem->nbOriginalVars = problem->nbVariables();
 }
 
-void CosocoCallbacks::initGroups() {
+void XCSP3Core::CosocoCallbacks::initGroups() {
     insideGroup = true;
     nbMDD       = 0;
     nbIntension = -1;
 }
 
 
-void CosocoCallbacks::beginGroup(string name) { initGroups(); }
+void XCSP3Core::CosocoCallbacks::beginGroup(string name) { initGroups(); }
 
 
-void CosocoCallbacks::endGroup() { insideGroup = false; }
+void XCSP3Core::CosocoCallbacks::endGroup() { insideGroup = false; }
 
 
-void CosocoCallbacks::beginSlide(string id, bool circular) { initGroups(); }
+void XCSP3Core::CosocoCallbacks::beginSlide(string id, bool circular) { initGroups(); }
 
 
-void CosocoCallbacks::endSlide() {
+void XCSP3Core::CosocoCallbacks::endSlide() {
     insideGroup = false;
     initGroups();
 }
 
 
-void CosocoCallbacks::beginBlock(string classes) { initGroups(); }
+void XCSP3Core::CosocoCallbacks::beginBlock(string classes) { initGroups(); }
 
 
-void CosocoCallbacks::endBlock() {
+void XCSP3Core::CosocoCallbacks::endBlock() {
     initGroups();
     insideGroup = false;
 }
 
 
-void CosocoCallbacks::beginObjectives() { startToParseObjective = true; }
+void XCSP3Core::CosocoCallbacks::beginObjectives() { startToParseObjective = true; }
 
 
 //--------------------------------------------------------------------------------------
@@ -92,20 +99,21 @@ void CosocoCallbacks::beginObjectives() { startToParseObjective = true; }
 //--------------------------------------------------------------------------------------
 
 
-void CosocoCallbacks::buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
-                                               bool hasStar) {
+void XCSP3Core::CosocoCallbacks::buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples,
+                                                          bool support, bool hasStar) {
     if(hasStar && !support)
         throw runtime_error("Extension constraint with star and conflict tuples is not yet supported");
     toMyVariables(list);
     buildConstraintExtension2(id, vars, origTuples, support, hasStar);
 }
 
-void CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) {
-    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), problem->constraints.last());
+void XCSP3Core::CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) {
+    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), problem->constraints.back().get());
 }
 
-void CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples,
-                                                bool support, bool hasStar) const {
+void XCSP3Core::CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *> &scope,
+                                                           const vector<vector<int>> &origTuples, bool support,
+                                                           bool hasStar) const {
     vec<vec<int>> tuples;
     tuples.growTo(origTuples.size());
 
@@ -119,7 +127,8 @@ void CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *
 }
 
 
-void CosocoCallbacks::buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support, bool hasStar) {
+void XCSP3Core::CosocoCallbacks::buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support,
+                                                          bool hasStar) {
     if(hasStar)
         throw runtime_error("Extension constraint with star is not yet supported");
 
@@ -127,9 +136,10 @@ void CosocoCallbacks::buildConstraintExtension(string id, XVariable *variable, v
 }
 
 
-void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) { manageIntension->intension(id, tree); }
+void XCSP3Core::CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) { manageIntension->intension(id, tree); }
 
-void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k, XVariable *y) {   // x + k op y
+void XCSP3Core::CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k,
+                                                          XVariable *y) {   // x + k op y
     assert(op == LE || op == LT || op == EQ || op == NE);
 
 
@@ -161,7 +171,8 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariabl
     buildConstraintIntension(id, new Tree(tmp));   // TODO
 }
 
-void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *xx, int k) {   // x op k op is <= or >=
+void XCSP3Core::CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *xx,
+                                                          int k) {   // x op k op is <= or >=
     Variable *x = problem->mapping[xx->id];
     vec<int>  values;
     for(int idv : x->domain) {
@@ -172,8 +183,8 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariabl
     FactoryConstraints::createConstraintUnary(problem, id, x, values, true);
 }
 
-void CosocoCallbacks::buildConstraintPrimitive(string id, XVariable *xx, bool in, int min,
-                                               int max) {   // x in/notin [min,max]
+void XCSP3Core::CosocoCallbacks::buildConstraintPrimitive(string id, XVariable *xx, bool in, int min,
+                                                          int max) {   // x in/notin [min,max]
     Variable *x = problem->mapping[xx->id];
     vec<int>  values;
     for(int idv : x->domain) {
@@ -185,7 +196,7 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, XVariable *xx, bool in
 }
 
 
-void CosocoCallbacks::buildConstraintMult(string id, XVariable *x, XVariable *y, XVariable *z) {
+void XCSP3Core::CosocoCallbacks::buildConstraintMult(string id, XVariable *x, XVariable *y, XVariable *z) {
     if(x == y || x == z || y == z) {
         cout << "eq(" + z->id + ",mul(" + x->id + "," + y->id + "))\n";
         buildConstraintIntension(id, new Tree("eq(" + z->id + ",mul(" + x->id + "," + y->id + "))"));
@@ -201,9 +212,9 @@ void CosocoCallbacks::buildConstraintMult(string id, XVariable *x, XVariable *y,
 // Language  constraints
 //--------------------------------------------------------------------------------------
 
-Cosoco::MDD *CosocoCallbacks::sameMDDAsPrevious(vec<Variable *> &list) {
+Cosoco::MDD *XCSP3Core::CosocoCallbacks::sameMDDAsPrevious(vec<Variable *> &list) {
     if(insideGroup && nbMDD) {   // Check is the MDD is the same
-        auto *ext = dynamic_cast<MDDExtension *>(problem->constraints.last());
+        auto *ext = dynamic_cast<MDDExtension *>(problem->constraints.back().get());
         assert(ext != nullptr);
         assert(list.size() == ext->scope.size());
         int same = true;
@@ -220,7 +231,7 @@ Cosoco::MDD *CosocoCallbacks::sameMDDAsPrevious(vec<Variable *> &list) {
 }
 
 
-void CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) {
+void XCSP3Core::CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) {
     toMyVariables(list, vars);
     Cosoco::MDD *mdd = nullptr;
     if((mdd = sameMDDAsPrevious(vars)) != nullptr)
@@ -234,8 +245,8 @@ void CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, v
 }
 
 
-void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &list, string start, vector<string> &final,
-                                             vector<XTransition> &transitions) {
+void XCSP3Core::CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &list, string start, vector<string> &final,
+                                                        vector<XTransition> &transitions) {
     toMyVariables(list, vars);
 
     // Some variables can appear multiple times.... We replace by a new variable and an allequal
@@ -255,9 +266,9 @@ void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &lis
             }
             vec<Variable *> tmp;
             tmp.push(vars[i]);
-            tmp.push(problem->variables.last());
+            tmp.push(problem->variables.back().get());
             FactoryConstraints::createConstraintAllEqual(problem, id, tmp);
-            vars[i] = problem->variables.last();
+            vars[i] = problem->variables.back().get();
         }
         vars[i]->fake = 1;
     }
@@ -276,7 +287,7 @@ void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &lis
 // Graph constraints
 //--------------------------------------------------------------------------------------
 
-void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &list, int startIndex) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &list, int startIndex) {
     if(startIndex != 0)
         throw runtime_error("Circuit with startIndex != 0 is not yet supported");
 
@@ -289,16 +300,16 @@ void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &lis
 // Comparison constraints
 //--------------------------------------------------------------------------------------
 
-void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<XVariable *> &list) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAlldifferent(string id, vector<XVariable *> &list) {
     FactoryConstraints::createConstraintAllDiff(problem, id, toMyVariables(list));
 }
 
 
-void CosocoCallbacks::buildConstraintAlldifferentExcept(string id, vector<XVariable *> &list, vector<int> &except) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAlldifferentExcept(string id, vector<XVariable *> &list, vector<int> &except) {
     FactoryConstraints::createConstraintAllDiffExcept(problem, id, toMyVariables(list), except);
 }
 
-void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &trees) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &trees) {
     vector<string> auxiliaryVariables;
     insideGroup = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
@@ -326,7 +337,7 @@ void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &tre
 }
 
 
-void CosocoCallbacks::buildConstraintAlldifferentList(string id, vector<vector<XVariable *>> &origlists) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAlldifferentList(string id, vector<vector<XVariable *>> &origlists) {
     vec<vec<Variable *>> lists;
     for(auto &origlist : origlists) {
         lists.push();
@@ -336,7 +347,7 @@ void CosocoCallbacks::buildConstraintAlldifferentList(string id, vector<vector<X
 }
 
 
-void CosocoCallbacks::buildConstraintAlldifferentMatrix(string id, vector<vector<XVariable *>> &matrix) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAlldifferentMatrix(string id, vector<vector<XVariable *>> &matrix) {
     // lines
     for(auto &list : matrix) buildConstraintAlldifferent(id, list);
 
@@ -349,28 +360,29 @@ void CosocoCallbacks::buildConstraintAlldifferentMatrix(string id, vector<vector
 }
 
 
-void CosocoCallbacks::buildConstraintAllEqual(string id, vector<XVariable *> &list) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAllEqual(string id, vector<XVariable *> &list) {
     FactoryConstraints::createConstraintAllEqual(problem, id, toMyVariables(list));
 }
 
 
-void CosocoCallbacks::buildConstraintNotAllEqual(string id, vector<XVariable *> &list) {
+void XCSP3Core::CosocoCallbacks::buildConstraintNotAllEqual(string id, vector<XVariable *> &list) {
     FactoryConstraints::createConstraintNotAllEqual(problem, id, toMyVariables(list));
 }
 
 
-void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, OrderType order) {
+void XCSP3Core::CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, OrderType order) {
     vector<int> lengths;
     FactoryConstraints::createConstraintOrdered(problem, id, toMyVariables(list), lengths, order);
 }
 
 
-void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) {
+void XCSP3Core::CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths,
+                                                        OrderType order) {
     FactoryConstraints::createConstraintOrdered(problem, id, toMyVariables(list), lengths, order);
 }
 
 
-void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) {
+void XCSP3Core::CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) {
     vec<Variable *> list1, list2;
     for(unsigned int i = 0; i < lists.size() - 1; i++) {
         toMyVariables(lists[i], list1);
@@ -380,7 +392,7 @@ void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> 
 }
 
 
-void CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) {
+void XCSP3Core::CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) {
     // lines
     buildConstraintLex(id, matrix, order);
 
@@ -399,21 +411,22 @@ void CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariabl
 // Summing and counting constraints
 //--------------------------------------------------------------------------------------
 
-void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) {
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildConstraintSum(id, list, coeffs, xc);
 }
 
 
-void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs,
+                                                    XCondition &xc) {
     vars.clear();
     toMyVariables(list, vars);
     buildConstraintSum(id, vars, origcoeffs, xc);
 }
 
 
-void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc) {
     string xcvar        = xc.var;
     bool   varCondition = xc.operandType == VARIABLE;
     vector2vec(coeffs);
@@ -436,7 +449,8 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
 }
 
 
-void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, vector<XVariable *> &coeffs, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, vector<XVariable *> &coeffs,
+                                                    XCondition &xc) {
     bool scalar = true;
     for(unsigned int i = 0; i < list.size(); i++) {
         if(list[i]->domain->minimum() != 0 || list[i]->domain->maximum() != 1) {
@@ -505,14 +519,14 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
 }
 
 
-void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCondition &cond) {
+void XCSP3Core::CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCondition &cond) {
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);
     buildConstraintSum(id, trees, coeffs, cond);
 }
 
 
-void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vector<int> &coefs, XCondition &cond) {
+void XCSP3Core::CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vector<int> &coefs, XCondition &cond) {
     vector<string> auxiliaryVariables;
     insideGroup = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
@@ -524,27 +538,27 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vecto
 }
 
 
-void CosocoCallbacks::buildConstraintAtMost(string id, vector<XVariable *> &list, int value, int k) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAtMost(string id, vector<XVariable *> &list, int value, int k) {
     FactoryConstraints::createConstraintAtMost(problem, id, toMyVariables(list), value, k);
 }
 
 
-void CosocoCallbacks::buildConstraintAtLeast(string id, vector<XVariable *> &list, int value, int k) {
+void XCSP3Core::CosocoCallbacks::buildConstraintAtLeast(string id, vector<XVariable *> &list, int value, int k) {
     FactoryConstraints::createConstraintAtLeast(problem, id, toMyVariables(list), value, k);
 }
 
 
-void CosocoCallbacks::buildConstraintExactlyK(string id, vector<XVariable *> &list, int value, int k) {
+void XCSP3Core::CosocoCallbacks::buildConstraintExactlyK(string id, vector<XVariable *> &list, int value, int k) {
     FactoryConstraints::createConstraintExactly(problem, id, toMyVariables(list), value, k);
 }
 
 
-void CosocoCallbacks::buildConstraintExactlyVariable(string id, vector<XVariable *> &list, int value, XVariable *x) {
+void XCSP3Core::CosocoCallbacks::buildConstraintExactlyVariable(string id, vector<XVariable *> &list, int value, XVariable *x) {
     FactoryConstraints::createConstraintExactlyVariable(problem, id, toMyVariables(list), value, problem->mapping[x->id]);
 }
 
 
-void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) {
     if(!(xc.operandType == VARIABLE && xc.op == EQ))
         throw runtime_error("c Such nValues constraint Not yes supported");
 
@@ -552,7 +566,8 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
 }
 
 
-void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values,
+                                                      XCondition &xc) {
     if(values.size() == 1) {
         vector<Tree *> trees;
         for(auto &xv : list) {
@@ -566,7 +581,7 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list,
 }
 
 
-void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) {
     if(values.size() == 1) {
         vector<Tree *> newtrees;
         for(auto &tree : trees) {
@@ -580,7 +595,8 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
 }
 
 
-void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values,
+                                                      XCondition &xc) {
     // TODO WARNING
     if(values.size() == 1) {
         vector<Tree *> newtrees;
@@ -595,8 +611,8 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
 }
 
 
-void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
-                                                 bool closed) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
+                                                            vector<int> &intOccurs, bool closed) {
     vec<Occurs> occurs;
     for(int o : intOccurs) {
         occurs.push();
@@ -607,8 +623,8 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 }
 
 
-void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
-                                                 vector<XVariable *> &varOccurs, bool closed) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
+                                                            vector<XVariable *> &varOccurs, bool closed) {
     vec<Occurs> occurs;
     for(XVariable *xv : varOccurs) {
         occurs.push();
@@ -619,8 +635,8 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 }
 
 
-void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
-                                                 vector<XInterval> &intervalOccurs, bool closed) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
+                                                            vector<XInterval> &intervalOccurs, bool closed) {
     vec<Occurs> occurs;
     for(XInterval &xi : intervalOccurs) {
         occurs.push();
@@ -636,7 +652,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 // Connection constraints
 //--------------------------------------------------------------------------------------
 
-string CosocoCallbacks::createExpression(string minmax, OrderType op, vector<XVariable *> &list, string value) {
+string XCSP3Core::CosocoCallbacks::createExpression(string minmax, OrderType op, vector<XVariable *> &list, string value) {
     string o;
 
     if(op == LE)
@@ -661,7 +677,7 @@ string CosocoCallbacks::createExpression(string minmax, OrderType op, vector<XVa
 }
 
 
-void CosocoCallbacks::buildConstraintMaximum(string id, vector<Tree *> &list, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintMaximum(string id, vector<Tree *> &list, XCondition &xc) {
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {
             vector<string> auxiliaryVariables;
@@ -676,7 +692,7 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<Tree *> &list, XC
     throw runtime_error("Maximum over set is not yet supported");
 }
 
-void CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) {
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {
             vector<string> auxiliaryVariables;
@@ -691,7 +707,7 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XC
     throw runtime_error("minimum over set is not yet supported");
 }
 
-void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) {
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {
             toMyVariables(list, vars);
@@ -722,7 +738,7 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &lis
 }
 
 
-void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) {
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {
             toMyVariables(list, vars);
@@ -753,15 +769,15 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
 }
 
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index,
-                                             RankType rank, int value) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index,
+                                                        RankType rank, int value) {
     Variable *idx = problem->mapping[index->id];
     FactoryConstraints::createConstraintElementConstant(problem, id, toMyVariables(list), idx, startIndex, value);
 }
 
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index,
-                                             RankType rank, XVariable *value) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index,
+                                                        RankType rank, XVariable *value) {
     if(value->id == index->id) {
         for(XVariable *x : list)
             if(x == value)
@@ -790,8 +806,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
 }
 
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
-                                             XVariable *value) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index,
+                                                        RankType rank, XVariable *value) {
     vec<Variable *> tmp;
     vec<vec<int>>   tuples;
     Variable       *idx = problem->mapping[index->id];
@@ -809,7 +825,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
     FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
 }
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex,
+                                                        XCondition &xc) {
     vector<XVariable *> aux;
     for(int value : list) {
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
@@ -820,8 +837,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVari
     buildConstraintElement(id, aux, index, startIndex, xc);
 }
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
-                                             XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
+                                                        XCondition &xc) {
     if(xc.op == EQ) {
         if(xc.operandType == INTEGER) {
             buildConstraintElement(id, list, startIndex, index, ANY, xc.val);
@@ -874,8 +891,9 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
     buildConstraintElement(id, list, startIndex, index, ANY, x);
 }
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex,
-                                             int startColIndex, XVariable *colIndex, XVariable *value) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex,
+                                                        XVariable *rowIndex, int startColIndex, XVariable *colIndex,
+                                                        XVariable *value) {
     if(startRowIndex != 0 || startColIndex != 0)
         throw runtime_error("Element int matrix with startRowIndex or StartColIndex !=0 not yet supported");
 
@@ -907,8 +925,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &mat
 }
 
 
-void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex,
-                                             XVariable *rowIndex, int startColIndex, XVariable *colIndex, int value) {
+void XCSP3Core::CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex,
+                                                        XVariable *rowIndex, int startColIndex, XVariable *colIndex, int value) {
     if(rowIndex == colIndex) {
         if(matrix.size() != matrix[0].size())
             throw runtime_error("Problem in element matrix");
@@ -932,15 +950,15 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable 
 }
 
 
-void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) {
+void XCSP3Core::CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) {
     if(startIndex != 0)
         throw runtime_error("Channel is not implemented with index != 0");
     toMyVariables(list);
     FactoryConstraints::createConstraintChannel(problem, id, vars, 0);
 }
 
-void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
-                                             int startIndex2) {
+void XCSP3Core::CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1,
+                                                        vector<XVariable *> &list2, int startIndex2) {
     vec<Variable *> X;
     vec<Variable *> Y;
     toMyVariables(list1, X);
@@ -949,7 +967,7 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
 }
 
 
-void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex, XVariable *value) {
+void XCSP3Core::CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex, XVariable *value) {
     //  return forall(range(list.length), i -> intension(iff(list[i], eq(value, i))));
     int i = 0;
     for(XVariable *x : list) {
@@ -965,7 +983,8 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
 //--------------------------------------------------------------------------------------
 
 
-void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<int> &lengths, bool zeroIgnored) {
+void XCSP3Core::CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<int> &lengths,
+                                                          bool zeroIgnored) {
     if(!zeroIgnored)
         throw runtime_error("Nooverlap with zeroIgnored not yet supported");
 
@@ -975,8 +994,8 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
             FactoryConstraints::createConstraintNoOverlap(problem, id, vars[i], vars[j], lengths[i], lengths[j]);
 }
 
-void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
-                                               bool zeroIgnored) {
+void XCSP3Core::CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
+                                                          bool zeroIgnored) {
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
     for(unsigned int i = 0; i < origins.size(); i++)
@@ -989,8 +1008,8 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
         }
 }
 
-void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins,
-                                               vector<vector<XVariable *>> &lengths, bool zeroIgnored) {
+void XCSP3Core::CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins,
+                                                          vector<vector<XVariable *>> &lengths, bool zeroIgnored) {
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
 
@@ -1012,8 +1031,8 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
 }
 
 
-void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<int>> &lengths,
-                                               bool zeroIgnored) {
+void XCSP3Core::CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins,
+                                                          vector<vector<int>> &lengths, bool zeroIgnored) {
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
     assert(origins.size() == lengths.size() && origins[0].size() == 2);
@@ -1081,8 +1100,8 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
 }
 
 
-void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths,
-                                                vector<int> &heights, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths,
+                                                           vector<int> &heights, XCondition &xc) {
     vars.clear();
     vec<int> h, l;
     vector2vec(lengths);
@@ -1097,8 +1116,8 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
 }
 
 
-void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths,
-                                                vector<XVariable *> &varHeights, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths,
+                                                           vector<XVariable *> &varHeights, XCondition &xc) {
     vars.clear();
     vec<int>        l;
     vec<Variable *> myvarHeights;
@@ -1115,8 +1134,8 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
 }
 
 
-void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varlengths,
-                                                vector<int> &h, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins,
+                                                           vector<XVariable *> &varlengths, vector<int> &h, XCondition &xc) {
     vars.clear();
     vec<int>        heights;
     vec<Variable *> myvarwidths;
@@ -1132,8 +1151,9 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
 }
 
 
-void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<XVariable *> &varwidths,
-                                                vector<XVariable *> &varheights, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins,
+                                                           vector<XVariable *> &varwidths, vector<XVariable *> &varheights,
+                                                           XCondition &xc) {
     vars.clear();
     vec<Variable *> myvarwidths, myvarheights;
 
@@ -1149,7 +1169,8 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
 }
 
 
-void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, XCondition &cond) {
+void XCSP3Core::CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
+                                                           XCondition &cond) {
     vars.clear();
     toMyVariables(list, vars);
     if(Variable::haveSameDomainType(vars) == false) {
@@ -1170,8 +1191,8 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
 }
 
 
-void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes, vector<int> &capacities,
-                                                bool load) {
+void XCSP3Core::CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
+                                                           vector<int> &capacities, bool load) {
     vec<int> s, c;
     vector2vec(sizes);
     vals.copyTo(s);
@@ -1187,15 +1208,15 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
         for(int cap : capacities) {
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             buildVariableInteger(auxVar, cap, cap);
-            loads.push(problem->variables.last());
+            loads.push(problem->variables.back().get());
         }
         FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, loads);
     } else
         FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, c);
 }
 
-void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
-                                                vector<XVariable *> &capacities, bool load) {
+void XCSP3Core::CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
+                                                           vector<XVariable *> &capacities, bool load) {
     vec<int> s;
     vector2vec(sizes);
     vals.copyTo(s);
@@ -1223,8 +1244,8 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
     }
 }
 
-void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
-                                                vector<XCondition> &conditions, int startindex) {
+void XCSP3Core::CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
+                                                           vector<XCondition> &conditions, int startindex) {
     for(XCondition &xc : conditions) {
         if(xc.operandType != VARIABLE && xc.op != EQ)
             throw std::runtime_error("Bin packing with all condiions not EQ=VAR is not yet implemented");
@@ -1243,7 +1264,7 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
 // Instantiation constraint
 //--------------------------------------------------------------------------------------
 
-void CosocoCallbacks::buildConstraintInstantiation(string id, vector<XVariable *> &list, vector<int> &values) {
+void XCSP3Core::CosocoCallbacks::buildConstraintInstantiation(string id, vector<XVariable *> &list, vector<int> &values) {
     for(unsigned int i = 0; i < list.size(); i++) {
         vec<int> value;
         if(values[i] == STAR)
@@ -1254,12 +1275,13 @@ void CosocoCallbacks::buildConstraintInstantiation(string id, vector<XVariable *
 }
 
 
-void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values, bool covered) {
+void XCSP3Core::CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values,
+                                                           bool covered) {
     toMyVariables(list);
     FactoryConstraints::createConstraintPrecedence(problem, id, vars, vector2vec(values), covered);
 }
 
-void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, bool covered) {
+void XCSP3Core::CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, bool covered) {
     toMyVariables(list);
     std::set<int> values;
     for(Variable *x : vars) {
@@ -1270,15 +1292,16 @@ void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &
     FactoryConstraints::createConstraintPrecedence(problem, id, vars, tmp, covered);
 }
 
-void CosocoCallbacks::buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
-                                              XCondition weightsCondition, XCondition &profitCondition) {
+void XCSP3Core::CosocoCallbacks::buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights,
+                                                         vector<int> &profits, XCondition weightsCondition,
+                                                         XCondition &profitCondition) {
     buildConstraintSum(id, list, weights, weightsCondition);
     buildConstraintSum(id, list, profits, profitCondition);
 }
 
 
-void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, vector<int> &balance, vector<int> &weights,
-                                          vector<vector<int>> &arcs, XCondition &xc) {
+void XCSP3Core::CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, vector<int> &balance,
+                                                     vector<int> &weights, vector<vector<int>> &arcs, XCondition &xc) {
     std::set<int> set;
     toMyVariables(list);
     for(auto &arc : arcs) {
@@ -1315,59 +1338,60 @@ void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, 
 // Objectives
 //--------------------------------------------------------------------------------------
 
-void CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
     string tmp = "le(" + expr + ",0)";
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
 
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveUB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveUB(oc);
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
     string tmp = "ge(" + expr + ",0)";   // Fake value
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
     assert(oc != nullptr);
-    po->addObjectiveLB(oc, true);
+    po->addObjectiveLB(oc);
 }
 
-void CosocoCallbacks::buildObjectiveMinimizeVariable(XVariable *x) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimizeVariable(XVariable *x) {
     FactoryConstraints::createConstraintUnaryLE(problem, "", problem->mapping[x->id], 0);
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveUB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveUB(oc);
 }
 
-void CosocoCallbacks::buildObjectiveMaximizeVariable(XVariable *x) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximizeVariable(XVariable *x) {
     FactoryConstraints::createConstraintUnaryGE(problem, "", problem->mapping[x->id], 0);
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveLB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveLB(oc);
 }
 
 
-void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list) {
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildObjectiveMinimize(type, list, coeffs);
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) {
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildObjectiveMaximize(type, list, coeffs);
 }
 
 
-void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables,
+                                                        vector<int> &origcoeffs) {
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
 
@@ -1380,8 +1404,8 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
             invertOptimization = true;
 
             FactoryConstraints::createConstraintSum(problem, "objective", variables, vector2vec(origcoeffs), INT_MAX, LE);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveLB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveLB(oc);
             break;
         }
         case PRODUCT_O:
@@ -1389,20 +1413,20 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
             break;
         case MINIMUM_O: {
             FactoryConstraints::createConstraintMinimumLE(problem, "objective", variables, INT_MAX);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveUB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveUB(oc);
             break;
         }
         case MAXIMUM_O: {
             FactoryConstraints::createConstraintMaximumLE(problem, "objective", variables, INT_MAX);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveUB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveUB(oc);
             break;
         }
         case NVALUES_O: {
             FactoryConstraints::createConstraintNValuesLE(problem, "objective", variables, variables.size() + 1);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveUB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveUB(oc);
             break;
         }
         case LEX_O:
@@ -1412,7 +1436,8 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
 }
 
 
-void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list,
+                                                        vector<int> &origcoeffs) {
     for(int core = 0; core < nbcores; core++) {
         toMyVariables(list, vars);
         buildObjectiveMinimize(type, vars, origcoeffs);
@@ -1420,7 +1445,8 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables,
+                                                        vector<int> &origcoeffs) {
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
 
@@ -1447,18 +1473,20 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Varia
             throw runtime_error("Objective expression not yet supported");
             break;
     }
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveLB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveLB(oc);
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list,
+                                                        vector<int> &origcoeffs) {
     toMyVariables(list, vars);
     buildObjectiveMaximize(type, vars, origcoeffs);
 }
 
 
-void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &trees, vector<string> &auxiliaryVariables) {
+void XCSP3Core::CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &trees,
+                                                                        vector<string> &auxiliaryVariables) {
     set<int>                   values;
     std::map<std::string, int> tuple;
 
@@ -1505,7 +1533,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 }
 
 
-void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
     vector<string> auxiliaryVariables;
     startToParseObjective = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
@@ -1518,7 +1546,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tr
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
     vector<string> auxiliaryVariables;
 
     startToParseObjective = false;
@@ -1532,7 +1560,8 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
 }
 
 
-void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list,
+                                                        vector<XVariable *> &coefs) {
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
     switch(type) {
@@ -1549,9 +1578,9 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
             xc.operandType = INTEGER;
             xc.val         = INT_MIN;
             buildConstraintSum("objective", trees, c, xc);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            std::cout << problem->constraints.last()->type << std::endl;
-            po->addObjectiveLB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            std::cout << problem->constraints.back()->type << std::endl;
+            po->addObjectiveLB(oc);
             break;
         }
         default:
@@ -1560,7 +1589,8 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list,
+                                                        vector<XVariable *> &coefs) {
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
     toMyVariables(list);
@@ -1578,23 +1608,25 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
         default:
             runtime_error("Objective expression without sum and variables coeffs not yet supported");
     }
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveLB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveLB(oc);
 }
 
 
-void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees) {
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);
     buildObjectiveMinimize(type, trees, coeffs);
 }
 
 
-void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees) {
+void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees) {
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);
     buildObjectiveMaximize(type, trees, coeffs);
 }
 
 
-void CosocoCallbacks::buildAnnotationDecision(vector<XVariable *> &list) { toMyVariables(list, decisionVariables[0]); }
+void XCSP3Core::CosocoCallbacks::buildAnnotationDecision(vector<XVariable *> &list) { toMyVariables(list, decisionVariables[0]); }
+
+#endif /* USE_XCSP3 */

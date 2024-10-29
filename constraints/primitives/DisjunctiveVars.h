@@ -5,8 +5,8 @@
 #ifndef COSOCO_DISJUNCTIVEVARS_H
 #define COSOCO_DISJUNCTIVEVARS_H
 
-#include "Constraint.h"
-#include "GlobalConstraint.h"
+#include "constraints/Constraint.h"
+#include "constraints/globals/GlobalConstraint.h"
 namespace Cosoco {
 class DisjunctiveVars : public GlobalConstraint {
    public:

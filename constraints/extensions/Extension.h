@@ -9,9 +9,9 @@
 #define EXTENSION_H
 
 
-#include "Matrix.h"
-#include "XCSP3Constants.h"
 #include "constraints/Constraint.h"
+#include "mtl/Matrix.h"
+#include "utils/Constants.h"
 
 namespace Cosoco {
 class Extension : public Constraint {

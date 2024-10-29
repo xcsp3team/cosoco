@@ -1,11 +1,12 @@
 //
 // Created by audemard on 30/03/24.
 //
-
+#ifdef USE_XCSP3
 #include <utility>
 
 #include "CosocoCallbacks.h"
 using namespace XCSP3Core;
+using namespace Cosoco;
 
 void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
     size_t pos = input.find(replace_word);
@@ -212,7 +213,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     vec<Variable *> varsCore;
     for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
     callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
-    cachedExtensions[expr] = callbacks.problem->constraints.last();
+    cachedExtensions[expr] = callbacks.problem->constraints.back().get();
 
     return true;
 }
@@ -402,7 +403,7 @@ class PBinary7 : public Primitive {   // x=  mul(y,y)
             tuples.push_back({v, v * v});
         }
         callbacks.buildConstraintExtension2(id, scope, tuples, true, false);
-        callbacks.manageIntension->cachedExtensions[expr] = callbacks.problem->constraints.last();
+        callbacks.manageIntension->cachedExtensions[expr] = callbacks.problem->constraints.back().get();
         return true;
     }
 };
@@ -721,3 +722,5 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PNary4(callbacks));
     // patterns.push(new PNary5(callbacks));
 }
+
+#endif /* USE_XCSP3 */

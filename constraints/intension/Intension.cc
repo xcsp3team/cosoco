@@ -1,6 +1,8 @@
 #include "constraints/intension/Intension.h"
 
-#include <constraints/genericFiltering/TupleIteratorWithoutOrder.h>
+#ifdef USE_XCSP3
+#include "XCSP3Tree.h"
+
 
 using namespace Cosoco;
 
@@ -36,8 +38,8 @@ bool Intension::filter(Variable *dummy) {
 
 
 void Intension::updateBound(long bound) {
-    auto *nodeB = dynamic_cast<NodeBinary *>(evaluator->root);
-    auto *nodeC = dynamic_cast<NodeConstant *>(nodeB->parameters[1]);
+    auto *nodeB = dynamic_cast<XCSP3Core::NodeBinary *>(evaluator->root);
+    auto *nodeC = dynamic_cast<XCSP3Core::NodeConstant *>(nodeB->parameters[1]);
     nodeC->val  = bound;
 }
 
@@ -51,9 +53,11 @@ long Intension::minLowerBound() { return INT_MIN + 10; }
 long Intension::computeScore(vec<int> &solution) {
     assert(solution.size() == scope.size());
     for(int i = 0; i < scope.size(); i++) tuple[scope[i]->_name] = solution[i];
-    auto *nodeB = dynamic_cast<NodeBinary *>(evaluator->root);
+    auto *nodeB = dynamic_cast<XCSP3Core::NodeBinary *>(evaluator->root);
     return nodeB->parameters[0]->evaluate(tuple);
 }
 
 
 void Intension::display(bool d) { std::cout << evaluator->toString() << std::endl; }
+
+#endif /* USE_XCSP3 */

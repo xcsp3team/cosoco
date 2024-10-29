@@ -1,8 +1,7 @@
 #include "ElementVariable.h"
 
-#include <XCSP3Constants.h>
-
 #include "solver/Solver.h"
+#include "utils/Constants.h"
 
 using namespace Cosoco;
 

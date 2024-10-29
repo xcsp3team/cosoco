@@ -5,9 +5,9 @@
 #ifndef COSOCO_BINPACKING_H
 #define COSOCO_BINPACKING_H
 
-#include "ObserverDecision.h"
 #include "constraints/globals/GlobalConstraint.h"
 #include "mtl/SparseSetMultiLevel.h"
+#include "solver/observers/ObserverDecision.h"
 
 namespace Cosoco {
 

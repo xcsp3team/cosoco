@@ -2,9 +2,9 @@
 // Created by audemard on 16/11/22.
 //
 
-#include "HeuristicValOccs.h"
+#include "solver/heuristics/values/HeuristicValOccs.h"
 
-#include "Map.h"
+#include "mtl/Map.h"
 #include "solver/Solver.h"
 using namespace Cosoco;
 
@@ -14,7 +14,6 @@ HeuristicValOccs::HeuristicValOccs(Solver &s) : HeuristicVal(s) {
         nbOccurrences.push();
         elements.push();
         // Put all elements in Map.
-        bool first = true;
         for(Variable *x : solver.problem.variablesArray[i]) {
             for(int idv : x->domain) {
                 int v = x->domain.toVal(idv);

@@ -1,8 +1,8 @@
 
-#include "Constraint.h"
 #ifndef MINIMUMVARIABLEEQ_H
 #define MINIMUMVARIABLEEQ_H
 
+#include "constraints/Constraint.h"
 #include "constraints/globals/GlobalConstraint.h"
 #include "mtl/Vec.h"
 

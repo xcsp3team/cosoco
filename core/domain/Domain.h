@@ -5,7 +5,6 @@
 #include "mtl/LinkedSet.h"
 #include "mtl/LinkedSetIterator.h"
 #include "mtl/Vec.h"
-#include "utils/Verbose.h"
 
 namespace Cosoco {
 
@@ -26,6 +25,7 @@ class Domain {
 
     // Constructors and initialisation
     Domain(int sz) : idvs(sz, true) { }
+    virtual ~Domain() = default;
 
 
     void delayedConstruction(int nbVars) { }

@@ -6,6 +6,8 @@
 #define COSOCO_RANDOMIZEFIRSTDESCENT_H
 
 
+#include <memory>
+
 #include "HeuristicVar.h"
 #include "solver/Solver.h"
 #include "solver/observers/ObserverConflict.h"
@@ -14,10 +16,10 @@
 namespace Cosoco {
 
 class RandomizeFirstDescent : public HeuristicVar, ObserverConflict {
-    bool          firstDescent;
-    HeuristicVar *hvar;   // The main heuristic
+    bool                          firstDescent;
+    std::unique_ptr<HeuristicVar> hvar;   // The main heuristic
    public:
-    RandomizeFirstDescent(Solver &s, HeuristicVar *hv);
+    RandomizeFirstDescent(Solver &s, std::unique_ptr<HeuristicVar> &&hv);
 
     // Returns a random float 0 <= x < 1. Seed must never be 0.
     inline double drand(double &seed) {

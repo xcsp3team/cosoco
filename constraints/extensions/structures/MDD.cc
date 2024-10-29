@@ -1,10 +1,11 @@
 #include "MDD.h"
 
+#ifdef USE_XCSP3
+
 #include <map>
 #include <new>
 #include <set>
 
-#include "MDD.h"
 using namespace Cosoco;
 
 
@@ -170,3 +171,5 @@ bool MDDNode::isRoot() const { return level == 0; }
 MDDNode::MDDNode(std::string n, int _id, int lvl, int maxNbChilds) : id(_id), level(lvl), name(n) {
     childs.growTo(maxNbChilds, nullptr);
 }
+
+#endif /* USE_XCSP3 */

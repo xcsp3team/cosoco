@@ -5,9 +5,9 @@
 #ifndef COSOCO_PRECEDENCECONSTRAINT_H
 #define COSOCO_PRECEDENCECONSTRAINT_H
 
-#include "ObserverDecision.h"
 #include "constraints/globals/GlobalConstraint.h"
 #include "mtl/Vec.h"
+#include "solver/observers/ObserverDecision.h"
 
 namespace Cosoco {
 

@@ -1,10 +1,8 @@
 #include "Optimizer.h"
 
-#include <XCSP3Constants.h>
-
-#include "Options.h"
 #include "core/OptimizationProblem.h"
-#include "utils/System.h"
+#include "solver/restarts/Restart.h"
+#include "solver/utils/Options.h"
 
 using namespace Cosoco;
 
@@ -89,8 +87,10 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 if(progressSaving) {
                     vec<int> idvalues;
                     idvalues.growTo(solver->problem.nbVariables());
-                    for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
-                    ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
+                    for(auto &x : solver->problem.variables) {
+                        idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
+                    }
+                    ((ForceIdvs *)solver->heuristicVal.get())->setIdValues(idvalues);
                 }
             }
 

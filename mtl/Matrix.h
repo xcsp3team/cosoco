@@ -9,7 +9,8 @@
 #include <vector>
 
 #include "Vec.h"
-#include "XCSP3Constants.h"
+#include "utils/Constants.h"
+
 namespace Cosoco {
 template <class T>
 class Matrix {

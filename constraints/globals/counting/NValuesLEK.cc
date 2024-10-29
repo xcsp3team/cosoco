@@ -2,7 +2,7 @@
 // Created by audemard on 26/04/2018.
 //
 
-#include "NValuesLEK.h"
+#include "constraints/globals/counting/NValuesLEK.h"
 
 #include <set>
 
@@ -37,7 +37,7 @@ bool NValuesLEK::filter(Variable *x) {
             if(y->size() == 1)
                 myset.insert(y->value());
         // set.add(map.get(y.dom.firstValue()));
-        if(myset.size() > k)
+        if((int)myset.size() > k)
             return false;
 
         if((int)myset.size() == k) {

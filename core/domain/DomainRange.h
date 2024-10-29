@@ -1,7 +1,7 @@
 #ifndef DOMAINRANGE_H
 #define DOMAINRANGE_H
 
-#include "Domain.h"
+#include "core/domain/Domain.h"
 
 namespace Cosoco {
 

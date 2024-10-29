@@ -5,8 +5,8 @@
 #ifndef COSOCO_HEURISTICVARROUNDROBIN_H
 #define COSOCO_HEURISTICVARROUNDROBIN_H
 
-#include "HeuristicVar.h"
-#include "ObserverDecision.h"
+#include "solver/heuristics/variables/HeuristicVar.h"
+#include "solver/observers/ObserverDecision.h"
 namespace Cosoco {
 
 class HeuristicVarRoundRobin : public HeuristicVar, ObserverDeleteDecision {

@@ -17,14 +17,14 @@ void Problem::delayedConstruction() {
     isConstructionDone = true;
 
     int idx = 0;
-    for(Variable *v : variables) v->delayedConstruction(idx++, variables.size());
+    for(auto &v : variables) v->delayedConstruction(idx++, variables.size());
 
     int idc = 0;
-    for(Constraint *c : constraints) c->delayedConstruction(idc++);
+    for(auto &c : constraints) c->delayedConstruction(idc++);
 
     bool error = false;
     try {
-        for(Constraint *c : constraints) {
+        for(auto &c : constraints) {
             c->scopeIsOk();
             c->isCorrectlyDefined();
         }
@@ -36,7 +36,7 @@ void Problem::delayedConstruction() {
         throw std::logic_error("Some constraints are badly defined");
     isBinary = maximumArity() == 2;
 
-    for(Variable *x : variables) {
+    for(auto &x : variables) {
         if(x->constraints.size() == 0)
             x->useless = true;
     }
@@ -45,22 +45,23 @@ void Problem::delayedConstruction() {
 
 void Problem::attachSolver(Solver *s) {
     solver = s;
-    for(Constraint *c : constraints) c->attachSolver(solver);
+    for(auto &c : constraints) c->attachSolver(solver);
 }
 
 
-void Problem::addConstraint(Constraint *c) {
+void Problem::addConstraint(std::unique_ptr<Constraint> &&c) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add constraints");
-    constraints.push(c);
+    constraints.emplace_back(std::move(c));
 }
 
 
 Variable *Problem::createVariable(std::string n, Domain &d, int array) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add variables");
-    auto *v = new Variable(*this, n, d, nbVariables(), array);
-    variables.push(v);
+
+    variables.emplace_back(std::make_unique<Variable>(*this, n, d, nbVariables(), array));
+    auto *v            = variables.back().get();
     mapping[v->name()] = v;
     return v;
 }
@@ -70,13 +71,13 @@ Variable *Problem::createVariable(std::string n, Domain &d, int array) {
 bool Problem::checkSolution() {
     vec<int> tuple;
     // All variables must be assigned
-    for(Variable *v : variables)
+    for(auto &v : variables)
         if(v->size() != 1 && v->useless == false) {
             fprintf(stderr, "Solution Error : var %s has domain of size %d\n", v->name(), v->size());
             return false;
         }
 
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         tuple.clear();
         for(Variable *x : c->scope) tuple.push(x->domain.toVal(x->domain[0]));
 
@@ -102,9 +103,9 @@ int Problem::nbConstraints() const { return constraints.size(); }
 
 int Problem::maximumTuplesInExtension() {
     unsigned int tmp = 0;
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         Extension *ext;
-        if((ext = dynamic_cast<Extension *>(c)) == nullptr)
+        if((ext = dynamic_cast<Extension *>(c.get())) == nullptr)
             continue;
         if(tmp < ext->nbTuples())
             tmp = ext->nbTuples();
@@ -115,9 +116,9 @@ int Problem::maximumTuplesInExtension() {
 
 int Problem::minimumTuplesInExtension() {
     unsigned int tmp = INT_MAX;
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         Extension *ext;
-        if((ext = dynamic_cast<Extension *>(c)) == nullptr)
+        if((ext = dynamic_cast<Extension *>(c.get())) == nullptr)
             continue;
         if(tmp > ext->nbTuples())
             tmp = ext->nbTuples();
@@ -128,7 +129,7 @@ int Problem::minimumTuplesInExtension() {
 
 int Problem::nbConstraintsOfSize(int size) {
     int nb = 0;
-    for(Constraint *c : constraints)
+    for(auto &c : constraints)
         if(c->scope.size() == size)
             nb++;
     return nb;
@@ -136,13 +137,13 @@ int Problem::nbConstraintsOfSize(int size) {
 
 long Problem::nbValues() {
     long tmp = 0;
-    for(Variable *x : variables) tmp += x->size();
+    for(auto &x : variables) tmp += x->size();
     return tmp;
 }
 
 int Problem::minimumArity() {
     int tmp = constraints[0]->scope.size();
-    for(Constraint *c : constraints)
+    for(auto &c : constraints)
         if(c->scope.size() < tmp)
             tmp = c->scope.size();
     return tmp;
@@ -151,7 +152,7 @@ int Problem::minimumArity() {
 
 int Problem::maximumArity() {
     int tmp = 0;
-    for(Constraint *c : constraints)
+    for(auto &c : constraints)
         if(c->scope.size() > tmp)
             tmp = c->scope.size();
     return tmp;
@@ -160,7 +161,7 @@ int Problem::maximumArity() {
 
 int Problem::maximumDomainSize() {
     int nb = variables[0]->size();
-    for(Variable *v : variables)
+    for(auto &v : variables)
         if(nb < v->size())
             nb = v->size();
     return nb;
@@ -169,7 +170,7 @@ int Problem::maximumDomainSize() {
 
 int Problem::minimumDomainSize() {
     int nb = variables[0]->size();
-    for(Variable *v : variables)
+    for(auto &v : variables)
         if(nb > v->size())
             nb = v->size();
     return nb;
@@ -177,20 +178,20 @@ int Problem::minimumDomainSize() {
 
 
 void Problem::nbTypeOfConstraints(std::map<std::string, int> &tmp) {
-    for(Constraint *c : constraints) tmp[c->type]++;
+    for(auto &c : constraints) tmp[c->type]++;
 }
 
 
 // displayCurrentBranch
 void Problem::display(bool alldetails) {
     printf("Variables : \n");
-    for(Variable *v : variables) {
+    for(auto &v : variables) {
         printf(" ");
         v->display(true);
         printf("\n");
     }
     printf("Constraint : \n");
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         printf(" ");
         c->display(true);
         printf("\n");

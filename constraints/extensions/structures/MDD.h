@@ -1,6 +1,8 @@
+#pragma once
 #ifndef COSOCO_MDD_H
 #define COSOCO_MDD_H
 
+#ifdef USE_XCSP3
 
 #include <core/Variable.h>
 #include <mtl/Vec.h>
@@ -47,5 +49,6 @@ class MDD {
 };
 }   // namespace Cosoco
 
+#endif /* USE_XCSP3 */
 
 #endif   // COSOCO_MDD_H

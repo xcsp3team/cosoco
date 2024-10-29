@@ -5,16 +5,17 @@
 #ifndef COSOCO_NOGOODSENGINE_H
 #define COSOCO_NOGOODSENGINE_H
 
-#include "ObserverDecision.h"
-#include "Solver.h"
-#include "Tuple.h"
+#include <map>
+
+#include "solver/nogoods/Tuple.h"
+#include "solver/observers/ObserverDecision.h"
 #define NOGOODSSTATS 7
 enum NoGoodStats { nbnogoods, size1, size2, sumsize, maxsize, cfl, props };
 
 namespace Cosoco {
 
 typedef long long Lit;
-
+class Solver;
 
 class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     Solver &solver;
@@ -37,6 +38,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     static Constraint *fake;
     vec<long>          statistics;
     explicit NoGoodsEngine(Solver &s);
+    virtual ~NoGoodsEngine();
 
     bool generateNogoodsFromRestarts();                    // Generate different nogoods
     void addNoGood(vec<Lit> &nogood);                      // Add a no good to the database

@@ -2,10 +2,9 @@
 // Created by audemard on 21/12/2022.
 //
 
-#include "CumulativeVariablesC.h"
+#include "constraints/globals/packing/CumulativeVariablesC.h"
 
-#include "Constraint.h"
-#include "solver/Solver.h"
+#include "constraints/Constraint.h"
 
 using namespace Cosoco;
 

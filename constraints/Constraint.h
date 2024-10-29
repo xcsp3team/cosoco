@@ -1,11 +1,8 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 
-#include <iostream>
 #include <string>
 
-#include "XCSP3Tree.h"
-#include "core/Problem.h"
 #include "core/Variable.h"
 #include "mtl/SparseSet.h"
 #include "mtl/SparseSetOfVariables.h"
@@ -13,6 +10,14 @@
 
 
 #define NOTINSCOPE -1
+
+#ifdef USE_XCSP3
+#include <vector>
+namespace XCSP3Core {
+class Tree;
+}
+#endif
+
 namespace Cosoco {
 
 enum State { CONSISTENT, INCONSISTENT, UNDEF };
@@ -49,8 +54,9 @@ class Constraint {
     // Constructors and delayed initialisation
     Constraint(Problem &p, std::string n, vec<Variable *> &vars);
     Constraint(Problem &p, std::string n);   // For global constraints, the scope is managed by themselves
-    bool         scopeIsOk();                // is the scope is correctly defined?
-    virtual bool isCorrectlyDefined();       // is the constraint is correctly defined?
+    virtual ~Constraint() = default;
+    bool         scopeIsOk();            // is the scope is correctly defined?
+    virtual bool isCorrectlyDefined();   // is the constraint is correctly defined?
     void         addToScope(vec<Variable *> &vars);
     void         addToScope(Variable *x);
 
@@ -88,8 +94,10 @@ class Constraint {
     // Display
     virtual void display(bool allDetails = false);
     virtual void attachSolver(Solver *s);
-    static void  toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
-                                       bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
+#ifdef USE_XCSP3
+    static void toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
+                                      bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
+#endif
 
    protected:
     // All this part simplify scope initialisation

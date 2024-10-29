@@ -16,8 +16,8 @@ class OptimizationProblem : public Problem {   // An optimosation problem is a p
     ObjectiveConstraint *objectiveUB;   // ctr <= ct
     OptimisationType     type;          // Minimize or Maximize?
 
-    void addObjectiveLB(ObjectiveConstraint *o, bool alreadyAdded = false);   // Add the LB constraint
-    void addObjectiveUB(ObjectiveConstraint *o, bool alreadyAdded = false);   // Add the UB constraint
+    void addObjectiveLB(ObjectiveConstraint *o);   // Add the already added LB constraint
+    void addObjectiveUB(ObjectiveConstraint *o);   // Add the already added UB constraint
 };
 }   // namespace Cosoco
 

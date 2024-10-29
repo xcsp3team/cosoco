@@ -4,11 +4,12 @@
 #include <solver/heuristics/values/ForceIdv.h>
 
 #include "ObjectiveConstraint.h"
-#include "Solution.h"
 #include "core/OptimizationProblem.h"
 #include "core/Problem.h"
+#include "optimizer/Solution.h"
 #include "solver/AbstractSolver.h"
 #include "solver/Solver.h"
+#include "solver/heuristics/values/HeuristicVal.h"
 
 namespace Cosoco {
 
@@ -53,7 +54,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     void addProgressSaving() {
         assert(solver != nullptr);
         progressSaving       = true;
-        solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
+        solver->heuristicVal = std::make_unique<ForceIdvs>(*solver, std::move(solver->heuristicVal), false);
     }
 
 

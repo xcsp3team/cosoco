@@ -7,13 +7,13 @@
 #include "solver/observers/ObserverConflict.h"
 namespace Cosoco {
 class LastConflictReasoning : public HeuristicVar, ObserverNewDecision, ObserverDeleteDecision {
-    HeuristicVar   *hvar;   // The main heuristic
-    vec<Variable *> lcs;    // The last conflict variable
-    int             nVariables;
-    Variable       *lastAssigned, *candidate;
+    std::unique_ptr<HeuristicVar> hvar;   // The main heuristic
+    vec<Variable *>               lcs;    // The last conflict variable
+    int                           nVariables;
+    Variable                     *lastAssigned, *candidate;
 
    public:
-    LastConflictReasoning(Solver &s, HeuristicVar *hv, int _nbVariables = 2);
+    LastConflictReasoning(Solver &s, std::unique_ptr<HeuristicVar> &&hv, int _nbVariables = 2);
 
     Variable *select() override;
 

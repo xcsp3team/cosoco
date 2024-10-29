@@ -1,5 +1,8 @@
 #ifndef COSOCO_CARDINALITYWEAK_H
 #define COSOCO_CARDINALITYWEAK_H
+
+#include <map>
+
 #include "constraints/globals/GlobalConstraint.h"
 
 

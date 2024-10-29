@@ -2,9 +2,12 @@
 // Created by audemard on 20/02/23.
 //
 
-#include "NoGoodsEngine.h"
+#include "solver/nogoods/NoGoodsEngine.h"
 
-#include "System.h"
+#include <cmath>
+
+#include "solver/Solver.h"
+#include "utils/System.h"
 using namespace Cosoco;
 
 Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
@@ -31,6 +34,13 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0)
     enlargeNogoodStructure(1024 * 1024);
 }
 
+NoGoodsEngine::~NoGoodsEngine() {
+    if(nogoods) {
+        free(nogoods);
+        nogoods = nullptr;
+    }
+}
+
 std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
     stream << tuple.x->_name << (tuple.eq ? "=" : "!=") << tuple.idv << " ";
     return stream;
@@ -41,9 +51,9 @@ std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
 
 void NoGoodsEngine::generateNogoodFromSolution() {
     vec<Lit> nogood;
-    for(Variable *x : solver.problem.variables)
+    for(auto &x : solver.problem.variables)
         if(x->useless == false)
-            nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
+            nogood.push(getNegativeDecisionFor(x.get(), x->domain.toIdv(x->value())));
     addNoGood(nogood);
 }
 
@@ -215,7 +225,7 @@ void NoGoodsEngine::notifyFullBacktrack() { currentBranch.clear(); }
 // -- From x=idv to int and vice-versa
 //-----------------------------------------------------------------------
 
-Variable *NoGoodsEngine::getVariableIn(int number) { return solver.problem.variables[abs(number) / OFFSET]; }
+Variable *NoGoodsEngine::getVariableIn(int number) { return solver.problem.variables[abs(number) / OFFSET].get(); }
 
 inline int NoGoodsEngine::getIndexIn(int number) const { return abs(number) % OFFSET - 1; }
 

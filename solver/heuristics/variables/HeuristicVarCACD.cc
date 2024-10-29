@@ -33,7 +33,7 @@ Variable *HeuristicVarCACD::select() {
     }
 
     if(solver.warmStart == false && solver.statistics[restarts] < 1 && solver.nbSolutions == 0) {
-        Constraint *c = solver.problem.constraints.last();
+        auto &c = solver.problem.constraints.back();
         for(Variable *x : c->scope)
             if(x->size() > 1)
                 return x;

@@ -11,6 +11,7 @@ class HeuristicVar {
    public:
     Solver &solver;
     explicit HeuristicVar(Solver &s) : freezed(false), solver(s) { }
+    virtual ~HeuristicVar() = default;
 
     virtual Variable *select() = 0;   // How to select a variable, return nullptr if none exist
     virtual bool      stop() {        //  Stop the search with this heuristic

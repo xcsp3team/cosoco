@@ -5,16 +5,16 @@
 #ifndef COSOCO_GEUNARY_H
 #define COSOCO_GEUNARY_H
 #include "constraints/Constraint.h"
-
+#include "optimizer/ObjectiveConstraint.h"
 
 
 namespace Cosoco {
 
-class GEUnary : public Constraint, public ObjectiveConstraint  {
+class GEUnary : public Constraint, public ObjectiveConstraint {
    public:
     int k;
     // Constructors
-    GEUnary(Problem &p, std::string n, Variable *x,  int k);
+    GEUnary(Problem &p, std::string n, Variable *x, int k);
 
     // filtering
     bool filter(Variable *x) override;
@@ -27,8 +27,6 @@ class GEUnary : public Constraint, public ObjectiveConstraint  {
     long computeScore(vec<int> &solution) override;   // Compute the current score of the constraint
 };
 }   // namespace Cosoco
-
-
 
 
 #endif   // COSOCO_GEUNARY_H

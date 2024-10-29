@@ -6,7 +6,7 @@
 #define COSOCO_REIFICATION_H
 
 
-#include "Binary.h"
+#include "constraints/Binary.h"
 #include "constraints/Ternary.h"
 
 namespace Cosoco {

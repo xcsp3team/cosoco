@@ -106,9 +106,9 @@ void IPSLearner::extract() {
             }
         }
     } else {
-        for(Variable *x : problem.variables)
-            if(canEliminateVariable(x) == false) {
-                extracted.push(x);
+        for(auto &x : problem.variables)
+            if(canEliminateVariable(x.get()) == false) {
+                extracted.push(x.get());
                 selectedVariables[x->idx] = true;
             }
     }

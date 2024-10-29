@@ -1,12 +1,11 @@
-#include <optimizer/Optimizer.h>
 #include <sys/resource.h>
 
 #include <csignal>
-#include <vector>
 
 #include "XCSP3CoreParser.h"
+#include "optimizer/Optimizer.h"
 #include "solver/Solver.h"
-#include "utils/CosocoCallbacks.h"
+#include "solver/utils/CosocoCallbacks.h"
 #include "utils/Options.h"
 #include "utils/System.h"
 
@@ -221,7 +220,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     solvingProblem->nbTypeOfConstraints(typeOfConstraints);
 
     std::set<string> bigConstraints;
-    for(Constraint *c : solvingProblem->constraints)
+    for(auto &c : solvingProblem->constraints)
         if(c->scope.size() > 100)
             bigConstraints.insert(c->type);
 
