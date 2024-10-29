@@ -37,29 +37,9 @@ file(GLOB_RECURSE Cosoco_SOURCES
         ${PROJECT_SOURCE_DIR}/utils/*.cc
 )
 
-file(GLOB_RECURSE Cosoco_HEADERS
-        ${PROJECT_SOURCE_DIR}/constraints/*.h
-        ${PROJECT_SOURCE_DIR}/core/*.h
-        ${PROJECT_SOURCE_DIR}/mtl/*.h
-        ${PROJECT_SOURCE_DIR}/main/*.h
-        ${PROJECT_SOURCE_DIR}/optimizer/*.h
-        ${PROJECT_SOURCE_DIR}/problems/*.h
-        ${PROJECT_SOURCE_DIR}/solver/*.h
-        ${PROJECT_SOURCE_DIR}/utils/*.h
-)
-
 set(LIBRARY_NAME libcosoco)
 
-file(GLOB_RECURSE Cosoco_HEADERS "./*.h")
-
 set(Cosoco_INCLUDE_DIRS "")
-
-foreach (_headerFile ${Cosoco_HEADERS})
-    get_filename_component(_dir ${_headerFile} PATH)
-    list(APPEND Cosoco_INCLUDE_DIRS ${_dir})
-endforeach ()
-
-list(REMOVE_DUPLICATES Cosoco_INCLUDE_DIRS)
 
 include_directories(
         ${Cosoco_INCLUDE_DIRS}

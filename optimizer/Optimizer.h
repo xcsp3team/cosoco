@@ -3,13 +3,13 @@
 
 #include <solver/heuristics/values/ForceIdv.h>
 
-#include "HeuristicVal.h"
 #include "ObjectiveConstraint.h"
-#include "Solution.h"
 #include "core/OptimizationProblem.h"
 #include "core/Problem.h"
+#include "optimizer/Solution.h"
 #include "solver/AbstractSolver.h"
 #include "solver/Solver.h"
+#include "solver/heuristics/values/HeuristicVal.h"
 
 namespace Cosoco {
 

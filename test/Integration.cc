@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "Solver.h"
 #include "core/Problem.h"
 #include "core/Variable.h"
 #include "core/domain/DomainRange.h"
+#include "solver/Solver.h"
 #include "solver/utils/Options.h"
 
 TEST(IntegrationTest, oneVarNoConstraint) {

@@ -4,7 +4,7 @@
 
 #include "BinPacking.h"
 
-#include "Sort.h"
+#include "mtl/Sort.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;

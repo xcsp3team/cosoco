@@ -5,9 +5,9 @@
 #ifndef COSOCO_NOGOODSENGINE_H
 #define COSOCO_NOGOODSENGINE_H
 
-#include "ObserverDecision.h"
-#include "Solver.h"
-#include "Tuple.h"
+#include "solver/Solver.h"
+#include "solver/nogoods/Tuple.h"
+#include "solver/observers/ObserverDecision.h"
 #define NOGOODSSTATS 7
 enum NoGoodStats { nbnogoods, size1, size2, sumsize, maxsize, cfl, props };
 

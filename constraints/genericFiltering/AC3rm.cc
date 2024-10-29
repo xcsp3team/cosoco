@@ -1,7 +1,7 @@
-#include "AC3rm.h"
+#include "constraints/genericFiltering/AC3rm.h"
 
-#include "Options.h"
 #include "solver/Solver.h"
+#include "solver/utils/Options.h"
 
 using namespace Cosoco;
 using namespace std;

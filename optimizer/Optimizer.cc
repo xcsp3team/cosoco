@@ -1,7 +1,7 @@
 #include "Optimizer.h"
 
-#include "Options.h"
 #include "core/OptimizationProblem.h"
+#include "solver/utils/Options.h"
 #include "utils/Constants.h"
 #include "utils/System.h"
 

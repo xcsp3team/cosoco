@@ -6,9 +6,9 @@
 #define COSOCO_COMPACTTABLE_H
 
 
-#include "Extension.h"
-#include "ObserverDecision.h"
-#include "SparseSetMultiLevel.h"
+#include "constraints/extensions/Extension.h"
+#include "mtl/SparseSetMultiLevel.h"
+#include "solver/observers/ObserverDecision.h"
 #define BITSET      unsigned long long
 #define SIZEW       (8 * sizeof(BITSET))
 #define BIT_ALL_ONE 0xFFFFFFFFFFFFFFFF

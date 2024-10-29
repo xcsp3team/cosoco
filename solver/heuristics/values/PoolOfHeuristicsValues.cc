@@ -2,11 +2,11 @@
 // Created by audemard on 16/02/23.
 //
 
-#include "PoolOfHeuristicsValues.h"
+#include "solver/heuristics/values/PoolOfHeuristicsValues.h"
 
-#include "Optimizer.h"
-#include "Solver.h"
-#include "Sum.h"
+#include "constraints/globals/summing/Sum.h"
+#include "optimizer/Optimizer.h"
+#include "solver/Solver.h"
 using namespace Cosoco;
 
 PoolOfHeuristicsValues::PoolOfHeuristicsValues(Solver &s) : HeuristicVal(s) {

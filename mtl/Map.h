@@ -21,7 +21,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Cosoco_Map_h
 
 #include <string>
-#include <unordered_map>
 
 #include "mtl/IntTypes.h"
 #include "mtl/Vec.h"
@@ -192,8 +191,7 @@ class Map {
         assert(table != NULL);
         vec<Pair>& ps = table[index(k)];
         int        j  = 0;
-        for(; j < ps.size() && !equals(ps[j].key, k); j++)
-            ;
+        for(; j < ps.size() && !equals(ps[j].key, k); j++);
         assert(j < ps.size());
         ps[j] = ps.last();
         ps.pop();

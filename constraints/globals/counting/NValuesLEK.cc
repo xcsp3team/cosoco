@@ -2,7 +2,7 @@
 // Created by audemard on 26/04/2018.
 //
 
-#include "NValuesLEK.h"
+#include "constraints/globals/counting/NValuesLEK.h"
 
 #include <set>
 

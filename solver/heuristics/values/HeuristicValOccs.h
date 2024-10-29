@@ -5,8 +5,8 @@
 #ifndef COSOCO_HEURISTICVALOCCS_H
 #define COSOCO_HEURISTICVALOCCS_H
 
-#include "HeuristicVal.h"
-#include "Map.h"
+#include "mtl/Map.h"
+#include "solver/heuristics/values/HeuristicVal.h"
 
 namespace Cosoco {
 struct IntHash {

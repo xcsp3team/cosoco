@@ -7,8 +7,6 @@
 #include <memory>
 #include <set>
 
-#include "AbstractSolver.h"
-#include "Profiling.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
@@ -16,10 +14,12 @@
 #include "mtl/SparseSetMultiLevel.h"
 #include "mtl/SparseSetOfVariables.h"
 #include "mtl/Vec.h"
-#include "nogoods/NoGoodsEngine.h"
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
 #include "restarts/Restart.h"
+#include "solver/AbstractSolver.h"
+#include "solver/nogoods/NoGoodsEngine.h"
+#include "solver/utils/Profiling.h"
 
 namespace Cosoco {
 #define NBSTATS 3

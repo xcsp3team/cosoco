@@ -1,6 +1,6 @@
-#include "DistNE.h"
+#include "constraints/primitives/DistNE.h"
 
-#include "Binary.h"
+#include "constraints/Binary.h"
 #include "core/Variable.h"
 #include "solver/Solver.h"
 

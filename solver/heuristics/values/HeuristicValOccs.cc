@@ -2,9 +2,9 @@
 // Created by audemard on 16/11/22.
 //
 
-#include "HeuristicValOccs.h"
+#include "solver/heuristics/values/HeuristicValOccs.h"
 
-#include "Map.h"
+#include "mtl/Map.h"
 #include "solver/Solver.h"
 using namespace Cosoco;
 

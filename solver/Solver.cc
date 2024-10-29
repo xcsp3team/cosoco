@@ -1,33 +1,32 @@
-#include "./Solver.h"
-
-#include <solver/heuristics/values/HeuristicValLast.h>
-#include <solver/heuristics/values/HeuristicValRandom.h>
-#include <solver/heuristics/variables/HeuristicVarCACD.h>
-#include <solver/heuristics/variables/HeuristicVarFirst.h>
-#include <solver/restarts/GeometricRestart.h>
-#include <solver/restarts/InnerOuter.h>
-#include <solver/restarts/LubyRestart.h>
-#include <utils/System.h>
+#include "solver/Solver.h"
 
 #include <fstream>
 #include <iomanip>
 #include <memory>
 
-#include "HeuristicValASGS.h"
-#include "HeuristicValOccs.h"
-#include "HeuristicValRoundRobin.h"
-#include "HeuristicVarFRBA.h"
-#include "HeuristicVarRoundRobin.h"
-#include "Options.h"
-#include "PickOnDom.h"
-#include "PoolOfHeuristicsValues.h"
 #include "constraints/Constraint.h"
 #include "core/Variable.h"
+#include "heuristics/values/HeuristicValASGS.h"
 #include "heuristics/values/HeuristicValFirst.h"
+#include "heuristics/values/HeuristicValOccs.h"
+#include "heuristics/values/HeuristicValRoundRobin.h"
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
+#include "heuristics/variables/HeuristicVarFRBA.h"
+#include "heuristics/variables/HeuristicVarRoundRobin.h"
 #include "heuristics/variables/LastConflictReasoning.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
+#include "solver/heuristics/values/HeuristicValLast.h"
+#include "solver/heuristics/values/HeuristicValRandom.h"
+#include "solver/heuristics/values/PoolOfHeuristicsValues.h"
+#include "solver/heuristics/variables/HeuristicVarCACD.h"
+#include "solver/heuristics/variables/HeuristicVarFirst.h"
+#include "solver/heuristics/variables/PickOnDom.h"
+#include "solver/restarts/GeometricRestart.h"
+#include "solver/restarts/InnerOuter.h"
+#include "solver/restarts/LubyRestart.h"
+#include "solver/utils/Options.h"
+#include "utils/System.h"
 using namespace Cosoco;
 using namespace std;
 //----------------------------------------------
