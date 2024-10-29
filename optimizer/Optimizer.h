@@ -3,6 +3,7 @@
 
 #include <solver/heuristics/values/ForceIdv.h>
 
+#include "HeuristicVal.h"
 #include "ObjectiveConstraint.h"
 #include "Solution.h"
 #include "core/OptimizationProblem.h"
@@ -53,7 +54,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     void addProgressSaving() {
         assert(solver != nullptr);
         progressSaving       = true;
-        solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
+        solver->heuristicVal = std::make_unique<ForceIdvs>(*solver, std::move(solver->heuristicVal), false);
     }
 
 

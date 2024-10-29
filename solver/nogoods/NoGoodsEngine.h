@@ -37,6 +37,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     static Constraint *fake;
     vec<long>          statistics;
     explicit NoGoodsEngine(Solver &s);
+    virtual ~NoGoodsEngine();
 
     bool generateNogoodsFromRestarts();                    // Generate different nogoods
     void addNoGood(vec<Lit> &nogood);                      // Add a no good to the database

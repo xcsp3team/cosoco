@@ -5,6 +5,8 @@
 #include <assert.h>
 
 #include <iostream>
+#include <memory>
+#include <vector>
 
 #include "core/Constants.h"
 #include "core/Variable.h"
@@ -31,14 +33,14 @@ class SparseSetOfVariables {
 
    public:
     // Constructor
-    SparseSetOfVariables(int size, vec<Variable *> &vars, bool full = false) : maxsz(size) {
+    SparseSetOfVariables(int size, const std::vector<std::unique_ptr<Variable>> &vars, bool full = false) : maxsz(size) {
         positions.growTo(size);
         elements.growTo(size);
-        assert(vars.size() == size);
+        assert(vars.size() == (size_t)size);
         for(int i = 0; i < size; i++) {
             assert(vars[i]->idx == i);   // Be careful
             positions[i] = i;
-            elements[i]  = vars[i];
+            elements[i]  = vars[i].get();
         }
         limit = full ? size : 0;
     }

@@ -4,7 +4,8 @@
 
 using namespace Cosoco;
 
-HeuristicValStickingValue::HeuristicValStickingValue(Solver &s, HeuristicVal *h) : HeuristicVal(s), hv(h) {
+HeuristicValStickingValue::HeuristicValStickingValue(Solver &s, std::unique_ptr<HeuristicVal> &&h)
+    : HeuristicVal(s), hv(std::move(h)) {
     lastValue.growTo(solver.problem.nbVariables(), -1);
 }
 

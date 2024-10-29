@@ -4,6 +4,7 @@
 #include <solver/observers/ObserverDomainReduction.h>
 #include <solver/restarts/Restart.h>
 
+#include <memory>
 #include <set>
 
 #include "AbstractSolver.h"
@@ -72,9 +73,9 @@ class Solver : public AbstractSolver {
     bool                 stopSearch = false;   // Stop the search usefull, in // with the optimizer
     bool                 warmStart;
     // -- Heuristics ------------------------------------------------------------------------
-    HeuristicVar *heuristicVar;        // The heuristic to choose variables
-    HeuristicVal *heuristicVal;        // The heuristic to choose values
-    Restart      *restart = nullptr;   // The restart strategy
+    std::unique_ptr<HeuristicVar> heuristicVar;   // The heuristic to choose variables
+    std::unique_ptr<HeuristicVal> heuristicVal;   // The heuristic to choose values
+    std::unique_ptr<Restart>      restart;        // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
     SparseSetOfVariables   queue;                       // Propagation queue
     Constraint            *currentFilteredConstraint;   // The constraint that is filtered
@@ -88,7 +89,7 @@ class Solver : public AbstractSolver {
     unsigned long                  timestamp = 0;              // Current timestamp
 
     //  -- Nogoods from Restarts  -----------------------------------------------------------
-    NoGoodsEngine *noGoodsEngine;
+    std::unique_ptr<NoGoodsEngine> noGoodsEngine;
 
     bool nogoodsFromRestarts = false;
     void addNoGoodsFromRestarts();

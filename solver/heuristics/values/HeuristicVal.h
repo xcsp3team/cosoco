@@ -8,6 +8,7 @@ class HeuristicVal {
    public:
     Solver &solver;
     HeuristicVal(Solver &s) : solver(s) { }
+    virtual ~HeuristicVal() = default;
 
     virtual int select(Variable *x) = 0;   // How to select a variable
 };

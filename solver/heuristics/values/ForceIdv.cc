@@ -6,7 +6,8 @@
 
 using namespace Cosoco;
 
-ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : HeuristicVal(s), hv(h), conflictAlreadySeen(false), onlyOnce(oo) {
+ForceIdvs::ForceIdvs(Solver &s, std::unique_ptr<HeuristicVal> &&h, bool oo, vec<int> *values)
+    : HeuristicVal(s), hv(std::move(h)), conflictAlreadySeen(false), onlyOnce(oo) {
     s.addObserverConflict(this);
     idvs.growTo(solver.problem.nbVariables(), -1);
     if(values != nullptr) {

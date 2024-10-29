@@ -17,7 +17,7 @@ void Problem::delayedConstruction() {
     isConstructionDone = true;
 
     int idx = 0;
-    for(Variable *v : variables) v->delayedConstruction(idx++, variables.size());
+    for(auto &v : variables) v->delayedConstruction(idx++, variables.size());
 
     int idc = 0;
     for(Constraint *c : constraints) c->delayedConstruction(idc++);
@@ -36,7 +36,7 @@ void Problem::delayedConstruction() {
         throw std::logic_error("Some constraints are badly defined");
     isBinary = maximumArity() == 2;
 
-    for(Variable *x : variables) {
+    for(auto &x : variables) {
         if(x->constraints.size() == 0)
             x->useless = true;
     }
@@ -59,8 +59,9 @@ void Problem::addConstraint(Constraint *c) {
 Variable *Problem::createVariable(std::string n, Domain &d, int array) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add variables");
-    auto *v = new Variable(*this, n, d, nbVariables(), array);
-    variables.push(v);
+
+    variables.emplace_back(std::make_unique<Variable>(*this, n, d, nbVariables(), array));
+    auto *v            = variables.back().get();
     mapping[v->name()] = v;
     return v;
 }
@@ -70,7 +71,7 @@ Variable *Problem::createVariable(std::string n, Domain &d, int array) {
 bool Problem::checkSolution() {
     vec<int> tuple;
     // All variables must be assigned
-    for(Variable *v : variables)
+    for(auto &v : variables)
         if(v->size() != 1 && v->useless == false) {
             fprintf(stderr, "Solution Error : var %s has domain of size %d\n", v->name(), v->size());
             return false;
@@ -136,7 +137,7 @@ int Problem::nbConstraintsOfSize(int size) {
 
 long Problem::nbValues() {
     long tmp = 0;
-    for(Variable *x : variables) tmp += x->size();
+    for(auto &x : variables) tmp += x->size();
     return tmp;
 }
 
@@ -160,7 +161,7 @@ int Problem::maximumArity() {
 
 int Problem::maximumDomainSize() {
     int nb = variables[0]->size();
-    for(Variable *v : variables)
+    for(auto &v : variables)
         if(nb < v->size())
             nb = v->size();
     return nb;
@@ -169,7 +170,7 @@ int Problem::maximumDomainSize() {
 
 int Problem::minimumDomainSize() {
     int nb = variables[0]->size();
-    for(Variable *v : variables)
+    for(auto &v : variables)
         if(nb > v->size())
             nb = v->size();
     return nb;
@@ -184,7 +185,7 @@ void Problem::nbTypeOfConstraints(std::map<std::string, int> &tmp) {
 // displayCurrentBranch
 void Problem::display(bool alldetails) {
     printf("Variables : \n");
-    for(Variable *v : variables) {
+    for(auto &v : variables) {
         printf(" ");
         v->display(true);
         printf("\n");

@@ -88,8 +88,10 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 if(progressSaving) {
                     vec<int> idvalues;
                     idvalues.growTo(solver->problem.nbVariables());
-                    for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
-                    ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
+                    for(auto &x : solver->problem.variables) {
+                        idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
+                    }
+                    ((ForceIdvs *)solver->heuristicVal.get())->setIdValues(idvalues);
                 }
             }
 

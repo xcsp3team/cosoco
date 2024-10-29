@@ -266,9 +266,9 @@ void XCSP3Core::CosocoCallbacks::buildConstraintRegular(string id, vector<XVaria
             }
             vec<Variable *> tmp;
             tmp.push(vars[i]);
-            tmp.push(problem->variables.last());
+            tmp.push(problem->variables.back().get());
             FactoryConstraints::createConstraintAllEqual(problem, id, tmp);
-            vars[i] = problem->variables.last();
+            vars[i] = problem->variables.back().get();
         }
         vars[i]->fake = 1;
     }
@@ -1208,7 +1208,7 @@ void XCSP3Core::CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVa
         for(int cap : capacities) {
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             buildVariableInteger(auxVar, cap, cap);
-            loads.push(problem->variables.last());
+            loads.push(problem->variables.back().get());
         }
         FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, loads);
     } else

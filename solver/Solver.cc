@@ -11,6 +11,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <memory>
 
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
@@ -57,36 +58,36 @@ Solver::Solver(Problem &p)
     doProfiling = options::boolOptions["profile"].value;
 
     if(options::stringOptions["val"].value == "first")
-        heuristicVal = new HeuristicValFirst(*this);
+        heuristicVal = std::make_unique<HeuristicValFirst>(*this);
     if(options::stringOptions["val"].value == "rand")
-        heuristicVal = new HeuristicValRandom(*this);
+        heuristicVal = std::make_unique<HeuristicValRandom>(*this);
     if(options::stringOptions["val"].value == "last")
-        heuristicVal = new HeuristicValLast(*this);
+        heuristicVal = std::make_unique<HeuristicValLast>(*this);
     if(options::stringOptions["val"].value == "robin")
-        heuristicVal = new HeuristicValRoundRobin(*this, options::stringOptions["robin"].value);
+        heuristicVal = std::make_unique<HeuristicValRoundRobin>(*this, options::stringOptions["robin"].value);
     if(options::stringOptions["val"].value == "occs")
-        heuristicVal = new HeuristicValOccs(*this);
+        heuristicVal = std::make_unique<HeuristicValOccs>(*this);
     if(options::stringOptions["val"].value == "asgs")
-        heuristicVal = new HeuristicValASGS(*this);
+        heuristicVal = std::make_unique<HeuristicValASGS>(*this);
     if(options::stringOptions["val"].value == "pool")
-        heuristicVal = new PoolOfHeuristicsValues(*this);
-    if(heuristicVal == nullptr) {
+        heuristicVal = std::make_unique<PoolOfHeuristicsValues>(*this);
+    if(heuristicVal.get() == nullptr) {
         std::cerr << "unknown heuristic value " << options::stringOptions["val"].value << "\n";
         exit(1);
     }
 
 
     if(options::stringOptions["var"].value == "wdeg")
-        heuristicVar = new HeuristicVarDomWdeg(*this);
+        heuristicVar = std::make_unique<HeuristicVarDomWdeg>(*this);
     if(options::stringOptions["var"].value == "cacd")
-        heuristicVar = new HeuristicVarCACD(*this);
+        heuristicVar = std::make_unique<HeuristicVarCACD>(*this);
     if(options::stringOptions["var"].value == "pick")
-        heuristicVar = new PickOnDom(*this);
+        heuristicVar = std::make_unique<PickOnDom>(*this);
     if(options::stringOptions["var"].value == "frba")
-        heuristicVar = new HeuristicVarFRBA(*this);
+        heuristicVar = std::make_unique<HeuristicVarFRBA>(*this);
     if(options::stringOptions["var"].value == "robin")
-        heuristicVar = new HeuristicVarRoundRobin(*this);
-    if(heuristicVar == nullptr) {
+        heuristicVar = std::make_unique<HeuristicVarRoundRobin>(*this);
+    if(heuristicVar.get() == nullptr) {
         std::cerr << "unknown heuristic variable " << options::stringOptions["var"].value << "\n";
         exit(1);
     }
@@ -120,11 +121,11 @@ Solver::Solver(Problem &p)
     if(options::boolOptions["stick"].value)
         addStickingValue();
     if(options::stringOptions["restarts"].value == "geo")
-        restart = new GeometricRestart(this);
+        restart = std::make_unique<GeometricRestart>(this);
     if(options::stringOptions["restarts"].value == "luby")
-        restart = new LubyRestart(this);
+        restart = std::make_unique<LubyRestart>(this);
     if(options::stringOptions["restarts"].value == "io")
-        restart = new InnerOuterRestart(this);
+        restart = std::make_unique<InnerOuterRestart>(this);
     if(restart == nullptr && options::stringOptions["restarts"].value != "no") {
         std::cerr << "unknown heuristic restart " << options::stringOptions["restart"].value << "\n";
         exit(1);
@@ -150,18 +151,20 @@ Solver::Solver(Problem &p)
 
 void Solver::addNoGoodsFromRestarts() {
     nogoodsFromRestarts = true;
-    noGoodsEngine       = new NoGoodsEngine(*this);
+    noGoodsEngine       = std::make_unique<NoGoodsEngine>(*this);
 }
 
 void Solver::addLastConflictReasoning() {
-    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options::intOptions["lc"].value);
+    heuristicVar = std::make_unique<LastConflictReasoning>(*this, std::move(heuristicVar), options::intOptions["lc"].value);
 }
 
 
-void Solver::addRandomizationFirstDescent() { heuristicVar = new RandomizeFirstDescent(*this, heuristicVar); }
+void Solver::addRandomizationFirstDescent() {
+    heuristicVar = std::make_unique<RandomizeFirstDescent>(*this, std::move(heuristicVar));
+}
 
 
-void Solver::addStickingValue() { heuristicVal = new HeuristicValStickingValue(*this, heuristicVal); }
+void Solver::addStickingValue() { heuristicVal = std::make_unique<HeuristicValStickingValue>(*this, std::move(heuristicVal)); }
 
 
 void Solver::setDecisionVariables(vec<Variable *> &vars) {
@@ -210,10 +213,10 @@ int Solver::solve(vec<RootPropagation> &assumps) {
     }
 
     // Remove useless variables:
-    for(Variable *x : problem.variables)
+    for(auto &x : problem.variables)
         if(x->useless) {
-            unassignedVariables.del(x);
-            decisionVariables.del(x);
+            unassignedVariables.del(x.get());
+            decisionVariables.del(x.get());
         }
 
     return search(assumps);
@@ -250,7 +253,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                     RootPropagation &assumption = assumptions[decisionLevel()];
                     // printf("x=%d equal=%d idv=%d\n", assumption.idx,assumption.equal, assumption.idv);
                     // assert(assumption.equal); // We deal only with positive assumptions
-                    Variable *tmp = problem.variables[assumption.idx];
+                    auto *tmp = problem.variables[assumption.idx].get();
 
                     if(tmp->containsIdv(assumption.idv) == false) {   // UNSAT WRT Assumptions
                         fullBacktrack();
@@ -305,7 +308,7 @@ bool Solver::manageSolution() {
         problem.checkSolution();
     lastSolution.clear();   // Store the last solution
 
-    for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
+    for(auto &x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
     if(displaySolution)
         displayCurrentSolution();
@@ -382,7 +385,7 @@ void Solver::fullBacktrack(bool all) {
         queue.clear();   // Useless ?
         trail_lim.clear();
         decisionVariablesId.clear();
-        for(Variable *x : problem.variables)   // Reinitialize all domain variables.
+        for(auto &x : problem.variables)   // Reinitialize all domain variables.
             x->domain.reinitialize();
     }
     notifyFullBactrack();
@@ -566,7 +569,7 @@ Constraint *Solver::propagateComplete() {
     assert(decisionLevel() == 0);
 
     queue.fill();
-    for(Variable *x : problem.variables) x->timestamp = ++timestamp;
+    for(auto &x : problem.variables) x->timestamp = ++timestamp;
 
     return propagate();
 }
@@ -795,12 +798,12 @@ void Solver::displayCurrentSolution() {
     printf("c solution %d\n", nbSolutions);
     printf("\nv <instantiation type='solution'>\n");
     printf("v <list>");
-    for(Variable *x : problem.variables)
+    for(auto &x : problem.variables)
         if(x->_name.rfind("__av", 0) != 0)
             printf("%s ", x->name());
     printf("</list>\n");
     printf("v <values>");
-    for(Variable *x : problem.variables)
+    for(auto &x : problem.variables)
         if(x->_name.rfind("__av", 0) != 0) {
             if(x->useless)
                 printf("* ");

@@ -3,8 +3,8 @@
 using namespace Cosoco;
 
 
-LastConflictReasoning::LastConflictReasoning(Solver &s, HeuristicVar *hv, int n)
-    : HeuristicVar(s), hvar(hv), nVariables(n), lastAssigned(nullptr), candidate(nullptr) {
+LastConflictReasoning::LastConflictReasoning(Solver &s, std::unique_ptr<HeuristicVar> &&hv, int n)
+    : HeuristicVar(s), hvar(std::move(hv)), nVariables(n), lastAssigned(nullptr), candidate(nullptr) {
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
 }

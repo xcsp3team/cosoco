@@ -9,6 +9,7 @@ class Restart {
    public:
     Solver *solver;
     Restart(Solver *s) : solver(s) { }
+    virtual ~Restart()               = default;
     virtual bool isItTimeToRestart() = 0;   // Return true if the solver has to restart
     virtual void initialize()        = 0;   // Start from scratch policy
 };
