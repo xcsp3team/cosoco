@@ -10,7 +10,7 @@ using namespace Cosoco;
 Profiling::Profiling(Solver *s) : solver(s) { }
 
 void Profiling::initialize() {
-    for(Constraint *c : solver->problem.constraints)
+    for(auto &c : solver->problem.constraints)
         if(constraintsData.find(c->type) == constraintsData.end())
             constraintsData.insert(make_pair(c->type, ConstraintData()));
 }

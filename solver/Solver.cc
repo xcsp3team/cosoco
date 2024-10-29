@@ -365,7 +365,7 @@ bool Solver::isAssigned(Variable *x) const { return unassignedVariables.contains
 //----------------------------------------------
 
 void Solver::reinitializeConstraints() {
-    for(Constraint *c : problem.constraints) {   // Reinitialisze status for all constraints
+    for(auto &c : problem.constraints) {   // Reinitialisze status for all constraints
         c->reinitialize();
         assert(c->status() == UNDEF);
     }

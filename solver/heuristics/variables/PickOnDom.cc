@@ -55,7 +55,7 @@ void PickOnDom::notifyFullBacktrack() {
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
-        for(Constraint *c : solver.problem.constraints) c->wdeg.fill(0);
+        for(auto &c : solver.problem.constraints) c->wdeg.fill(0);
         for(auto &x : solver.problem.variables) x->wdeg = 0;
     }
 }

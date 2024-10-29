@@ -220,7 +220,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     solvingProblem->nbTypeOfConstraints(typeOfConstraints);
 
     std::set<string> bigConstraints;
-    for(Constraint *c : solvingProblem->constraints)
+    for(auto &c : solvingProblem->constraints)
         if(c->scope.size() > 100)
             bigConstraints.insert(c->type);
 

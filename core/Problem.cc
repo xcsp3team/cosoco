@@ -20,11 +20,11 @@ void Problem::delayedConstruction() {
     for(auto &v : variables) v->delayedConstruction(idx++, variables.size());
 
     int idc = 0;
-    for(Constraint *c : constraints) c->delayedConstruction(idc++);
+    for(auto &c : constraints) c->delayedConstruction(idc++);
 
     bool error = false;
     try {
-        for(Constraint *c : constraints) {
+        for(auto &c : constraints) {
             c->scopeIsOk();
             c->isCorrectlyDefined();
         }
@@ -45,14 +45,14 @@ void Problem::delayedConstruction() {
 
 void Problem::attachSolver(Solver *s) {
     solver = s;
-    for(Constraint *c : constraints) c->attachSolver(solver);
+    for(auto &c : constraints) c->attachSolver(solver);
 }
 
 
-void Problem::addConstraint(Constraint *c) {
+void Problem::addConstraint(std::unique_ptr<Constraint> &&c) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add constraints");
-    constraints.push(c);
+    constraints.emplace_back(std::move(c));
 }
 
 
@@ -77,7 +77,7 @@ bool Problem::checkSolution() {
             return false;
         }
 
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         tuple.clear();
         for(Variable *x : c->scope) tuple.push(x->domain.toVal(x->domain[0]));
 
@@ -103,9 +103,9 @@ int Problem::nbConstraints() const { return constraints.size(); }
 
 int Problem::maximumTuplesInExtension() {
     unsigned int tmp = 0;
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         Extension *ext;
-        if((ext = dynamic_cast<Extension *>(c)) == nullptr)
+        if((ext = dynamic_cast<Extension *>(c.get())) == nullptr)
             continue;
         if(tmp < ext->nbTuples())
             tmp = ext->nbTuples();
@@ -116,9 +116,9 @@ int Problem::maximumTuplesInExtension() {
 
 int Problem::minimumTuplesInExtension() {
     unsigned int tmp = INT_MAX;
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         Extension *ext;
-        if((ext = dynamic_cast<Extension *>(c)) == nullptr)
+        if((ext = dynamic_cast<Extension *>(c.get())) == nullptr)
             continue;
         if(tmp > ext->nbTuples())
             tmp = ext->nbTuples();
@@ -129,7 +129,7 @@ int Problem::minimumTuplesInExtension() {
 
 int Problem::nbConstraintsOfSize(int size) {
     int nb = 0;
-    for(Constraint *c : constraints)
+    for(auto &c : constraints)
         if(c->scope.size() == size)
             nb++;
     return nb;
@@ -143,7 +143,7 @@ long Problem::nbValues() {
 
 int Problem::minimumArity() {
     int tmp = constraints[0]->scope.size();
-    for(Constraint *c : constraints)
+    for(auto &c : constraints)
         if(c->scope.size() < tmp)
             tmp = c->scope.size();
     return tmp;
@@ -152,7 +152,7 @@ int Problem::minimumArity() {
 
 int Problem::maximumArity() {
     int tmp = 0;
-    for(Constraint *c : constraints)
+    for(auto &c : constraints)
         if(c->scope.size() > tmp)
             tmp = c->scope.size();
     return tmp;
@@ -178,7 +178,7 @@ int Problem::minimumDomainSize() {
 
 
 void Problem::nbTypeOfConstraints(std::map<std::string, int> &tmp) {
-    for(Constraint *c : constraints) tmp[c->type]++;
+    for(auto &c : constraints) tmp[c->type]++;
 }
 
 
@@ -191,7 +191,7 @@ void Problem::display(bool alldetails) {
         printf("\n");
     }
     printf("Constraint : \n");
-    for(Constraint *c : constraints) {
+    for(auto &c : constraints) {
         printf(" ");
         c->display(true);
         printf("\n");

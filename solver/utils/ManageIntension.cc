@@ -213,7 +213,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     vec<Variable *> varsCore;
     for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
     callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
-    cachedExtensions[expr] = callbacks.problem->constraints.last();
+    cachedExtensions[expr] = callbacks.problem->constraints.back().get();
 
     return true;
 }
@@ -403,7 +403,7 @@ class PBinary7 : public Primitive {   // x=  mul(y,y)
             tuples.push_back({v, v * v});
         }
         callbacks.buildConstraintExtension2(id, scope, tuples, true, false);
-        callbacks.manageIntension->cachedExtensions[expr] = callbacks.problem->constraints.last();
+        callbacks.manageIntension->cachedExtensions[expr] = callbacks.problem->constraints.back().get();
         return true;
     }
 };

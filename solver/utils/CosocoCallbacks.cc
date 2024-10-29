@@ -108,7 +108,7 @@ void XCSP3Core::CosocoCallbacks::buildConstraintExtension(string id, vector<XVar
 }
 
 void XCSP3Core::CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) {
-    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), problem->constraints.last());
+    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), problem->constraints.back().get());
 }
 
 void XCSP3Core::CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *> &scope,
@@ -214,7 +214,7 @@ void XCSP3Core::CosocoCallbacks::buildConstraintMult(string id, XVariable *x, XV
 
 Cosoco::MDD *XCSP3Core::CosocoCallbacks::sameMDDAsPrevious(vec<Variable *> &list) {
     if(insideGroup && nbMDD) {   // Check is the MDD is the same
-        auto *ext = dynamic_cast<MDDExtension *>(problem->constraints.last());
+        auto *ext = dynamic_cast<MDDExtension *>(problem->constraints.back().get());
         assert(ext != nullptr);
         assert(list.size() == ext->scope.size());
         int same = true;
@@ -1344,8 +1344,8 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
 
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveUB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveUB(oc);
 }
 
 
@@ -1354,25 +1354,25 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
     assert(oc != nullptr);
-    po->addObjectiveLB(oc, true);
+    po->addObjectiveLB(oc);
 }
 
 void XCSP3Core::CosocoCallbacks::buildObjectiveMinimizeVariable(XVariable *x) {
     FactoryConstraints::createConstraintUnaryLE(problem, "", problem->mapping[x->id], 0);
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveUB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveUB(oc);
 }
 
 void XCSP3Core::CosocoCallbacks::buildObjectiveMaximizeVariable(XVariable *x) {
     FactoryConstraints::createConstraintUnaryGE(problem, "", problem->mapping[x->id], 0);
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveLB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveLB(oc);
 }
 
 
@@ -1404,8 +1404,8 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type
             invertOptimization = true;
 
             FactoryConstraints::createConstraintSum(problem, "objective", variables, vector2vec(origcoeffs), INT_MAX, LE);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveLB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveLB(oc);
             break;
         }
         case PRODUCT_O:
@@ -1413,20 +1413,20 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type
             break;
         case MINIMUM_O: {
             FactoryConstraints::createConstraintMinimumLE(problem, "objective", variables, INT_MAX);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveUB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveUB(oc);
             break;
         }
         case MAXIMUM_O: {
             FactoryConstraints::createConstraintMaximumLE(problem, "objective", variables, INT_MAX);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveUB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveUB(oc);
             break;
         }
         case NVALUES_O: {
             FactoryConstraints::createConstraintNValuesLE(problem, "objective", variables, variables.size() + 1);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            po->addObjectiveUB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            po->addObjectiveUB(oc);
             break;
         }
         case LEX_O:
@@ -1473,8 +1473,8 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type
             throw runtime_error("Objective expression not yet supported");
             break;
     }
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveLB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveLB(oc);
 }
 
 
@@ -1578,9 +1578,9 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type
             xc.operandType = INTEGER;
             xc.val         = INT_MIN;
             buildConstraintSum("objective", trees, c, xc);
-            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-            std::cout << problem->constraints.last()->type << std::endl;
-            po->addObjectiveLB(oc, true);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+            std::cout << problem->constraints.back()->type << std::endl;
+            po->addObjectiveLB(oc);
             break;
         }
         default:
@@ -1608,8 +1608,8 @@ void XCSP3Core::CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type
         default:
             runtime_error("Objective expression without sum and variables coeffs not yet supported");
     }
-    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    po->addObjectiveLB(oc, true);
+    auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.back().get());
+    po->addObjectiveLB(oc);
 }
 
 
