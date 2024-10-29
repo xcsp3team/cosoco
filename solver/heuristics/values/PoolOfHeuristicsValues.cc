@@ -5,7 +5,7 @@
 #include "solver/heuristics/values/PoolOfHeuristicsValues.h"
 
 #include "constraints/globals/summing/Sum.h"
-#include "optimizer/Optimizer.h"
+#include "core/OptimizationProblem.h"
 #include "solver/Solver.h"
 using namespace Cosoco;
 

@@ -4,6 +4,7 @@
 #include "core/Variable.h"
 #include "core/domain/DomainRange.h"
 #include "solver/Solver.h"
+#include "solver/restarts/Restart.h"
 #include "solver/utils/Options.h"
 
 TEST(IntegrationTest, oneVarNoConstraint) {

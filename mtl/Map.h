@@ -22,7 +22,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <string>
 
-#include "mtl/IntTypes.h"
 #include "mtl/Vec.h"
 
 namespace Cosoco {

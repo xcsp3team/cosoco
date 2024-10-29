@@ -2,10 +2,11 @@
 // Created by audemard on 20/02/23.
 //
 
-#include "NoGoodsEngine.h"
+#include "solver/nogoods/NoGoodsEngine.h"
 
 #include <cmath>
 
+#include "solver/Solver.h"
 #include "utils/System.h"
 using namespace Cosoco;
 

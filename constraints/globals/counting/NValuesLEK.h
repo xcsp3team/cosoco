@@ -4,11 +4,10 @@
 
 #ifndef COSOCO_NVALUESLEK_H
 #define COSOCO_NVALUESLEK_H
-
-
-#include <constraints/globals/GlobalConstraint.h>
-
 #include <set>
+
+#include "constraints/globals/GlobalConstraint.h"
+#include "optimizer/ObjectiveConstraint.h"
 namespace Cosoco {
 class NValuesLEK : public GlobalConstraint, public ObjectiveConstraint {
    public:

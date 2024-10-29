@@ -1,10 +1,8 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
 
-#include <iostream>
 #include <string>
 
-#include "core/Problem.h"
 #include "core/Variable.h"
 #include "mtl/SparseSet.h"
 #include "mtl/SparseSetOfVariables.h"

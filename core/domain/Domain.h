@@ -5,7 +5,6 @@
 #include "mtl/LinkedSet.h"
 #include "mtl/LinkedSetIterator.h"
 #include "mtl/Vec.h"
-#include "utils/Verbose.h"
 
 namespace Cosoco {
 

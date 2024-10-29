@@ -2,12 +2,10 @@
 #define COSOCO_SOLUTION_H
 
 #include <iostream>
-#include <map>
 #include <mutex>
 #include <vector>
 
 #include "core/OptimizationProblem.h"
-#include "mtl/Vec.h"
 #include "utils/Constants.h"
 #include "utils/System.h"
 #include "utils/Termcolor.h"

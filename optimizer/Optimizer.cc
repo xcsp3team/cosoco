@@ -1,9 +1,8 @@
 #include "Optimizer.h"
 
 #include "core/OptimizationProblem.h"
+#include "solver/restarts/Restart.h"
 #include "solver/utils/Options.h"
-#include "utils/Constants.h"
-#include "utils/System.h"
 
 using namespace Cosoco;
 

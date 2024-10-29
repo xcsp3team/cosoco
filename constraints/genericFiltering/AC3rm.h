@@ -1,13 +1,13 @@
-#include "TupleIteratorWithoutOrder.h"
-#include "constraints/Constraint.h"
-#include "mtl/Map.h"
-
 #ifndef AdapterAC3RM_H
 #define AdapterAC3RM_H
 
+#include "constraints/Constraint.h"
+#include "constraints/genericFiltering/TupleIteratorWithoutOrder.h"
+#include "mtl/Vec.h"
+#include "optimizer/ObjectiveConstraint.h"
 
 /**
- *  A class adapter to perform AC3rm on each type of constraint
+ *  A class adapter to perform AC3rm on  each type of constraint
  *  See IJCAI'07 : Lecoutre, Hemery. A Study of Residual Supports in Arc Consistency.
  */
 

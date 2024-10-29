@@ -3,6 +3,7 @@
 
 #include "constraints/globals/GlobalConstraint.h"
 #include "mtl/Vec.h"
+#include "optimizer/ObjectiveConstraint.h"
 namespace Cosoco {
 
 class MinimumConstant : public GlobalConstraint, public ObjectiveConstraint {

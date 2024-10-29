@@ -1,25 +1,20 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include <solver/observers/ObserverDomainReduction.h>
-#include <solver/restarts/Restart.h>
-
 #include <memory>
 #include <set>
 
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
-#include "mtl/SparseSetCounter.h"
 #include "mtl/SparseSetMultiLevel.h"
 #include "mtl/SparseSetOfVariables.h"
 #include "mtl/Vec.h"
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
-#include "restarts/Restart.h"
 #include "solver/AbstractSolver.h"
 #include "solver/nogoods/NoGoodsEngine.h"
-#include "solver/utils/Profiling.h"
+#include "solver/observers/ObserverDomainReduction.h"
 
 namespace Cosoco {
 #define NBSTATS 3

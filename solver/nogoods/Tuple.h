@@ -4,7 +4,8 @@
 
 #ifndef COSOCO_TUPLE_H
 #define COSOCO_TUPLE_H
-#include "solver/Solver.h"
+
+#include "core/Variable.h"
 namespace Cosoco {
 class Tuple {
    public:

@@ -6,7 +6,6 @@
 
 #ifdef USE_XCSP3
 #include "XCSP3Tree.h"
-#include "mtl/Map.h"
 #include "solver/utils/FactoryConstraints.h"
 #include "utils/Utils.h"
 #else
@@ -177,7 +176,7 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
                 if(scope.last()->containsValue(eval)) {
                     supports.push();
                     tuple[scope.last()->_name] = eval;
-                    assert(tuple.size() == scope.size());
+                    assert(tuple.size() == (size_t)scope.size());
                     for(auto &x : scope) supports.last().push(tuple[x->_name]);
                 }
                 continue;

@@ -2,9 +2,8 @@
 // Created by audemard on 08/02/2022.
 //
 
-#include "BinPacking.h"
+#include "constraints/globals/packing/BinPacking.h"
 
-#include "mtl/Sort.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;

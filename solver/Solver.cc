@@ -1,10 +1,10 @@
 #include "solver/Solver.h"
 
-#include <fstream>
 #include <iomanip>
 #include <memory>
 
 #include "constraints/Constraint.h"
+#include "core/Problem.h"
 #include "core/Variable.h"
 #include "heuristics/values/HeuristicValASGS.h"
 #include "heuristics/values/HeuristicValFirst.h"
@@ -20,12 +20,12 @@
 #include "solver/heuristics/values/HeuristicValRandom.h"
 #include "solver/heuristics/values/PoolOfHeuristicsValues.h"
 #include "solver/heuristics/variables/HeuristicVarCACD.h"
-#include "solver/heuristics/variables/HeuristicVarFirst.h"
 #include "solver/heuristics/variables/PickOnDom.h"
 #include "solver/restarts/GeometricRestart.h"
 #include "solver/restarts/InnerOuter.h"
 #include "solver/restarts/LubyRestart.h"
 #include "solver/utils/Options.h"
+#include "solver/utils/Profiling.h"
 #include "utils/System.h"
 using namespace Cosoco;
 using namespace std;

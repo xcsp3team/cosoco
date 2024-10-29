@@ -1,7 +1,8 @@
 #ifndef SUMGE_H
 #define SUMGE_H
 
-#include "Sum.h"
+#include "constraints/globals/summing/Sum.h"
+#include "optimizer/ObjectiveConstraint.h"
 namespace Cosoco {
 
 class SumGE : public Sum, public ObjectiveConstraint {

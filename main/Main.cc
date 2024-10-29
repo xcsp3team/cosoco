@@ -1,7 +1,6 @@
 #include <sys/resource.h>
 
 #include <csignal>
-#include <vector>
 
 #include "XCSP3CoreParser.h"
 #include "optimizer/Optimizer.h"
