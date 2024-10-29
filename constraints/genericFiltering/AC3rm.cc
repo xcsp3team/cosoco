@@ -35,7 +35,7 @@ bool AdapterAC3rm::isItTimeToStartFiltering() {
     for(Variable *x : scope) {
         assert(x->size() > 0);
         nb *= x->size();
-        if(nb > maxSize)
+        if(nb > (unsigned long long)maxSize)
             return false;
     }
     assert(nb > 0);

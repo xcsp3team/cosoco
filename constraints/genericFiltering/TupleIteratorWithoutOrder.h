@@ -19,6 +19,7 @@ class TupleIteratorWithoutOrder : public TupleIterator {
 
    public:
     explicit TupleIteratorWithoutOrder(vec<Variable *> &sc) : TupleIterator(sc) { positions.growTo(arity); }
+    virtual ~TupleIteratorWithoutOrder() = default;
 
     void setFirstTuple(vec<int> &first) override;
 

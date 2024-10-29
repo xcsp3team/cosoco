@@ -30,6 +30,7 @@ class TupleIterator {
         toReturn.growTo(arity);
         fixedPositions.growTo(arity);
     }
+    virtual ~TupleIterator() = default;
 
     virtual void setFirstTuple(vec<int> &first) = 0;
 

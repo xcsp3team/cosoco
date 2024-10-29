@@ -56,8 +56,9 @@ class Constraint {
     // Constructors and delayed initialisation
     Constraint(Problem &p, std::string n, vec<Variable *> &vars);
     Constraint(Problem &p, std::string n);   // For global constraints, the scope is managed by themselves
-    bool         scopeIsOk();                // is the scope is correctly defined?
-    virtual bool isCorrectlyDefined();       // is the constraint is correctly defined?
+    virtual ~Constraint() = default;
+    bool         scopeIsOk();            // is the scope is correctly defined?
+    virtual bool isCorrectlyDefined();   // is the constraint is correctly defined?
     void         addToScope(vec<Variable *> &vars);
     void         addToScope(Variable *x);
 

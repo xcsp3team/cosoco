@@ -7,6 +7,7 @@ class Solver;
 class Variable;
 class ObserverDomainReduction {
    public:
+    virtual ~ObserverDomainReduction()                                   = default;
     virtual void notifyDomainReduction(Variable *x, int idv, Solver &s)  = 0;   // event is sent before the value is removed
     virtual void notifyDomainAssignment(Variable *x, int idv, Solver &s) = 0;   // event is sent before the value is assigned
 };

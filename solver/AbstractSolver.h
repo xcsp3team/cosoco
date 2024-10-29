@@ -41,6 +41,7 @@ class AbstractSolver {
     virtual void displayCurrentSolution() = 0;   // displayCurrentBranch the current solution
 
     AbstractSolver(Problem &pp) : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253) { }
+    virtual ~AbstractSolver() = default;
 
 
     void setVerbosity(int vv) {

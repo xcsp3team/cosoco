@@ -8,6 +8,11 @@ option(NO_XCSP3 "Disable XCSP3 support" OFF)
 
 # define some c++ flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-parentheses -Wall -O3 -Wno-unused-label")
+if(NO_XCSP3)
+    #turn warning into errors only when we are not using XCSP3 parser
+    #as the errors might come from the dependencies (libxml2 or XCSP3-Parser)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wnon-virtual-dtor")
+endif()
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)

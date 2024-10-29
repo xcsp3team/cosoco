@@ -26,6 +26,7 @@ class Domain {
 
     // Constructors and initialisation
     Domain(int sz) : idvs(sz, true) { }
+    virtual ~Domain() = default;
 
 
     void delayedConstruction(int nbVars) { }
