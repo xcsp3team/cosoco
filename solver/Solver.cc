@@ -76,7 +76,6 @@ Solver::Solver(Problem &p)
         exit(1);
     }
 
-    options::stringOptions["var"].value = "robin";
     if(options::stringOptions["var"].value == "wdeg")
         heuristicVar = new HeuristicVarDomWdeg(*this);
     if(options::stringOptions["var"].value == "cacd")
@@ -183,7 +182,7 @@ int Solver::solve(vec<RootPropagation> &assumps) {
         profiling->initialize();
 
 
-    fullBacktrack();
+    // fullBacktrack();
 
     if(problem.isConstructionDone == false)
         throw std::logic_error("c\nc Error: the construction problem is not finished...! (problem.delayedConstruction())\nc\n");

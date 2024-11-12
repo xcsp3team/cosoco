@@ -27,7 +27,7 @@ HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s) : HeuristicVar
             heuristics.push(new HeuristicVarCACD(s));
         for(int i = 1; i < heuristics.size(); i++) heuristics[i]->stop();
     }
-    current = heuristics.size() - 1;
+    current = 0;
 }
 
 
@@ -39,6 +39,6 @@ void HeuristicVarRoundRobin::notifyFullBacktrack() {
     if(current >= heuristics.size())
         current = 0;
     heuristics[current]->start();
-    std::string s = std::string("Var=") + std::string(1, sequence[current]) + "\n";
+    std::string s = std::string(" - Var=") + std::string(1, sequence[current]) + "\n";
     solver.verbose.log(NORMAL, s.c_str());
 }

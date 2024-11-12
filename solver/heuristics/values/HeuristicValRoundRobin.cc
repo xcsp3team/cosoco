@@ -37,6 +37,6 @@ void HeuristicValRoundRobin::notifyFullBacktrack() {
     current++;
     if(current >= sequence.size())
         current = 0;
-    std::string s = std::string(" - Val=") + std::string(1, sequence[current]);
+    std::string s = std::string("Val=") + std::string(1, sequence[current]);
     solver.verbose.log(NORMAL, s.c_str());
 }
