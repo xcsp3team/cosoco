@@ -52,8 +52,8 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     ObjectiveConstraint *objective = (optimtype == Minimize) ? objectiveUB : objectiveLB;
     auto                 c         = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
-    status = RUNNING;
-
+    status                = RUNNING;
+    c->isDisabled         = true;   // Disable the objective
     solver->checkSolution = true;
     while(status == RUNNING) {
         if(optimtype == Minimize)
@@ -66,7 +66,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         int ret = solver->solve(assumps);
 
-
+        c->isDisabled = false;   // Enable the objective
         callToSolver++;
         if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
             nbSolutions++;

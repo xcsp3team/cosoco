@@ -499,6 +499,8 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
 
 
         for(Constraint *c : x->constraints) {
+            if(c->isDisabled)
+                continue;
             if(x->timestamp > c->timestamp && isEntailed(c) == false) {
                 filterCalls++;
                 nbDeletedValuesByAVariable = 0;
