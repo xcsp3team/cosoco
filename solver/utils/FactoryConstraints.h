@@ -220,8 +220,8 @@ class FactoryConstraints {
             ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
         else {
             if(isSupport) {
-                ctr = new CompactTable(*p, name, vars, tuples.size());
-                // ctr = new ShortSTR2(*p, name, vars, tuples.size());
+                // ctr = new CompactTable(*p, name, vars, tuples.size());
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
             } else {
                 assert(hasStar == false);   // TODO
                 ctr = new STRNeg(*p, name, vars, tuples.size());
