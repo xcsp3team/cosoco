@@ -245,8 +245,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     CosocoCallbacks(int ncores, Options &options) : startToParseObjective(false), nbcores(ncores), options(options) {
         recognizeSpecialIntensionCases = false;
         manageIntension                = new ManageIntension(*this);
-        if(options.stringOptions["removeClasses"].value != "") {
-            std::vector<std::string> classes = split1(std::string(options.stringOptions["removeClasses"].value), ',');
+        if(options.stringOptions["removeclasses"].value != "") {
+            std::vector<std::string> classes = split1(std::string(options.stringOptions["removeclasses"].value), ',');
             for(const std::string &c : classes) addClassToDiscard(c);
         }
     }
