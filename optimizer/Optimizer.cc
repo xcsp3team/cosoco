@@ -2,14 +2,15 @@
 
 #include <XCSP3Constants.h>
 
+#include "Options.h"
 #include "core/OptimizationProblem.h"
 #include "utils/System.h"
 
 using namespace Cosoco;
 
 
-Optimizer::Optimizer(Problem &p, Options &o)
-    : AbstractSolver(p, o),
+Optimizer::Optimizer(Problem &p)
+    : AbstractSolver(p),
       invertBestCost(false),
       callToSolver(0),
       solver(nullptr),
@@ -32,7 +33,7 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
     best                     = optimtype == Minimize ? LONG_MAX : LONG_MIN;
     solution->invertBestCost = invertBestCost;
     solution->optimType      = optimtype;
-    if(options.boolOptions["bs"].value)
+    if(options::boolOptions["bs"].value)
         addProgressSaving();
 }
 
@@ -82,7 +83,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
-                bestSolution->end(options.boolOptions["colors"].value);
+                bestSolution->end(options::boolOptions["colors"].value);
 
                 if(progressSaving) {
                     vec<int> idvalues;

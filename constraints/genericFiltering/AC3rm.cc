@@ -1,5 +1,6 @@
 #include "AC3rm.h"
 
+#include "Options.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -117,7 +118,7 @@ void AdapterAC3rm::reinitialize() { constraint->reinitialize(); }
 void AdapterAC3rm::attachSolver(Solver *s) {
     Constraint::attachSolver(s);
     constraint->attachSolver(s);
-    maxSize = solver->options.intOptions["limitac3card"].value;
+    maxSize = options::intOptions["limitac3card"].value;
 }
 
 void AdapterAC3rm::display(bool d) { constraint->display(d); }

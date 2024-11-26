@@ -5,7 +5,6 @@
 #include <solver/restarts/Restart.h>
 
 #include "AbstractSolver.h"
-#include "Options.h"
 #include "Profiling.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
@@ -96,7 +95,7 @@ class Solver : public AbstractSolver {
     // Construction and initialisation
     // --------------------------------------------------------------------------------------
 
-    Solver(Problem &p, Options &options);
+    Solver(Problem &p);
     void addLastConflictReasoning();
     void addRandomizationFirstDescent();
     void addStickingValue();

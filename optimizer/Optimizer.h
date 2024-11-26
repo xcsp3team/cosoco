@@ -30,7 +30,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     bool                 progressSaving;
     bool                 firstCall;
 
-    explicit Optimizer(Problem &p, Options &options);
+    explicit Optimizer(Problem &p);
 
     int  solve(vec<RootPropagation> &assumps) override;
     void printFinalStats() override;

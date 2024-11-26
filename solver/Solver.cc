@@ -26,6 +26,7 @@
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
+#include "solver/utils/Options.h"
 using namespace Cosoco;
 using namespace std;
 //----------------------------------------------
@@ -33,8 +34,8 @@ using namespace std;
 //----------------------------------------------
 
 
-Solver::Solver(Problem &p, Options &options)
-    : AbstractSolver(p, options),
+Solver::Solver(Problem &p)
+    : AbstractSolver(p),
       problem(p),
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
@@ -49,44 +50,44 @@ Solver::Solver(Problem &p, Options &options)
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;
-    displaySolution     = options.boolOptions["model"].value;
+    displaySolution     = options::boolOptions["model"].value;
 
-    if(options.boolOptions["profile"].value)
+    if(options::boolOptions["profile"].value)
         profiling = new Profiling(this);
-    doProfiling = options.boolOptions["profile"].value;
+    doProfiling = options::boolOptions["profile"].value;
 
-    if(options.stringOptions["val"].value == "first")
+    if(options::stringOptions["val"].value == "first")
         heuristicVal = new HeuristicValFirst(*this);
-    if(options.stringOptions["val"].value == "rand")
+    if(options::stringOptions["val"].value == "rand")
         heuristicVal = new HeuristicValRandom(*this);
-    if(options.stringOptions["val"].value == "last")
+    if(options::stringOptions["val"].value == "last")
         heuristicVal = new HeuristicValLast(*this);
-    if(options.stringOptions["val"].value == "robin")
-        heuristicVal = new HeuristicValRoundRobin(*this, options.stringOptions["robin"].value);
-    if(options.stringOptions["val"].value == "occs")
+    if(options::stringOptions["val"].value == "robin")
+        heuristicVal = new HeuristicValRoundRobin(*this, options::stringOptions["robin"].value);
+    if(options::stringOptions["val"].value == "occs")
         heuristicVal = new HeuristicValOccs(*this);
-    if(options.stringOptions["val"].value == "asgs")
+    if(options::stringOptions["val"].value == "asgs")
         heuristicVal = new HeuristicValASGS(*this);
-    if(options.stringOptions["val"].value == "pool")
+    if(options::stringOptions["val"].value == "pool")
         heuristicVal = new PoolOfHeuristicsValues(*this);
     if(heuristicVal == nullptr) {
-        std::cerr << "unknown heuristic value " << options.stringOptions["val"].value << "\n";
+        std::cerr << "unknown heuristic value " << options::stringOptions["val"].value << "\n";
         exit(1);
     }
 
 
-    if(options.stringOptions["var"].value == "wdeg")
+    if(options::stringOptions["var"].value == "wdeg")
         heuristicVar = new HeuristicVarDomWdeg(*this);
-    if(options.stringOptions["var"].value == "cacd")
+    if(options::stringOptions["var"].value == "cacd")
         heuristicVar = new HeuristicVarCACD(*this);
-    if(options.stringOptions["var"].value == "pick")
+    if(options::stringOptions["var"].value == "pick")
         heuristicVar = new PickOnDom(*this);
-    if(options.stringOptions["var"].value == "frba")
+    if(options::stringOptions["var"].value == "frba")
         heuristicVar = new HeuristicVarFRBA(*this);
-    if(options.stringOptions["var"].value == "robin")
+    if(options::stringOptions["var"].value == "robin")
         heuristicVar = new HeuristicVarRoundRobin(*this);
     if(heuristicVar == nullptr) {
-        std::cerr << "unknown heuristic variable " << options.stringOptions["var"].value << "\n";
+        std::cerr << "unknown heuristic variable " << options::stringOptions["var"].value << "\n";
         exit(1);
     }
 
@@ -114,23 +115,23 @@ Solver::Solver(Problem &p, Options &options)
         S->heuristicVal = new ForceIdvs(*S, S->heuristicVal, false, &values);
     }*/
 
-    if(options.intOptions["lc"].value > 0)
+    if(options::intOptions["lc"].value > 0)
         addLastConflictReasoning();
-    if(options.boolOptions["stick"].value)
+    if(options::boolOptions["stick"].value)
         addStickingValue();
-    if(options.stringOptions["restarts"].value == "geo")
+    if(options::stringOptions["restarts"].value == "geo")
         restart = new GeometricRestart(this);
-    if(options.stringOptions["restarts"].value == "luby")
+    if(options::stringOptions["restarts"].value == "luby")
         restart = new LubyRestart(this);
-    if(options.stringOptions["restarts"].value == "io")
+    if(options::stringOptions["restarts"].value == "io")
         restart = new InnerOuterRestart(this);
-    if(restart == nullptr && options.stringOptions["restarts"].value != "no") {
-        std::cerr << "unknown heuristic restart " << options.stringOptions["restart"].value << "\n";
+    if(restart == nullptr && options::stringOptions["restarts"].value != "no") {
+        std::cerr << "unknown heuristic restart " << options::stringOptions["restart"].value << "\n";
         exit(1);
     }
 
 
-    if(options.boolOptions["nogoods"].value)
+    if(options::boolOptions["nogoods"].value)
         addNoGoodsFromRestarts();
 
     /*if(annotations && cb.decisionVariables[core].size() != 0)
@@ -153,7 +154,7 @@ void Solver::addNoGoodsFromRestarts() {
 }
 
 void Solver::addLastConflictReasoning() {
-    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options.intOptions["lc"].value);
+    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options::intOptions["lc"].value);
 }
 
 
@@ -311,7 +312,7 @@ bool Solver::manageSolution() {
     if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
         noGoodsEngine->generateNogoodFromSolution();
 
-    if(nbSolutions == options.intOptions["nbsols"].value) {
+    if(nbSolutions == options::intOptions["nbsols"].value) {
         status = REACH_GOAL;
         return true;
     }

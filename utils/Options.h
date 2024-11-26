@@ -31,8 +31,8 @@ namespace Cosoco {
 //==================================================================================================
 // Top-level option parse/help functions:
 
-extern void printUsageAndExit(Options& options);
-extern void parseOptions(int& argc, char** argv, Options& options);
+extern void printUsageAndExit();
+extern void parseOptions(int& argc, char** argv);
 
 
 }   // namespace Cosoco
