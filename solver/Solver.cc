@@ -375,7 +375,6 @@ void Solver::fullBacktrack(bool all) {
         decisionVariablesId.clear();
         for(Variable *x : problem.variables)   // Reinitialize all domain variables.
             x->domain.reinitialize();
-        reinitializeConstraints();
     }
     notifyFullBactrack();
 }
@@ -444,9 +443,10 @@ void Solver::doRestart() {
     if(nogoodsFromRestarts && noGoodsEngine->generateNogoodsFromRestarts() == false)
         status = FULL_EXPLORATION;
     statistics[restarts]++;
+    fullBacktrack();
     if(verbose.verbosity >= 1)
         displayCurrentSearchSpace();
-    fullBacktrack();
+    reinitializeConstraints();
     if(nogoodsFromRestarts)
         noGoodsEngine->enqueueNoGoodsOfSize1();
 
@@ -796,7 +796,7 @@ void Solver::displayHeaderCurrentSearchSpace() {
     printElement("decisions");
     printElement("filterCalls");
     printElement("propagations");
-    printElement("Root Prop.");
+    printElement("values");
     printElement("Nogoods");
 
     printElement("min/max/avg depth");
@@ -810,7 +810,7 @@ void Solver::displayCurrentSearchSpace() {
     printElement(decisions);
     printElement(filterCalls);
     printElement(propagations);
-    printElement(trail_lim[0]);
+    printElement(problem.nbValues());
     if(nogoodsFromRestarts)
         printElement(noGoodsEngine->statistics[nbnogoods]);
     else
