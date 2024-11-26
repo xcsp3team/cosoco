@@ -51,6 +51,9 @@ Solver::Solver(Problem &p, Options &options)
     nogoodsFromRestarts = false;
     displaySolution     = options.boolOptions["model"].value;
 
+    if(options.boolOptions["profile"].value)
+        profiling = new Profiling(this);
+    doProfiling = options.boolOptions["profile"].value;
 
     if(options.stringOptions["val"].value == "first")
         heuristicVal = new HeuristicValFirst(*this);
@@ -173,6 +176,10 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
 
 int Solver::solve(vec<RootPropagation> &assumps) {
     bool firstCall = nbSolutions == 0;
+
+    if(doProfiling && firstCall)
+        profiling->initialize();
+
     fullBacktrack();
 
     if(problem.isConstructionDone == false)
@@ -495,7 +502,12 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                 filterCalls++;
                 nbDeletedValuesByAVariable = 0;
                 currentFilteredConstraint  = c;
-                if(c->filterFrom(x) == false) {   // Inconsistent
+
+                doProfiling && profiling->beforeConstraintCall(c);
+                bool noConflict = c->filterFrom(x);
+                doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
+
+                if(noConflict == false) {   // Inconsistent
                     pickVariables.push({x, nbDeletedValuesByAVariable == 0 ? 1 : nbDeletedValuesByAVariable});
                     c->timestamp = ++timestamp;
                     notifyConflict(c);
@@ -842,4 +854,6 @@ void Solver::printFinalStats() {
            statistics[uselessFilterCalls] * 100 / filterCalls);
     if(nogoodsFromRestarts)
         noGoodsEngine->printStats();
+    if(doProfiling)
+        profiling->display();
 }
