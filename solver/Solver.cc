@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 
+#include "ForceIdv.h"
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicValRoundRobin.h"
@@ -457,7 +458,7 @@ void Solver::doRestart() {
     reinitializeConstraints();
     if(nogoodsFromRestarts)
         noGoodsEngine->enqueueNoGoodsOfSize1();
-
+    
     propagate(true);
 }
 

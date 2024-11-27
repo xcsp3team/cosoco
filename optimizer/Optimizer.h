@@ -4,6 +4,7 @@
 #include <solver/heuristics/values/ForceIdv.h>
 
 #include "ObjectiveConstraint.h"
+#include "Options.h"
 #include "Solution.h"
 #include "core/OptimizationProblem.h"
 #include "core/Problem.h"
@@ -52,6 +53,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
 
     void addProgressSaving() {
         assert(solver != nullptr);
+        progressSaving       = true;
         progressSaving       = true;
         solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
     }

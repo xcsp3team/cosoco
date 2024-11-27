@@ -24,11 +24,12 @@ void                                               createOptions() {
     boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
     stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
     boolOptions["bs"] = {"SEARCH", "Enable progress saving (only after a new solution)", true};
+    intOptions["rr"] = {"SEARCH", "heuristic Var and Val Robin with Bs deactivated during first runs", 0, 0, 2};
     boolOptions["ct"] = {"CONSTRAINTS", "Enable Compact Table", true};
     intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000, 0,
                                                                        INT_MAX};
     stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
     boolOptions["decompose"] = {"PARSE", "decompose intension using reification.", true};
-}
+}   // namespace options
 }   // namespace options
 }   // namespace Cosoco
