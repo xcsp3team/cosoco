@@ -38,6 +38,8 @@ extern std::map<std::string, bool_opt>   boolOptions;
 extern std::map<std::string, int_opt>    intOptions;
 extern std::map<std::string, double_opt> doubleOptions;
 
+extern std::map<std::string, int> intConstants;
+
 void createOptions();
 
 }   // namespace options

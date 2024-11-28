@@ -18,6 +18,8 @@
 #include "Precedence.h"
 #include "Reification.h"
 #include "XCSP3Constants.h"
+#include "constraints/extensions/BinaryExtension.h"
+#include "constraints/extensions/BinaryExtensionSupport.h"
 #include "constraints/globals/connection/element/ElementMatrix.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
 #include "constraints/globals/counting/NValuesEQVar.h"
@@ -27,7 +29,6 @@
 #include "constraints/globals/summing/SumScalarLEK.h"
 #include "constraints/globals/summing/SumScalarLEVar.h"
 #include "constraints/primitives/xTimesyEQz.h"
-#include "extensions/BinaryExtension.h"
 #include "extensions/MDDExtension.h"
 #include "extensions/STRNeg.h"
 #include "extensions/ShortSTR2.h"
@@ -64,6 +65,7 @@
 #include "primitives/LEUnary.h"
 #include "primitives/LT.h"
 #include "primitives/xEqOryk.h"
+#include "solver/utils/Options.h"
 #include "utils/Verbose.h"
 
 namespace Cosoco {
@@ -217,9 +219,15 @@ class FactoryConstraints {
     static Constraint *newExtensionConstraint(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                               bool isSupport, bool hasStar = false) {
         Extension *ctr = nullptr;
-        if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
-        else {
+        if(vars.size() == 2) {
+            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+
+            if(isSupport && max_size > options::intConstants["large_bin_extension"])
+                ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
+            else
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+
+        } else {
             if(isSupport) {
                 // ctr = new CompactTable(*p, name, vars, tuples.size());
                 ctr = new ShortSTR2(*p, name, vars, tuples.size());
@@ -251,9 +259,15 @@ class FactoryConstraints {
             return;
         }
 
-        if(vars.size() == 2)
-            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
-
+        if(vars.size() == 2) {
+            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+            if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
+                ctr = new BinaryExtensionSupport(*p, name, sameConstraint->isSupport, vars[0], vars[1],
+                                                 (BinaryExtensionSupport *)sameConstraint);
+            else
+                ctr =
+                    new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+        }
         if(vars.size() > 2) {
             if(sameConstraint->isSupport)
                 ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
