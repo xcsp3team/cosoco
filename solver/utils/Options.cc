@@ -28,6 +28,8 @@ void createOptions() {
     boolOptions["bs"]          = {"SEARCH", "Enable progress saving (only after a new solution)", true};
     intOptions["rr"]           = {"SEARCH", "heuristic Var and Val Robin with Bs deactivated during first runs", 0, 0, 2};
     boolOptions["ct"]          = {"CONSTRAINTS", "Enable Compact Table", true};
+    intOptions["postponesize"] = {"CONSTRAINTS", "The size of postponed constraints (0=no postponed constraints)", 100, 0,
+                                  INT_MAX};
     intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000, 0,
                          INT_MAX};
     stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};

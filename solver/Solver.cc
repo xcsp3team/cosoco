@@ -458,7 +458,7 @@ void Solver::doRestart() {
     reinitializeConstraints();
     if(nogoodsFromRestarts)
         noGoodsEngine->enqueueNoGoodsOfSize1();
-    
+
     propagate(true);
 }
 
@@ -487,45 +487,69 @@ Variable *Solver::pickInQueue() {   // Select the variable with the smallest dom
     return x;
 }
 
+bool Solver::filterConstraint(Cosoco::Constraint *c, Cosoco::Variable *x) {
+    filterCalls++;
+    nbDeletedValuesByAVariable = 0;
+    currentFilteredConstraint  = c;
+    doProfiling && profiling->beforeConstraintCall(c);
+    bool noConflict = c->filterFrom(x);
+    doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
+    c->timestamp = ++timestamp;
+
+    if(noConflict == false) {   // Inconsistent
+        pickVariables.push({x, nbDeletedValuesByAVariable == 0 ? 1 : nbDeletedValuesByAVariable});
+        c->timestamp = ++timestamp;
+        notifyConflict(c);
+        currentFilteredConstraint = nullptr;
+        return false;
+    }
+    currentFilteredConstraint = nullptr;
+    if(nbDeletedValuesByAVariable == 0)
+        statistics[uselessFilterCalls]++;
+    else
+        pickVariables.push({x, nbDeletedValuesByAVariable});
+
+    return true;
+}
+
 
 Constraint *Solver::propagate(bool startWithSATEngine) {
     currentFilteredConstraint = nullptr;
+    postponeFiltering.clear();   // The filtering starts here
     pickVariables.clear();
-    while(queue.size() > 0) {
-        Variable *x = pickInQueue();
-        assert(x->size() > 0);
+    while(true) {
+        while(queue.size() > 0) {
+            Variable *x = pickInQueue();
+            assert(x->size() > 0);
 
-        if(nogoodsFromRestarts && noGoodsEngine->propagate(x) == false)
-            return NoGoodsEngine::fake;
+            if(nogoodsFromRestarts && noGoodsEngine->propagate(x) == false)
+                return NoGoodsEngine::fake;
 
 
-        for(Constraint *c : x->constraints) {
-            if(c->isDisabled)
-                continue;
-            if(x->timestamp > c->timestamp && isEntailed(c) == false) {
-                filterCalls++;
-                nbDeletedValuesByAVariable = 0;
-                currentFilteredConstraint  = c;
-
-                doProfiling && profiling->beforeConstraintCall(c);
-                bool noConflict = c->filterFrom(x);
-                doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
-
-                if(noConflict == false) {   // Inconsistent
-                    pickVariables.push({x, nbDeletedValuesByAVariable == 0 ? 1 : nbDeletedValuesByAVariable});
-                    c->timestamp = ++timestamp;
-                    notifyConflict(c);
-                    currentFilteredConstraint = nullptr;
-                    return c;
+            for(Constraint *c : x->constraints) {
+                if(c->isDisabled)
+                    continue;
+                if(x->timestamp > c->timestamp && isEntailed(c) == false) {
+                    if(c->postpone()) {   // Postpone the filtering of these constraints
+                        postponeFiltering.insert(c);
+                        c->postponedBy = x;
+                        continue;
+                    }
+                    if(filterConstraint(c, x) == false)
+                        return c;
                 }
-                currentFilteredConstraint = nullptr;
-                if(nbDeletedValuesByAVariable == 0)
-                    statistics[uselessFilterCalls]++;
-                else
-                    pickVariables.push({x, nbDeletedValuesByAVariable});
-                c->timestamp = ++timestamp;
             }
         }
+
+        // Filter postponed constraints
+        for(auto *c : postponeFiltering) {
+            // std::cout << "post" << c->type << std::endl;
+            if(filterConstraint(c, c->postponedBy) == false)
+                return c;
+        }
+        postponeFiltering.clear();
+        if(queue.size() == 0)
+            break;
     }
     return nullptr;
 }

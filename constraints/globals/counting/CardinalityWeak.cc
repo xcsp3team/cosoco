@@ -55,4 +55,5 @@ CardinalityWeak::CardinalityWeak(Problem &p, std::string n, vec<Variable *> &var
         CardData tmp = {o[i], 0};
         data.insert(std::make_pair(v[i], tmp));
     }
+    isPostponable = true;
 }

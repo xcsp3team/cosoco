@@ -189,7 +189,7 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Var
     limit = lm;
 
     vars.copyTo(starts);
-
+    isPostponable = true;
 
     l.copyTo(wwidths);
     h.copyTo(wheights);

@@ -91,6 +91,12 @@ bool Constraint::filterFrom(Variable *x) {
 }
 
 
+bool Constraint::postpone() {
+    return isPostponable && options::intOptions["postponesize"].value > 0 &&
+           scope.size() > options::intOptions["postponesize"].value;
+}
+
+
 // Assign and unassign variables
 void Constraint::assignVariable(Variable *x) {
     int posx = toScopePosition(x);

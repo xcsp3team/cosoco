@@ -4,6 +4,8 @@
 #include <solver/observers/ObserverDomainReduction.h>
 #include <solver/restarts/Restart.h>
 
+#include <set>
+
 #include "AbstractSolver.h"
 #include "Profiling.h"
 #include "core/Problem.h"
@@ -74,9 +76,10 @@ class Solver : public AbstractSolver {
     HeuristicVal *heuristicVal;        // The heuristic to choose values
     Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
-    SparseSetOfVariables queue;                       // Propagation queue
-    Constraint          *currentFilteredConstraint;   // The constraint that is filtered
-    vec<PickVariables>   pickVariables;               // The set of picking variables history
+    SparseSetOfVariables   queue;                       // Propagation queue
+    Constraint            *currentFilteredConstraint;   // The constraint that is filtered
+    vec<PickVariables>     pickVariables;               // The set of picking variables history
+    std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
 
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict
@@ -134,11 +137,12 @@ class Solver : public AbstractSolver {
     // Propagate methods
     // --------------------------------------------------------------------------------------
 
-    void        addToQueue(Variable *x);                      // Add a variable to queue (side effect if used directly))
-    Variable   *pickInQueue();                                // Pick a var in the prop queue
-    Constraint *propagate(bool startWithSATEngine = false);   // Propagate the Queue
-    Constraint *propagateComplete();                          // fill the queue and propagate everything
-    bool        isGACGuaranted();                             // Return trus if GAC is ensured
+    void        addToQueue(Variable *x);                        // Add a variable to queue (side effect if used directly))
+    Variable   *pickInQueue();                                  // Pick a var in the prop queue
+    bool        filterConstraint(Constraint *c, Variable *x);   // the propagation algorithm
+    Constraint *propagate(bool startWithSATEngine = false);     // Propagate the Queue
+    Constraint *propagateComplete();                            // fill the queue and propagate everything
+    bool        isGACGuaranted();                               // Return trus if GAC is ensured
 
     void entail(Constraint *c) {
         if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
