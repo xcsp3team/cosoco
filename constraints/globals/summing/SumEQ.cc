@@ -98,4 +98,6 @@ bool SumEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-SumEQ::SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, n, vars, coefs, l) { }
+SumEQ::SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, n, vars, coefs, l) {
+    type = "SumEQ";
+}

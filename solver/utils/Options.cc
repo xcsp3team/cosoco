@@ -37,6 +37,7 @@ void createOptions() {
 
 
     intConstants["large_bin_extension"] = 1000;
+    intConstants["sumeq_to_extension"]  = 2000;
 }   // namespace options
 }   // namespace options
 }   // namespace Cosoco

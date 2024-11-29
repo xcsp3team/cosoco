@@ -481,6 +481,27 @@ class FactoryConstraints {
         throw runtime_error("Not yet implemented scalar");
     }
 
+
+    static void sumEQToExtension(int posx, vec<Variable *> &scope, vec<int> &coeffs, long limit, vec<vec<int>> &tuples,
+                                 vec<int> &current, long sum) {
+        if(posx >= scope.size()) {
+            if(sum == limit) {
+                tuples.push();
+                current.copyTo(tuples.last());
+            }
+            return;
+        }
+
+        for(int i = 0; i < scope[posx]->domain.maxSize(); i++) {
+            int v         = scope[posx]->domain.toVal(i);
+            current[posx] = v;
+            if(sum + coeffs[posx] * v > limit)
+                return;
+            sumEQToExtension(posx + 1, scope, coeffs, limit, tuples, current, sum + coeffs[posx] * v);
+        }
+    }
+
+
     static void createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &coeffs, long l,
                                     OrderType order) {
         Sum *ctr = nullptr;
@@ -550,6 +571,17 @@ class FactoryConstraints {
                 throw runtime_error("This is forbidden to construct a sum with IN operator");
                 break;
             case OrderType::EQ:
+                if(Constraint::cardinality(vars) <= ((unsigned long)options::intConstants["sumeq_to_extension"])) {
+                    vec<vec<int>> tuples;
+                    vec<int>      current;
+                    long          sum = 0;
+                    std::cout << Constraint::cardinality(vars) << " " << vars.size() << std::endl;
+                    current.growTo(vars.size());
+                    sumEQToExtension(0, vars, coeffs, l, tuples, current, sum);
+                    createConstraintExtension(p, name, vars, tuples, true);
+                    return;
+                }
+
                 ctr = new SumEQ(*p, name, vars, coeffs, l);
                 break;
             case OrderType::NE:
