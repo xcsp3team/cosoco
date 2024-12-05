@@ -88,11 +88,11 @@ class Constraint {
     // Extract tuples
    public:
     // Display
-    virtual void         display(bool allDetails = false);
-    static unsigned long cardinality(vec<Variable *> &scope);
-    virtual void         attachSolver(Solver *s);
-    static void toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
-                                      bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
+    virtual void  display(bool allDetails = false);
+    static double cardinality(vec<Variable *> &scope);
+    virtual void  attachSolver(Solver *s);
+    static void   toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
+                                        bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
 
    protected:
     // All this part simplify scope initialisation

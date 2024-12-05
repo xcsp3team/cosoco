@@ -209,9 +209,9 @@ void Constraint::toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &s
     }
 }
 
-unsigned long Constraint::cardinality(vec<Variable *> &scope) {
-    unsigned long tmp = 0;
-    for(Variable *x : scope) tmp += x->domain.maxSize();
+double Constraint::cardinality(vec<Variable *> &scope) {
+    double tmp = 1;
+    for(Variable *x : scope) tmp *= x->domain.maxSize();
     return tmp;
 }
 

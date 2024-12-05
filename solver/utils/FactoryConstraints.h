@@ -494,7 +494,7 @@ class FactoryConstraints {
 
         for(int i = 0; i < scope[posx]->domain.maxSize(); i++) {
             int v         = scope[posx]->domain.toVal(i);
-            current[posx] = v;
+            current[posx] = i;
             if(sum + coeffs[posx] * v > limit)
                 return;
             sumEQToExtension(posx + 1, scope, coeffs, limit, tuples, current, sum + coeffs[posx] * v);
@@ -571,17 +571,18 @@ class FactoryConstraints {
                 throw runtime_error("This is forbidden to construct a sum with IN operator");
                 break;
             case OrderType::EQ:
-                if(Constraint::cardinality(vars) <= ((unsigned long)options::intConstants["sumeq_to_extension"])) {
+                if(Constraint::cardinality(vars) <= ((double)options::intConstants["sumeq_to_extension"])) {
                     vec<vec<int>> tuples;
                     vec<int>      current;
                     long          sum = 0;
-                    std::cout << Constraint::cardinality(vars) << " " << vars.size() << std::endl;
                     current.growTo(vars.size());
                     sumEQToExtension(0, vars, coeffs, l, tuples, current, sum);
+                    assert(tuples.size() > 0);
                     createConstraintExtension(p, name, vars, tuples, true);
+                    std::cout << Constraint::cardinality(vars) << " " << vars.size() << " " << tuples.size() << std::endl;
                     return;
                 }
-
+                std::cout << "classic\n";
                 ctr = new SumEQ(*p, name, vars, coeffs, l);
                 break;
             case OrderType::NE:
