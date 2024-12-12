@@ -7,17 +7,20 @@
 
 #include "HeuristicVal.h"
 #include "HeuristicValRandom.h"
+#include "ObserverDecision.h"
 
 
 namespace Cosoco {
 
-class HeuristicValRoundRobin : public HeuristicVal {
+class HeuristicValRoundRobin : public HeuristicVal, ObserverDeleteDecision {
    public:
     vec<HeuristicVal *> heuristics;
     HeuristicValRoundRobin(Solver &s, std::string &sequence);
+    int current;
+    int nbrestarts;
 
-
-    int select(Variable *x) override;
+    int  select(Variable *x) override;
+    void notifyFullBacktrack() override;
 };
 
 

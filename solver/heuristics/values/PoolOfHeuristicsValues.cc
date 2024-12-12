@@ -38,6 +38,8 @@ void PoolOfHeuristicsValues::selectHeuristics() {
                 if(sum->coefficients[i] < 0)
                     heuristicForVariable[c->scope[i]->idx] = last;
         }
+        if(c->type == "X >= k")
+            heuristicForVariable[c->scope[0]->idx] = last;
     }
 
     int nblast = 0, nbfirst = 0, nboccs = 0, nbrandom = 0, nbasgs = 0;

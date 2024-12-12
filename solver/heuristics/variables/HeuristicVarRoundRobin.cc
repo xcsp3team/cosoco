@@ -15,7 +15,7 @@ HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s) : HeuristicVar
     s.addObserverDeleteDecision(this);
 
     std::string sequence = "WPFC";
-    nbrestarts           = 10;
+    nbrestarts           = 1;
     for(auto c : sequence) {
         if(c == 'W')
             heuristics.push(new HeuristicVarDomWdeg(s));
@@ -41,4 +41,5 @@ void HeuristicVarRoundRobin::notifyFullBacktrack() {
             current = 0;
         heuristics[current]->start();
     }
+    //    std::cout << "Var : " << current << "\n";
 }

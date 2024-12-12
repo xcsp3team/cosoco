@@ -495,8 +495,8 @@ class FactoryConstraints {
         for(int i = 0; i < scope[posx]->domain.maxSize(); i++) {
             int v         = scope[posx]->domain.toVal(i);
             current[posx] = i;
-            if(sum + coeffs[posx] * v > limit)
-                return;
+            // if(sum + coeffs[posx] * v > limit)
+            //     return;
             sumEQToExtension(posx + 1, scope, coeffs, limit, tuples, current, sum + coeffs[posx] * v);
         }
     }
