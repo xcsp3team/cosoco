@@ -340,6 +340,7 @@ void Solver::newDecision(Variable *x, int idv) {
     for(Constraint *c : x->constraints) c->assignVariable(x);
     notifyNewDecision(x);
     x->domain.nAssignments[idv]++;
+    x->level = decisionLevel();
 }
 
 
@@ -409,6 +410,7 @@ void Solver::backtrack() {
 
     unassignedVariables.add(assigned);   // Unassign decision variable
     decisionVariables.add(assigned);
+    assigned->level = -1;
     for(Constraint *c : assigned->constraints)   // those constraints have to knwon
         c->unassignVariable(assigned);
     if(assigned->size() > 1)

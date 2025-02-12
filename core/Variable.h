@@ -27,6 +27,7 @@ class Variable {
     const std::string _name;         // I do not like _ but... useful for name() function
     Domain           &domain;        // The domain
     vec<Constraint *> constraints;   // Set of constraints where it occurs
+    int               level;         // the level of assignment
 
     // Datas used for some algorithms (some heuristics and so on...)
     double wdeg;   // The wdeg value

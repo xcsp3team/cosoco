@@ -8,7 +8,7 @@ using namespace Cosoco;
 
 // Construction and Initialisation
 Variable::Variable(Problem &p, std::string n, Domain &d, int id, int a)
-    : addToTrail(false), timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), wdeg(1), useless(false) { }
+    : addToTrail(false), timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), level(-1), wdeg(1), useless(false) { }
 
 
 void Variable::delayedConstruction(int id, int nbVars) {

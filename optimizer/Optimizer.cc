@@ -17,29 +17,30 @@ Optimizer::Optimizer(Problem &p)
       objectiveLB(nullptr),
       objectiveUB(nullptr),
       useDicothomicMode(false),
-      progressSaving(false) { }
+      progressSaving(false) {
+}
 
 
 void Optimizer::setSolver(Solver *s, Solution *solution) {
-    solver       = s;
+    solver = s;
     bestSolution = solution;
     solver->setVerbosity(1);
-    optimtype   = (static_cast<OptimizationProblem &>(solver->problem)).type;
+    optimtype = (static_cast<OptimizationProblem &>(solver->problem)).type;
     objectiveLB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
     objectiveUB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
     assert(objectiveLB != nullptr || objectiveUB != nullptr);
-    lower                    = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
-    upper                    = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();
-    best                     = optimtype == Minimize ? LONG_MAX : LONG_MIN;
+    lower = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
+    upper = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();
+    best = optimtype == Minimize ? LONG_MAX : LONG_MIN;
     solution->invertBestCost = invertBestCost;
-    solution->optimType      = optimtype;
-    if(options::boolOptions["bs"].value)
+    solution->optimType = optimtype;
+    if (options::boolOptions["bs"].value)
         addProgressSaving();
 }
 
 
 int Optimizer::solve(vec<RootPropagation> &assumps) {
-    if(solver == nullptr)
+    if (solver == nullptr)
         throw std::runtime_error("Solver is not attached to the optimizer!");
     return solveInOneDirection(assumps);
 }
@@ -47,16 +48,18 @@ int Optimizer::solve(vec<RootPropagation> &assumps) {
 
 int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     // Bounds are correctly initialized
+    bool soft = options::boolOptions["soft_restarts"].value;
+
     firstCall = true;
-    vec<int>             tuple;
+    vec<int> tuple;
     ObjectiveConstraint *objective = (optimtype == Minimize) ? objectiveUB : objectiveLB;
-    auto                 c         = dynamic_cast<Constraint *>(objective);
+    auto c = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
-    status                = RUNNING;
-    c->isDisabled         = true;   // Disable the objective
+    status = RUNNING;
+    c->isDisabled = true; // Disable the objective
     solver->checkSolution = true;
-    while(status == RUNNING) {
-        if(optimtype == Minimize)
+    while (status == RUNNING) {
+        if (optimtype == Minimize)
             objective->updateBound(upper);
         else
             objective->updateBound(lower);
@@ -66,50 +69,60 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         int ret = solver->solve(assumps);
 
-        c->isDisabled = false;   // Enable the objective
+        c->isDisabled = false; // Enable the objective
         callToSolver++;
-        if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
+        if (solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
             nbSolutions++;
             firstCall = false;
 
-            if(solver->restart != nullptr)
+            if (solver->restart != nullptr)
                 solver->restart->initialize();
 
-            if(solver->hasSolution()) {
+            if (solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
 
                 // Store solution in order to avoid a signal
                 bestSolution->begin(best);
-                for(int i = 0; i < solver->lastSolution.size(); i++)
+                for (int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
                 bestSolution->end(options::boolOptions["colors"].value);
 
-                if(progressSaving) {
+                if (progressSaving) {
                     vec<int> idvalues;
                     idvalues.growTo(solver->problem.nbVariables());
-                    for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
-                    ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
+                    for (Variable *x: solver->problem.variables)
+                        idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
+                    ((ForceIdvs *) solver->heuristicVal)->setIdValues(idvalues);
                 }
             }
 
-            if(optimtype == Minimize)
+            if (optimtype == Minimize)
                 upper = best - 1;
             else
                 lower = best + 1;
 
-            solver->fullBacktrack();
-            solver->reinitializeConstraints();
-
+            if (soft) {
+                int level = INT_MAX;
+                for (Variable *x: c->scope) {
+                    assert(x->level >= 0);
+                    if (level > x->level)
+                        level = x->level;
+                }
+                //std::cout << level << "\n";
+                solver->backtrack(level > 0 ? level - 1 : 0);
+                solver->reinitializeConstraints();
+            } else
+                solver->fullBacktrack();
         } else {
             status = OPTIMUM;
-            if(firstCall)
+            if (firstCall)
                 return R_UNSAT;
         }
         firstCall = false;
     }
 
-    if(nbSolutions > 0)
+    if (nbSolutions > 0)
         return R_OPT;
 
 
@@ -117,11 +130,12 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 }
 
 
-void Optimizer::notifyConflict(Constraint *c, int level) { }
+void Optimizer::notifyConflict(Constraint *c, int level) {
+}
 
 
 void Optimizer::displayCurrentSolution() {
-    if(bestSolution->exists())
+    if (bestSolution->exists())
         bestSolution->display();
 }
 
