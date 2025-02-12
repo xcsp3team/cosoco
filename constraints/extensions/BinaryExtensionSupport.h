@@ -11,6 +11,10 @@ class BinaryExtensionSupport : public Extension {
     vec<vec<int>> supportsForX;
     vec<vec<int>> supportsForY;
 
+    vec<int> resx;   // residue for x
+    vec<int> resy;   // residue for y
+
+
    public:
     // Constructors and initialisation
     BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *x, Variable *y);

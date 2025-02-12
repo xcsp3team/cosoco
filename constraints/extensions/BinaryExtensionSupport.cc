@@ -33,10 +33,14 @@ bool BinaryExtensionSupport::filter(Variable *dummy) {
     }
 
     for(int idvx : x->domain) {
+        if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
+            continue;
         int pos = 0;
         for(int idvy : supportsForX[idvx]) {
-            if(y->containsIdv(idvy))
+            if(y->containsIdv(idvy)) {
+                resx[idvx] = idvy;
                 break;
+            }
             pos++;
         }
         if(pos == supportsForX[idvx].size() && solver->delIdv(x, idvx) == false)
@@ -50,10 +54,14 @@ bool BinaryExtensionSupport::filter(Variable *dummy) {
     }
 
     for(int idvy : y->domain) {
+        if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
+            continue;
         int pos = 0;
         for(int idvx : supportsForY[idvy]) {
-            if(x->containsIdv(idvx))
+            if(x->containsIdv(idvx)) {
+                resy[idvy] = idvx;
                 break;
+            }
             pos++;
         }
         if(pos == supportsForY[idvy].size() && solver->delIdv(y, idvy) == false)
@@ -79,6 +87,8 @@ BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, std::string n, bool s
     supportsForX.growTo(x->domain.maxSize());
     supportsForY.growTo(y->domain.maxSize());
     type = "Extension Binary Support";
+    resx.growTo(x->domain.maxSize(), -1);
+    resy.growTo(y->domain.maxSize(), -1);
 }
 
 
@@ -91,6 +101,8 @@ BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, std::string n, bool s
     for(int i = 0; i < hasSameTuples->supportsForY.size(); i++) hasSameTuples->supportsForY[i].copyTo(supportsForY[i]);
     nbtuples = hasSameTuples->nbtuples;
     type     = "Extension Binary Support";
+    resx.growTo(x->domain.maxSize(), -1);
+    resy.growTo(y->domain.maxSize(), -1);
 }
 
 
