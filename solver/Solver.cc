@@ -47,7 +47,7 @@ Solver::Solver(Problem &p)
     statistics.growTo(NBSTATS, 0);
     localstatistics.growTo(NBLOCALSTATS, 0);
     problem.attachSolver(this);
-    lastSolutionRun     = 0;
+    lastSolutionRun     = -1;
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;

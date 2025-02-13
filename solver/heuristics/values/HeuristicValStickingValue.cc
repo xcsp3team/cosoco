@@ -15,7 +15,9 @@ int HeuristicValStickingValue::select(Variable *x) {
         return x->domain[0];
     }
     int lv = lastValue[x->idx];
-    if(lv != -1 && x->domain.containsIdv(lv))
+    if(solver.lastSolutionRun == -1 && lv != -1 && x->domain.containsIdv(lv)) {
+        lastValue[x->idx] = -1;
         return lv;
+    }
     return hv->select(x);
 }
