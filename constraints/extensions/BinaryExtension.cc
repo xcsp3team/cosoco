@@ -33,6 +33,7 @@ bool BinaryExtension::filter(Variable *dummy) {
             for(int idvy : y->domain) {
                 if((isSupport && (*matrix)[idvx][idvy] == true) || (!isSupport && (*matrix)[idvx][idvy] == false)) {
                     resx[idvx] = idvy;
+                    resy[idvy] = idvx;
                     found      = true;
                     break;
                 }

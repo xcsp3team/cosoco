@@ -39,6 +39,7 @@ bool BinaryExtensionSupport::filter(Variable *dummy) {
         for(int idvy : supportsForX[idvx]) {
             if(y->containsIdv(idvy)) {
                 resx[idvx] = idvy;
+                resy[idvy] = idvx;
                 break;
             }
             pos++;
