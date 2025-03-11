@@ -134,6 +134,7 @@ Solver::Solver(Problem &p)
     if(options::boolOptions["nogoods"].value)
         addNoGoodsFromRestarts();
 
+    checkSolution = options::boolOptions["checksolutions"].value;
     /*if(annotations && cb.decisionVariables[core].size() != 0)
         S->setDecisionVariables(cb.decisionVariables[core]);
     else {

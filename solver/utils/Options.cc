@@ -8,13 +8,15 @@ std::map<std::string, Cosoco::options::int_opt>    intOptions;
 std::map<std::string, Cosoco::options::double_opt> doubleOptions;
 
 void createOptions() {
-    intOptions["cpu_lim"]  = {"MAIN", "Limit on CPU time allowed in seconds", 0, 0, INT_MAX};
-    intOptions["mem_lim"]  = {"MAIN", "Limit on MEM time allowed in megabytes", 0, 0, INT_MAX};
-    intOptions["verb"]     = {"MAIN", "Verbosity level (0=silent, 1=some, 2=more, 3=full, 4=fullfull).", 1, 0, 4};
-    intOptions["nbsols"]   = {"MAIN", "Number of solutions to find", 1, 0, INT_MAX};
-    boolOptions["model"]   = {"MAIN", "Display models", 0};
-    boolOptions["colors"]  = {"MAIN", "Add colors to output", 1};
-    boolOptions["profile"] = {"MAIN", "Profile the solver", 0};
+    intOptions["cpu_lim"]         = {"MAIN", "Limit on CPU time allowed in seconds", 0, 0, INT_MAX};
+    intOptions["mem_lim"]         = {"MAIN", "Limit on MEM time allowed in megabytes", 0, 0, INT_MAX};
+    intOptions["verb"]            = {"MAIN", "Verbosity level (0=silent, 1=some, 2=more, 3=full, 4=fullfull).", 1, 0, 4};
+    intOptions["nbsols"]          = {"MAIN", "Number of solutions to find", 1, 0, INT_MAX};
+    boolOptions["model"]          = {"MAIN", "Display models", true};
+    boolOptions["colors"]         = {"MAIN", "Add colors to output", true};
+    boolOptions["profile"]        = {"MAIN", "Profile the solver", false};
+    boolOptions["checksolutions"] = {"MAIN", "Check all solutions", true};
+
 
     boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
     intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
