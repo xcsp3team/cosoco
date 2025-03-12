@@ -1,6 +1,8 @@
 #ifndef FACTORYCONSTRAINTS_H
 #define FACTORYCONSTRAINTS_H
 
+#include <BinaryExtensionSupport.h>
+
 #include <iostream>
 #include <regex>
 
@@ -219,16 +221,17 @@ class FactoryConstraints {
                                               bool isSupport, bool hasStar = false) {
         Extension *ctr = nullptr;
         if(vars.size() == 2) {
-            if(isSupport)
-                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+
+            if(isSupport && max_size > options::intConstants["large_bin_extension"])
+                ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
             else
-                ctr = new STRNeg(*p, name, vars, tuples.size());
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+
         } else {
             if(isSupport) {
-                if(options::boolOptions["ct"].value)
-                    ctr = new CompactTable(*p, name, vars, tuples.size());
-                else
-                    ctr = new ShortSTR2(*p, name, vars, tuples.size());
+                // ctr = new CompactTable(*p, name, vars, tuples.size());
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
             } else {
                 assert(hasStar == false);   // TODO
                 ctr = new STRNeg(*p, name, vars, tuples.size());
@@ -258,20 +261,18 @@ class FactoryConstraints {
         }
 
         if(vars.size() == 2) {
-            if(sameConstraint->isSupport)
+            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+            if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
+                ctr = new BinaryExtensionSupport(*p, name, sameConstraint->isSupport, vars[0], vars[1],
+                                                 (BinaryExtensionSupport *)sameConstraint);
+            else
                 ctr =
                     new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
-            else
-                ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
         }
         if(vars.size() > 2) {
-            if(sameConstraint->isSupport) {
-                //    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
-                if(options::boolOptions["ct"].value)
-                    ctr = new CompactTable(*p, name, vars, sameConstraint->tuples);
-                else
-                    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
-            } else
+            if(sameConstraint->isSupport)
+                ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+            else
                 ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
         }
         p->addConstraint(ctr);

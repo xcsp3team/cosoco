@@ -37,8 +37,8 @@ extern std::map<std::string, str_opt>    stringOptions;
 extern std::map<std::string, bool_opt>   boolOptions;
 extern std::map<std::string, int_opt>    intOptions;
 extern std::map<std::string, double_opt> doubleOptions;
-
-void createOptions();
+extern std::map<std::string, int>        intConstants;
+void                                     createOptions();
 
 }   // namespace options
 }   // namespace Cosoco

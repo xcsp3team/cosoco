@@ -6,6 +6,7 @@ std::map<std::string, Cosoco::options::str_opt>    stringOptions;
 std::map<std::string, Cosoco::options::bool_opt>   boolOptions;
 std::map<std::string, Cosoco::options::int_opt>    intOptions;
 std::map<std::string, Cosoco::options::double_opt> doubleOptions;
+std::map<std::string, int>                         intConstants;
 
 void createOptions() {
     intOptions["cpu_lim"]         = {"MAIN", "Limit on CPU time allowed in seconds", 0, 0, INT_MAX};
@@ -37,6 +38,8 @@ void createOptions() {
                          INT_MAX};
     stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
     boolOptions["decompose"]       = {"PARSE", "decompose intension using reification.", true};
+
+    intConstants["large_bin_extension"] = 1000;
 }
 
 
