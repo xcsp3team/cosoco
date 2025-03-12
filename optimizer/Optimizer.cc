@@ -23,7 +23,7 @@ Optimizer::Optimizer(Problem &p)
 void Optimizer::setSolver(Solver *s, Solution *solution) {
     solver       = s;
     bestSolution = solution;
-    solver->setVerbosity(1);
+    solver->setVerbosity(options::intOptions["verb"].value);
     optimtype   = (static_cast<OptimizationProblem &>(solver->problem)).type;
     objectiveLB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
     objectiveUB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
