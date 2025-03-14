@@ -2,6 +2,7 @@
 #define COSOCO_COSOCOCALLBACKS_H
 
 #include <numeric>
+#include <set>
 #include <utility>
 
 #include "FactoryConstraints.h"
