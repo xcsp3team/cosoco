@@ -7,6 +7,7 @@
 #include "XCSP3Tree.h"
 #include "mtl/Map.h"
 #include "solver/utils/FactoryConstraints.h"
+#include "solver/utils/Options.h"
 #include "utils/Utils.h"
 
 
