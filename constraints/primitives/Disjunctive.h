@@ -2,6 +2,7 @@
 #define COSOCO_DISJUNCTIVE_H
 
 #include <constraints/globals/GlobalConstraint.h>
+
 #include "constraints/Binary.h"
 
 
@@ -23,12 +24,12 @@ class Disjunctive : public Binary {
 
 class Disjunctive2D : public GlobalConstraint {
    protected:
-    Variable *x1, *x2, *y1, *y2;
+    Variable *x1, *x2, *y1, *y2, *z;
     int       w1, w2, h1, h2;
 
    public:
-    Disjunctive2D(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2, int ww1, int ww2, int hh1,
-                int hh2);
+    Disjunctive2D(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2, int ww1, int ww2,
+                  int hh1, int hh2, Variable *z);
 
     // filtering
     bool filter(Variable *x) override;

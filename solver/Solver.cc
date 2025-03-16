@@ -727,6 +727,16 @@ bool Solver::delValuesInRange(Variable *x, int start, int stop) {
     return true;
 }
 
+bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {
+    if(isAssigned(x) == false)
+        if(delValuesGreaterOrEqualThan(x, y->maximum() - k + 1) == false)
+            return false;
+
+    if(isAssigned(y) == false)
+        if(delValuesLowerOrEqualThan(y, x->minimum() + k - 1) == false)
+            return false;
+    return true;
+}
 
 //----------------------------------------------
 // Observers methods

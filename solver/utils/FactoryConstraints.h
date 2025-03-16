@@ -169,7 +169,7 @@ void createConstraintNoOverlap(Problem *p, std::string name, Variable *x1, Varia
 void createConstraintDisjunctiveVars(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *w1, Variable *w2);
 
 void createConstraintDisjunctive2D(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1, Variable *y2, int w1,
-                                   int w2, int h1, int h2);
+                                   int w2, int h1, int h2, Variable *aux);
 //-----------------------------------------------------------------------
 
 void createConstraintMaximumLE(Problem *p, std::string name, vec<Variable *> &vars, int k);

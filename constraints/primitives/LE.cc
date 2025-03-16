@@ -14,16 +14,7 @@ bool Le::isSatisfiedBy(vec<int> &tuple) { return tuple[0] + k <= tuple[1]; }
 // Filtering
 //----------------------------------------------
 
-bool Le::filter(Variable *dummy) {
-    if(solver->isAssigned(x) == false)
-        if(solver->delValuesGreaterOrEqualThan(x, y->maximum() - k + 1) == false)
-            return false;
-
-    if(solver->isAssigned(y) == false)
-        if(solver->delValuesLowerOrEqualThan(y, x->minimum() + k - 1) == false)
-            return false;
-    return true;
-}
+bool Le::filter(Variable *dummy) { return solver->enforceLE(x, y, k); }
 
 //----------------------------------------------
 // Construction and initialisation
