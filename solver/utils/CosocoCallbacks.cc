@@ -994,19 +994,24 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
 
-
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
+            string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            buildVariableInteger(auxVar, 0, 3);
+            Variable *aux = problem->mapping[auxVar];
+            Variable *xi  = problem->mapping[origins[i][0]->id];
+            Variable *xj  = problem->mapping[origins[j][0]->id];
+            Variable *yi  = problem->mapping[origins[i][1]->id];
+            Variable *yj  = problem->mapping[origins[j][1]->id];
+            Variable *wi  = problem->mapping[lengths[i][0]->id];
+            Variable *wj  = problem->mapping[lengths[j][0]->id];
+            Variable *hi  = problem->mapping[lengths[i][1]->id];
+            Variable *hj  = problem->mapping[lengths[j][1]->id];
+
+
             string le1 = "le(add(" + origins[i][0]->id + "," + lengths[i][0]->id + ")," + origins[j][0]->id + ")";
             string le2 = "le(add(" + origins[j][0]->id + "," + lengths[j][0]->id + ")," + origins[i][0]->id + ")";
-
-            std::stringstream stream;
-            string            le3 = "le(add(" + origins[i][1]->id + "," + lengths[i][1]->id + ")," + origins[j][1]->id + ")";
-            string            le4 = "le(add(" + origins[j][1]->id + "," + lengths[j][1]->id + ")," + origins[i][1]->id + ")";
-            stream << "or(" << le1 << "," << le2 << "," << le3 << "," << le4 << ")";
-            string tmp = stream.str();
-            // intension(or(le(add(x1, w1), x2), le(add(x2, w2), x1), le(add(y1, h1), y2), le(add(y2, h2), y1)));
-            buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
+            FactoryConstraints::createConstraintDisjunctive2DVar(problem, id, xi, xj, yi, yj, wi, wj, hi, hj, aux);
         }
     }
 }

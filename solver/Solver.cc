@@ -738,6 +738,12 @@ bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {
     return true;
 }
 
+bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variable *z) {
+    return delValuesGreaterOrEqualThan(x, z->maximum() - y->minimum() + 1) &&
+           delValuesGreaterOrEqualThan(y, z->maximum() - x->minimum() + 1) &&
+           delValuesLowerOrEqualThan(z, x->minimum() + y->minimum() - 1);
+}
+
 //----------------------------------------------
 // Observers methods
 //----------------------------------------------

@@ -701,6 +701,13 @@ void FactoryConstraints::createConstraintDisjunctive2D(Problem *p, std::string n
                                                        Variable *y2, int w1, int w2, int h1, int h2, Variable *z) {
     p->addConstraint(new Disjunctive2D(*p, name, x1, x2, y1, y2, w1, w2, h1, h2, z));
 }
+
+void FactoryConstraints::createConstraintDisjunctive2DVar(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
+                                                          Variable *y2, Variable *w1, Variable *w2, Variable *h1, Variable *h2,
+                                                          Variable *z) {
+    p->addConstraint(new Disjunctive2DVar(*p, name, x1, x2, y1, y2, w1, w2, h1, h2, z));
+}
+//
 //-----------------------------------------------------------------------
 
 void FactoryConstraints::createConstraintMaximumLE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
