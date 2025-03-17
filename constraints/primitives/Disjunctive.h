@@ -1,19 +1,18 @@
 #ifndef COSOCO_DISJUNCTIVE_H
 #define COSOCO_DISJUNCTIVE_H
 
+#include <Ternary.h>
 #include <constraints/globals/GlobalConstraint.h>
-
-#include "constraints/Binary.h"
 
 
 namespace Cosoco {
-class Disjunctive : public Binary {
+class Disjunctive : public Ternary {
    protected:
     int  lx, ly;
     bool filterDomain(Variable *x, int lb, int ub);
 
    public:
-    Disjunctive(Problem &p, std::string n, Variable *xx, Variable *yy, int ll1, int ll2);
+    Disjunctive(Problem &p, std::string n, Variable *xx, Variable *yy, int ll1, int ll2, Variable *z);
 
     // filtering
     bool filter(Variable *x) override;

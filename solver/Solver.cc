@@ -727,7 +727,7 @@ bool Solver::delValuesInRange(Variable *x, int start, int stop) {
     return true;
 }
 
-bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {
+bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {   // x + k <= y
     if(isAssigned(x) == false)
         if(delValuesGreaterOrEqualThan(x, y->maximum() - k + 1) == false)
             return false;

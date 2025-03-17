@@ -971,8 +971,12 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
 
     toMyVariables(origins);
     for(int i = 0; i < vars.size(); i++)
-        for(int j = i + 1; j < vars.size(); j++)
-            FactoryConstraints::createConstraintNoOverlap(problem, id, vars[i], vars[j], lengths[i], lengths[j]);
+        for(int j = i + 1; j < vars.size(); j++) {
+            string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            buildVariableInteger(auxVar, 0, 3);
+            Variable *aux = problem->mapping[auxVar];
+            FactoryConstraints::createConstraintDisjunctive(problem, id, vars[i], vars[j], lengths[i], lengths[j], aux);
+        }
 }
 
 void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,

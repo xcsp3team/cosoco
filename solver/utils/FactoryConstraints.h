@@ -164,7 +164,7 @@ void createConstraintChannel(Problem *p, string name, vec<Variable *> &vars, int
 
 //-----------------------------------------------------------------------
 
-void createConstraintNoOverlap(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2);
+void createConstraintDisjunctive(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2, Variable *aux);
 
 void createConstraintDisjunctiveVars(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *w1, Variable *w2);
 

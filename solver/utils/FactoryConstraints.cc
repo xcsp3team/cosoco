@@ -686,8 +686,9 @@ void FactoryConstraints::createConstraintChannel(Problem *p, string name, vec<Va
 
 //-----------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintNoOverlap(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2) {
-    p->addConstraint(new Disjunctive(*p, name, x1, x2, w1, w2));
+void FactoryConstraints::createConstraintDisjunctive(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2,
+                                                     Variable *aux) {
+    p->addConstraint(new Disjunctive(*p, name, x1, x2, w1, w2, aux));
     // string tmp = "or(le(add(" + x1->_name + "," + to_string(w1) + ")," + x2->_name + "),le(add(" + x2->_name + "," +
     // to_string(w2) + ")," + x1->_name + "))"; createConstraintIntension(p, "no overlap", tmp);
 }
