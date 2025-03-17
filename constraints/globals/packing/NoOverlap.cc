@@ -43,11 +43,10 @@ bool NoOverlap::filter(Variable *dummy) {
 // optimizations are possible ; to be done
 bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2, vec<vec<int> > &residues) {
     for(int i = 0; i < half; i++) {
-        Variable *x11 = x1[i];
-    externe:
-        for(int idv : x11->domain) {
-            int v = x11->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
-
+        Variable *dom1 = x1[i];
+        for(int k = 0; k < dom1->domain.size(); k++) {
+            int idv = dom1->domain[k];
+            int v   = dom1->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
             // we compute the set of tasks overlapping on the first axis wrt (x1[i],v)
             overlappings.clear();
             for(int j = 0; j < half; j++)
@@ -66,25 +65,28 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
                 // boxes
                 // a kind of k-wise consistency is used (see paper about sweep for information about the principle)
                 // also, a local form of energetic reasoning is used
-                Variable *x22     = x2[i];
+                Variable *dom2    = x2[i];
                 int       residue = residues[i][idv];
-                if(x22->containsIdv(residue)) {
-                    int w = x22->domain.toVal(residue);
-                    if(findSupport(x1, t1, x2, t2, w, w + t2[i]))
-                        goto externe;
-                }
-                for(int idvb : x22->domain) {
-                    if(idvb == residue)
-                        continue;
-                    int w = x22->domain.toVal(idvb);
+                if(dom2->domain.containsIdv(residue)) {
+                    int w = dom2->domain.toVal(residue);
                     if(findSupport(x1, t1, x2, t2, w, w + t2[i])) {
-                        residues[i][idv] = idvb;
-                        goto externe;
+                        k = dom1->size();
+                        continue;
+                    }
+                }
+                for(int idv2 : dom2->domain) {
+                    if(idv2 == residue)
+                        continue;
+                    int w = dom2->domain.toVal(idv2);
+                    if(findSupport(x1, t1, x2, t2, w, w + t2[i])) {
+                        residues[i][idv] = idv2;
+                        k                = dom1->size() + 1;
+                        break;
                     }
                 }
             }
             // at this step, no support has been found
-            if(solver->delIdv(x11, idv) == false)
+            if(k < dom1->size() && solver->delIdv(dom1, idv) == false)
                 return false;
         }
     }
