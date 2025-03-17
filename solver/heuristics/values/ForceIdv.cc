@@ -1,13 +1,15 @@
 #include "ForceIdv.h"
 
+#include <Options.h>
 #include <core/OptimizationProblem.h>
 
 #include "solver/Solver.h"
 
 using namespace Cosoco;
 
-ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : HeuristicVal(s), hv(h), conflictAlreadySeen(false), onlyOnce(oo) {
-    s.addObserverConflict(this);
+ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : HeuristicVal(s), hv(h), conflictAlreadySeen(false) {
+    s.addObserverDeleteDecision(this);
+    restartWithSolution = 0;
     idvs.growTo(solver.problem.nbVariables(), -1);
     if(values != nullptr) {
         int i = 0;
@@ -17,31 +19,43 @@ ForceIdvs::ForceIdvs(Solver &s, HeuristicVal *h, bool oo, vec<int> *values) : He
             i++;
         }
     }
+    rr = options::intOptions["rr"].value;
+    if(rr)
+        isDisabled = true;
 }
 
-void ForceIdvs::notifyConflict(Constraint *c, int level) {
-    return;
-    if(onlyOnce == false)
-        return;
-    if(conflictAlreadySeen)
-        return;
-    idvs.fill(-1);
-    conflictAlreadySeen = true;
-}
+void ForceIdvs::setIdValues(vec<int> &v) { v.copyTo(idvs); }
 
+
+void ForceIdvs::notifyFullBacktrack() {
+    uint64_t nbrestarts = solver.statistics[restarts];
+
+    if(rr && restartWithSolution == 0 && solver.nbSolutions == 1)
+        restartWithSolution = nbrestarts + 12;
+
+    if(rr && isDisabled && restartWithSolution > 0 && solver.statistics[restarts] >= restartWithSolution) {
+        solver.verbose.log(NORMAL, "c Enable BS\n");
+        isDisabled = false;
+    }
+
+
+    if(rr == 2 && isDisabled == false && restartWithSolution + 100 == nbrestarts) {
+        isDisabled = true;
+        solver.verbose.log(NORMAL, "c Disable BS\n");
+        restartWithSolution = nbrestarts + 12;
+    }
+}
 
 int ForceIdvs::select(Variable *x) {
-    if(x->size() == 1) {
+    if(x->size() == 1)
         return x->domain[0];
-    }
+
+
+    if(isDisabled)
+        return hv->select(x);
 
     int lv = idvs[x->idx];
     if(lv != -1 && x->domain.containsIdv(lv))
         return lv;
     return hv->select(x);
-}
-
-void ForceIdvs::setIdValues(vec<int> &v) {
-    v.copyTo(idvs);
-    conflictAlreadySeen = false;
 }

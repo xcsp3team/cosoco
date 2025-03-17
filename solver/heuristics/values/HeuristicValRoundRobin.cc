@@ -13,6 +13,10 @@
 using namespace Cosoco;
 
 HeuristicValRoundRobin::HeuristicValRoundRobin(Solver &s, std::string &sequence) : HeuristicVal(s) {
+    s.addObserverDeleteDecision(this);
+    nbrestarts = 1;
+    current    = 0;
+
     for(auto c : sequence) {
         if(c == 'F')
             heuristics.push(new HeuristicValFirst(s));
@@ -26,5 +30,17 @@ HeuristicValRoundRobin::HeuristicValRoundRobin(Solver &s, std::string &sequence)
             heuristics.push(new HeuristicValASGS(s));
     }
 }
+int HeuristicValRoundRobin::select(Variable *x) { return heuristics[current]->select(x); }
 
-int HeuristicValRoundRobin::select(Variable *x) { return heuristics[solver.statistics[restarts] % heuristics.size()]->select(x); }
+
+void HeuristicValRoundRobin::notifyFullBacktrack() {
+    if(solver.statistics[restarts] == 0)
+        return;
+
+    if(solver.statistics[restarts] % nbrestarts == 0) {
+        current++;
+        if(current >= heuristics.size())
+            current = 0;
+    }
+    // std::cout << "Current Val : " << current << " ";
+}

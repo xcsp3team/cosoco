@@ -5,20 +5,25 @@
 #ifndef COSOCO_HEURISTICVALROUNDROBIN_H
 #define COSOCO_HEURISTICVALROUNDROBIN_H
 
+#include <ObserverDecision.h>
+
 #include "HeuristicVal.h"
 #include "HeuristicValRandom.h"
 
 
 namespace Cosoco {
 
-class HeuristicValRoundRobin : public HeuristicVal {
+class HeuristicValRoundRobin : public HeuristicVal, ObserverDeleteDecision {
+   public:
     vec<HeuristicVal *> heuristics;
 
-   public:
+    int current;
+    int nbrestarts;
+
     HeuristicValRoundRobin(Solver &s, std::string &sequence);
 
-
-    int select(Variable *x) override;
+    void notifyFullBacktrack() override;
+    int  select(Variable *x) override;
 };
 
 
