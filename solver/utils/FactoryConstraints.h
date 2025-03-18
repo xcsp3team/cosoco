@@ -164,13 +164,16 @@ void createConstraintChannel(Problem *p, string name, vec<Variable *> &vars, int
 
 //-----------------------------------------------------------------------
 
-void createConstraintNoOverlap(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2);
+void createConstraintDisjunctive(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2, Variable *aux);
 
 void createConstraintDisjunctiveVars(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *w1, Variable *w2);
 
 void createConstraintDisjunctive2D(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1, Variable *y2, int w1,
-                                   int w2, int h1, int h2);
-//-----------------------------------------------------------------------
+                                   int w2, int h1, int h2, Variable *aux);
+
+void createConstraintDisjunctive2DVar(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1, Variable *y2,
+                                      Variable *w1, Variable *w2, Variable *h1, Variable *h2,
+                                      Variable *aux);   //-----------------------------------------------------------------------
 
 void createConstraintMaximumLE(Problem *p, std::string name, vec<Variable *> &vars, int k);
 

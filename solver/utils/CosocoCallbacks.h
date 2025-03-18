@@ -77,6 +77,13 @@ class ManageIntension {
     void extractVariables(Node *node, vector<string> &listOfVariables);
 };
 
+class Disj {
+   public:
+    string x, y;
+    int    lx, ly;
+    Disj(string xx, string yy, int llx, int lly);
+    bool same(string xx, string yy, int llx, int lly);
+};
 
 class CosocoCallbacks : public XCSP3CoreCallbacks {
     friend class ManageIntension;
@@ -230,6 +237,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     map<string, string> expressionsToAuxiliaryVariables;
     vector<XVariable *> previousArgument;
     int                 nbIntension2Extention;
+    vec<Disj *>         allDisjunctives;
 
    public:
     int                    nbcores;

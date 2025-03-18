@@ -33,26 +33,22 @@ bool Disjunctive::filterDomain(Variable *z, int lbValue, int ubValue) {
 
 
 bool Disjunctive::filter(Variable *xx) {
+    if(x->maximum() + lx <= y->minimum())   // x + wx <= y => z = 0
+        if(solver->delVal(z, 1) == false)
+            return false;
+    if(y->maximum() + ly <= x->minimum())   // y + wy <= x => z = 1
+        if(solver->delVal(z, 0) == false)
+            return false;
+
+    if(z->maximum() == 0)   // z = 0 => x + wx <= y
+        return solver->enforceLE(x, y, lx);
+    if(z->minimum() == 1)   // z = 1 => y + wy <= x
+        return solver->enforceLE(y, x, ly);
+
     if(solver->delValuesInRange(x, y->maximum() - lx + 1, y->minimum() + ly) == false)
         return false;
     if(solver->delValuesInRange(y, x->maximum() - ly + 1, x->minimum() + lx) == false)
         return false;
-    return true;
-    // return dx.removeValuesInRange(dy.lastValue() - kx + 1, dy.firstValue() + ky)
-    //        && dy.removeValuesInRange(dx.lastValue() - ky + 1, dx.firstValue() + kx);
-    // return ;
-    /*
-        while(true) {
-            int minx = x->minimum(), maxx = x->maximum();
-            int miny = y->minimum(), maxy = y->maximum();
-            if(filterDomain(x, std::max(minx, std::min(maxx, maxy - lx) + 1), std::min(maxx, std::max(minx, miny + ly) - 1)) ==
-       false) return false; if(filterDomain(y, std::max(miny, std::min(maxy, maxx - ly) + 1), std::min(maxy, std::max(miny, minx +
-       lx) - 1)) == false) return false;
-
-            if(minx == x->minimum() && maxx == x->maximum() && miny == y->minimum() && maxy == y->maximum())
-                break;
-        }
-        */
     return true;
 }
 
@@ -60,7 +56,7 @@ bool Disjunctive::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-Disjunctive::Disjunctive(Problem &p, std::string n, Variable *xx, Variable *yy, int ll1, int ll2)
-    : Binary(p, n, xx, yy), lx(ll1), ly(ll2) {
+Disjunctive::Disjunctive(Problem &p, std::string n, Variable *xx, Variable *yy, int ll1, int ll2, Variable *zz)
+    : Ternary(p, n, xx, yy, zz), lx(ll1), ly(ll2) {
     type = "Disjunctive";
 }

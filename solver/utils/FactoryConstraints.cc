@@ -686,8 +686,9 @@ void FactoryConstraints::createConstraintChannel(Problem *p, string name, vec<Va
 
 //-----------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintNoOverlap(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2) {
-    p->addConstraint(new Disjunctive(*p, name, x1, x2, w1, w2));
+void FactoryConstraints::createConstraintDisjunctive(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2,
+                                                     Variable *aux) {
+    p->addConstraint(new Disjunctive(*p, name, x1, x2, w1, w2, aux));
     // string tmp = "or(le(add(" + x1->_name + "," + to_string(w1) + ")," + x2->_name + "),le(add(" + x2->_name + "," +
     // to_string(w2) + ")," + x1->_name + "))"; createConstraintIntension(p, "no overlap", tmp);
 }
@@ -698,9 +699,16 @@ void FactoryConstraints::createConstraintDisjunctiveVars(Problem *p, std::string
 }
 
 void FactoryConstraints::createConstraintDisjunctive2D(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
-                                                       Variable *y2, int w1, int w2, int h1, int h2) {
-    p->addConstraint(new Disjunctive2D(*p, name, x1, x2, y1, y2, w1, w2, h1, h2));
+                                                       Variable *y2, int w1, int w2, int h1, int h2, Variable *z) {
+    p->addConstraint(new Disjunctive2D(*p, name, x1, x2, y1, y2, w1, w2, h1, h2, z));
 }
+
+void FactoryConstraints::createConstraintDisjunctive2DVar(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
+                                                          Variable *y2, Variable *w1, Variable *w2, Variable *h1, Variable *h2,
+                                                          Variable *z) {
+    p->addConstraint(new Disjunctive2DVar(*p, name, x1, x2, y1, y2, w1, w2, h1, h2, z));
+}
+//
 //-----------------------------------------------------------------------
 
 void FactoryConstraints::createConstraintMaximumLE(Problem *p, std::string name, vec<Variable *> &vars, int k) {

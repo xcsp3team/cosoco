@@ -169,9 +169,9 @@ class Solver : public AbstractSolver {
     bool delValuesInDomain(Variable *x, Domain &d);
     bool delValuesNotInDomain(Variable *x, Domain &d);
     bool changeDomain(Variable *x, SparseSet &newIdvalues);
-    bool delValuesInRange(Variable *x, int min, int max);   // del values from min to max excluded
-
-
+    bool delValuesInRange(Variable *x, int min, int max);    // del values from min to max excluded
+    bool enforceLE(Variable *x, Variable *y, int k);         // x + k <= y
+    bool enforceLE(Variable *x, Variable *y, Variable *z);   // x + y <= z
     // --------------------------------------------------------------------------------------
     // Observers methods
     // --------------------------------------------------------------------------------------
