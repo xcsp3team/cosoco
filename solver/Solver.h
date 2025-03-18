@@ -11,7 +11,6 @@
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
-#include "mtl/SparseSetCounter.h"
 #include "mtl/SparseSetMultiLevel.h"
 #include "mtl/SparseSetOfVariables.h"
 #include "mtl/Vec.h"
@@ -19,6 +18,7 @@
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
 #include "restarts/Restart.h"
+#include "solver/utils/PropagationQueue.h"
 
 namespace Cosoco {
 #define NBSTATS 3
@@ -76,7 +76,7 @@ class Solver : public AbstractSolver {
     HeuristicVal *heuristicVal;        // The heuristic to choose values
     Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
-    SparseSetOfVariables   queue;                       // Propagation queue
+    PropagationQueue       queue;                       // Propagation queue
     Constraint            *currentFilteredConstraint;   // The constraint that is filtered
     vec<PickVariables>     pickVariables;               // The set of picking variables history
     std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point

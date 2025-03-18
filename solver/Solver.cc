@@ -40,7 +40,7 @@ Solver::Solver(Problem &p)
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
-      queue(p.nbVariables(), p.variables) {
+      queue(p.nbVariables()) {
     heuristicVar = nullptr;
     heuristicVal = nullptr;
     statistics.growTo(NBSTATS, 0);
@@ -474,17 +474,8 @@ void Solver::addToQueue(Variable *x) {
 
 
 Variable *Solver::pickInQueue() {   // Select the variable with the smallest domain
-    int       minDomain = INT_MAX;
-    Variable *x         = nullptr;
-    for(int i = 0; i < queue.size(); i++) {
-        int curSize = queue[i]->size();
-        if(curSize < minDomain) {
-            minDomain = curSize;
-            x         = queue[i];
-        }
-    }
+    Variable *x = queue.pickInQueue();
     assert(x != nullptr);
-    queue.del(x);
     return x;
 }
 
@@ -563,10 +554,10 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
 
 
 Constraint *Solver::propagateComplete() {
-    assert(queue.isEmpty());
+    assert(queue.size() == 0);
     assert(decisionLevel() == 0);
 
-    queue.fill();
+    queue.fill(problem.variables);
     for(Variable *x : problem.variables) x->timestamp = ++timestamp;
 
     return propagate();
