@@ -77,6 +77,7 @@ class Solver : public AbstractSolver {
     Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
     SparseSetOfVariables   queue;                       // Propagation queue
+    int                    smallest_in_queue;           // Smallest domain size in queue
     Constraint            *currentFilteredConstraint;   // The constraint that is filtered
     vec<PickVariables>     pickVariables;               // The set of picking variables history
     std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point

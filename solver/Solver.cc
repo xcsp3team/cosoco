@@ -468,6 +468,8 @@ void Solver::doRestart() {
 //----------------------------------------------
 
 void Solver::addToQueue(Variable *x) {
+    if(smallest_in_queue > x->size())
+        smallest_in_queue = x->size();
     queue.add(x);
     x->timestamp = ++timestamp;
 }
@@ -478,13 +480,17 @@ Variable *Solver::pickInQueue() {   // Select the variable with the smallest dom
     Variable *x         = nullptr;
     for(int i = 0; i < queue.size(); i++) {
         int curSize = queue[i]->size();
+
         if(curSize < minDomain) {
             minDomain = curSize;
             x         = queue[i];
+            if(minDomain <= smallest_in_queue)
+                break;
         }
     }
     assert(x != nullptr);
     queue.del(x);
+    smallest_in_queue = minDomain;
     return x;
 }
 
@@ -521,6 +527,8 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
     currentFilteredConstraint = nullptr;
     postponeFiltering.clear();   // The filtering starts here
     pickVariables.clear();
+    smallest_in_queue = INT_MAX;
+
     while(true) {
         while(queue.size() > 0) {
             Variable *x = pickInQueue();
