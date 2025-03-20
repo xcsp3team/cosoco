@@ -69,6 +69,10 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
+        if(options::boolOptions["dsp"].value) {
+            execlp("python3", "python3", "structure.py", argv[1], NULL);
+            exit(1);
+        }
 
         limitRessourcesUsage(options::intOptions["cpu_lim"].value, options::intOptions["mem_lim"].value);
 
