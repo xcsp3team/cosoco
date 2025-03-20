@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 
+#include "Extension.h"
 #include "HeuristicValASGS.h"
 #include "HeuristicValOccs.h"
 #include "HeuristicValRoundRobin.h"
@@ -131,8 +132,14 @@ Solver::Solver(Problem &p)
     }
 
 
-    if(options::boolOptions["nogoods"].value)
+    if(options::boolOptions["nogoods"].value) {
         addNoGoodsFromRestarts();
+        for(auto *c : problem.constraints) {
+            Extension *extension = dynamic_cast<Extension *>(c);
+            if(extension != nullptr && extension->isSupport == false)
+                std::cout << "neg" << std::endl;
+        }
+    }
 
     checkSolution = options::boolOptions["checksolutions"].value;
     /*if(annotations && cb.decisionVariables[core].size() != 0)
