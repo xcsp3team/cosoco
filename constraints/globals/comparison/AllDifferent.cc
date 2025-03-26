@@ -1,4 +1,4 @@
-#include "AllDifferentWeak.h"
+#include "AllDifferent.h"
 
 #include "solver/Solver.h"
 
@@ -49,7 +49,6 @@ AllDifferentWeak::AllDifferentWeak(Problem &p, std::string nn, vec<Variable *> &
     type = "All Different Weak";
 }
 
-
-//----------------------------------------------------------
-// Filtering
-//----------------------------------------------------------
+AllDifferentAC::AllDifferentAC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
+    type = "All Different AC";
+}

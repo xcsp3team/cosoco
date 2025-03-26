@@ -2,7 +2,7 @@
 #define ALLDIFFERENTBC_H
 
 
-#include "AllDifferentWeak.h"
+#include "AllDifferent.h"
 #include "Variable.h"
 
 // Using bound consistency : A fast and simple algorithm for bounds consistency of the alldifferent constraint

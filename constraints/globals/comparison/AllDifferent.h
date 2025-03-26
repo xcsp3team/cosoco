@@ -26,6 +26,14 @@ class AllDifferentWeak : public AllDifferent {
     bool filter(Variable *x) override;
 };
 
+class AllDifferentAC : public AllDifferent {
+   public:
+    AllDifferentAC(Problem &p, std::string n, vec<Variable *> &vars);
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+};
+
 }   // namespace Cosoco
 
 
