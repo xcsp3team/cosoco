@@ -1,11 +1,12 @@
-#ifndef ALLDIFFERENT_H
-#define ALLDIFFERENT_H
+#ifndef ALLDIFFERENTBC_H
+#define ALLDIFFERENTBC_H
 
 
-#include "constraints/globals/GlobalConstraint.h"
+#include "AllDifferentWeak.h"
+#include "Variable.h"
 
 // Using bound consistency : A fast and simple algorithm for bounds consistency of the alldifferent constraint
-// Ijcai 2003 Alejandro Lopez-Ortiz, Claude-Guy Quimper, John Tromp, Peter van Beek
+// Ijcai 2003 Alejandro Lopez-Ortiz, Claude-Guy Quimper, John Tromp, Peter van Beek
 // Based on choco implementation
 
 
@@ -32,18 +33,14 @@ struct MinOrder {
 };
 
 //----------------------------------------------------------
-
-class AllDifferent : public GlobalConstraint {
+class AllDifferentBC : public AllDifferent {
    public:
-    AllDifferent(Problem &p, std::string n, vec<Variable *> &vars);
+    AllDifferentBC(Problem &p, std::string n, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 
-    // Checking
-    bool isSatisfiedBy(vec<int> &tuple) override;
 
-    int variableConsistency;   // Use basic filtering limited to variable assignment
    protected:
     vec<int> t;   // Tree links
     vec<int> d;   // Diffs between critical capacities
@@ -56,7 +53,6 @@ class AllDifferent : public GlobalConstraint {
     vec<Interval *> minsorted;
     vec<Interval *> maxsorted;
 
-    bool basicFilter(Variable *x);
 
     void sortIt();
     bool filterLower(bool &again);

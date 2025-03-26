@@ -38,7 +38,7 @@
 #include "extensions/ShortSTR2.h"
 #include "extensions/Unary.h"
 #include "genericFiltering/AC3rm.h"
-#include "globals/comparison/AllDifferent.h"
+#include "globals/comparison/AllDifferentBC.h"
 #include "globals/comparison/DistinctVectors.h"
 #include "globals/comparison/Lexicographic.h"
 #include "globals/comparison/NotAllEqual.h"
@@ -321,7 +321,7 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
     if(vars.size() == 2)
         p->addConstraint(new DiffXY(*p, name, vars[0], vars[1]));
     else
-        p->addConstraint(new AllDifferent(*p, name, vars));
+        p->addConstraint(new AllDifferentBC(*p, name, vars));
 }
 
 

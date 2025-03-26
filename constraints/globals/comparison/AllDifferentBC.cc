@@ -1,4 +1,4 @@
-#include "AllDifferent.h"
+#include "AllDifferentBC.h"
 
 #include "mtl/Sort.h"
 #include "solver/Solver.h"
@@ -7,31 +7,11 @@ using namespace Cosoco;
 
 
 //----------------------------------------------------------
-// check validity
-//----------------------------------------------------------
-
-
-bool AllDifferent::isSatisfiedBy(vec<int> &tuple) {
-    for(int posx = 0; posx < tuple.size(); posx++) {
-        int v = tuple[posx];
-        for(int posy = posx + 1; posy < tuple.size(); posy++)
-            if(v == tuple[posy])
-                return false;
-    }
-    return true;
-}
-
-
-//----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
 
 
-bool AllDifferent::filter(Variable *dummy) {
-    //    VC  filtering
-    if(variableConsistency)
-        return basicFilter(dummy);
-
+bool AllDifferentBC::filter(Variable *dummy) {
     // Bound consistency
     bool again;
     do {
@@ -46,26 +26,12 @@ bool AllDifferent::filter(Variable *dummy) {
 }
 
 
-bool AllDifferent::basicFilter(Variable *x) {
-    if(x->size() > 1)
-        return true;
-    int v = x->value();
-    for(Variable *y : scope) {
-        if(y == x)
-            continue;
-        if(solver->delVal(y, v) == false)
-            return false;
-    }
-    return true;
-}
-
-
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
 
-AllDifferent::AllDifferent(Problem &p, std::string nn, vec<Variable *> &vars)
-    : GlobalConstraint(p, nn, "All Different", vars), variableConsistency(false) {
+AllDifferentBC::AllDifferentBC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
+    type   = "AllDifferentBC";
     int sz = scope.size();
     t.growTo(2 * sz + 2, 0);
     d.growTo(2 * sz + 2, 0);
@@ -88,10 +54,10 @@ AllDifferent::AllDifferent(Problem &p, std::string nn, vec<Variable *> &vars)
 
 
 // ---- Filtering using IJCAI'03 paper
-//      A Fast and Simple Algorithm for Bound Consistency Of the AllDifferent Constraint.
+//      A Fast and Simple Algorithm for Bound Consistency Of the AllDifferentBC Constraint.
 
 
-void AllDifferent::sortIt() {
+void AllDifferentBC::sortIt() {
     int sz = scope.size();
     for(int i = 0; i < sz; i++) {
         Variable *x     = interval[i]->x;
@@ -130,7 +96,7 @@ void AllDifferent::sortIt() {
 }
 
 
-void AllDifferent::pathset(vec<int> &tab, int start, int end, int to) {
+void AllDifferentBC::pathset(vec<int> &tab, int start, int end, int to) {
     int next = start;
     int prev = next;
     while(prev != end) {
@@ -141,19 +107,19 @@ void AllDifferent::pathset(vec<int> &tab, int start, int end, int to) {
 }
 
 
-int AllDifferent::pathmin(vec<int> &tab, int i) {
+int AllDifferentBC::pathmin(vec<int> &tab, int i) {
     while(tab[i] < i) i = tab[i];
     return i;
 }
 
 
-int AllDifferent::pathmax(vec<int> &tab, int i) {
+int AllDifferentBC::pathmax(vec<int> &tab, int i) {
     while(tab[i] > i) i = tab[i];
     return i;
 }
 
 
-bool AllDifferent::filterLower(bool &again) {
+bool AllDifferentBC::filterLower(bool &again) {
     int sz = scope.size();
     for(int i = 1; i <= nbBounds + 1; i++) {
         t[i] = h[i] = i - 1;
@@ -198,7 +164,7 @@ bool AllDifferent::filterLower(bool &again) {
 }
 
 
-bool AllDifferent::filterUpper(bool &again) {
+bool AllDifferentBC::filterUpper(bool &again) {
     int sz = scope.size();
     for(int i = 0; i <= nbBounds; i++) {
         t[i] = h[i] = i + 1;

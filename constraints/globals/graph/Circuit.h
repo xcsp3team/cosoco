@@ -1,10 +1,10 @@
 #ifndef COSOCO_CIRCUIT_H
 #define COSOCO_CIRCUIT_H
 
-#include <constraints/globals/comparison/AllDifferent.h>
+#include <constraints/globals/comparison/AllDifferentBC.h>
 
 namespace Cosoco {
-class Circuit : public AllDifferent {
+class Circuit : public AllDifferentBC {
    public:
     SparseSet set;
     vec<bool> tmp;   // Temporary, avoid to create it at each filter calls
