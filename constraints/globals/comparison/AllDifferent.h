@@ -2,6 +2,8 @@
 #define ALLDIFFERENT_H
 
 
+#include <Matcher.h>
+
 #include "constraints/globals/GlobalConstraint.h"
 
 
@@ -27,11 +29,15 @@ class AllDifferentWeak : public AllDifferent {
 };
 
 class AllDifferentAC : public AllDifferent {
+    Matcher *matcher;
+
    public:
     AllDifferentAC(Problem &p, std::string n, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
+
+    void attachSolver(Solver *s) override;
 };
 
 }   // namespace Cosoco

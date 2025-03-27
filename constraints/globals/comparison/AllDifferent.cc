@@ -39,6 +39,22 @@ bool AllDifferentWeak::filter(Variable *x) {
     return true;
 }
 
+bool AllDifferentAC::filter(Variable *x) {
+    if(matcher->findMaximumMatching() == false)
+        return false;
+
+    if(x->size() > 1)
+        return true;
+    int v = x->value();
+    for(Variable *y : scope) {
+        if(y == x)
+            continue;
+        if(solver->delVal(y, v) == false)
+            return false;
+    }
+    return true;
+}
+
 
 //----------------------------------------------------------
 // Construction and initialisation
@@ -50,5 +66,11 @@ AllDifferentWeak::AllDifferentWeak(Problem &p, std::string nn, vec<Variable *> &
 }
 
 AllDifferentAC::AllDifferentAC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
-    type = "All Different AC";
+    type    = "All Different AC";
+    matcher = new Matcher(this);
+}
+
+void AllDifferentAC::attachSolver(Solver *s) {
+    Constraint::attachSolver(s);
+    s->addObserverDeleteDecision(matcher);   // We need to restore tuples.
 }

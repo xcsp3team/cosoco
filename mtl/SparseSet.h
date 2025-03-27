@@ -91,6 +91,14 @@ class SparseSet {
         return positions[k];
     }
 
+    int shift() {
+        assert(!isEmpty());
+        int elt = elements[0];
+        del(elements[0]);
+        return elt;
+    }
+
+
     inline void del(const int k) {
         assert(k < maxSize());
         if(!contains(k))
@@ -102,6 +110,12 @@ class SparseSet {
         elements[pos]   = tmp;
         elements[limit] = k;
         positions[k]    = limit;
+    }
+
+    int pop() {
+        assert(limit >= 0);
+        limit--;
+        return elements[limit + 1];
     }
 
     // Access and contains method
