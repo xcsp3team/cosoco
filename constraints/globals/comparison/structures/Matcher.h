@@ -20,12 +20,8 @@ class Matcher : public ObserverDeleteDecision {
     int                 minValue, maxValue, interval;   // min, max and interval
     int                *val2var, *var2val;
     int                 arity;
-    vec<int>            unmatched;
     SparseSetMultiLevel unfixed;
-    int                *predBFS;   // predBFS[idx] is the predecessor of variable x in the current BFS
-    std::queue<int>     queueBFS;
-    unsigned long      *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
-    unsigned long       time;        // For stamping
+    int                *pairU, *pairV, *dist;
 
 
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
@@ -34,9 +30,11 @@ class Matcher : public ObserverDeleteDecision {
    public:
     explicit Matcher(Constraint *c);
     bool findMaximumMatching();
-    bool findMatchingFor(int x);
-
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+
+   protected:
+    bool bfs();
+    bool dfs(int idx);
 };
 }   // namespace Cosoco
 
