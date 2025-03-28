@@ -10,7 +10,7 @@
 
 using namespace Cosoco;
 
-Matcher::Matcher(Constraint* cc) : constraint(cc), scope(cc->scope), unmatched(cc->scope.size()), unfixed(cc->scope.size()) {
+Matcher::Matcher(Constraint* cc) : constraint(cc), scope(cc->scope), unfixed(cc->scope.size()) {
     arity    = constraint->scope.size();
     minValue = constraint->scope[0]->minimum();
     maxValue = constraint->scope[0]->maximum();
@@ -30,6 +30,7 @@ Matcher::Matcher(Constraint* cc) : constraint(cc), scope(cc->scope), unmatched(c
     time      = 1;
     visitTime = new unsigned long[arity + interval + 1];
     std::fill_n(visitTime, arity + interval + 1, 0);
+    unmatched.capacity(arity);
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
@@ -40,9 +41,9 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
 
 bool Matcher::findMatchingFor(int idx) {
     time++;
-    predBFS[idx] = -1;
     std::queue<int> queue;
     queue.push(idx);
+    predBFS[idx] = -1;
     while(queue.empty() == false) {
         int idy = queueBFS.front();
         queue.pop();
@@ -53,6 +54,7 @@ bool Matcher::findMatchingFor(int idx) {
             assert(idz == -1 || var2val[idz] == nv);
             if(idz == -1) {   // we have found a free value, so we are good
                 while(predBFS[idy] != -1) {
+                    assert(predBFS[idy] != idy);
                     std::cout << predBFS[idy] << " " << idy << " " << predBFS[idy] << std::endl;
                     int nw       = var2val[idy];
                     var2val[idy] = nv;
@@ -65,7 +67,8 @@ bool Matcher::findMatchingFor(int idx) {
                 return true;
             }
             if(visitTime[idz] < time) {
-                std::cout << time << " " << visitTime[idz] << std::endl;
+                std::cout << time << " " << idz << " " << visitTime[idz] << "  " << idy << std::endl;
+
                 visitTime[idz] = time;
                 predBFS[idz]   = idy;
                 queue.push(idz);
@@ -81,12 +84,12 @@ bool Matcher::findMaximumMatching() {
     for(int idx = 0; idx < arity; idx++) {   // Find unmatched variables
         int nv = var2val[idx];
         if(nv == -1)
-            unmatched.add(idx);
+            unmatched.push_(idx);
         else {
             assert(val2var[nv] == idx);
             if(constraint->scope[idx]->containsValue(domainValue(nv)) == false) {
                 var2val[idx] = val2var[nv] = -1;
-                unmatched.add(idx);
+                unmatched.push_(idx);
             }
             if(constraint->scope[idx]->size() == 1 && unfixed.contains(idx)) {
                 if(unfixed.isLimitRecordedAtLevel(level) == false)
@@ -96,11 +99,10 @@ bool Matcher::findMaximumMatching() {
         }
     }
 
-    std::cout << unmatched.size() << std::endl;
-
-    while(unmatched.isEmpty() == false) {   // Find maximum matching
-        std::cout << unmatched.size() << std::endl;
-        if(findMatchingFor(unmatched.pop()) == false)
+    while(unmatched.size() > 0) {   // Find maximum matching
+        int idx = unmatched.last();
+        unmatched.pop_();
+        if(findMatchingFor(idx) == false)
             return false;
     }
     return true;

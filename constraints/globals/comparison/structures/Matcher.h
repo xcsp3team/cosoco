@@ -20,7 +20,7 @@ class Matcher : public ObserverDeleteDecision {
     int                 minValue, maxValue, interval;   // min, max and interval
     int                *val2var, *var2val;
     int                 arity;
-    SparseSet           unmatched;
+    vec<int>            unmatched;
     SparseSetMultiLevel unfixed;
     int                *predBFS;   // predBFS[idx] is the predecessor of variable x in the current BFS
     std::queue<int>     queueBFS;
