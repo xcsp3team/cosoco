@@ -27,7 +27,8 @@ Matcher::Matcher(Constraint* cc) : constraint(cc), scope(cc->scope), unfixed(cc-
     pairU    = new int[arity];
     pairV    = new int[interval];
     dist     = new int[arity];
-
+    used     = new bool[arity];
+    used1    = new bool[arity];
     std::fill_n(pairU, arity, NIL);
     std::fill_n(pairV, interval, NIL);
 }
@@ -105,7 +106,47 @@ bool Matcher::bfs() {
     return (dist[NIL] != INF);
 }
 
+
+int Matcher::try_kuhn(int idx) {
+    if(used[idx])
+        return 0;
+    used[idx] = true;
+    for(int idv : scope[idx]->domain) {
+        int nv = normalizedValue(scope[idx]->domain.toVal(idv));
+        if(pairV[nv] == -1 || try_kuhn(pairV[nv])) {
+            pairV[nv]  = idx;
+            pairU[idx] = nv;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 bool Matcher::findMaximumMatching() {
+    std::fill_n(used1, arity, false);
+    int nb = 0;
+    for(int idx = 0; idx < arity; idx++) {
+        if(pairU[idx] != -1 && scope[idx]->containsValue(domainValue(pairU[idx]))) {
+            used1[idx] = true;
+            nb++;
+        } else {
+            if(pairU[idx] != -1)
+                pairV[pairU[idx]] = -1;
+            pairU[idx] = -1;
+        }
+    }
+
+    for(int idx = 0; idx < arity; idx++) {
+        if(used1[idx])
+            continue;
+        for(int v = 0; v < arity; v++) used[v] = false;
+        nb += try_kuhn(idx);
+    }
+
+
+    return nb == arity;
+
+
     for(int idx = 0; idx < arity; idx++) {
         if(pairU[idx] != NIL && scope[idx]->containsValue(domainValue(pairU[idx])))
             continue;

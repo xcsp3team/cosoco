@@ -23,9 +23,9 @@ class Matcher : public ObserverDeleteDecision {
     SparseSetMultiLevel unfixed;
     int                *pairU, *pairV, *dist;
     std::queue<int>     Q;
-
-    int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
-    int normalizedValue(int v) const { return v - minValue; }
+    bool               *used, *used1;
+    int                 domainValue(int normalizedValue) const { return normalizedValue + minValue; }
+    int                 normalizedValue(int v) const { return v - minValue; }
 
    public:
     explicit Matcher(Constraint *c);
@@ -35,6 +35,7 @@ class Matcher : public ObserverDeleteDecision {
    protected:
     bool bfs();
     bool dfs(int idx);
+    int  try_kuhn(int idx);
 };
 }   // namespace Cosoco
 
