@@ -22,7 +22,7 @@ class Matcher : public ObserverDeleteDecision {
     int                 arity;
     SparseSetMultiLevel unfixed;
     int                *pairU, *pairV, *dist;
-
+    std::queue<int>     Q;
 
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
     int normalizedValue(int v) const { return v - minValue; }

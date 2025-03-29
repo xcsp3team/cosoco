@@ -63,8 +63,8 @@ bool Matcher::dfs(int idx) {
 
 
 bool Matcher::bfs() {
-    std::queue<int> Q;   // an integer queue
-
+    // an integer queue
+    assert(Q.size() == 0);
     // First layer of vertices (set distance as 0)
     for(int idx = 0; idx < arity; idx++) {
         // If this is a free vertex, add it to queue
@@ -116,13 +116,13 @@ bool Matcher::findMaximumMatching() {
     for(int u = 0; u < arity; u++) pairU[u] = NIL;
     for(int v = 0; v < interval; v++) pairV[v] = NIL;
 
-    for(int idx = 0; idx < arity; idx++) {
+    /*for(int idx = 0; idx < arity; idx++) {
         if(scope[idx]->size() == 1) {
             int nv     = normalizedValue(scope[idx]->value());
             pairV[nv]  = idx;
             pairU[idx] = nv;
         }
-    }
+    }*/
 
 
     // Initialize result
