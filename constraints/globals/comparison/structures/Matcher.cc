@@ -5,6 +5,7 @@
 #include "Matcher.h"
 
 #include <queue>
+#include <stack>
 
 #include "solver/Solver.h"
 
@@ -25,12 +26,12 @@ Matcher::Matcher(Constraint* cc) : constraint(cc), scope(cc->scope), unfixed(cc-
     val2var  = new int[interval];
     std::fill_n(var2val, arity, -1);
     std::fill_n(val2var, interval, -1);
+
     predBFS = new int[arity];
     std::fill_n(predBFS, arity, -1);
     time      = 1;
-    visitTime = new unsigned long[arity + interval + 1];
-    std::fill_n(visitTime, arity + interval + 1, 0);
-    unmatched.capacity(arity);
+    visitTime = new long[arity + interval + 1];
+    std::fill_n(visitTime, arity + interval + 1, -1);
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
@@ -39,39 +40,38 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
 }
 
 
-bool Matcher::findMatchingFor(int idx) {
+bool Matcher::findMatchingFor(int x) {
+    std::stack<int> stack;
+    assert(stack.size() == 0);
     time++;
-    std::queue<int> queue;
-    queue.push(idx);
-    predBFS[idx] = -1;
-    while(queue.empty() == false) {
-        int idy = queueBFS.front();
-        queue.pop();
-        std::cout << "ici" << idy << std::endl;
-        for(int idvy : scope[idy]->domain) {
-            int nv  = normalizedValue(scope[idy]->domain.toVal(idvy));
-            int idz = val2var[nv];
-            assert(idz == -1 || var2val[idz] == nv);
-            if(idz == -1) {   // we have found a free value, so we are good
-                while(predBFS[idy] != -1) {
-                    assert(predBFS[idy] != idy);
-                    std::cout << predBFS[idy] << " " << idy << " " << predBFS[idy] << std::endl;
-                    int nw       = var2val[idy];
-                    var2val[idy] = nv;
-                    val2var[nv]  = idy;
-                    nv           = nw;
-                    idy          = predBFS[idy];
+    predBFS[x] = -1;
+    stack.push(x);
+    while(!stack.empty()) {
+        int y = stack.top();
+        stack.pop();
+        // std::cout << "y=" << y << std::endl;
+        for(int a : scope[y]->domain) {
+            int nv = normalizedValue(scope[y]->domain.toVal(a));
+            int z  = val2var[nv];
+            // std::cout << "nv=" << nv << " z=" << z << " " << var2val[z] << std::endl;
+            assert(z == -1 || var2val[z] == nv);
+            if(z == -1) {   // we have found a free value, so we are good
+                while(predBFS[y] != -1) {
+                    assert(predBFS[y] != y);
+                    int nw      = var2val[y];
+                    var2val[y]  = nv;
+                    val2var[nv] = y;
+                    nv          = nw;
+                    y           = predBFS[y];
                 }
-                var2val[idy] = nv;
-                val2var[nv]  = idy;
+                var2val[y]  = nv;
+                val2var[nv] = y;
                 return true;
-            }
-            if(visitTime[idz] < time) {
-                std::cout << time << " " << idz << " " << visitTime[idz] << "  " << idy << std::endl;
-
-                visitTime[idz] = time;
-                predBFS[idz]   = idy;
-                queue.push(idz);
+            } else if(visitTime[z] < time) {
+                // std::cout << "visit " << z << " " << y << "\n";
+                visitTime[z] = time;
+                predBFS[z]   = y;
+                stack.push(z);
             }
         }
     }
@@ -84,12 +84,12 @@ bool Matcher::findMaximumMatching() {
     for(int idx = 0; idx < arity; idx++) {   // Find unmatched variables
         int nv = var2val[idx];
         if(nv == -1)
-            unmatched.push_(idx);
+            unmatched.push(idx);
         else {
             assert(val2var[nv] == idx);
             if(constraint->scope[idx]->containsValue(domainValue(nv)) == false) {
                 var2val[idx] = val2var[nv] = -1;
-                unmatched.push_(idx);
+                unmatched.push(idx);
             }
             if(constraint->scope[idx]->size() == 1 && unfixed.contains(idx)) {
                 if(unfixed.isLimitRecordedAtLevel(level) == false)
@@ -99,9 +99,11 @@ bool Matcher::findMaximumMatching() {
         }
     }
 
+
     while(unmatched.size() > 0) {   // Find maximum matching
         int idx = unmatched.last();
-        unmatched.pop_();
+        unmatched.pop();
+        //  std::cout << "idx" << idx << std::endl;
         if(findMatchingFor(idx) == false)
             return false;
     }

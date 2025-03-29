@@ -24,8 +24,8 @@ class Matcher : public ObserverDeleteDecision {
     SparseSetMultiLevel unfixed;
     int                *predBFS;   // predBFS[idx] is the predecessor of variable x in the current BFS
     std::queue<int>     queueBFS;
-    unsigned long      *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
-    unsigned long       time;        // For stamping
+    long               *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
+    long                time;        // For stamping
 
 
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
