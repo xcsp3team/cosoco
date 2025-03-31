@@ -17,7 +17,7 @@ class Matcher : public ObserverDeleteDecision {
    protected:
     Constraint         *constraint;   // The associated constraint
     vec<Variable *>    &scope;
-    int                 minValue, maxValue, interval;   // min, max and interval
+    int                 minValue, maxValue, interval, nNodes, T;   // min, max and interval
     int                *val2var, *var2val;
     int                 arity;
     vec<int>            unmatched;
@@ -28,15 +28,29 @@ class Matcher : public ObserverDeleteDecision {
     long                time;        // For stamping
 
 
+    // Data Structure for Tarjan algorithm
+    SparseSet           stackTarjan;
+    bool                splitSCC;
+    int                 nVisitedNodes;
+    SparseSetMultiLevel fixedVars;
+    vec<SparseSet>      neighborsOfValues;
+    SparseSet           neighborsOfT, varsOutSCC, valsInSCC;
+    int                *numDFS;
+    int                *lowLink;
+
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
     int normalizedValue(int v) const { return v - minValue; }
+
+    bool findMatchingFor(int x);
+    void computeNeighbors();
 
    public:
     explicit Matcher(Constraint *c);
     bool findMaximumMatching();
-    bool findMatchingFor(int x);
 
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void removeInconsistentValues();
+    void tarjanRemoveValues(int node);
 };
 }   // namespace Cosoco
 

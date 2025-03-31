@@ -42,6 +42,8 @@ bool AllDifferentWeak::filter(Variable *x) {
 bool AllDifferentAC::filter(Variable *x) {
     if(matcher->findMaximumMatching() == false)
         return false;
+    matcher->removeInconsistentValues();   // no more possible failure at this step
+    return true;
 
     if(x->size() > 1)
         return true;

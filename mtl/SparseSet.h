@@ -86,6 +86,12 @@ class SparseSet {
         add(k);
     }
 
+    inline void resetTo(SparseSet& set) {
+        assert(capacity >= set.size());
+        clear();
+        for(int v : set) add(v);
+    }
+
     inline int getPosition(const int k) {
         assert(k < size());
         return positions[k];
