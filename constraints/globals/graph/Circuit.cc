@@ -9,7 +9,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool Circuit::isSatisfiedBy(vec<int> &tuple) {
-    if(AllDifferentBC::isSatisfiedBy(tuple) == false)
+    if(AllDifferentAC::isSatisfiedBy(tuple) == false)
         return false;
     int nLoops = 0, first = -1;
     for(int i = 0; i < tuple.size(); i++)
@@ -46,7 +46,7 @@ bool Circuit::isCorrectlyDefined() {
 //----------------------------------------------
 
 bool Circuit::filter(Variable *dummy) {
-    if(AllDifferentBC::filter(dummy) == false)
+    if(AllDifferentAC::filter(dummy) == false)
         return false;
 
     if(unassignedVariablesIdx.isEmpty())
@@ -104,7 +104,7 @@ bool Circuit::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferentBC(p, n, vars) {
+Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferentAC(p, n, vars) {
     type = "Circuit";
     set.setCapacity(vars.size(), false);
     tmp.growTo(scope.size());

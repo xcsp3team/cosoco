@@ -318,10 +318,21 @@ void FactoryConstraints::createConstraintCircuit(Problem *p, std::string name, v
 //--------------------------------------------------------------------------------------
 
 void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, vec<Variable *> &vars) {
-    if(vars.size() == 2)
+    if(vars.size() == 2) {
         p->addConstraint(new DiffXY(*p, name, vars[0], vars[1]));
-    else
-        p->addConstraint(new AllDifferentAC(*p, name, vars));
+        return;
+    }
+    int nb = 0;
+    for(Variable *x : vars)
+        if(x->size() > 2 * vars.size())
+            nb++;
+    // TODO : To be tested
+    /*if(nb * 4 > 3 * vars.size()) {   // if 75% of the domains are larger than two times the arity. See ACE
+        p->addConstraint(new AllDifferentWeak(*p, name, vars));
+        return;
+    }*/
+
+    p->addConstraint(new AllDifferentAC(*p, name, vars));
 }
 
 
