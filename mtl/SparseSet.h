@@ -119,9 +119,9 @@ class SparseSet {
     }
 
     int pop() {
-        assert(limit >= 0);
+        assert(limit > 0);
         limit--;
-        return elements[limit + 1];
+        return elements[limit];
     }
 
     // Access and contains method
@@ -154,7 +154,7 @@ class SparseSet {
         for(int i = size(); i < maxSize(); i++) {
             printf("%s %d %s ", KRED, elements[i], KNRM);
         }
-        printf("]");
+        printf("] limit = %d", limit);
     }
 };
 };   // namespace Cosoco

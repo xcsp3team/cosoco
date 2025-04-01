@@ -11,7 +11,8 @@
 
 using namespace Cosoco;
 
-Matcher::Matcher(Constraint* cc) : constraint(cc), scope(cc->scope), unfixed(cc->scope.size()), fixedVars(cc->scope.size()) {
+Matcher::Matcher(Constraint* cc)
+    : constraint(cc), scope(cc->scope), unfixed(cc->scope.size(), true), fixedVars(cc->scope.size()) {
     arity    = constraint->scope.size();
     minValue = constraint->scope[0]->minimum();
     maxValue = constraint->scope[0]->maximum();
@@ -121,7 +122,6 @@ bool Matcher::findMaximumMatching() {
     while(unmatched.size() > 0) {   // Find maximum matching
         int idx = unmatched.last();
         unmatched.pop();
-        //  std::cout << "idx" << idx << std::endl;
         if(findMatchingFor(idx) == false)
             return false;
     }
@@ -135,12 +135,22 @@ void Matcher::removeInconsistentValues() {
     stackTarjan.clear();
     splitSCC      = false;
     nVisitedNodes = 0;
-    for(int x = 0; x < arity; x++) {
-        if(fixedVars.contains(x))
+    /*int nb        = 0;
+    for(int idx = 0; idx < arity; idx++) {
+        nb += scope[idx]->size();
+    }*/
+    for(int idx = 0; idx < arity; idx++) {
+        if(fixedVars.contains(idx))
             continue;
-        if(visitTime[x] < time)
-            tarjanRemoveValues(x);
+        if(visitTime[idx] < time)
+            tarjanRemoveValues(idx);
     }
+    /*int nb2 = 0;
+    for(int idx = 0; idx < arity; idx++) {
+        nb2 += scope[idx]->size();
+    }
+    std::cout << nb << " " << nb2 << std::endl;
+    */
 }
 
 
@@ -148,32 +158,33 @@ void Matcher::computeNeighbors() {
     int level = constraint->solver->decisionLevel();
     for(SparseSet& set : neighborsOfValues) set.clear();
     neighborsOfT.clear();
-    for(int x = 0; x < arity; x++) {
-        if(fixedVars.contains(x))
+    for(int idx = 0; idx < arity; idx++) {
+        if(fixedVars.contains(idx))
             continue;
-
-        if(scope[x]->size() == 1) {   // we discard trivial SCCs (variable assignments) after treating them
-            int v = scope[x]->value();
-            for(int y : unfixed) {
-                if(y != x) {
-                    if(scope[y]->containsValue(v))
-                        constraint->solver->delVal(scope[y], v);
+        Variable* x = scope[idx];
+        if(x->size() == 1) {   // we discard trivial SCCs (variable assignments) after treating them
+            int v = x->value();
+            for(int idy : unfixed) {
+                if(idy != idx) {
+                    if(scope[idy]->containsValue(v)) {
+                        constraint->solver->delVal(scope[idy], v);
+                    }
                 }
             }
             if(fixedVars.isLimitRecordedAtLevel(level) == false)
                 fixedVars.recordLimit(level);
-            fixedVars.add(x);
+            fixedVars.add(idx);
             continue;
         }
-        for(int idv : scope[x]->domain) {
-            int nv = normalizedValue(scope[x]->domain.toVal(idv));
-            neighborsOfValues[nv].add(x);
-            if(val2var[nv] == x)
+        for(int idv : x->domain) {
+            int nv = normalizedValue(x->domain.toVal(idv));
+            neighborsOfValues[nv].add(idx);
+            if(val2var[nv] == idx)
                 neighborsOfValues[nv].add(arity);   // E3
             else {
-                neighborsOfValues[nv].add(x);   // E2
-                if(val2var[nv] == -1)           // unmatched values
-                    neighborsOfT.add(nv);       // E4
+                neighborsOfValues[nv].add(idx);   // E2
+                if(val2var[nv] == -1)             // unmatched values
+                    neighborsOfT.add(nv);         // E4
             }
         }
     }
@@ -221,7 +232,12 @@ void Matcher::tarjanRemoveValues(int node) {
             varsOutSCC.resetTo(unfixed);
             valsInSCC.clear();
             int nodeSCC = -1;
+            // assert(stackTarjan.contains(node));
+            // stackTarjan.display();
+            // std::cout << "\n";
             while(nodeSCC != node) {
+                // std::cout << nodeSCC << " " << node << std::endl;
+                assert(stackTarjan.size() > 0);
                 nodeSCC = stackTarjan.pop();
                 if(nodeSCC < arity)
                     varsOutSCC.del(nodeSCC);
@@ -231,26 +247,18 @@ void Matcher::tarjanRemoveValues(int node) {
 
             // second, we remove appropriate values (linking values in the CSS with variables outside the SCC)
             if(varsOutSCC.size() > 0 && valsInSCC.size() > 0) {
-                // System.out.println(" at node " + node + " : " + varsOutSCC.size() + " " + valsInSCC.size() + "
-                // from " + constraint.num);
-
-                // if (data[node][0] == cnt && data[node][1] == valsInSCC.size()) // Seems not efficient at all
-                // return;
-                // data[node][0] = cnt;
-                // data[node][1] = valsInSCC.size();
-
                 for(int nv : valsInSCC) {
                     int        v         = domainValue(nv);
                     SparseSet& neighbors = neighborsOfValues[nv];
                     if(neighbors.size() < varsOutSCC.size()) {
-                        for(int x : neighbors) {
-                            if(x < arity && varsOutSCC.contains(x) && var2val[x] != nv)
-                                constraint->solver->delVal(scope[x], v);
+                        for(int idx : neighbors) {
+                            if(idx < arity && varsOutSCC.contains(idx) && var2val[idx] != nv)
+                                constraint->solver->delVal(scope[idx], v);
                         }
                     } else
-                        for(int x : varsOutSCC) {
-                            if(scope[x]->containsValue(v) && var2val[x] != nv)
-                                constraint->solver->delVal(scope[x], v);
+                        for(int idx : varsOutSCC) {
+                            if(scope[idx]->containsValue(v) && var2val[idx] != nv)
+                                constraint->solver->delVal(scope[idx], v);
                         }
                 }
             }

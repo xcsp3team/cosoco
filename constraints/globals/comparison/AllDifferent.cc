@@ -42,18 +42,22 @@ bool AllDifferentWeak::filter(Variable *x) {
 bool AllDifferentAC::filter(Variable *x) {
     if(matcher->findMaximumMatching() == false)
         return false;
-    matcher->removeInconsistentValues();   // no more possible failure at this step
-    return true;
 
-    if(x->size() > 1)
-        return true;
-    int v = x->value();
-    for(Variable *y : scope) {
-        if(y == x)
-            continue;
-        if(solver->delVal(y, v) == false)
-            return false;
-    }
+    /*if(x->size() == 1) {
+        // return true;
+        int v = x->value();
+        for(Variable *y : scope) {
+            if(y == x)
+                continue;
+            if(solver->delVal(y, v) == false)
+                return false;
+        }
+    }*/
+
+
+    matcher->removeInconsistentValues();   // no more possible failure at this step
+    // return true;
+
     return true;
 }
 
