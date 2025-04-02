@@ -18,7 +18,7 @@ class Matcher : public ObserverDeleteDecision {
     Constraint         *constraint;   // The associated constraint
     vec<Variable *>    &scope;
     int                 minValue, maxValue, interval, nNodes, T;   // min, max and interval
-    int                *val2var, *var2val;
+    int                *var2val;
     int                 arity;
     vec<int>            unmatched;
     SparseSetMultiLevel unfixed;
@@ -41,17 +41,29 @@ class Matcher : public ObserverDeleteDecision {
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
     int normalizedValue(int v) const { return v - minValue; }
 
-    bool findMatchingFor(int x);
-    void computeNeighbors();
+    virtual void computeNeighbors() = 0;
 
    public:
     explicit Matcher(Constraint *c);
-    bool findMaximumMatching();
+    virtual bool findMaximumMatching() = 0;
 
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
     void removeInconsistentValues();
     void tarjanRemoveValues(int node);
 };
-}   // namespace Cosoco
+
+
+class MatcherAllDifferent : public Matcher {
+    int *val2var;
+    void computeNeighbors() override;
+    bool findMatchingFor(int x);
+
+   public:
+    explicit MatcherAllDifferent(Constraint *c);
+    bool findMaximumMatching() override;
+};
+
+// class MatcherCardinality : public Matcher { };
+// }   // namespace Cosoco
 
 #endif   // COSOCO_MATCHER_H

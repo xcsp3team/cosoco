@@ -27,6 +27,9 @@ bool AllDifferent::isSatisfiedBy(vec<int> &tuple) {
 
 
 bool AllDifferentWeak::filter(Variable *x) {
+    if(matcher->findMaximumMatching() == false)
+        return false;
+
     if(x->size() > 1)
         return true;
     int v = x->value();
@@ -43,21 +46,7 @@ bool AllDifferentAC::filter(Variable *x) {
     if(matcher->findMaximumMatching() == false)
         return false;
 
-    /*if(x->size() == 1) {
-        // return true;
-        int v = x->value();
-        for(Variable *y : scope) {
-            if(y == x)
-                continue;
-            if(solver->delVal(y, v) == false)
-                return false;
-        }
-    }*/
-
-
     matcher->removeInconsistentValues();   // no more possible failure at this step
-    // return true;
-
     return true;
 }
 
@@ -68,12 +57,14 @@ bool AllDifferentAC::filter(Variable *x) {
 AllDifferent::AllDifferent(Problem &p, std::string n, vec<Variable *> &vars) : GlobalConstraint(p, n, "All Different", vars) { }
 
 AllDifferentWeak::AllDifferentWeak(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
-    type = "All Different Weak";
+    type    = "All Different Weak";
+    matcher = new MatcherAllDifferent(this);
 }
 
 AllDifferentAC::AllDifferentAC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
-    type    = "All Different AC";
-    matcher = new Matcher(this);
+    type          = "All Different AC";
+    matcher       = new MatcherAllDifferent(this);
+    isPostponable = true;
 }
 
 void AllDifferentAC::attachSolver(Solver *s) {

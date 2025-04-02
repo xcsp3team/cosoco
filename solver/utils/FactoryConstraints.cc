@@ -327,10 +327,10 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
         if(x->size() > 2 * vars.size())
             nb++;
     // TODO : To be tested
-    /*if(nb * 4 > 3 * vars.size()) {   // if 75% of the domains are larger than two times the arity. See ACE
+    if(nb * 4 > 3 * vars.size()) {   // if 75% of the domains are larger than two times the arity. See ACE
         p->addConstraint(new AllDifferentWeak(*p, name, vars));
         return;
-    }*/
+    }
 
     p->addConstraint(new AllDifferentAC(*p, name, vars));
 }

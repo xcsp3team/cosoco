@@ -1,7 +1,3 @@
-//
-// Created by audemard on 26/03/25.
-//
-
 #include "Matcher.h"
 
 #include <queue>
@@ -35,10 +31,9 @@ Matcher::Matcher(Constraint* cc)
     neighborsOfValues.growTo(interval);
     for(auto& tmp : neighborsOfValues) tmp.setCapacity(arity + 1, false);
 
-    var2val = new int[arity];
-    val2var = new int[interval];
-    std::fill_n(var2val, arity, -1);
-    std::fill_n(val2var, interval, -1);
+
+    var2val = new int[interval];
+    std::fill_n(var2val, interval, -1);
 
     predBFS = new int[arity];
     std::fill_n(predBFS, arity, -1);
@@ -51,6 +46,13 @@ Matcher::Matcher(Constraint* cc)
     std::fill_n(lowLink, nNodes, 0);
 }
 
+
+MatcherAllDifferent::MatcherAllDifferent(Constraint* c) : Matcher(c) {
+    val2var = new int[arity];
+    std::fill_n(var2val, arity, -1);
+}
+
+
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
     if(unfixed.isLimitRecordedAtLevel(s.decisionLevel() + 1))
         unfixed.restoreLimit(s.decisionLevel() + 1);
@@ -59,7 +61,7 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
 }
 
 
-bool Matcher::findMatchingFor(int x) {
+bool MatcherAllDifferent::findMatchingFor(int x) {
     std::stack<int> stack;
     assert(stack.size() == 0);
     time++;
@@ -97,7 +99,7 @@ bool Matcher::findMatchingFor(int x) {
     return false;
 }
 
-bool Matcher::findMaximumMatching() {
+bool MatcherAllDifferent::findMaximumMatching() {
     unmatched.clear();
     int level = constraint->solver->decisionLevel();
     for(int idx = 0; idx < arity; idx++) {   // Find unmatched variables
@@ -154,7 +156,7 @@ void Matcher::removeInconsistentValues() {
 }
 
 
-void Matcher::computeNeighbors() {
+void MatcherAllDifferent::computeNeighbors() {
     int level = constraint->solver->decisionLevel();
     for(SparseSet& set : neighborsOfValues) set.clear();
     neighborsOfT.clear();

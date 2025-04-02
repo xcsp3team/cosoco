@@ -21,6 +21,8 @@ class AllDifferent : public GlobalConstraint {
 };
 
 class AllDifferentWeak : public AllDifferent {
+    Matcher *matcher;
+
    public:
     AllDifferentWeak(Problem &p, std::string n, vec<Variable *> &vars);
 
