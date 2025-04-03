@@ -86,10 +86,24 @@ class SparseSet {
         add(k);
     }
 
+    inline void resetTo(SparseSet& set) {
+        assert(capacity >= set.size());
+        clear();
+        for(int v : set) add(v);
+    }
+
     inline int getPosition(const int k) {
         assert(k < size());
         return positions[k];
     }
+
+    int shift() {
+        assert(!isEmpty());
+        int elt = elements[0];
+        del(elements[0]);
+        return elt;
+    }
+
 
     inline void del(const int k) {
         assert(k < maxSize());
@@ -102,6 +116,12 @@ class SparseSet {
         elements[pos]   = tmp;
         elements[limit] = k;
         positions[k]    = limit;
+    }
+
+    int pop() {
+        assert(limit > 0);
+        limit--;
+        return elements[limit];
     }
 
     // Access and contains method
@@ -134,7 +154,7 @@ class SparseSet {
         for(int i = size(); i < maxSize(); i++) {
             printf("%s %d %s ", KRED, elements[i], KNRM);
         }
-        printf("]");
+        printf("] limit = %d", limit);
     }
 };
 };   // namespace Cosoco
