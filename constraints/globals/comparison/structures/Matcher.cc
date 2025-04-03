@@ -34,8 +34,8 @@ Matcher::Matcher(Constraint* cc)
     for(auto& tmp : neighborsOfValues) tmp.setCapacity(arity + 1, false);
 
 
-    var2val = new int[interval];
-    std::fill_n(var2val, interval, -1);
+    var2val = new int[arity];
+    std::fill_n(var2val, arity, -1);
 
 
     time      = 1;
@@ -49,8 +49,8 @@ Matcher::Matcher(Constraint* cc)
 
 
 MatcherAllDifferent::MatcherAllDifferent(Constraint* c) : Matcher(c) {
-    val2var = new int[arity];
-    std::fill_n(val2var, arity, -1);
+    val2var = new int[interval];
+    std::fill_n(val2var, interval, -1);
     predBFS = new int[arity];
     std::fill_n(predBFS, arity, -1);
 }
@@ -77,7 +77,7 @@ bool MatcherAllDifferent::findMatchingFor(int x) {
         for(int a : scope[y]->domain) {
             int nv = normalizedValue(scope[y]->domain.toVal(a));
             int z  = val2var[nv];
-            // std::cout << "nv=" << nv << " z=" << z << " " << var2val[z] << std::endl;
+            // std::cout << "nv=" << nv << " z=" << z << " " << var2val[z] << val2var.size() << std::endl;
             assert(z == -1 || var2val[z] == nv);
             if(z == -1) {   // we have found a free value, so we are good
                 while(predBFS[y] != -1) {
