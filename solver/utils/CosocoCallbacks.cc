@@ -597,13 +597,7 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
                                                  bool closed) {
-    vec<Occurs> occurs;
-    for(int o : intOccurs) {
-        occurs.push();
-        occurs.last().value = o;
-        occurs.last().type  = OCCURS_INTEGER;
-    }
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), vector2vec(intOccurs));
 }
 
 

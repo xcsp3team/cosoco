@@ -150,6 +150,9 @@ void createConstraintElementVariable(Problem *p, std::string name, vec<Variable 
 void createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix, Variable *rindex, Variable *cindex,
                                    int value);
 
+void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, vec<int> &occurs);
+
+
 void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, vec<Occurs> &occurs);
 
 void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths, OrderType op);

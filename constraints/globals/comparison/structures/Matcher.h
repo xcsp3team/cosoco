@@ -23,9 +23,9 @@ class Matcher : public ObserverDeleteDecision {
     vec<int>            unmatched;
     SparseSetMultiLevel unfixed;
     int                *predBFS;   // predBFS[idx] is the predecessor of variable x in the current BFS
-    std::queue<int>     queueBFS;
-    long               *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
-    long                time;        // For stamping
+
+    long *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
+    long  time;        // For stamping
 
 
     // Data Structure for Tarjan algorithm
@@ -63,7 +63,23 @@ class MatcherAllDifferent : public Matcher {
     bool findMaximumMatching() override;
 };
 
-// class MatcherCardinality : public Matcher { };
-// }   // namespace Cosoco
+class MatcherCardinality : public Matcher {
+    vec<SparseSet> val2vars;
+    vec<int>       keys;
+    int           *minOccs;
+    int           *maxOccs;
+    vec<SparseSet> possibleVars;
+    int           *predValue;
+
+    void handleAugmentingPath(int x, int v);
+    bool findMatchingForValue(int v);
+    bool findMatchingForVariable(int idx);
+
+   public:
+    explicit MatcherCardinality(Constraint *c);
+    bool findMaximumMatching() override;
+    void computeNeighbors() override;
+};
+}   // namespace Cosoco
 
 #endif   // COSOCO_MATCHER_H

@@ -51,6 +51,7 @@ Cardinality::Cardinality(Problem &p, std::string n, vec<Variable *> &vars, vec<i
     min.copyTo(minOccs);
     max.copyTo(maxOccs);
     v.copyTo(values);
+    exit(1);
 }
 
 
@@ -64,6 +65,7 @@ Cardinality::Cardinality(Problem &p, std::string n, vec<Variable *> &vars, vec<i
 
 Cardinality::Cardinality(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, int min, int max)
     : GlobalConstraint(p, n, "Cardinality", vars) {
+    exit(1);
     v.copyTo(values);
     minOccs.growTo(v.size(), min);
     maxOccs.growTo(v.size(), max);

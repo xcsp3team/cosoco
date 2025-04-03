@@ -4,6 +4,7 @@
 #include "FactoryConstraints.h"
 
 #include <BinaryExtensionSupport.h>
+#include <Cardinality.h>
 
 #include <iostream>
 #include <regex>
@@ -619,6 +620,12 @@ void FactoryConstraints::createConstraintElementVariable(Problem *p, std::string
 void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix,
                                                        Variable *rindex, Variable *cindex, int value) {
     p->addConstraint(new ElementMatrix(*p, name, matrix, rindex, cindex, value));
+}
+
+
+void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
+                                                     vec<int> &occurs) {
+    p->addConstraint(new Cardinality(*p, std::move(name), vars, values, occurs));
 }
 
 

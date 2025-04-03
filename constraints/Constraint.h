@@ -31,6 +31,7 @@ class Constraint {
     vec<int> current;   // to avoid creation during search
     int      arity;     // arity=scope.size()
    public:
+    virtual ~Constraint() = default;
     Problem        &problem;                  // The linked problem
     Solver         *solver;                   // The linked solver
     std::string     name;                     // Name in the problem description
