@@ -597,7 +597,12 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
                                                  bool closed) {
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), vector2vec(intOccurs));
+    vec<int> o, v;
+    vector2vec(intOccurs);
+    vals.copyTo(o);
+    vector2vec(values);
+    vals.copyTo(v);
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), v, o);
 }
 
 

@@ -34,7 +34,6 @@ bool Cardinality::filter(Variable *x) {
     if(matcher->findMaximumMatching() == false)
         return false;
 
-    std::cout << "ici\n";
     matcher->removeInconsistentValues();   // no more possible failure at this step
     return true;
 }
@@ -59,7 +58,8 @@ Cardinality::Cardinality(Problem &p, std::string n, vec<Variable *> &vars, vec<i
     nOccs.copyTo(minOccs);
     nOccs.copyTo(maxOccs);
     v.copyTo(values);
-    matcher = new MatcherCardinality(this);
+    isPostponable = true;
+    matcher       = new MatcherCardinality(this);
 }
 
 

@@ -289,6 +289,7 @@ MatcherCardinality::MatcherCardinality(Constraint* cc) : Matcher(cc) {
 
     minOccs = new int[interval];
     maxOccs = new int[interval];
+    std::fill_n(minOccs, interval, 0);
     std::fill_n(maxOccs, interval, INT_MAX);
     for(int i = 0; i < keys.size(); i++) {
         minOccs[normalizedValue(keys[i])] = cd->minOccs[i];
@@ -440,8 +441,9 @@ bool MatcherCardinality::findMaximumMatching() {
     for(int i = 0; i < keys.size(); i++) {
         int u = normalizedValue(keys[i]);
         while(val2vars[u].size() < minOccs[u])
-            if(!findMatchingForValue(u))
+            if(!findMatchingForValue(u)) {
                 return false;
+            }
     }
     int level = constraint->solver->decisionLevel();
     unmatched.clear();
@@ -457,8 +459,9 @@ bool MatcherCardinality::findMaximumMatching() {
     while(unmatched.size() > 0) {
         int x = unmatched.last();
         unmatched.pop();
-        if(!findMatchingForVariable(x))
+        if(!findMatchingForVariable(x)) {
             return false;
+        }
     }
 
     return true;
