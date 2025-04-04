@@ -44,8 +44,115 @@ bool Circuit::isCorrectlyDefined() {
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
-
 bool Circuit::filter(Variable *dummy) {
+    if(AllDifferentAC::filter(dummy) == false)
+        return false;
+    if(unassignedVariablesIdx.isEmpty())
+        return true;
+
+    int minimalCircuitLength = 0;
+    heads.clear();
+    int circuitNode = -1;
+    pheads.fill();
+    int nArcs = 0;
+    pred.fill(false);
+    int nSelfLoops = 0;
+    for(int idx = 0; idx < scope.size(); idx++) {
+        if(scope[idx]->containsValue(idx) == false)
+            minimalCircuitLength++;
+        if(scope[idx]->size() == 1) {
+            // if (pheads.contains(i)) pheads.remove(i);
+            int j = scope[idx]->value();
+            if(idx == j) {
+                nSelfLoops++;
+                continue;   // because auto-loop
+            }
+            nArcs++;
+            // if (pheads.contains(j)) pheads.remove(j);
+            if(pred[idx] == false)
+                heads.add(idx);
+            if(pred[j] == true)
+                return false;   // fail because two predecessors
+            pred[j] = true;
+            if(heads.contains(j)) {
+                heads.del(j);
+                if(heads.isEmpty())   // it means that we have a closed circuit
+                    circuitNode = idx;
+            }
+        }
+    }
+    if(nSelfLoops == scope.size())   // TODO: we should prune when all but two variables are self loops (using three
+                                     // residues?)
+        return false;
+
+    if(circuitNode != -1) {
+        if(!heads.isEmpty())
+            return false;   // because a closed circuit and a separate chain
+        set.clear();
+        int i = circuitNode;
+        set.add(i);
+        while(true) {
+            i = scope[i]->value();
+            if(i == circuitNode)
+                break;
+            set.add(i);
+        }
+        if(set.size() < nArcs)
+            return false;
+        for(int k = 0; k < scope.size(); k++)
+            if(!set.contains(k) && solver->assignToVal(scope[k], k) == false)
+                return false;
+        return true;   // TODO : entail
+    }
+    int cnt = 0;
+    tmp.fill(false);
+    for(int i : heads) {
+        if(tmp[i])
+            continue;   // because it is a head that has just been reached from another head after filtering
+        assert(scope[i]->size() == 1 && scope[i]->value() != i);
+        int j    = scope[i]->value();
+        int head = i;
+        set.clear();
+        // set.add(i); // i belongs to the circuit
+        while(true) {
+            int before = scope[j]->size();
+            if(set.contains(j))
+                return false;                          // because two times the same value (and too short circuit)
+            if(solver->delVal(scope[j], j) == false)   // because self-loop not possible for j
+                return false;
+            if(set.size() + 2 < minimalCircuitLength)
+                if(solver->delVal(scope[j], head) == false)
+                    return false;
+
+            for(int v1 : set)
+                if(solver->delVal(scope[j], v1) == false)
+                    return false;
+            if(pred[j])
+                cnt++;
+            if(scope[j]->size() > 1)
+                break;
+            set.add(j);              // j belongs to the circuit
+            j = scope[j]->value();   // we know that the *new value of j* is different from the previous one
+            if(before > 1) {
+                // if (pheads.contains(j)) pheads.remove(j);
+                if(heads.contains(j))
+                    tmp[j] = true;
+            }
+            if(j == head) {   // closed circuit
+                for(int k = 0; k < scope.size(); k++)
+                    if(k != head && !set.contains(k) && solver->assignToVal(scope[k], k) == false)
+                        return false;
+                return true;   // TODO entail();
+            }
+        }
+    }
+    if(cnt < nArcs)
+        return false;
+
+    return true;
+}
+
+/*bool Circuit::filter(Variable *dummy) {
     if(AllDifferentAC::filter(dummy) == false)
         return false;
 
@@ -98,7 +205,7 @@ bool Circuit::filter(Variable *dummy) {
         return false;
     return true;
 }
-
+*/
 
 //----------------------------------------------
 // Construction and initialisation
@@ -108,4 +215,12 @@ Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferen
     type = "Circuit";
     set.setCapacity(vars.size(), false);
     tmp.growTo(scope.size());
+    pred.growTo(scope.size());
+    heads.setCapacity(vars.size(), false);
+    pheads.setCapacity(vars.size(), false);
 }
+/*Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferentAC(p, n, vars) {
+    type = "Circuit";
+    set.setCapacity(vars.size(), false);
+    tmp.growTo(scope.size());
+}*/

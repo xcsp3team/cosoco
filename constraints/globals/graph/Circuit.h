@@ -5,15 +5,27 @@
 
 namespace Cosoco {
 class Circuit : public AllDifferentAC {
-   public:
-    SparseSet set;
-    vec<bool> tmp;   // Temporary, avoid to create it at each filter calls
+    SparseSet heads, pheads, set;
+    vec<bool> tmp;
+    vec<bool> pred;
 
+   public:
     Circuit(Problem &p, std::string n, vec<Variable *> &vars);
 
     bool isCorrectlyDefined() override;
     bool filter(Variable *dummy) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
+
+    /*   public:
+        SparseSet set;
+        vec<bool> tmp;   // Temporary, avoid to create it at each filter calls
+
+        Circuit(Problem &p, std::string n, vec<Variable *> &vars);
+
+        bool isCorrectlyDefined() override;
+        bool filter(Variable *dummy) override;
+        bool isSatisfiedBy(vec<int> &tuple) override;
+    */
 };
 }   // namespace Cosoco
 
