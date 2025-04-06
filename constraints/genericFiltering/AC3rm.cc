@@ -106,7 +106,11 @@ AdapterAC3rm::AdapterAC3rm(Constraint *c)
 
 bool AdapterAC3rm::isCorrectlyDefined() { return constraint->isCorrectlyDefined(); }
 
-void AdapterAC3rm::delayedConstruction(int id) { constraint->makeDelayedConstruction(id); }
+void AdapterAC3rm::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    for(int idx = 0; idx < scope.size(); idx++) constraint->scope[idx] = scope[idx];
+    constraint->current.growTo(scope.size());
+}
 
 State AdapterAC3rm::status() { return constraint->status(); }
 

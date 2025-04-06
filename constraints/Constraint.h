@@ -28,9 +28,11 @@ class Constraint {
    protected:
     vec<int> idxToScopePosition;
     bool     indexesAreValues;
-    vec<int> current;   // to avoid creation during search
-    int      arity;     // arity=scope.size()
+    int      arity;   // arity=scope.size()
+
+
    public:
+    vec<int>        current;                  // to avoid creation during search
     Problem        &problem;                  // The linked problem
     Solver         *solver;                   // The linked solver
     std::string     name;                     // Name in the problem description

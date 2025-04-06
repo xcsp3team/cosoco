@@ -139,8 +139,9 @@ int Constraint::toScopePosition(Variable *x) { return toScopePosition(x->idx); }
 
 
 bool Constraint::isSatisfiedByOfIndexes(vec<int> &tupleOfIndex) {
-    if(indexesAreValues)
-        return isSatisfiedBy(tupleOfIndex);
+    // if(indexesAreValues)
+    //    return isSatisfiedBy(tupleOfIndex);
+    // std::cout << tupleOfIndex.size() << " " << scope[2]->_name << "\n";
     for(int i = 0; i < scope.size(); i++) current[i] = scope[i]->domain.toVal(tupleOfIndex[i]);
 
     return isSatisfiedBy(current);
