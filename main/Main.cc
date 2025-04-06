@@ -69,8 +69,12 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
-        if(options::boolOptions["dsp"].value) {
+        if(options::intOptions["dsp"].value == 1) {
             execlp("python3", "python3", "structure.py", argv[1], NULL);
+            exit(1);
+        }
+        if(options::intOptions["dsp"].value == 2) {
+            execlp("more", "more", argv[1], NULL);
             exit(1);
         }
 

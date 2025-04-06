@@ -17,7 +17,8 @@ void createOptions() {
     boolOptions["colors"]         = {"MAIN", "Add colors to output", true};
     boolOptions["profile"]        = {"MAIN", "Profile the solver", false};
     boolOptions["checksolutions"] = {"MAIN", "Check all solutions", true};
-    boolOptions["dsp"]            = {"MAIN", "Display the structure of the problem and exit (using python script)", false};
+    intOptions["dsp"]             = {
+        "MAIN", "1: Display the structure of the problem and exit (using python script). 2: display the xml file", 0, 0, 2};
 
 
     boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
