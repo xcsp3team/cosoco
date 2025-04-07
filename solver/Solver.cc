@@ -40,7 +40,8 @@ Solver::Solver(Problem &p)
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
-      queue(p.nbVariables(), p.variables) {
+      queue(p.nbVariables(), p.variables),
+      queue4Nogoods(p.nbVariables(), false) {
     heuristicVar = nullptr;
     heuristicVal = nullptr;
     statistics.growTo(NBSTATS, 0);
@@ -472,6 +473,7 @@ void Solver::addToQueue(Variable *x) {
         smallest_in_queue = x->size();
     queue.add(x);
     x->timestamp = ++timestamp;
+    queue4Nogoods.add(x->idx);
 }
 
 
@@ -534,9 +536,6 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
             Variable *x = pickInQueue();
             assert(x->size() > 0);
 
-            if(nogoodsFromRestarts && noGoodsEngine->propagate(x) == false)
-                return NoGoodsEngine::fake;
-
 
             for(Constraint *c : x->constraints) {
                 if(c->isDisabled)
@@ -555,6 +554,13 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
             }
         }
 
+        // Nogood filtering
+        while(queue4Nogoods.isEmpty() == false) {
+            int idx = queue4Nogoods.pop();
+
+            if(nogoodsFromRestarts && noGoodsEngine->propagate(problem.variables[idx]) == false)
+                return NoGoodsEngine::fake;
+        }
 
         // Filter postponed constraints
         for(auto *c : postponeFiltering) {
@@ -563,6 +569,8 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                 return c;
         }
         postponeFiltering.clear();
+
+
         if(queue.size() == 0)
             break;
     }
