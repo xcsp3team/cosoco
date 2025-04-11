@@ -57,13 +57,13 @@ bool STR0::isValidTuple(int *t) {
 }
 
 bool STR0::updateDomains() {
-    for(int i = sSupSize - 1; i >= 0; i--) {
-        int x         = sSup[i];
-        int nRemovals = cnts[x];
+    for(int i = 0; i < sSupSize; i++) {
+        int idx       = sSup[i];
+        int nRemovals = cnts[idx];
         assert(nRemovals > 0);
-        for(int tmp = 0, idv = scope[x]->domain[0]; tmp < nRemovals; idv++) {
-            if(ac[x][idv] == false) {
-                if(solver->delIdv(scope[x], idv) == false)
+        for(int tmp = 0, idv = scope[idx]->domain[0]; tmp < nRemovals; idv++) {
+            if(ac[idx][idv] == false) {
+                if(solver->delIdv(scope[idx], idv) == false)
                     return false;
                 tmp++;
             }
@@ -75,7 +75,7 @@ bool STR0::updateDomains() {
 
 bool STR0::filter(Variable *dummy) {
     beforeFiltering();
-    for(int i : set) {
+    for(int i : reverse(set)) {
         int *tuple = (*tuples)[i];
         if(isValidTuple(tuple)) {
             if(universal) {
