@@ -625,7 +625,7 @@ void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string n
 
 void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                                      vec<int> &occurs) {
-    p->addConstraint(new Cardinality(*p, std::move(name), vars, values, occurs));
+    p->addConstraint(new CardinalityWeak(*p, std::move(name), vars, values, occurs));
 }
 
 
