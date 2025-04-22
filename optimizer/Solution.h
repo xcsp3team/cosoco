@@ -102,22 +102,33 @@ class Solution {   // This class comes from pseudo boolean competition and was p
         if(exists() == false)
             throw std::runtime_error("The solution does not exist");
         printf("\nv <instantiation type='solution' cost='%ld'>\n", bestBound());
-        printf("v <list>");
-        for(int i = 0; i < problem.nbVariables(); i++)
-            if(problem.variables[i]->_name.rfind("__av", 0) != 0)
-                std::cout << problem.variables[i]->_name << " ";
+        printf("v <list> ");
+        for(std::string tmp2 : problem.arrayNames) std::cout << tmp2 << " ";
+
+        for(Variable *x : problem.variables)
+            if(x->_name.rfind("__av", 0) != 0 && x->array == -1)
+                std::cout << x->_name << " ";
 
         printf("</list>\n");
 
-        printf("v <values>");
+        printf("v <values> ");
         for(int i = 0; i < problem.nbVariables(); i++) {
-            if(problem.variables[i]->_name.rfind("__av", 0) != 0) {
+            if(problem.variables[i]->array != -1) {
                 if((*preserved)[i] == STAR)
                     std::cout << "* ";
                 else
                     std::cout << (*preserved)[i] << " ";
             }
         }
+        for(int i = 0; i < problem.nbVariables(); i++) {
+            if(problem.variables[i]->_name.rfind("__av", 0) != 0 && problem.variables[i]->array == -1) {
+                if((*preserved)[i] == STAR)
+                    std::cout << "* ";
+                else
+                    std::cout << (*preserved)[i] << " ";
+            }
+        }
+
         printf("</values>\n");
 
         printf("v </instantiation>\n\n");

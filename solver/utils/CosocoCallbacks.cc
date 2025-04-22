@@ -28,25 +28,40 @@ void CosocoCallbacks::endInstance() {
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
     Variable *x =
         problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
-    if(inArray)
+    if(inArray == 1) {
+        int dim = (int)std::count(id.begin(), id.end(), '[');
+        for(int i = 0; i < dim; i++) arrayName += "[]";
+        problem->arrayNames.push(arrayName);
+    }
+    if(inArray) {
         problem->variablesArray.last().push(x);
+        inArray = 2;
+    }
     mappingXV[id] = new XVariable(id, nullptr);
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     Variable *x =
         problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
-    if(inArray)
+    if(inArray == 1) {
+        int dim = (int)std::count(id.begin(), id.end(), '[');
+        for(int i = 0; i < dim; i++) arrayName += "[]";
+        problem->arrayNames.push(arrayName);
+    }
+    if(inArray) {
         problem->variablesArray.last().push(x);
+        inArray = 2;
+    }
     mappingXV[id] = new XVariable(id, nullptr);
 }
 
 void CosocoCallbacks::beginVariableArray(string id) {
     for(int core = 0; core < nbcores; core++) problem->variablesArray.push();
-    inArray = true;
+    arrayName = id;
+    inArray   = 1;
 }
 
-void CosocoCallbacks::endVariableArray() { inArray = false; }
+void CosocoCallbacks::endVariableArray() { inArray = 0; }
 
 void CosocoCallbacks::endVariables() {
     nbInitialsVariables     = problem->nbVariables();

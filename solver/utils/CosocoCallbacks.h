@@ -225,9 +225,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
 
-    bool insideGroup;
-    int  nbIntension;
-    bool inArray;
+    bool        insideGroup;
+    int         nbIntension;
+    int         inArray;
+    std::string arrayName;
 
     int                 nbMDD;
     vec<Variable *>     vars;   // Not so beautiful, but efficient...

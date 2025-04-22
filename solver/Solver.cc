@@ -827,14 +827,24 @@ void Solver::updateStatisticsWithNewConflict() {
 void Solver::displayCurrentSolution() {
     printf("c solution %d\n", nbSolutions);
     printf("\nv <instantiation type='solution'>\n");
-    printf("v <list>");
+    printf("v <list> ");
+    for(std::string tmp : problem.arrayNames) std::cout << tmp << " ";
+
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0)
+        if(x->_name.rfind("__av", 0) != 0 && x->array == -1)
             printf("%s ", x->name());
     printf("</list>\n");
-    printf("v <values>");
+    printf("v <values> ");
+
+    for(auto &varArray : problem.variablesArray)
+        for(Variable *x : varArray)
+            if(x->useless)
+                printf("* ");
+            else
+                printf("%d ", lastSolution[x->idx]);
+
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0) {
+        if(x->_name.rfind("__av", 0) != 0 && x->array == -1) {
             if(x->useless)
                 printf("* ");
             else
