@@ -545,10 +545,25 @@ void CosocoCallbacks::buildConstraintExactlyVariable(string id, vector<XVariable
 
 
 void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) {
+    if(xc.operandType == VARIABLE && xc.op == EQ)
+        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+    if(xc.operandType == VARIABLE)
+        throw runtime_error("c Such nValues constraint Not yes supported");
+}
+
+
+void CosocoCallbacks::buildConstraintNValues(string id, vector<Tree *> &trees, XCondition &xc) {
     if(!(xc.operandType == VARIABLE && xc.op == EQ))
         throw runtime_error("c Such nValues constraint Not yes supported");
 
-    FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+    vector<string> auxiliaryVariables;
+    insideGroup = false;
+    createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
+    // Create the new objective
+    // core duplication is here
+    vars.clear();
+    for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problem->mapping[auxiliaryVariable]);
+    FactoryConstraints::createConstraintNValuesEQV(problem, id, vars, problem->mapping[xc.var]);
 }
 
 
