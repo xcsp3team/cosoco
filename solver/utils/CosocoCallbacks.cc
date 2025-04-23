@@ -550,6 +550,10 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
             FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val);
             return;
         }
+        if(xc.op == LT) {
+            FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val - 1);
+            return;
+        }
         if(xc.op == EQ) {
             string           auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             std::vector<int> tmp;
@@ -592,6 +596,16 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
     }
 }
 
+void CosocoCallbacks::buildConstraintNValues(string id, vector<Tree *> &trees, XCondition &xc) {
+    vector<string> auxiliaryVariables;
+    insideGroup = false;
+    createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
+    vector<XVariable *> tmp;
+    for(auto &auxiliaryVariable : auxiliaryVariables) {
+        tmp.push_back(new XVariable(auxiliaryVariable, nullptr));
+    }
+    buildConstraintNValues(id, tmp, xc);
+}
 
 void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) {
     if(values.size() == 1) {
