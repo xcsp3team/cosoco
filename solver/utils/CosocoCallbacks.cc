@@ -423,16 +423,33 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
         variables.push(problem->mapping[xcvar]);
         vals.push(-1);
     }
-    if(xc.op != IN) {
+    if(xc.op != IN && xc.op != NOTIN) {
         FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.val, xc.op);
-    } else {
-        // Intervals
+        return;
+    }
+
+    if(xc.op == IN && xc.operandType == INTERVAL) {
         FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.min, GE);
         FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.max, LE);
+        return;
     }
-    if(varCondition) {
-        xc.operandType = VARIABLE;
+
+    if(xc.op == IN) {
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        buildVariableInteger(auxVar, xc.set);
+        vals.push(-1);
+        variables.push(problem->mapping[auxVar]);
+        FactoryConstraints::createConstraintSum(problem, id, variables, vals, 0, EQ);
+        return;
     }
+
+    std::vector<int> tmp;
+    if(xc.operandType == INTERVAL) {
+        for(int i = xc.min; i <= xc.max; i++) tmp.push_back(i);
+    } else
+        tmp.assign(xc.set.begin(), xc.set.end());
+
+    for(int i : tmp) FactoryConstraints::createConstraintSum(problem, id, variables, vals, i, NE);
 }
 
 
@@ -471,37 +488,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
     for(unsigned int i = 0; i < list.size(); i++) trees.push_back(new Tree("mul(" + list[i]->id + "," + coeffs[i]->id + ")"));
 
     buildConstraintSum(id, trees, xc);
-
-
-    /*            string tmp = "add(";
-                assert(list.size() == coeffs.size());
-                for(unsigned int i = 0; i < list.size(); i++) {
-                    tmp = tmp + "mul(" + list[i]->id + "," + coeffs[i]->id + ")";
-                    if(i < list.size() - 1) tmp = tmp + ",";
-                }
-                if(xc.operandType == VARIABLE) {
-                    xc.operandType = INTEGER;
-                    xc.val = 0;
-                    tmp = tmp + ",neg(" + xc.var + ")";
-                }
-                tmp = tmp + ")";
-                if(xc.op != IN) {
-                    if(xc.op == EQ) tmp = "eq(" + tmp;
-                    if(xc.op == NE) tmp = "ne(" + tmp;
-                    if(xc.op == LE) tmp = "le(" + tmp;
-                    if(xc.op == LT) tmp = "lt(" + tmp;
-                    if(xc.op == GE) tmp = "ge(" + tmp;
-                    if(xc.op == GT) tmp = "gt(" + tmp;
-                    tmp = tmp + "," + std::to_string(xc.val) + ")";
-                    XCSP3Core::Tree *tree = new Tree(tmp);
-                    buildConstraintIntension(id, tree);
-                    return;
-                }
-
-                // Intervals
-                buildConstraintIntension(id, new XCSP3Core::Tree("ge(" + tmp + "," + std::to_string(xc.min) + ")"));
-                buildConstraintIntension(id, new XCSP3Core::Tree("le(" + tmp + "," + std::to_string(xc.max) + ")"));
-                */
 }
 
 
