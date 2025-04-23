@@ -357,6 +357,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) override;
 
+    void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<XVariable *> &lengths, OrderType order) override;
+
     void buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) override;
 
     void buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) override;

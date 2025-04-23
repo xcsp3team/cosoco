@@ -515,21 +515,6 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
     assert(coeffs.size() == vars.size());
 
 
-    // Need order on coefficients
-    for(int i = 0; i < vars.size(); i++) {
-        int pos = i;
-        for(int j = i + 1; j < vars.size(); j++) {
-            if(coeffs[j] < coeffs[pos])
-                pos = j;
-        }
-        int tmp     = coeffs[i];
-        coeffs[i]   = coeffs[pos];
-        coeffs[pos] = tmp;
-        Variable *x = vars[i];
-        vars[i]     = vars[pos];
-        vars[pos]   = x;
-    }
-
     // remove coef 0
     int i = 0, j = 0;
     for(; i < coeffs.size(); i++)
@@ -666,8 +651,27 @@ void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, v
     }
 }
 
+void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths,
+                                                 OrderType op) {
+    vec<Variable *> tmp;
+    tmp.growTo(3);
+    vec<int> coeffs;
+    coeffs.push(1);
+    coeffs.push(1);
+    coeffs.push(-1);
 
-void FactoryConstraints::createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2,
+    for(int i = 0; i < vars.size() - 1; i++) {
+        std::cout << vars[i]->_name << " " << lengths[i]->_name << " -" << vars[i + 1]->_name << std::endl;
+        tmp[0] = vars[i];
+        tmp[1] = lengths[i];
+        tmp[2] = vars[i + 1];
+        createConstraintSum(p, name, tmp, coeffs, 0, op);
+        p->constraints.last()->display(true);
+    }
+}
+
+
+void FactoryConstraints::createConstraintLex(Problem *p, const std::string &name, vec<Variable *> &vars1, vec<Variable *> &vars2,
                                              OrderType op) {
     if(op == OrderType::LE)
         p->addConstraint(new Lexicographic(*p, name, vars1, vars2, false));

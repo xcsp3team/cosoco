@@ -369,6 +369,13 @@ void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &lis
     FactoryConstraints::createConstraintOrdered(problem, id, toMyVariables(list), lengths, order);
 }
 
+void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, vector<XVariable *> &lengths,
+                                             OrderType order) {
+    vec<Variable *> vars, _lengths;
+    toMyVariables(list, vars);
+    toMyVariables(lengths, _lengths);
+    FactoryConstraints::createConstraintOrdered(problem, id, vars, _lengths, order);
+}
 
 void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) {
     vec<Variable *> list1, list2;
@@ -580,8 +587,7 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
         buildConstraintExtension(id, aux, xc.set, false, false);
     else {
         std::vector<int> tmp;
-        for(int i = xc.min; i < xc.max;i++)
-            tmp.push_back(i);
+        for(int i = xc.min; i < xc.max; i++) tmp.push_back(i);
         buildConstraintExtension(id, aux, tmp, false, false);
     }
 }

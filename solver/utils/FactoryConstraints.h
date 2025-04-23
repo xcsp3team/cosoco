@@ -154,8 +154,9 @@ void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &
 
 void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths, OrderType op);
 
+void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths, OrderType op);
 
-void createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2, OrderType op);
+void createConstraintLex(Problem *p, const std::string &name, vec<Variable *> &vars1, vec<Variable *> &vars2, OrderType op);
 
 
 void createContraintChannelXY(Problem *p, std::string name, vec<Variable *> &X, vec<Variable *> &Y, int startX, int startY);
