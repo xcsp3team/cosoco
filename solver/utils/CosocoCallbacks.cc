@@ -531,10 +531,59 @@ void CosocoCallbacks::buildConstraintExactlyVariable(string id, vector<XVariable
 
 
 void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) {
-    if(!(xc.operandType == VARIABLE && xc.op == EQ))
+    if(xc.operandType == VARIABLE && xc.op == EQ) {
+        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+        return;
+    }
+    if(xc.operandType == VARIABLE)
         throw runtime_error("c Such nValues constraint Not yes supported");
 
-    FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+    if(xc.operandType == INTEGER) {
+        if(xc.op == LE) {
+            FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val);
+            return;
+        }
+        if(xc.op == EQ) {
+            string           auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            std::vector<int> tmp;
+            tmp.push_back(xc.val);
+            buildVariableInteger(auxVar, tmp);
+            FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+            return;
+        }
+        throw runtime_error("c Such nValues constraint Not yes supported");
+    }
+    if(xc.op == IN) {
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        if(xc.operandType == INTERVAL)
+            buildVariableInteger(auxVar, xc.min, xc.max);
+        else
+            buildVariableInteger(auxVar, xc.set);
+        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+        return;
+    }
+    assert(xc.op == NOTIN);
+    int              min  = INT_MAX;
+    int              max  = INT_MIN;
+    vec<Variable *> &vars = toMyVariables(list);
+    for(Variable *x : vars) {
+        if(x->minimum() < min)
+            min = x->minimum();
+        if(x->maximum() > max)
+            max = x->maximum();
+    }
+    string     auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+    XVariable *aux    = new XVariable(auxVar, nullptr);
+    buildVariableInteger(auxVar, 1, max - min + 2);
+    FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+    if(xc.operandType == SET)
+        buildConstraintExtension(id, aux, xc.set, false, false);
+    else {
+        std::vector<int> tmp;
+        for(int i = xc.min; i < xc.max;i++)
+            tmp.push_back(i);
+        buildConstraintExtension(id, aux, tmp, false, false);
+    }
 }
 
 
