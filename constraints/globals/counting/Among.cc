@@ -40,7 +40,7 @@ bool Among::filter(Variable *x) {
         Variable *x                      = scope[i];
         bool      atLeastOnePresentValue = false, atLeastOneAbsentValue = false;
         for(int idx : x->domain) {
-            int idv = x->domain.toVal(idv);
+            int idv = x->domain.toVal(idx);
             if((atLeastOnePresentValue && atLeastOneAbsentValue))
                 break;
             bool among             = values.find(idv) != values.end();
@@ -84,7 +84,6 @@ bool Among::filter(Variable *x) {
 //----------------------------------------------
 
 Among::Among(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &_values, int kk)
-    : GlobalConstraint(p, n, "Among", vars), k(kk), mixedVariables(vars.size(), false) {
+    : GlobalConstraint(p, n, "Among", vars), mixedVariables(vars.size(), false), k(kk) {
     for(int v : _values) values.insert(v);
-    throw std::runtime_error("c Among not yet tested");
 }

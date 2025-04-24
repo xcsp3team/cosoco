@@ -8,6 +8,7 @@
 #include <iostream>
 #include <regex>
 
+#include "Among.h"
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
 #include "CardinalityWeak.h"
@@ -577,6 +578,10 @@ void FactoryConstraints::createConstraintAtLeast(Problem *p, std::string name, v
 
 void FactoryConstraints::createConstraintAtMost(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
     p->addConstraint(new AtMostK(*p, name, vars, k, value));
+}
+
+void FactoryConstraints::createConstraintAmong(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, int k) {
+    p->addConstraint(new Among(*p, name, vars, values, k));
 }
 
 

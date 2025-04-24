@@ -130,6 +130,8 @@ void createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars
 
 void createConstraintAtMost(Problem *p, std::string name, vec<Variable *> &vars, int value, int k);
 
+void createConstraintAmong(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &value, int k);
+
 void createConstraintExactly(Problem *p, std::string name, vec<Variable *> &vars, int value, int k);
 
 void createConstraintExactlyVariable(Problem *p, std::string name, vec<Variable *> &vars, int value, Variable *k);

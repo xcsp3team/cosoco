@@ -654,6 +654,11 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
 }
 
 
+void CosocoCallbacks::buildConstraintAmong(string id, vector<XVariable *> &list, vector<int> &values, int k) {
+    FactoryConstraints::createConstraintAmong(problem, id, toMyVariables(list), vector2vec(values), k);
+}
+
+
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
                                                  bool closed) {
     vec<Occurs> occurs;
