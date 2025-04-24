@@ -424,29 +424,33 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
     string xcvar        = xc.var;
     bool   varCondition = xc.operandType == VARIABLE;
     vector2vec(coeffs);
+    vec<Variable *> tmpVars;
+
+    variables.copyTo(tmpVars);
     if(varCondition) {
         xc.operandType = INTEGER;
         xc.val         = 0;
-        variables.push(problem->mapping[xcvar]);
+        tmpVars.push(problem->mapping[xcvar]);
         vals.push(-1);
     }
     if(xc.op != IN && xc.op != NOTIN) {
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.val, xc.op);
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.val, xc.op);
         return;
     }
 
     if(xc.op == IN && xc.operandType == INTERVAL) {
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.min, GE);
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.max, LE);
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.min, GE);
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.max, LE);
         return;
     }
 
     if(xc.op == IN) {
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
         buildVariableInteger(auxVar, xc.set);
+        vector2vec(coeffs);   // Be careful we change the vector vals :(
         vals.push(-1);
-        variables.push(problem->mapping[auxVar]);
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, 0, EQ);
+        tmpVars.push(problem->mapping[auxVar]);
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, 0, EQ);
         return;
     }
 
@@ -456,7 +460,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
     } else
         tmp.assign(xc.set.begin(), xc.set.end());
 
-    for(int i : tmp) FactoryConstraints::createConstraintSum(problem, id, variables, vals, i, NE);
+    for(int i : tmp) FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, i, NE);
 }
 
 
@@ -591,7 +595,7 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
         buildConstraintExtension(id, aux, xc.set, false, false);
     else {
         std::vector<int> tmp;
-        for(int i = xc.min; i < xc.max; i++) tmp.push_back(i);
+        for(int i = xc.min; i <= xc.max; i++) tmp.push_back(i);
         buildConstraintExtension(id, aux, tmp, false, false);
     }
 }
