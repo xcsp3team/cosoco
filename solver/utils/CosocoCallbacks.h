@@ -398,6 +398,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) override;
 
+    void buildConstraintCount(string id, vector<XVariable *> &list, vector<int> &values, XCondition &xc) override;
+
     void buildConstraintAmong(string id, vector<XVariable *> &list, vector<int> &values, int k) override;
 
     void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,

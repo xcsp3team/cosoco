@@ -638,6 +638,16 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
     throw runtime_error("c some count with trees and multiple values constraint is not yet supported ");
 }
 
+std::string joinVector(std::vector<int> &array) {
+    std::ostringstream oss;
+    for(size_t i = 0; i < array.size(); ++i) {
+        oss << array[i];
+        if(i != array.size() - 1) {
+            oss << ",";
+        }
+    }
+    return oss.str();
+}
 
 void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) {
     // TODO WARNING
@@ -651,6 +661,26 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
         return;
     }
     throw runtime_error("c some count with trees and multiple values variables constraint is not yet supported ");
+}
+
+void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list, vector<int> &values, XCondition &xc) {
+    vector<Tree *> trees;
+    if(values.size() == 1) {
+        for(auto &xv : list) {
+            string s = "eq(" + xv->id + "," + std::to_string(values[0]) + ")";
+            trees.push_back(new Tree(s));
+        }
+        buildConstraintSum(id, trees, xc);
+        return;
+    }
+    std::string tmp = joinVector(values);
+    for(auto &xv : list) {
+        string s = "in(" + xv->id + ",set(" + tmp + "))";
+        std::cout << s << std::endl;
+        trees.push_back(new Tree(s));
+    }
+    buildConstraintSum(id, trees, xc);
+    return;
 }
 
 
