@@ -4,6 +4,7 @@
 #include "FactoryConstraints.h"
 
 #include <BinaryExtensionSupport.h>
+#include <NoGood.h>
 
 #include <iostream>
 #include <regex>
@@ -84,24 +85,28 @@ Verbose verbose;
 Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                                        bool isSupport, bool hasStar) {
     Extension *ctr = nullptr;
-    if(vars.size() == 2) {
-        int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
 
-        if(isSupport && max_size > options::intConstants["large_bin_extension"])
-            ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
-        else
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
-
+    if(tuples.size() == 1 && isSupport == false) {
+        ctr = new NoGood(*p, name, vars);
     } else {
-        if(isSupport) {
-            // ctr = new CompactTable(*p, name, vars, tuples.size());
-            ctr = new ShortSTR2(*p, name, vars, tuples.size());
+        if(vars.size() == 2) {
+            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+
+            if(isSupport && max_size > options::intConstants["large_bin_extension"])
+                ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
+            else
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+
         } else {
-            assert(hasStar == false);   // TODO
-            ctr = new STRNeg(*p, name, vars, tuples.size());
+            if(isSupport) {
+                // ctr = new CompactTable(*p, name, vars, tuples.size());
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
+            } else {
+                assert(hasStar == false);   // TODO
+                ctr = new STRNeg(*p, name, vars, tuples.size());
+            }
         }
     }
-
     for(auto &tuple : tuples) ctr->addTuple(tuple);
     return ctr;
 }
@@ -117,7 +122,11 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
                                    ((Unary *)p->constraints.last())->areSupports));
         return;
     }
-
+    auto *noGood = dynamic_cast<NoGood *>(c);
+    if(noGood != nullptr) {
+        p->addConstraint(new NoGood(*p, name, vars, sameConstraint->tuples));
+        return;
+    }
     if(vars.size() == 2) {
         int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
         if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
@@ -137,7 +146,7 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
 
 void FactoryConstraints::createConstraintExtension(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                                    bool isSupport, bool hasStar) {
-    p->addConstraint(FactoryConstraints::newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar));
+    p->addConstraint(newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar));
 }
 
 
