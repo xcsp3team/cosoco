@@ -8,6 +8,7 @@
 #include <iostream>
 #include <regex>
 
+#include "Among.h"
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
 #include "CardinalityWeak.h"
@@ -514,7 +515,6 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
     coefs2.copyTo(coeffs);
     assert(coeffs.size() == vars.size());
 
-
     // Need order on coefficients
     for(int i = 0; i < vars.size(); i++) {
         int pos = i;
@@ -529,6 +529,7 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
         vars[i]     = vars[pos];
         vars[pos]   = x;
     }
+
 
     // remove coef 0
     int i = 0, j = 0;
@@ -577,6 +578,10 @@ void FactoryConstraints::createConstraintAtLeast(Problem *p, std::string name, v
 
 void FactoryConstraints::createConstraintAtMost(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
     p->addConstraint(new AtMostK(*p, name, vars, k, value));
+}
+
+void FactoryConstraints::createConstraintAmong(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, int k) {
+    p->addConstraint(new Among(*p, name, vars, values, k));
 }
 
 
@@ -666,8 +671,26 @@ void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, v
     }
 }
 
+void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths,
+                                                 OrderType op) {
+    for(int i = 0; i < vars.size() - 1; i++) {
+        vec<int> coeffs;
+        coeffs.push(1);
+        coeffs.push(1);
+        coeffs.push(-1);
+        vec<Variable *> tmp;
+        tmp.push(vars[i]);
+        tmp.push(lengths[i]);
+        tmp.push(vars[i + 1]);
+        tmp[0] = vars[i];
+        tmp[1] = lengths[i];
+        tmp[2] = vars[i + 1];
+        createConstraintSum(p, name, tmp, coeffs, 0, op);
+    }
+}
 
-void FactoryConstraints::createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2,
+
+void FactoryConstraints::createConstraintLex(Problem *p, const std::string &name, vec<Variable *> &vars1, vec<Variable *> &vars2,
                                              OrderType op) {
     if(op == OrderType::LE)
         p->addConstraint(new Lexicographic(*p, name, vars1, vars2, false));

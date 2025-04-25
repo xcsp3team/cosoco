@@ -130,6 +130,8 @@ void createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars
 
 void createConstraintAtMost(Problem *p, std::string name, vec<Variable *> &vars, int value, int k);
 
+void createConstraintAmong(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &value, int k);
+
 void createConstraintExactly(Problem *p, std::string name, vec<Variable *> &vars, int value, int k);
 
 void createConstraintExactlyVariable(Problem *p, std::string name, vec<Variable *> &vars, int value, Variable *k);
@@ -154,8 +156,9 @@ void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &
 
 void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths, OrderType op);
 
+void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths, OrderType op);
 
-void createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2, OrderType op);
+void createConstraintLex(Problem *p, const std::string &name, vec<Variable *> &vars1, vec<Variable *> &vars2, OrderType op);
 
 
 void createContraintChannelXY(Problem *p, std::string name, vec<Variable *> &X, vec<Variable *> &Y, int startX, int startY);
