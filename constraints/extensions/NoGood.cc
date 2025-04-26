@@ -53,8 +53,7 @@ bool NoGood::filter(Variable *x) {
     }
     if(nbsz1 == scope.size())
         return false;
-    if(nbsz1 == scope.size() - 1) {
-        assert(sz2 != -1);
+    if(nbsz1 == scope.size() - 1 && sz2 != -1) {
         solver->delVal(scope[sz2], (*tuples)[0][sz2]);
         solver->entail(this);
     }
