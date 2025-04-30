@@ -87,7 +87,8 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
     Extension *ctr = nullptr;
 
     if(tuples.size() == 1 && isSupport == false) {
-        ctr = new NoGood(*p, name, vars);
+        p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
+        return nullptr;
     } else {
         if(vars.size() == 2) {
             int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
@@ -124,7 +125,7 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
     }
     auto *noGood = dynamic_cast<NoGood *>(c);
     if(noGood != nullptr) {
-        p->addConstraint(new NoGood(*p, name, vars, sameConstraint->tuples));
+        p->addConstraint(new NoGood(*p, name, vars, noGood->tuple));
         return;
     }
     if(vars.size() == 2) {
@@ -146,7 +147,10 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
 
 void FactoryConstraints::createConstraintExtension(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                                    bool isSupport, bool hasStar) {
-    p->addConstraint(newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar));
+    Constraint *c = newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar);
+    if(c == nullptr)
+        return;
+    p->addConstraint(c);
 }
 
 

@@ -4,16 +4,18 @@
 
 #ifndef NOGOOD_H
 #define NOGOOD_H
-#include <Extension.h>
+#include <Constraint.h>
 
 
 namespace Cosoco {
-class NoGood : public Extension {
+class NoGood : public Constraint {
    protected:
    public:
+    vec<int> tuple;
+
     // Constructors
-    NoGood(Problem &p, std::string n, vec<Variable *> &vars);
-    NoGood(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
+    NoGood(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &tuple);
+    // NoGood(Problem &p, std::string n, vec<Variable *> &vars, vec);
 
     // filtering
     bool filter(Variable *x) override;
