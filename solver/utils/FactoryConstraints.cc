@@ -4,7 +4,9 @@
 #include "FactoryConstraints.h"
 
 #include <BinaryExtensionSupport.h>
-#include <NoGood.h>
+
+#include <STR0.h>
+
 
 #include <iostream>
 #include <regex>
@@ -89,8 +91,8 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
     if(tuples.size() == 1 && isSupport == false) {
         p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
         return nullptr;
-    } else {
-        if(vars.size() == 2) {
+    } 
+    if(vars.size() == 2) {
             int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
 
             if(isSupport && max_size > options::intConstants["large_bin_extension"])
@@ -98,7 +100,7 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
             else
                 ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
 
-        } else {
+      } else {
             if(isSupport) {
                 // ctr = new CompactTable(*p, name, vars, tuples.size());
                 ctr = new ShortSTR2(*p, name, vars, tuples.size());
@@ -107,9 +109,6 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
                 ctr = new STRNeg(*p, name, vars, tuples.size());
             }
         }
-    }
-    for(auto &tuple : tuples) ctr->addTuple(tuple);
-    return ctr;
 }
 
 
@@ -137,9 +136,12 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
             ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
     }
     if(vars.size() > 2) {
-        if(sameConstraint->isSupport)
-            ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
-        else
+        if(sameConstraint->isSupport) {
+            if(sameConstraint->nbTuples() < options::intConstants["smallNbTuples"])
+                ctr = new STR0(*p, name, vars, sameConstraint->tuples);
+            else
+                ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+        } else
             ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
     }
     p->addConstraint(ctr);
