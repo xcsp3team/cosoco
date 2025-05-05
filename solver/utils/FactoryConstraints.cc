@@ -4,9 +4,8 @@
 #include "FactoryConstraints.h"
 
 #include <BinaryExtensionSupport.h>
-
+#include <NoGood.h>
 #include <STR0.h>
-
 
 #include <iostream>
 #include <regex>
@@ -88,27 +87,29 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
                                                        bool isSupport, bool hasStar) {
     Extension *ctr = nullptr;
 
-    if(tuples.size() == 1 && isSupport == false) {
+    if(false && tuples.size() == 1 && isSupport == false) {
         p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
         return nullptr;
-    } 
+    }
     if(vars.size() == 2) {
-            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+        int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
 
-            if(isSupport && max_size > options::intConstants["large_bin_extension"])
-                ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
-            else
-                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+        if(isSupport && max_size > options::intConstants["large_bin_extension"])
+            ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
+        else
+            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
 
-      } else {
-            if(isSupport) {
-                // ctr = new CompactTable(*p, name, vars, tuples.size());
-                ctr = new ShortSTR2(*p, name, vars, tuples.size());
-            } else {
-                assert(hasStar == false);   // TODO
-                ctr = new STRNeg(*p, name, vars, tuples.size());
-            }
+    } else {
+        if(isSupport) {
+            // ctr = new CompactTable(*p, name, vars, tuples.size());
+            ctr = new ShortSTR2(*p, name, vars, tuples.size());
+        } else {
+            assert(hasStar == false);   // TODO
+            ctr = new STRNeg(*p, name, vars, tuples.size());
         }
+    }
+    for(auto &tuple : tuples) ctr->addTuple(tuple);
+    return ctr;
 }
 
 
