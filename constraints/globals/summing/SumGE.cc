@@ -19,7 +19,7 @@ bool SumGE::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) >= limit;
 
 bool SumGE::filter(Variable *dummy) {
     computeBounds();
-    if(min >= limit){
+    if(min >= limit) {
         solver->entail(this);
         return true;
     }
@@ -49,8 +49,8 @@ bool SumGE::filter(Variable *dummy) {
             if((min += (x->minimum() - minimumBefore) * coeff) >= limit)
                 return true;
         } else {
-            long maxBase = max - x->minimum() * coeff;
-            int maxBefore = x->maximum();
+            long maxBase   = max - x->minimum() * coeff;
+            int  maxBefore = x->maximum();
             if(maxBase + x->minimum() * coeff < limit)
                 return false;
 
@@ -73,14 +73,15 @@ bool SumGE::filter(Variable *dummy) {
 
 void SumGE::computeBounds() {
     min = max = 0;
-    for (int i = 0; i < scope.size(); i++) {
-        Variable *x = scope[i];
-        int xmin = x->minimum();
-        int xmax = x->maximum();
-        int coeff = coefficients[i];
+    for(int i = 0; i < scope.size(); i++) {
+        Variable *x     = scope[i];
+        int       xmin  = x->minimum();
+        int       xmax  = x->maximum();
+        int       coeff = coefficients[i];
         min += coeff * (coeff >= 0 ? xmin : xmax);
         max += coeff * (coeff >= 0 ? xmax : xmin);
-    }}
+    }
+}
 
 
 //----------------------------------------------

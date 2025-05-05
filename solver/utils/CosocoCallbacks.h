@@ -225,9 +225,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
 
-    bool insideGroup;
-    int  nbIntension;
-    bool inArray;
+    bool        insideGroup;
+    int         nbIntension;
+    int         inArray;
+    std::string arrayName;
 
     int                 nbMDD;
     vec<Variable *>     vars;   // Not so beautiful, but efficient...
@@ -357,6 +358,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) override;
 
+    void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<XVariable *> &lengths, OrderType order) override;
+
     void buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) override;
 
     void buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) override;
@@ -388,11 +391,17 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) override;
 
+    void buildConstraintNValues(string id, vector<Tree *> &trees, XCondition &xc) override;
+
     void buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) override;
 
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) override;
 
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) override;
+
+    void buildConstraintCount(string id, vector<XVariable *> &list, vector<int> &values, XCondition &xc) override;
+
+    void buildConstraintAmong(string id, vector<XVariable *> &list, vector<int> &values, int k) override;
 
     void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
                                     bool closed) override;

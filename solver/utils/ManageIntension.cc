@@ -15,6 +15,18 @@ void replace_all_occurrences(std::string &input, const std::string &replace_word
     }
 }
 
+void getVariables(Node *n, std::set<string> &variables) {
+    NodeVariable *nv = dynamic_cast<NodeVariable *>(n);
+    if(nv != nullptr) {
+        variables.insert(nv->var);
+        return;
+    }
+    NodeConstant *nc = dynamic_cast<NodeConstant *>(n);
+    if(nc != nullptr)
+        return;
+    for(Node *np : n->parameters) getVariables(np, variables);
+}
+
 void ManageIntension::intension(std::string id, Tree *tree) {
     bool            done = false;
     vec<Variable *> scope;
@@ -84,6 +96,25 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             // std::cout << "\n";
             return;
         }
+
+        //------------------------------------------------------------------------------
+        // Keep binary or(tree1, tree2) where all vars are in tree1 and tree2
+        //------------------------------------------------------------------------------
+
+        if(tree->arity() == 2) {
+            bool donotdecompose = true;
+            for(Node *n : tree->root->parameters) {
+                std::set<string> set;
+                getVariables(n, set);
+                if(set.size() != 2) {
+                    donotdecompose = false;
+                    break;
+                }
+            }
+            if(donotdecompose)
+                break;
+        }
+
 
         //----------------------------------------------------------------------------
         // decomposition

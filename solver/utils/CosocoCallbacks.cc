@@ -28,25 +28,40 @@ void CosocoCallbacks::endInstance() {
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
     Variable *x =
         problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
-    if(inArray)
+    if(inArray == 1) {
+        int dim = (int)std::count(id.begin(), id.end(), '[');
+        for(int i = 0; i < dim; i++) arrayName += "[]";
+        problem->arrayNames.push(arrayName);
+    }
+    if(inArray) {
         problem->variablesArray.last().push(x);
+        inArray = 2;
+    }
     mappingXV[id] = new XVariable(id, nullptr);
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     Variable *x =
         problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
-    if(inArray)
+    if(inArray == 1) {
+        int dim = (int)std::count(id.begin(), id.end(), '[');
+        for(int i = 0; i < dim; i++) arrayName += "[]";
+        problem->arrayNames.push(arrayName);
+    }
+    if(inArray) {
         problem->variablesArray.last().push(x);
+        inArray = 2;
+    }
     mappingXV[id] = new XVariable(id, nullptr);
 }
 
 void CosocoCallbacks::beginVariableArray(string id) {
     for(int core = 0; core < nbcores; core++) problem->variablesArray.push();
-    inArray = true;
+    arrayName = id;
+    inArray   = 1;
 }
 
-void CosocoCallbacks::endVariableArray() { inArray = false; }
+void CosocoCallbacks::endVariableArray() { inArray = 0; }
 
 void CosocoCallbacks::endVariables() {
     nbInitialsVariables     = problem->nbVariables();
@@ -369,6 +384,13 @@ void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &lis
     FactoryConstraints::createConstraintOrdered(problem, id, toMyVariables(list), lengths, order);
 }
 
+void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, vector<XVariable *> &lengths,
+                                             OrderType order) {
+    vec<Variable *> vars, _lengths;
+    toMyVariables(list, vars);
+    toMyVariables(lengths, _lengths);
+    FactoryConstraints::createConstraintOrdered(problem, id, vars, _lengths, order);
+}
 
 void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) {
     vec<Variable *> list1, list2;
@@ -417,22 +439,43 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
     string xcvar        = xc.var;
     bool   varCondition = xc.operandType == VARIABLE;
     vector2vec(coeffs);
+    vec<Variable *> tmpVars;
+
+    variables.copyTo(tmpVars);
     if(varCondition) {
         xc.operandType = INTEGER;
         xc.val         = 0;
-        variables.push(problem->mapping[xcvar]);
+        tmpVars.push(problem->mapping[xcvar]);
         vals.push(-1);
     }
-    if(xc.op != IN) {
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.val, xc.op);
-    } else {
-        // Intervals
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.min, GE);
-        FactoryConstraints::createConstraintSum(problem, id, variables, vals, xc.max, LE);
+    if(xc.op != IN && xc.op != NOTIN) {
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.val, xc.op);
+        return;
     }
-    if(varCondition) {
-        xc.operandType = VARIABLE;
+
+    if(xc.op == IN && xc.operandType == INTERVAL) {
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.min, GE);
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.max, LE);
+        return;
     }
+
+    if(xc.op == IN) {
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        buildVariableInteger(auxVar, xc.set);
+        vector2vec(coeffs);   // Be careful we change the vector vals :(
+        vals.push(-1);
+        tmpVars.push(problem->mapping[auxVar]);
+        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, 0, EQ);
+        return;
+    }
+
+    std::vector<int> tmp;
+    if(xc.operandType == INTERVAL) {
+        for(int i = xc.min; i <= xc.max; i++) tmp.push_back(i);
+    } else
+        tmp.assign(xc.set.begin(), xc.set.end());
+
+    for(int i : tmp) FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, i, NE);
 }
 
 
@@ -471,37 +514,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
     for(unsigned int i = 0; i < list.size(); i++) trees.push_back(new Tree("mul(" + list[i]->id + "," + coeffs[i]->id + ")"));
 
     buildConstraintSum(id, trees, xc);
-
-
-    /*            string tmp = "add(";
-                assert(list.size() == coeffs.size());
-                for(unsigned int i = 0; i < list.size(); i++) {
-                    tmp = tmp + "mul(" + list[i]->id + "," + coeffs[i]->id + ")";
-                    if(i < list.size() - 1) tmp = tmp + ",";
-                }
-                if(xc.operandType == VARIABLE) {
-                    xc.operandType = INTEGER;
-                    xc.val = 0;
-                    tmp = tmp + ",neg(" + xc.var + ")";
-                }
-                tmp = tmp + ")";
-                if(xc.op != IN) {
-                    if(xc.op == EQ) tmp = "eq(" + tmp;
-                    if(xc.op == NE) tmp = "ne(" + tmp;
-                    if(xc.op == LE) tmp = "le(" + tmp;
-                    if(xc.op == LT) tmp = "lt(" + tmp;
-                    if(xc.op == GE) tmp = "ge(" + tmp;
-                    if(xc.op == GT) tmp = "gt(" + tmp;
-                    tmp = tmp + "," + std::to_string(xc.val) + ")";
-                    XCSP3Core::Tree *tree = new Tree(tmp);
-                    buildConstraintIntension(id, tree);
-                    return;
-                }
-
-                // Intervals
-                buildConstraintIntension(id, new XCSP3Core::Tree("ge(" + tmp + "," + std::to_string(xc.min) + ")"));
-                buildConstraintIntension(id, new XCSP3Core::Tree("le(" + tmp + "," + std::to_string(xc.max) + ")"));
-                */
 }
 
 
@@ -545,12 +557,74 @@ void CosocoCallbacks::buildConstraintExactlyVariable(string id, vector<XVariable
 
 
 void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) {
-    if(!(xc.operandType == VARIABLE && xc.op == EQ))
+    if(xc.operandType == VARIABLE && xc.op == EQ) {
+        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+        return;
+    }
+    if(xc.operandType == VARIABLE)
         throw runtime_error("c Such nValues constraint Not yes supported");
 
-    FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+    if(xc.operandType == INTEGER) {
+        if(xc.op == LE) {
+            FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val);
+            return;
+        }
+        if(xc.op == LT) {
+            FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val - 1);
+            return;
+        }
+        if(xc.op == EQ) {
+            string           auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            std::vector<int> tmp;
+            tmp.push_back(xc.val);
+            buildVariableInteger(auxVar, tmp);
+            FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+            return;
+        }
+        throw runtime_error("c Such nValues constraint Not yes supported");
+    }
+    if(xc.op == IN) {
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        if(xc.operandType == INTERVAL)
+            buildVariableInteger(auxVar, xc.min, xc.max);
+        else
+            buildVariableInteger(auxVar, xc.set);
+        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+        return;
+    }
+    assert(xc.op == NOTIN);
+    int              min  = INT_MAX;
+    int              max  = INT_MIN;
+    vec<Variable *> &vars = toMyVariables(list);
+    for(Variable *x : vars) {
+        if(x->minimum() < min)
+            min = x->minimum();
+        if(x->maximum() > max)
+            max = x->maximum();
+    }
+    string     auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+    XVariable *aux    = new XVariable(auxVar, nullptr);
+    buildVariableInteger(auxVar, 1, max - min + 2);
+    FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+    if(xc.operandType == SET)
+        buildConstraintExtension(id, aux, xc.set, false, false);
+    else {
+        std::vector<int> tmp;
+        for(int i = xc.min; i <= xc.max; i++) tmp.push_back(i);
+        buildConstraintExtension(id, aux, tmp, false, false);
+    }
 }
 
+void CosocoCallbacks::buildConstraintNValues(string id, vector<Tree *> &trees, XCondition &xc) {
+    vector<string> auxiliaryVariables;
+    insideGroup = false;
+    createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
+    vector<XVariable *> tmp;
+    for(auto &auxiliaryVariable : auxiliaryVariables) {
+        tmp.push_back(new XVariable(auxiliaryVariable, nullptr));
+    }
+    buildConstraintNValues(id, tmp, xc);
+}
 
 void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) {
     if(values.size() == 1) {
@@ -579,6 +653,16 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
     throw runtime_error("c some count with trees and multiple values constraint is not yet supported ");
 }
 
+std::string joinVector(std::vector<int> &array) {
+    std::ostringstream oss;
+    for(size_t i = 0; i < array.size(); ++i) {
+        oss << array[i];
+        if(i != array.size() - 1) {
+            oss << ",";
+        }
+    }
+    return oss.str();
+}
 
 void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) {
     // TODO WARNING
@@ -592,6 +676,31 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vec
         return;
     }
     throw runtime_error("c some count with trees and multiple values variables constraint is not yet supported ");
+}
+
+void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list, vector<int> &values, XCondition &xc) {
+    vector<Tree *> trees;
+    if(values.size() == 1) {
+        for(auto &xv : list) {
+            string s = "eq(" + xv->id + "," + std::to_string(values[0]) + ")";
+            trees.push_back(new Tree(s));
+        }
+        buildConstraintSum(id, trees, xc);
+        return;
+    }
+    std::string tmp = joinVector(values);
+    for(auto &xv : list) {
+        string s = "in(" + xv->id + ",set(" + tmp + "))";
+        std::cout << s << std::endl;
+        trees.push_back(new Tree(s));
+    }
+    buildConstraintSum(id, trees, xc);
+    return;
+}
+
+
+void CosocoCallbacks::buildConstraintAmong(string id, vector<XVariable *> &list, vector<int> &values, int k) {
+    FactoryConstraints::createConstraintAmong(problem, id, toMyVariables(list), vector2vec(values), k);
 }
 
 

@@ -4,11 +4,14 @@
 #include "FactoryConstraints.h"
 
 #include <BinaryExtensionSupport.h>
+
 #include <STR0.h>
+
 
 #include <iostream>
 #include <regex>
 
+#include "Among.h"
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
 #include "CardinalityWeak.h"
@@ -84,29 +87,28 @@ Verbose verbose;
 Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                                        bool isSupport, bool hasStar) {
     Extension *ctr = nullptr;
+
+    if(tuples.size() == 1 && isSupport == false) {
+        p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
+        return nullptr;
+    } 
     if(vars.size() == 2) {
-        int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
+            int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
 
-        if(isSupport && max_size > options::intConstants["large_bin_extension"])
-            ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
-        else
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
-
-    } else {
-        if(isSupport) {
-            // ctr = new CompactTable(*p, name, vars, tuples.size());
-            if(tuples.size() < options::intConstants["smallNbTuples"])
-                ctr = new STR0(*p, name, vars, tuples.size());
+            if(isSupport && max_size > options::intConstants["large_bin_extension"])
+                ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
             else
-                ctr = new ShortSTR2(*p, name, vars, tuples.size());
-        } else {
-            assert(hasStar == false);   // TODO
-            ctr = new STRNeg(*p, name, vars, tuples.size());
-        }
-    }
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
 
-    for(auto &tuple : tuples) ctr->addTuple(tuple);
-    return ctr;
+      } else {
+            if(isSupport) {
+                // ctr = new CompactTable(*p, name, vars, tuples.size());
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
+            } else {
+                assert(hasStar == false);   // TODO
+                ctr = new STRNeg(*p, name, vars, tuples.size());
+            }
+        }
 }
 
 
@@ -120,7 +122,11 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
                                    ((Unary *)p->constraints.last())->areSupports));
         return;
     }
-
+    auto *noGood = dynamic_cast<NoGood *>(c);
+    if(noGood != nullptr) {
+        p->addConstraint(new NoGood(*p, name, vars, noGood->tuple));
+        return;
+    }
     if(vars.size() == 2) {
         int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
         if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
@@ -143,7 +149,10 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
 
 void FactoryConstraints::createConstraintExtension(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
                                                    bool isSupport, bool hasStar) {
-    p->addConstraint(FactoryConstraints::newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar));
+    Constraint *c = newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar);
+    if(c == nullptr)
+        return;
+    p->addConstraint(c);
 }
 
 
@@ -521,7 +530,6 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
     coefs2.copyTo(coeffs);
     assert(coeffs.size() == vars.size());
 
-
     // Need order on coefficients
     for(int i = 0; i < vars.size(); i++) {
         int pos = i;
@@ -536,6 +544,7 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
         vars[i]     = vars[pos];
         vars[pos]   = x;
     }
+
 
     // remove coef 0
     int i = 0, j = 0;
@@ -584,6 +593,10 @@ void FactoryConstraints::createConstraintAtLeast(Problem *p, std::string name, v
 
 void FactoryConstraints::createConstraintAtMost(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
     p->addConstraint(new AtMostK(*p, name, vars, k, value));
+}
+
+void FactoryConstraints::createConstraintAmong(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, int k) {
+    p->addConstraint(new Among(*p, name, vars, values, k));
 }
 
 
@@ -673,8 +686,26 @@ void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, v
     }
 }
 
+void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths,
+                                                 OrderType op) {
+    for(int i = 0; i < vars.size() - 1; i++) {
+        vec<int> coeffs;
+        coeffs.push(1);
+        coeffs.push(1);
+        coeffs.push(-1);
+        vec<Variable *> tmp;
+        tmp.push(vars[i]);
+        tmp.push(lengths[i]);
+        tmp.push(vars[i + 1]);
+        tmp[0] = vars[i];
+        tmp[1] = lengths[i];
+        tmp[2] = vars[i + 1];
+        createConstraintSum(p, name, tmp, coeffs, 0, op);
+    }
+}
 
-void FactoryConstraints::createConstraintLex(Problem *p, std::string name, vec<Variable *> &vars1, vec<Variable *> &vars2,
+
+void FactoryConstraints::createConstraintLex(Problem *p, const std::string &name, vec<Variable *> &vars1, vec<Variable *> &vars2,
                                              OrderType op) {
     if(op == OrderType::LE)
         p->addConstraint(new Lexicographic(*p, name, vars1, vars2, false));
