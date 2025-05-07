@@ -61,11 +61,14 @@ bool STR0::updateDomains() {
         int idx       = sSup[i];
         int nRemovals = cnts[idx];
         assert(nRemovals > 0);
-        for(int tmp = 0, idv = scope[idx]->domain[0]; tmp < nRemovals; idv++) {
+        int tmp = 0;
+        for(int idv : scope[idx]->domain) {
             if(ac[idx][idv] == false) {
                 if(solver->delIdv(scope[idx], idv) == false)
                     return false;
                 tmp++;
+                if(tmp == nRemovals)
+                    break;
             }
         }
     }
@@ -83,13 +86,13 @@ bool STR0::filter(Variable *dummy) {
                 return true;
             }
             for(int j = sSupSize - 1; j >= 0; j--) {
-                int x = sSup[j];
-                int a = tuple[x];
-                if(a == STAR) {
+                int x   = sSup[j];
+                int idv = tuple[x];
+                if(idv == STAR) {
                     cnts[x] = 0;
                     sSup[j] = sSup[--sSupSize];
-                } else if(!ac[x][a]) {
-                    ac[x][a] = true;
+                } else if(!ac[x][idv]) {
+                    ac[x][idv] = true;
                     if(--cnts[x] == 0)
                         sSup[j] = sSup[--sSupSize];
                 }

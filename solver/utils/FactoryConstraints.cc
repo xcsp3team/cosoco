@@ -102,7 +102,10 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
     } else {
         if(isSupport) {
             // ctr = new CompactTable(*p, name, vars, tuples.size());
-            ctr = new ShortSTR2(*p, name, vars, tuples.size());
+            if(tuples.size() < options::intConstants["smallNbTuples"])
+                ctr = new STR0(*p, name, vars, tuples.size());
+            else
+                ctr = new ShortSTR2(*p, name, vars, tuples.size());
         } else {
             assert(hasStar == false);   // TODO
             ctr = new STRNeg(*p, name, vars, tuples.size());
