@@ -57,7 +57,7 @@ Solver::Solver(Problem &p)
         profiling = new Profiling(this);
     doProfiling = options::boolOptions["profile"].value;
 
-    if(options::stringOptions["val"].value == "first")
+    if(options::stringOptions["val"].value == "first" || options::stringOptions["val"].value == "max")
         heuristicVal = new HeuristicValFirst(*this);
     if(options::stringOptions["val"].value == "rand")
         heuristicVal = new HeuristicValRandom(*this);

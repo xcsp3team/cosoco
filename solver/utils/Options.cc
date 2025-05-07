@@ -25,7 +25,7 @@ void createOptions() {
     intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
     boolOptions["stick"]       = {"SEARCH", "Sticking Value on heuristic val", false};
     stringOptions["restarts"]  = {"SEARCH", "Restarts: no (no restarts), luby, geo, io (inner outer)", "io"};
-    stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool)", "first"};
+    stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool, max)", "first"};
     stringOptions["robin"]     = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
     stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick, frba, robin)", "robin"};
     intOptions["limitac3card"] = {"SEARCH", "Max size to perform AC3 on intensional constraints", 1000, 0, INT_MAX};

@@ -5,7 +5,7 @@
 using namespace Cosoco;
 
 
-HeuristicValLast::HeuristicValLast(Solver &s) : HeuristicVal(s) { }
+HeuristicValLast::HeuristicValLast(Solver &s) : HeuristicVal(s) { std::cout << "ici\n"; }
 
 
 int HeuristicValLast::select(Variable *x) { return x->domain.lastId(); }

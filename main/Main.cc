@@ -1,3 +1,5 @@
+#include <HeuristicValFirst.h>
+#include <HeuristicValLast.h>
 #include <optimizer/Optimizer.h>
 #include <sys/resource.h>
 
@@ -115,12 +117,17 @@ int main(int argc, char **argv) {
             auto *S = new Solver(*solvingProblems[core]);
             S->core = core;
             S->seed = S->seed * (core + 1);
-
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
                 S->displaySolution        = false;
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
+                if(optimizer->optimtype == Maximize && options::stringOptions["val"].value == "max") {
+                    S->heuristicVal = new HeuristicValLast(*S);
+                    if(options::boolOptions["bs"].value)
+                        optimizer->addProgressSaving();
+                }
+
                 optimizer->core = core;
                 // if(pg && warmStart == nullptr)
                 //     optimizer->addProgressSaving();
