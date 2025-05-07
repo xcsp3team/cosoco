@@ -128,6 +128,7 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
     }
     auto *noGood = dynamic_cast<NoGood *>(c);
     if(noGood != nullptr) {
+        std::cout << "ici\n";
         p->addConstraint(new NoGood(*p, name, vars, noGood->tuple));
         return;
     }

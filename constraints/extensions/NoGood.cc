@@ -41,13 +41,13 @@ bool NoGood::filter(Variable *x) {
     int nbsz1 = 0;
     int sz2   = -1;
     for(int i = 0; i < scope.size(); i++) {
-        if(scope[i]->containsValue(tuple[i]) == false) {
+        if(scope[i]->containsIdv(tuple[i]) == false) {
             solver->entail(this);
             return true;
         }
         if(scope[i]->size() > 2)
             return true;
-        if(scope[i]->size() == 1 && scope[i]->value() == tuple[i])
+        if(scope[i]->size() == 1 && scope[i]->domain[0] == tuple[i])
             nbsz1++;
         if(scope[i]->size() == 2) {
             if(sz2 != -1)
@@ -58,7 +58,7 @@ bool NoGood::filter(Variable *x) {
     if(nbsz1 == scope.size())
         return false;
     if(nbsz1 == scope.size() - 1 && sz2 != -1) {
-        solver->delVal(scope[sz2], tuple[sz2]);
+        solver->delIdv(scope[sz2], tuple[sz2]);
         solver->entail(this);
     }
     return true;
