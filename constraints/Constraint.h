@@ -26,9 +26,9 @@ typedef vec<Variable *> vecVariables;
 
 class Constraint {
    protected:
-    vec<int> idxToScopePosition;
-    bool     indexesAreValues;
-    int      arity;   // arity=scope.size()
+    vec<int>           idxToScopePositionArray;
+    std::map<int, int> idxToScopePositionMap;
+    int                arity;
 
 
    public:
@@ -74,7 +74,6 @@ class Constraint {
     void unassignVariable(Variable *x);
 
     // map idx variable to scope position
-    int toScopePosition(Variable *x);
     int toScopePosition(int idx);
 
 

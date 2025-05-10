@@ -20,7 +20,7 @@ Constraint::Constraint(Problem &p, std::string n)
     : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
 
 Constraint::Constraint(Problem &p, std::string n, vec<Variable *> &vars)
-    : indexesAreValues(true), problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
+    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
     addToScope(vars);
 }
 
@@ -52,20 +52,26 @@ void Constraint::delayedConstruction(int id) {
     makeDelayedConstruction(id);
 }
 
+#define MAXVARIABLESFORIDX 2000
+
 void Constraint::makeDelayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
-    idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
-    arity            = scope.size();
-    indexesAreValues = true;
+    arity = scope.size();
+
+    if(arity > 1 && problem.variables.size() < MAXVARIABLESFORIDX)
+        idxToScopePositionArray.growTo(problem.variables.size(), NOTINSCOPE);
+
+
     unassignedVariablesIdx.setCapacity(arity, true);
     assert(unassignedVariablesIdx.size() == arity);
-    for(int i = 0; i < scope.size(); i++) {
-        // indexesAreValues = indexesAreValues &&
-        //                   (vars[i]->domain[0] == 0 && vars[i]->domain[vars[i]->size() - 1] == vars[i]->size() - 1);
-        idxToScopePosition[scope[i]->idx] = i;
-    }
-    // TODO a bug occurs here
-    indexesAreValues = false;
+    if(arity > 1)
+        for(int i = 0; i < scope.size(); i++) {
+            if(problem.variables.size() < MAXVARIABLESFORIDX)
+                idxToScopePositionArray[scope[i]->idx] = i;
+            else
+                idxToScopePositionMap.insert({scope[i]->idx, i});
+        }
+
     current.growTo(scope.size());
     wdeg.growTo(scope.size());
     idc = id;
@@ -98,15 +104,15 @@ bool Constraint::postpone() {
 
 // Assign and unassign variables
 void Constraint::assignVariable(Variable *x) {
-    int posx = toScopePosition(x);
-    assert(posx < scope.size());
+    int posx = toScopePosition(x->idx);
+    assert(posx >= 0 && posx < scope.size());
     assert(unassignedVariablesIdx.contains(posx));
     unassignedVariablesIdx.del(posx);
 }
 
 
 void Constraint::unassignVariable(Variable *x) {
-    int posInScope = toScopePosition(x);
+    int posInScope = toScopePosition(x->idx);
     assert(posInScope < scope.size());
     assert(!unassignedVariablesIdx.contains(posInScope));
     unassignedVariablesIdx.add(posInScope);
@@ -115,27 +121,16 @@ void Constraint::unassignVariable(Variable *x) {
 
 // idx -> scope position
 int Constraint::toScopePosition(int idx) {
-    switch(scope.size()) {
-        case 2:
-            if(scope[0]->idx == idx)
-                return 0;
-            if(scope[1]->idx == idx)
-                return 1;
-            return NOTINSCOPE;
-        case 3:
-            if(scope[0]->idx == idx)
-                return 0;
-            if(scope[1]->idx == idx)
-                return 1;
-            if(scope[2]->idx == idx)
-                return 2;
-            return NOTINSCOPE;
-    }
-    return idxToScopePosition[idx];
+    if(arity == 1)
+        return scope[0]->idx == idx ? 0 : NOTINSCOPE;
+
+    if(problem.variables.size() < MAXVARIABLESFORIDX)
+        return idxToScopePositionArray[idx];
+    auto it = idxToScopePositionMap.find(idx);
+    if(it == idxToScopePositionMap.end())
+        return NOTINSCOPE;
+    return it->second;
 }
-
-
-int Constraint::toScopePosition(Variable *x) { return toScopePosition(x->idx); }
 
 
 bool Constraint::isSatisfiedByOfIndexes(vec<int> &tupleOfIndex) {

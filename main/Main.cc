@@ -122,11 +122,7 @@ int main(int argc, char **argv) {
                 S->displaySolution        = false;
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
-                if(optimizer->optimtype == Maximize && options::stringOptions["val"].value == "max") {
-                    S->heuristicVal = new HeuristicValLast(*S);
-                    if(options::boolOptions["bs"].value)
-                        optimizer->addProgressSaving();
-                }
+                
 
                 optimizer->core = core;
                 // if(pg && warmStart == nullptr)

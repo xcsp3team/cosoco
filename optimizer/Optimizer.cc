@@ -2,6 +2,7 @@
 
 #include <XCSP3Constants.h>
 
+#include "HeuristicValLast.h"
 #include "Options.h"
 #include "core/OptimizationProblem.h"
 #include "utils/System.h"
@@ -33,6 +34,11 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
     best                     = optimtype == Minimize ? LONG_MAX : LONG_MIN;
     solution->invertBestCost = invertBestCost;
     solution->optimType      = optimtype;
+
+    if(optimtype == Maximize && options::stringOptions["val"].value == "max" && invertBestCost == false) {
+        solver->heuristicVal = new HeuristicValLast(*solver);
+    }
+
     if(options::boolOptions["bs"].value)
         addProgressSaving();
 }

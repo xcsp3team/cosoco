@@ -36,7 +36,7 @@ bool AtLeastK::isCorrectlyDefined() {
 
 
 bool AtLeastK::filter(Variable *x) {
-    int posIdx = idxToScopePosition[x->idx];
+    int posIdx = toScopePosition(x->idx);
     assert(posIdx != NOTINSCOPE);
 
 
