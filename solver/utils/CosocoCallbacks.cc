@@ -30,8 +30,8 @@ void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue
         problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
-        for(int i = 0; i < dim; i++) arrayName += "[]";
-        problem->arrayNames.push(arrayName);
+        for(int i = 0; i < dim; i++) arrayName.append("[]");
+        problem->arrayNames.push_back(arrayName);
     }
     if(inArray) {
         problem->variablesArray.last().push(x);
@@ -46,7 +46,7 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";
-        problem->arrayNames.push(arrayName);
+        problem->arrayNames.push_back(arrayName);
     }
     if(inArray) {
         problem->variablesArray.last().push(x);

@@ -21,7 +21,7 @@ class Problem {
     Solver               *solver;                // The attached solver (initialized to nullptr)
     vec<Constraint *>     constraints;           // The set of constraints
     vec<Variable *>       variables;             // The set of variables
-    vec<std::string>      arrayNames;            // The name of the variables array
+    std::vector<std::string>      arrayNames;            // The name of the variables array
     vec<vec<Variable *> > variablesArray;        // The different arrays of Variables
     bool                  isConstructionDone;    // true if the construction of the problem is done
     bool                  isBinary;              // Not currently used
