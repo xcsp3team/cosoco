@@ -44,7 +44,9 @@ void Precedence::notifyDeleteDecision(Variable *x, int v, Solver &s) { reinit = 
 bool Precedence::filter(Variable *x) {
     if(solver->decisionLevel() == 0 && solver->conflicts == 0) {
         for(int i = 1; i < k; i++)
-            for(int j = 0; j < i; j++) solver->delVal(scope[j], values[i]);
+            for(int j = 0; j < i; j++)
+                if(j < scope.size())
+                    solver->delVal(scope[j], values[i]);
     }
 
     if(reinit)
