@@ -6,7 +6,12 @@ class Solver;
 
 class ObserverNewDecision {
    public:
-    virtual void notifyNewDecision(Variable *x, Solver &s)           { };   // Notify, when everything is done
+    virtual void notifyNewDecision(Variable *x, Solver &s) { };   // Notify, when everything is done
+};
+
+class ObserverSingletonVariable {
+   public:
+    virtual void notifySingletonVariable(Variable *x) = 0;
 };
 
 class ObserverDeleteDecision {

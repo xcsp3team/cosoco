@@ -615,6 +615,9 @@ bool Solver::delIdv(Variable *x, int idv) {
         statistics[rootPropagations]++;
     verbose.log(FULLVERBOSE, "   lvl %d : %s (|d|=%d) -= {%d}\n", decisionLevel(), x->name(), x->size(), x->domain.toVal(idv));
     addToQueue(x);
+    if(x->size() == 1)
+        notifySingletonVariable(x);
+
     return x->size() != 0;
 }
 
@@ -646,6 +649,7 @@ bool Solver::assignToVal(Variable *x, int v) {
         trail.push(x);
     x->addToTrail = false;
     addToQueue(x);
+    notifySingletonVariable(x);
     verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), v);
     return true;
 }
@@ -662,7 +666,7 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     // if(d.size()==1) return true;
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
-
+    notifySingletonVariable(x);
     x->assignToIdv(idv, decisionLevel());
     if(x->addToTrail)
         trail.push(x);
@@ -806,6 +810,12 @@ void Solver::notifyDomainAssignment(Variable *x, int idv) {
     for(ObserverDomainReduction *odr : observersDomainReduction) odr->notifyDomainAssignment(x, idv, *this);
 }
 
+void Solver::addObserverSingletonVariable(ObserverSingletonVariable *odr) { observersSingletonVariable.push(odr); }
+
+
+void Solver::notifySingletonVariable(Variable *x) {
+    for(ObserverSingletonVariable *odr : observersSingletonVariable) odr->notifySingletonVariable(x);
+}
 //----------------------------------------------
 // Minor methods
 //----------------------------------------------

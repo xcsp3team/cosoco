@@ -83,11 +83,12 @@ class Solver : public AbstractSolver {
     vec<PickVariables>     pickVariables;               // The set of picking variables history
     std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
     // -- Observers ----------------------------------------------------------------------
-    vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict
-    vec<ObserverNewDecision *>     observersNewDecision;       // Classes listen for decisions
-    vec<ObserverDeleteDecision *>  observersDeleteDecision;    // Classes listen for decisions
-    vec<ObserverDomainReduction *> observersDomainReduction;   // Classes listen for domain reduction
-    unsigned long                  timestamp = 0;              // Current timestamp
+    vec<ObserverConflict *>          observersConflict;            // Classes listen for conflict
+    vec<ObserverNewDecision *>       observersNewDecision;         // Classes listen for decisions
+    vec<ObserverDeleteDecision *>    observersDeleteDecision;      // Classes listen for decisions
+    vec<ObserverDomainReduction *>   observersDomainReduction;     // Classes listen for domain reduction
+    vec<ObserverSingletonVariable *> observersSingletonVariable;   // classes listen when |x|=1
+    unsigned long                    timestamp = 0;                // Current timestamp
 
     //  -- Nogoods from Restarts  -----------------------------------------------------------
     NoGoodsEngine *noGoodsEngine;
@@ -190,6 +191,9 @@ class Solver : public AbstractSolver {
     void addObserverDomainReduction(ObserverDomainReduction *odr);
     void notifyDomainReduction(Variable *x, int idv);    //
     void notifyDomainAssignment(Variable *x, int idv);   //
+
+    void addObserverSingletonVariable(ObserverSingletonVariable *obs);
+    void notifySingletonVariable(Variable *x);
 
     // --------------------------------------------------------------------------------------
     // minor methods

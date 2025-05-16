@@ -1,17 +1,19 @@
 #ifndef COSOCO_HEURISTICVALSTICKINGVALUE_H
 #define COSOCO_HEURISTICVALSTICKINGVALUE_H
 #include "HeuristicVal.h"
+#include "ObserverDecision.h"
 
 
 namespace Cosoco {
-class HeuristicValStickingValue : public HeuristicVal {
+class HeuristicValStickingValue : public HeuristicVal, ObserverSingletonVariable {
    protected:
     vec<int>      lastValue;
     HeuristicVal *hv;
 
    public:
     HeuristicValStickingValue(Solver &s, HeuristicVal *h);
-    virtual int select(Variable *x) override;
+    int  select(Variable *x) override;
+    void notifySingletonVariable(Variable *x) override;
 };
 }   // namespace Cosoco
 
