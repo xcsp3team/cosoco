@@ -819,6 +819,11 @@ void FactoryConstraints::createConstraintCumulative(Problem *p, std::string name
 
 void FactoryConstraints::createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
                                                     vec<int> &heights, int limit) {
+    /*long sum = 0;
+    for(int h : heights) sum += h;
+    if(sum <= limit)
+        return;
+    */
     p->addConstraint(new Cumulative(*p, name, vars, vars, lengths, heights, limit));
 }
 
