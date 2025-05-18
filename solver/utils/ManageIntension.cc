@@ -123,9 +123,9 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             done = true;
     }
 
-    // std::cout << "intension : " << tree->root->toString();
-    // for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
-    // std::cout << "\n";
+    std::cout << "c keep intension : " << tree->root->toString();
+    for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+    std::cout << " arity: " << tree->arity() << "\n";
 
     // This is the end... nothing else than an intension constraint
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
@@ -213,9 +213,20 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();
 
+    bool isProduct = true;
+    if(tree->root->type == OEQ && tree->root->parameters[0]->type == OMUL && tree->root->parameters[1]->type == OVAR) {
+        for(Node *n : tree->root->parameters[0]->parameters) {
+            if(n->type != OVAR) {
+                isProduct = false;
+                break;
+            }
+        }
+    } else
+        isProduct = false;
+
 
     if(callbacks.startToParseObjective || options::intOptions["i2e"].value == 0 ||
-       nbTuples >= ((unsigned long long)options::intOptions["i2e"].value))
+       (isProduct == false && nbTuples >= ((unsigned long long)options::intOptions["i2e"].value)))
         return false;
 
     // Create generic intension
@@ -722,6 +733,41 @@ class PNary5 : public FakePrimitive {   // eq(and(__av1__,x[0],110),__av0__)
     }
 };
 
+/*
+static bool isLogicallyInverse(Node *n1, Node *n2) {
+    ExpressionType tp1 = n1->type;
+    ExpressionType tp2 = n2->type;
+    if((tp1 == OLT && tp2 == OLE) || (tp1 == OLE && tp2 == OLT) || (tp1 == OGT && tp2 == OGE) || (tp1 == OGE && tp2 == OGT)) {
+    }
+    if((tp1 == OEQ && tp2 == ONE) || (tp1 == ONE && tp2 == OEQ)) {
+    }
+    return false;
+}
+
+
+class PNary6 : public FakePrimitive {   // OR(AND(?, ?), AND(?, ?))
+   public:
+    explicit PNary6(CosocoCallbacks &c) : FakePrimitive(c) { }
+    bool post() override {
+        if(canonized->root->type != OOR || canonized->root->parameters[0]->type != OAND ||
+           canonized->root->parameters[1]->type != OAND)
+            return false;
+        Node *s00 = canonized->root->parameters[0]->parameters[0];
+        Node *s01 = canonized->root->parameters[0]->parameters[1];
+        Node *s10 = canonized->root->parameters[1]->parameters[0];
+        Node *s11 = canonized->root->parameters[1]->parameters[1];
+        if(isRelationalOperator(s00->type) == false || isRelationalOperator(s01->type) == false ||
+           isRelationalOperator(s10->type) == false || isRelationalOperator(s11->type) == false)
+            return false;
+
+
+        vec<Variable *> vars;
+
+
+        return true;
+    }
+};
+ */
 
 bool ManageIntension::recognizePrimitives(std::string id, Tree *tree) {
     for(Primitive *p : patterns)
