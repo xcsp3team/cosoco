@@ -35,7 +35,6 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         if(callbacks.startToParseObjective == false)
             tree->canonize();
 
-
         //----------------------------------------------------------------------------
         // Unary constraints
         if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
@@ -90,29 +89,29 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         // to Extension constraints
         //----------------------------------------------------------------------------
 
-        if(toExtension(id, tree, scope)) {
+        //------------------------------------------------------------------------------
+        // Keep binary or(tree1, tree2) where all vars are in tree1 and tree2
+        //------------------------------------------------------------------------------
+        bool forceExtension = true;
+        /*std::set<string> set;
+        if(tree->arity() == 2) {
+            for(Node *n : tree->root->parameters) {
+                getVariables(n, set);
+                if(set.size() > 2) {
+                    forceExtension = false;
+                    break;
+                }
+            }
+        } else
+            forceExtension = false;
+        */
+        forceExtension = tree->arity() == 2;
+
+        if(toExtension(id, tree, scope, forceExtension)) {
             // std::cout << "extension : " << tree->root->toString();
             // for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
             // std::cout << "\n";
             return;
-        }
-
-        //------------------------------------------------------------------------------
-        // Keep binary or(tree1, tree2) where all vars are in tree1 and tree2
-        //------------------------------------------------------------------------------
-
-        if(tree->arity() == 2) {
-            bool donotdecompose = true;
-            for(Node *n : tree->root->parameters) {
-                std::set<string> set;
-                getVariables(n, set);
-                if(set.size() != 2) {
-                    donotdecompose = false;
-                    break;
-                }
-            }
-            if(donotdecompose)
-                break;
         }
 
 
@@ -205,7 +204,7 @@ bool ManageIntension::existInCacheExtension(string &expr, vec<Variable *> &scope
     return true;
 }
 
-bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
+bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope, bool forceExtension) {
     unsigned long long nbTuples = 1;
 
     // Compute cartesian product
@@ -225,8 +224,9 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
         isProduct = false;
 
 
-    if(callbacks.startToParseObjective || options::intOptions["i2e"].value == 0 ||
-       (isProduct == false && nbTuples >= ((unsigned long long)options::intOptions["i2e"].value)))
+    if(callbacks.startToParseObjective || options::intOptions["i2e"].value == 0)
+        return false;
+    if(forceExtension == false && isProduct == false && nbTuples >= ((unsigned long long)options::intOptions["i2e"].value))
         return false;
 
     // Create generic intension
