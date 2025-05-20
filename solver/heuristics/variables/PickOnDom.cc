@@ -4,6 +4,8 @@
 
 #include "PickOnDom.h"
 
+#include "Options.h"
+
 using namespace Cosoco;
 
 
@@ -52,6 +54,9 @@ void PickOnDom::notifyConflict(Constraint *c, int level) {
 void PickOnDom::notifyFullBacktrack() {
     if(freezed)
         return;
+    if(options::boolOptions["rw"].value == false)
+        return;
+
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");

@@ -1,5 +1,7 @@
 #include "HeuristicVarDomWdeg.h"
 
+#include "Options.h"
+
 using namespace Cosoco;
 
 
@@ -130,6 +132,9 @@ void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 void HeuristicVarDomWdeg::notifyFullBacktrack() {
     if(freezed)
         return;
+    if(options::boolOptions["rw"].value == false)
+        return;
+
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");

@@ -4,6 +4,7 @@
 
 #include "HeuristicVarCACD.h"
 
+#include "Options.h"
 #include "solver/Solver.h"
 using namespace Cosoco;
 
@@ -97,6 +98,8 @@ void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarCACD::notifyFullBacktrack() {
+    if(options::boolOptions["rw"].value == false)
+        return;
     if(freezed)
         return;
 

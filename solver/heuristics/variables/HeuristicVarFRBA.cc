@@ -3,6 +3,8 @@
 //
 
 #include "HeuristicVarFRBA.h"
+
+#include "Options.h"
 using namespace Cosoco;
 
 
@@ -52,6 +54,8 @@ void HeuristicVarFRBA::notifyDeleteDecision(Variable *x, int v, Solver &s) { }
 
 
 void HeuristicVarFRBA::notifyFullBacktrack() {
+    if(options::boolOptions["rw"].value == false)
+        return;
     if(freezed)
         return;
 
