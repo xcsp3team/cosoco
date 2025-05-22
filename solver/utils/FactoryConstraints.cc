@@ -13,6 +13,7 @@
 #include "Among.h"
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
+#include "CardinalityF.h"
 #include "CardinalityWeak.h"
 #include "CompactTable.h"
 #include "Constraint.h"
@@ -646,6 +647,10 @@ void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string n
     p->addConstraint(new ElementMatrix(*p, name, matrix, rindex, cindex, value));
 }
 
+void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, std::string name, vec<Cosoco::Variable *> &vars,
+                                                     vec<int> &values, vec<Variable *> &occurs) {
+    p->addConstraint(new CardinalityF(*p, name, vars, values, occurs));
+}
 
 void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                                      vec<Occurs> &occurs) {
