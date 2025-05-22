@@ -719,11 +719,9 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
                                                  vector<XVariable *> &varOccurs, bool closed) {
-    vec<Occurs> occurs;
-    for(XVariable *xv : varOccurs) {
-        occurs.push();
-        occurs.last().x    = problem->mapping[xv->id];
-        occurs.last().type = OCCURS_VARIABLE;
+    vec<Variable *> occurs;
+    for(auto &xv : varOccurs) {
+        occurs.push(problem->mapping[xv->id]);
     }
     FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
 }
@@ -731,12 +729,12 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
                                                  vector<XInterval> &intervalOccurs, bool closed) {
-    vec<Occurs> occurs;
+    vec<Variable *> occurs;
     for(XInterval &xi : intervalOccurs) {
-        occurs.push();
-        occurs.last().min  = xi.min;
-        occurs.last().max  = xi.max;
-        occurs.last().type = OCCURS_INTERVAL;
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        buildVariableInteger(auxVar, xi.min, xi.max);
+        auto *x = new XVariable(auxVar, nullptr);
+        occurs.push(problem->mapping[x->id]);
     }
     FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
 }
