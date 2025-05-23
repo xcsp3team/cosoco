@@ -241,17 +241,15 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     vec<Disj *>         allDisjunctives;
 
    public:
-    int                    nbcores;
-    unsigned long long     intension2extensionLimit;
-    vec<Cosoco::Problem *> problems;
-    Cosoco::Problem       *problem;
-    bool                   optimizationProblem;
-    bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
-    vec<vec<Variable *>>               decisionVariables;
-    int                                nbInitialsVariables;
+    unsigned long long intension2extensionLimit;
+    Cosoco::Problem   *problem;
+    bool               optimizationProblem;
+    bool            invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
+    vec<Variable *> decisionVariables;
+    int             nbInitialsVariables;
     std::map<std::string, XVariable *> mappingXV;
     ManageIntension                   *manageIntension;
-    CosocoCallbacks(int ncores) : startToParseObjective(false), nbcores(ncores) {
+    CosocoCallbacks() : startToParseObjective(false) {
         recognizeSpecialIntensionCases = false;
         manageIntension                = new ManageIntension(*this);
         if(options::stringOptions["removeclasses"].value != "") {

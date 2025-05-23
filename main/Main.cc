@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
         limitRessourcesUsage(options::intOptions["cpu_lim"].value, options::intOptions["mem_lim"].value);
 
         // --------------------------- PARSING ----------------------------------------
-        CosocoCallbacks cb(nbcores);
+        CosocoCallbacks cb;
         vec<Problem *>  solvingProblems;
 
         double initial_time = cpuTime();
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
         try {
             XCSP3CoreParser parser(&cb);
             parser.parse(argv[1]);   // parse the input file
-            cb.problems.copyTo(solvingProblems);
+            solvingProblems.push(cb.problem);
             optimize = cb.optimizationProblem;
         } catch(exception &e) {
             cout.flush();
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
                 S->displaySolution        = false;
                 optimizer->invertBestCost = cb.invertOptimization;
                 optimizer->setSolver(S, solution);
-                
+
 
                 optimizer->core = core;
                 // if(pg && warmStart == nullptr)

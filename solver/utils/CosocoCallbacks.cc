@@ -3,10 +3,7 @@
 using namespace Cosoco;
 
 void CosocoCallbacks::beginInstance(InstanceType type) {
-    problem = type == CSP ? new Problem("") : new OptimizationProblem("");
-    problems.push(problem);
-    decisionVariables.growTo(nbcores);
-
+    problem                        = type == CSP ? new Problem("") : new OptimizationProblem("");
     optimizationProblem            = type == COP;
     invertOptimization             = false;
     nbMDD                          = 0;
@@ -56,7 +53,7 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
 }
 
 void CosocoCallbacks::beginVariableArray(string id) {
-    for(int core = 0; core < nbcores; core++) problem->variablesArray.push();
+    problem->variablesArray.push();
     arrayName = id;
     inArray   = 1;
 }
@@ -961,7 +958,6 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
         min = min > v->minimum() ? v->minimum() : min;
         max = max < v->maximum() ? v->maximum() : max;
     }
-    assert(nbcores == 1);   // TODO
 
     string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
     buildVariableInteger(auxVar, min, max);
@@ -1549,10 +1545,8 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
 
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) {
-    for(int core = 0; core < nbcores; core++) {
-        toMyVariables(list, vars);
-        buildObjectiveMinimize(type, vars, origcoeffs);
-    }
+    toMyVariables(list, vars);
+    buildObjectiveMinimize(type, vars, origcoeffs);
 }
 
 
@@ -1733,4 +1727,4 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
 }
 
 
-void CosocoCallbacks::buildAnnotationDecision(vector<XVariable *> &list) { toMyVariables(list, decisionVariables[0]); }
+void CosocoCallbacks::buildAnnotationDecision(vector<XVariable *> &list) { toMyVariables(list, decisionVariables); }
