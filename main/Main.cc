@@ -49,7 +49,6 @@ static void SIGINT_interrupt(int signum) {
 
 int main(int argc, char **argv) {
     realTimeStart = realTime();
-    int nbcores   = 1;
     options::createOptions();
     if(argc == 0) {
         std::cout << "c USAGE: %s [options] <input-file>\n\n  where input may be either in plain or gzipped XCSP3.\n";
@@ -81,20 +80,24 @@ int main(int argc, char **argv) {
         }
 
         limitRessourcesUsage(options::intOptions["cpu_lim"].value, options::intOptions["mem_lim"].value);
+        int nbcores = options::intOptions["nbcores"].value;
 
         // --------------------------- PARSING ----------------------------------------
-        CosocoCallbacks cb;
-        vec<Problem *>  solvingProblems;
+        vec<CosocoCallbacks> callbacks;
+        callbacks.growTo(nbcores);
+        vec<Problem *> solvingProblems;
 
         double initial_time = cpuTime();
         double real_time    = realTime();
 
 
         try {
-            XCSP3CoreParser parser(&cb);
-            parser.parse(argv[1]);   // parse the input file
-            solvingProblems.push(cb.problem);
-            optimize = cb.optimizationProblem;
+            for(int i = 0; i < nbcores; i++) {
+                XCSP3CoreParser parser(&callbacks[i]);
+                parser.parse(argv[1]);   // parse the input file
+                solvingProblems.push(callbacks[i].problem);
+                optimize = callbacks[i].optimizationProblem;
+            }
         } catch(exception &e) {
             cout.flush();
             cout << "c " << e.what() << endl;
@@ -105,6 +108,7 @@ int main(int argc, char **argv) {
             }
             exit(1);
         }
+
 
         // if(nbcores > 1)
         //     options.intOptions["verb"].value = 0;
@@ -120,7 +124,7 @@ int main(int argc, char **argv) {
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
                 S->displaySolution        = false;
-                optimizer->invertBestCost = cb.invertOptimization;
+                optimizer->invertBestCost = callbacks[0].invertOptimization;
                 optimizer->setSolver(S, solution);
 
 
