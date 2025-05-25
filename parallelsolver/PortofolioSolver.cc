@@ -4,6 +4,15 @@
 #include <optimizer/Optimizer.h>
 #include <solver/heuristics/values/HeuristicValLast.h>
 
+#include "HeuristicValFirst.h"
+#include "HeuristicValRandom.h"
+#include "HeuristicValRoundRobin.h"
+#include "HeuristicVarCACD.h"
+#include "HeuristicVarDomWdeg.h"
+#include "HeuristicVarFRBA.h"
+#include "HeuristicVarRoundRobin.h"
+#include "PickOnDom.h"
+
 using namespace Cosoco;
 
 ParallelSolver::ParallelSolver(Problem &p, bool o) : AbstractSolver(p), nbcores(0), optimize(o), group(nullptr) { }
@@ -64,36 +73,42 @@ int PortofolioSolver::solve(vec<RootPropagation> &assumps) {
 
 
 void PortofolioSolver::diversifySolvers() {
-    /*for(int core = 0; core < nbcores; core++) {
+    for(int core = 0; core < nbcores; core++) {
         Solver    *solver = nullptr;
         Optimizer *o      = nullptr;
         if((o = dynamic_cast<Optimizer *>(solvers[core])) != nullptr)
             solver = o->solver;
         else
             solver = dynamic_cast<Solver *>(solvers[core]);
+        solver->seed = solver->seed + core * 3;
+        // solver->addLastConflictReasoning(core % 2 + 1);
 
-        solver->addLastConflictReasoning(core % 2 + 1);
+        if(core % 5 == 0)
+            solver->heuristicVar = new HeuristicVarDomWdeg(*solver);
+        if(core % 5 == 1)
+            solver->heuristicVar = new PickOnDom(*solver);
+        if(core % 5 == 2)
+            solver->heuristicVar = new HeuristicVarFRBA(*solver);
+        if(core % 5 == 3)
+            solver->heuristicVar = new HeuristicVarCACD(*solver);
+        if(core % 5 == 3)
+            solver->heuristicVar = new HeuristicVarRoundRobin(*solver);
+
+        if(core % 4 == 0)
+            solver->heuristicVal = new HeuristicValFirst(*solver);
+        if(core % 4 == 1)
+            solver->heuristicVal = new HeuristicValLast(*solver);
+        if(core % 4 == 2)
+            solver->heuristicVal = new HeuristicValRandom(*solver);
+        if(core % 4 == 3)
+            solver->heuristicVal = new HeuristicValRoundRobin(*solver, "FLR");
+
+
+        solver->addLastConflictReasoning();
 
         if(core > 0)
             solver->addRandomizationFirstDescent();
-        if(core % 2 == 0) {   // Stick - no stick
+        if(core % 4 == 0)   // Stick - no stick
             solver->addStickingValue();
-        }
-
-        if(core == 0 || core == 1)   // Fist val, Last val
-            solver->heuristicVal = new HeuristicValLast(*solver);
-
-        // Best version with ValLast 4/5
-        if(core == 4 || core == 5)
-            solver->heuristicVal = new HeuristicValRandom(*solver);
-
-        // Geometric/luby restart
-        solver->addRestart(core < nbcores / 2);
-
-        if(o != nullptr) {
-            if(core != 0)
-                o->addProgressSaving();
-        }
     }
-     */
 }
