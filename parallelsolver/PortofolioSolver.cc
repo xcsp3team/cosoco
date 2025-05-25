@@ -24,14 +24,14 @@ void ParallelSolver::setSolvers(vec<AbstractSolver *> &s) {
     group->concurrent();
 
     // rootPropagationsCommunicator = new pFactory::Communicator<int>(group);
-    // boundCommunicator = new pFactory::Communicator<long>(group);
+    boundCommunicator = new pFactory::Communicator<long>(*group);
 
 
     for(auto solver : solvers) {
         solver->setGroup(group, rootPropagationsCommunicator);
         Optimizer *o = nullptr;
-        // if((o = dynamic_cast<Optimizer *>(solver)) != nullptr)
-        //     o->addBoundCommunicator(boundCommunicator);
+        if((o = dynamic_cast<Optimizer *>(solver)) != nullptr)
+            o->addBoundCommunicator(boundCommunicator);
     }
 }
 
@@ -82,7 +82,7 @@ void PortofolioSolver::diversifySolvers() {
             solver = dynamic_cast<Solver *>(solvers[core]);
         solver->seed = solver->seed + core * 3;
         // solver->addLastConflictReasoning(core % 2 + 1);
-
+        solver->verbose = 0;
         if(core % 5 == 0)
             solver->heuristicVar = new HeuristicVarDomWdeg(*solver);
         if(core % 5 == 1)
@@ -110,5 +110,7 @@ void PortofolioSolver::diversifySolvers() {
             solver->addRandomizationFirstDescent();
         if(core % 4 == 0)   // Stick - no stick
             solver->addStickingValue();
+        if(o != nullptr)
+            o->addProgressSaving();
     }
 }

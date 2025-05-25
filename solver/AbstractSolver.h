@@ -56,7 +56,6 @@ class AbstractSolver {
     virtual bool hasSolution() { return nbSolutions > 0; }
 
     virtual void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<int> *rpc) {
-        std::cout << "ici\n";
         threadsGroup                 = pthreadsGroup;
         rootPropagationsCommunicator = rpc;
     }

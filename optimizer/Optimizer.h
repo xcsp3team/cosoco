@@ -70,6 +70,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     }
 
     void notifyConflict(Constraint *c, int level) override;
+    void importNewBound();
 };
 }   // namespace Cosoco
 

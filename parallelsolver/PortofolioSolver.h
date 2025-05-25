@@ -12,12 +12,12 @@ namespace Cosoco {
 
 class ParallelSolver : public AbstractSolver {
    public:
-    int                          nbcores;
-    bool                         optimize;
-    vec<AbstractSolver *>        solvers;
-    pFactory::Group             *group;
-    pFactory::Communicator<int> *rootPropagationsCommunicator;
-    pFactory::Communicator<int> *boundCommunicator;
+    int                           nbcores;
+    bool                          optimize;
+    vec<AbstractSolver *>         solvers;
+    pFactory::Group              *group;
+    pFactory::Communicator<int>  *rootPropagationsCommunicator;
+    pFactory::Communicator<long> *boundCommunicator;
 
 
     ParallelSolver(Problem &p, bool o);

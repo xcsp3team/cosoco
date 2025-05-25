@@ -73,6 +73,8 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         c->isDisabled = false;   // Enable the objective
 
+        if(threadsGroup != nullptr)
+            importNewBound();
         callToSolver++;
         if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
             nbSolutions++;
@@ -84,8 +86,9 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
-
-                // Store solution in order to avoid a signal
+                if(threadsGroup != nullptr)
+                    boundCommunicator->send(best);
+                //  Store solution in order to avoid a signal
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
@@ -123,8 +126,25 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 }
 
 
-void Optimizer::notifyConflict(Constraint *c, int level) { }
+void Optimizer::notifyConflict(Constraint *c, int level) {
+    if(threadsGroup != nullptr && solver->conflicts % 1000 == 0) {
+        importNewBound();
+    }
+}
 
+void Optimizer::importNewBound() {
+    std::vector<long> data;
+    boundCommunicator->recvAll(data);
+    firstCall = false;
+    nbSolutions++;
+    for(long newBound : data) {
+        if((optimtype == Minimize && newBound < best) || (optimtype == Maximize && newBound > best)) {
+            // bestSolution.cancelSolution();
+            best               = newBound;
+            solver->stopSearch = true;
+        }
+    }
+}
 
 void Optimizer::displayCurrentSolution() {
     if(bestSolution->exists())
