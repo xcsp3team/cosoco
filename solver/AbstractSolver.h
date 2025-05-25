@@ -1,8 +1,11 @@
 #ifndef ABSTRACTSOLVER_H
 #define ABSTRACTSOLVER_H
 
+#include "Communicators.h"
+#include "Groups.h"
 #include "core/Problem.h"
 #include "utils/Verbose.h"
+
 namespace Cosoco {
 
 #define R_UNKNOWN -1
@@ -23,14 +26,16 @@ class RootPropagation {   // x equal idv ??
 
 class AbstractSolver {
    public:
-    Problem   &problem;       // The problem to solve
-    int        core;          // The id of the core (used in // track)
-    STATE      status;        // The status of the solver
-    int        nbSolutions;   // Number of solutions already found
-    int        lastSolutionRun;
-    Verbose    verbose;       // The level of verbose mode 0..3
-    double     random_seed;   // The seed used by the solver
-    inline int solve() {
+    Problem                     &problem;       // The problem to solve
+    int                          core;          // The id of the core (used in // track)
+    STATE                        status;        // The status of the solver
+    int                          nbSolutions;   // Number of solutions already found
+    int                          lastSolutionRun;
+    Verbose                      verbose;       // The level of verbose mode 0..3
+    double                       random_seed;   // The seed used by the solver
+    pFactory::Group             *threadsGroup;
+    pFactory::Communicator<int> *rootPropagationsCommunicator;
+    inline int                   solve() {
         vec<RootPropagation> assumps;
         return solve(assumps);
     }
@@ -40,7 +45,8 @@ class AbstractSolver {
 
     virtual void displayCurrentSolution() = 0;   // displayCurrentBranch the current solution
 
-    AbstractSolver(Problem &pp) : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253) { }
+    AbstractSolver(Problem &pp)
+        : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253), threadsGroup(nullptr) { }
 
 
     void setVerbosity(int vv) {
@@ -48,6 +54,12 @@ class AbstractSolver {
         verbose.verbosity = vv;
     }
     virtual bool hasSolution() { return nbSolutions > 0; }
+
+    virtual void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<int> *rpc) {
+        std::cout << "ici\n";
+        threadsGroup                 = pthreadsGroup;
+        rootPropagationsCommunicator = rpc;
+    }
 };
 }   // namespace Cosoco
 

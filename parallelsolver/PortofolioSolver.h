@@ -2,9 +2,9 @@
 #define COSOCO_PORTOFOLIOSOLVER_HH
 
 #include <mtl/Vec.h>
-#include <pFactory/Communicators.h>
-#include <pFactory/Parallel.h>
 
+#include "Communicators.h"
+#include "Groups.h"
 #include "optimizer/Optimizer.h"
 #include "solver/AbstractSolver.h"
 
@@ -12,31 +12,18 @@ namespace Cosoco {
 
 class ParallelSolver : public AbstractSolver {
    public:
-    int                   nbcores;
-    bool                  optimize;
-    vec<AbstractSolver *> solvers;
-    pFactory::Group      *group;
+    int                          nbcores;
+    bool                         optimize;
+    vec<AbstractSolver *>        solvers;
+    pFactory::Group             *group;
+    pFactory::Communicator<int> *rootPropagationsCommunicator;
+    pFactory::Communicator<int> *boundCommunicator;
 
 
-    ParallelSolver(Problem &p, bool o) : AbstractSolver(p), nbcores(0), optimize(o), group(nullptr) { }
+    ParallelSolver(Problem &p, bool o);
 
 
-    void setSolvers(vec<AbstractSolver *> &s) {
-        s.copyTo(solvers);
-        nbcores = solvers.size();
-        group   = new pFactory::Group(nbcores);
-        pFactory::Communicator<RootPropagation *> *rootPropagationsCommunicator =
-            new pFactory::MultipleQueuesCommunicator<RootPropagation *>(group, nullptr);
-        pFactory::Communicator<long> *boundCommunicator = new pFactory::MultipleQueuesCommunicator<long>(group, LONG_MAX);
-
-
-        for(auto solver : solvers) {
-            solver->setGroup(group, rootPropagationsCommunicator);
-            Optimizer *o = nullptr;
-            if((o = dynamic_cast<Optimizer *>(solver)) != nullptr)
-                o->addBoundCommunicator(boundCommunicator);
-        }
-    }
+    void setSolvers(vec<AbstractSolver *> &s);
 
 
     virtual bool hasSolution() override;
@@ -51,7 +38,7 @@ class ParallelSolver : public AbstractSolver {
 
 class PortofolioSolver : public ParallelSolver {
    public:
-    PortofolioSolver(Problem &p, bool optimize) : ParallelSolver(p, optimize) { }
+    PortofolioSolver(Problem &p, bool optimize);
     virtual int solve(vec<RootPropagation> &assumps) override;
 
 

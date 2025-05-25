@@ -6,6 +6,7 @@
 #include <csignal>
 #include <vector>
 
+#include "PortofolioSolver.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
 #include "utils/CosocoCallbacks.h"
@@ -148,12 +149,19 @@ int main(int argc, char **argv) {
         if(nbcores == 1)
             solver = solvers[0];
         else {
-            assert(false);
+            // PortofolioSolver *ps = new PortofolioSolver();
+            ParallelSolver *ps;
+            ps = new PortofolioSolver(*solvingProblems[0], optimize);
+            printf("c Parallel mode: Portfolio\n");
+            ps->setSolvers(solvers);
+            solver = ps;
         }
+
 
         // --------------------------- SOLVE ----------------------------------------
 
         int returnCode = solver->solve();
+        std::cout << returnCode << std::endl;
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
@@ -170,7 +178,6 @@ int main(int argc, char **argv) {
 
 
         std::cout << std::flush;
-
     } catch(OutOfMemoryException &) {
         printf("c =========================================================================================================\n");
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);

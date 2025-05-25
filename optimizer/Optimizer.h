@@ -15,7 +15,8 @@ namespace Cosoco {
 
 class Optimizer : public AbstractSolver, ObserverConflict {
    protected:
-    long lower, upper;   // The current lower et upper bound
+    pFactory::Communicator<long> *boundCommunicator;
+    long                          lower, upper;   // The current lower et upper bound
 
     Solution *bestSolution;   // The solution callbacks (used to avoid problems if the solver is killed during solution storing
     long      best;           // Best value until now
@@ -56,6 +57,17 @@ class Optimizer : public AbstractSolver, ObserverConflict {
         solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
     }
 
+    void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<int> *rpc) override {
+        assert(solver != nullptr);
+        AbstractSolver::setGroup(pthreadsGroup, rpc);
+        solver->setGroup(pthreadsGroup, rpc);
+    }
+
+    void addBoundCommunicator(pFactory::Communicator<long> *boundC) {
+        // Concurrent mode : register to notification
+        solver->addObserverConflict(this);
+        boundCommunicator = boundC;
+    }
 
     void notifyConflict(Constraint *c, int level) override;
 };

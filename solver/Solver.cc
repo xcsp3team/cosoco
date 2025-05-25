@@ -224,6 +224,8 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
 int Solver::search(vec<RootPropagation> &assumptions) {
     while(status == RUNNING) {
+        if(threadsGroup != nullptr && threadsGroup->isStopped())
+            return R_UNKNOWN;
         if(propagate() != nullptr) {   // A conflict occurs
             if(stopSearch)
                 return R_UNKNOWN;
