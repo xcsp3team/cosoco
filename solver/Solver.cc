@@ -227,8 +227,8 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
 
 int Solver::search(vec<RootPropagation> &assumptions) {
-    std::vector<RootPropagation> sharedPropagations, sharedPropagationsNC;
-    std::vector<vec<Lit>>        sharedNogoods;
+    std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
+    std::vector<std::vector<Lit>> sharedNogoods;
 
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
@@ -236,7 +236,11 @@ int Solver::search(vec<RootPropagation> &assumptions) {
 
         if(threadsGroup != nullptr && decisionLevel() == 0) {
             nogoodCommunicator->recvAll(sharedNogoods);
-            for(auto &tmp : sharedNogoods) noGoodsEngine->addNoGood(tmp);
+            for(auto &tmp : sharedNogoods) {
+                vec<Lit> tmp2;
+                for(auto &l : tmp) tmp2.push(l);
+                noGoodsEngine->addNoGood(tmp2);
+            }
         }
 
         if(threadsGroup != nullptr && (decisionLevel() == 0 || conflicts % 1000 == 0)) {

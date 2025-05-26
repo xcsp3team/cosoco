@@ -3,7 +3,6 @@
 
 #include "Communicators.h"
 #include "Groups.h"
-#include "NoGoodsEngine.h"
 #include "core/Problem.h"
 #include "utils/Verbose.h"
 
@@ -15,6 +14,7 @@ namespace Cosoco {
 #define R_OPT     3
 
 enum STATE { RUNNING, REACH_GOAL, FULL_EXPLORATION, OPTIMUM };
+typedef long long Lit;
 
 
 class RootPropagation {   // x equal idv ??
@@ -27,18 +27,18 @@ class RootPropagation {   // x equal idv ??
 
 class AbstractSolver {
    public:
-    Problem                                 &problem;       // The problem to solve
-    int                                      core;          // The id of the core (used in // track)
-    STATE                                    status;        // The status of the solver
-    int                                      nbSolutions;   // Number of solutions already found
-    int                                      lastSolutionRun;
-    Verbose                                  verbose;       // The level of verbose mode 0..3
-    double                                   random_seed;   // The seed used by the solver
-    pFactory::Group                         *threadsGroup;
-    pFactory::Communicator<RootPropagation> *rootPropagationsCommunicator;
-    pFactory::Communicator<vec<Lit>>        *nogoodCommunicator;
-    bool                                     firstPropagations;
-    inline int                               solve() {
+    Problem                                  &problem;       // The problem to solve
+    int                                       core;          // The id of the core (used in // track)
+    STATE                                     status;        // The status of the solver
+    int                                       nbSolutions;   // Number of solutions already found
+    int                                       lastSolutionRun;
+    Verbose                                   verbose;       // The level of verbose mode 0..3
+    double                                    random_seed;   // The seed used by the solver
+    pFactory::Group                          *threadsGroup;
+    pFactory::Communicator<RootPropagation>  *rootPropagationsCommunicator;
+    pFactory::Communicator<std::vector<Lit>> *nogoodCommunicator;
+    bool                                      firstPropagations;
+    inline int                                solve() {
         vec<RootPropagation> assumps;
         return solve(assumps);
     }
@@ -59,7 +59,7 @@ class AbstractSolver {
     virtual bool hasSolution() { return nbSolutions > 0; }
 
     virtual void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<RootPropagation> *rpc,
-                          pFactory::Communicator<vec<Lit>> *ngc) {
+                          pFactory::Communicator<std::vector<Lit>> *ngc) {
         threadsGroup                 = pthreadsGroup;
         rootPropagationsCommunicator = rpc;
         nogoodCommunicator           = ngc;

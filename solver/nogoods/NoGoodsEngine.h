@@ -15,8 +15,6 @@ enum NoGoodStats { nbnogoods, size1, size2, sumsize, maxsize, cfl, props };
 
 namespace Cosoco {
 
-typedef long long Lit;
-
 
 class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     Solver &solver;

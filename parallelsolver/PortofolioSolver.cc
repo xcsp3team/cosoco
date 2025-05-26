@@ -26,7 +26,7 @@ void ParallelSolver::setSolvers(vec<AbstractSolver *> &s) {
 
     rootPropagationsCommunicator = new pFactory::Communicator<RootPropagation>(*group);
     boundCommunicator            = new pFactory::Communicator<long>(*group);
-    nogoodsCommunicator          = new pFactory::Communicator<vec<Lit> >(*group);
+    nogoodsCommunicator          = new pFactory::Communicator<std::vector<Lit> >(*group);
 
     for(auto solver : solvers) {
         solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
