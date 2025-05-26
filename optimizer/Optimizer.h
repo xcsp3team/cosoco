@@ -57,7 +57,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
         solver->heuristicVal = new ForceIdvs(*solver, solver->heuristicVal, false);
     }
 
-    void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<int> *rpc) override {
+    void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<RootPropagation> *rpc) override {
         assert(solver != nullptr);
         AbstractSolver::setGroup(pthreadsGroup, rpc);
         solver->setGroup(pthreadsGroup, rpc);

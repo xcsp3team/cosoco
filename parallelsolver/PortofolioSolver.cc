@@ -11,6 +11,7 @@
 #include "HeuristicVarDomWdeg.h"
 #include "HeuristicVarFRBA.h"
 #include "HeuristicVarRoundRobin.h"
+#include "Options.h"
 #include "PickOnDom.h"
 
 using namespace Cosoco;
@@ -23,12 +24,12 @@ void ParallelSolver::setSolvers(vec<AbstractSolver *> &s) {
     group   = new pFactory::Group(nbcores);
     group->concurrent();
 
-    // rootPropagationsCommunicator = new pFactory::Communicator<int>(group);
-    boundCommunicator = new pFactory::Communicator<long>(*group);
-
+    rootPropagationsCommunicator = new pFactory::Communicator<RootPropagation>(*group);
+    boundCommunicator            = new pFactory::Communicator<long>(*group);
+    nogoodsCommunicator          = new pFactory::Communicator<vec<Lit> >(*group);
 
     for(auto solver : solvers) {
-        solver->setGroup(group, rootPropagationsCommunicator);
+        solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
         Optimizer *o = nullptr;
         if((o = dynamic_cast<Optimizer *>(solver)) != nullptr)
             o->addBoundCommunicator(boundCommunicator);
@@ -82,7 +83,10 @@ void PortofolioSolver::diversifySolvers() {
             solver = dynamic_cast<Solver *>(solvers[core]);
         solver->seed = solver->seed + core * 3;
         // solver->addLastConflictReasoning(core % 2 + 1);
-        solver->verbose = 0;
+        if(core == 0)
+            solver->verbose = options::intOptions["verb"].value;
+        else
+            solver->verbose = 0;
         if(core % 5 == 0)
             solver->heuristicVar = new HeuristicVarDomWdeg(*solver);
         if(core % 5 == 1)
@@ -108,7 +112,7 @@ void PortofolioSolver::diversifySolvers() {
 
         if(core > 0)
             solver->addRandomizationFirstDescent();
-        if(core % 4 == 0)   // Stick - no stick
+        if(o == nullptr)   // Stick - no stick
             solver->addStickingValue();
         if(o != nullptr)
             o->addProgressSaving();

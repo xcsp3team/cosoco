@@ -51,7 +51,9 @@ Solver::Solver(Problem &p)
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;
-    displaySolution     = options::boolOptions["model"].value;
+    firstPropagations   = false;
+
+    displaySolution = options::boolOptions["model"].value;
 
     if(options::boolOptions["profile"].value)
         profiling = new Profiling(this);
@@ -194,9 +196,11 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
     lastSolution.clear();   // Store the last solution
     entailedConstraints.clear();
-    status         = RUNNING;
-    nbSolutions    = 0;
-    Constraint *pc = propagateComplete();
+    status            = RUNNING;
+    nbSolutions       = 0;
+    firstPropagations = true;
+    Constraint *pc    = propagateComplete();
+    firstPropagations = false;
     if(pc != nullptr) {
         status = FULL_EXPLORATION;
         return R_UNSAT;
@@ -223,9 +227,39 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
 
 int Solver::search(vec<RootPropagation> &assumptions) {
+    std::vector<RootPropagation> sharedPropagations, sharedPropagationsNC;
+    std::vector<vec<Lit>>        sharedNogoods;
+
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
+
+        if(threadsGroup != nullptr && decisionLevel() == 0) {
+            nogoodCommunicator->recvAll(sharedNogoods);
+            for(auto &tmp : sharedNogoods) noGoodsEngine->addNoGood(tmp);
+        }
+
+        if(threadsGroup != nullptr && (decisionLevel() == 0 || conflicts % 1000 == 0)) {
+            rootPropagationsCommunicator->recvAll(sharedPropagations);
+
+            // Fact to propagate
+            if(decisionLevel() > 0 && sharedPropagations.size() > 0)
+                doRestart();
+            bool ok = true;
+            while(!sharedPropagations.empty()) {
+                RootPropagation rp = sharedPropagations.back();
+                sharedPropagations.pop_back();
+                if(rp.equal == false)
+                    ok = delIdv(problem.variables[rp.idx], rp.idv);
+                else
+                    ok = assignToIdv(problem.variables[rp.idx], rp.idv);
+            }
+
+            if(!ok)   // We propagate a false fact at decision level 0 !!
+                return R_UNSAT;
+        }
+
+
         if(propagate() != nullptr) {   // A conflict occurs
             if(stopSearch)
                 return R_UNKNOWN;
@@ -234,7 +268,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
             handleFailure(decisionLevel());
             if(status == FULL_EXPLORATION)
                 break;
-            if(restart != nullptr && restart->isItTimeToRestart())   // Manage restart
+            if(restart != nullptr && restart->isItTimeToRestart())   // Manage rest art
                 doRestart();
         } else {
             if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
@@ -604,6 +638,9 @@ bool Solver::delIdv(Variable *x, int idv) {
     if(x->domain.containsIdv(idv) == false)
         return true;
 
+    if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
+        rootPropagationsCommunicator->send(RootPropagation(x->idx, false, idv));
+
     nbDeletedValuesByAVariable++;
 
     notifyDomainReduction(x, idv);
@@ -637,6 +674,9 @@ bool Solver::assignToVal(Variable *x, int v) {
     if(d.size() == 1)
         return true;   // already assigned to v
 
+    if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
+        rootPropagationsCommunicator->send(RootPropagation(x->idx, true, idv));
+
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
@@ -657,6 +697,9 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     Domain &d = x->domain;
     if(d.containsIdv(idv) == false)
         return false;
+    if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
+        rootPropagationsCommunicator->send(RootPropagation(x->idx, true, idv));
+
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;

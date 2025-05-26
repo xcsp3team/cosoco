@@ -5,6 +5,8 @@
 #ifndef COSOCO_NOGOODSENGINE_H
 #define COSOCO_NOGOODSENGINE_H
 
+#include <map>
+
 #include "ObserverDecision.h"
 #include "Solver.h"
 #include "Tuple.h"
