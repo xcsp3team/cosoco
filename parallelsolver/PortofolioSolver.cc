@@ -114,7 +114,7 @@ void PortofolioSolver::diversifySolvers() {
 
         if(core > 0)
             solver->addRandomizationFirstDescent();
-        if(o == nullptr)   // Stick - no stick
+        if(o == nullptr && core % 2 == 0)   // Stick - no stick
             solver->addStickingValue();
         if(o != nullptr)
             o->addProgressSaving();

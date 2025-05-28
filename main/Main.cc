@@ -91,11 +91,26 @@ int main(int argc, char **argv) {
         double initial_time = cpuTime();
         double real_time    = realTime();
 
-
+        int mem_lim = options::intOptions["mem_lim"].value;
+        int mem_used;
         try {
-            for(int i = 0; i < nbcores; i++) {
-                XCSP3CoreParser parser(&callbacks[i]);
-                parser.parse(argv[1]);   // parse the input file
+            XCSP3CoreParser parser(&callbacks[0]);
+            parser.parse(argv[1]);   // parse the input file
+            solvingProblems.push(callbacks[0].problem);
+            optimize = callbacks[0].optimizationProblem;
+            mem_used = (int)(memUsed() * 1.2);   // Suppose 20% for solver
+            if(nbcores > 1 && mem_lim > 0) {
+                if(nbcores > mem_lim / mem_used) {
+                    nbcores = mem_lim / mem_used;
+                    std::cout << "c\nc WARNING: memory for one problem: " << mem_used << ". Memory allowed: " << mem_lim << "\n";
+                    std::cout << "c WARNING: limit the number of cores to " << nbcores << " due to memory limit\nc\n";
+                }
+            }
+
+
+            for(int i = 1; i < nbcores; i++) {
+                XCSP3CoreParser parser2(&callbacks[i]);
+                parser2.parse(argv[1]);   // parse the input file
                 solvingProblems.push(callbacks[i].problem);
                 optimize = callbacks[i].optimizationProblem;
             }
@@ -120,6 +135,7 @@ int main(int argc, char **argv) {
         auto *solution = new Solution(*solvingProblems[0], real_time);
         for(int core = 0; core < nbcores; core++) {
             auto *S = new Solver(*solvingProblems[core]);
+
             S->core = core;
             S->seed = S->seed * (core + 1);
             if(optimize) {
