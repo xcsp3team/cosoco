@@ -127,9 +127,8 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
 
 void Optimizer::notifyConflict(Constraint *c, int level) {
-    if(threadsGroup != nullptr && solver->conflicts % 1000 == 0) {
+    if(threadsGroup != nullptr && solver->statistics[restarts] > 0 && solver->statistics[restarts] % 10 == 0)
         importNewBound();
-    }
 }
 
 void Optimizer::importNewBound() {

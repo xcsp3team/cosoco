@@ -31,8 +31,10 @@ void ParallelSolver::setSolvers(vec<AbstractSolver *> &s) {
     for(auto solver : solvers) {
         solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
         Optimizer *o = nullptr;
-        if((o = dynamic_cast<Optimizer *>(solver)) != nullptr)
+        if((o = dynamic_cast<Optimizer *>(solver)) != nullptr) {
             o->addBoundCommunicator(boundCommunicator);
+            o->solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
+        }
     }
 }
 

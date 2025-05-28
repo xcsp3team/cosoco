@@ -185,7 +185,6 @@ int Solver::solve(vec<RootPropagation> &assumps) {
     if(doProfiling && firstCall)
         profiling->initialize();
 
-
     fullBacktrack();
 
     if(problem.isConstructionDone == false)
@@ -234,35 +233,6 @@ int Solver::search(vec<RootPropagation> &assumptions) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
 
-        if(threadsGroup != nullptr && decisionLevel() == 0) {
-            nogoodCommunicator->recvAll(sharedNogoods);
-            for(auto &tmp : sharedNogoods) {
-                vec<Lit> tmp2;
-                for(auto &l : tmp) tmp2.push(l);
-                noGoodsEngine->addNoGood(tmp2);
-            }
-        }
-
-        if(threadsGroup != nullptr && (decisionLevel() == 0 || conflicts % 1000 == 0)) {
-            rootPropagationsCommunicator->recvAll(sharedPropagations);
-
-            // Fact to propagate
-            if(decisionLevel() > 0 && sharedPropagations.size() > 0)
-                doRestart();
-            bool ok = true;
-            while(!sharedPropagations.empty()) {
-                RootPropagation rp = sharedPropagations.back();
-                sharedPropagations.pop_back();
-                if(rp.equal == false)
-                    ok = delIdv(problem.variables[rp.idx], rp.idv);
-                else
-                    ok = assignToIdv(problem.variables[rp.idx], rp.idv);
-            }
-
-            if(!ok)   // We propagate a false fact at decision level 0 !!
-                return R_UNSAT;
-        }
-
 
         if(propagate() != nullptr) {   // A conflict occurs
             if(stopSearch)
@@ -272,8 +242,35 @@ int Solver::search(vec<RootPropagation> &assumptions) {
             handleFailure(decisionLevel());
             if(status == FULL_EXPLORATION)
                 break;
-            if(restart != nullptr && restart->isItTimeToRestart())   // Manage rest art
+            if(restart != nullptr && restart->isItTimeToRestart()) {
+                // Manage rest art
                 doRestart();
+                if(threadsGroup != nullptr) {
+                    rootPropagationsCommunicator->recvAll(sharedPropagations);
+                    // Fact to propagate
+                    if(decisionLevel() > 0 && sharedPropagations.size() > 0)
+                        doRestart();
+                    bool ok = true;
+                    while(!sharedPropagations.empty()) {
+                        RootPropagation rp = sharedPropagations.back();
+                        sharedPropagations.pop_back();
+                        if(rp.equal == false)
+                            ok = delIdv(problem.variables[rp.idx], rp.idv);
+                        else
+                            ok = assignToIdv(problem.variables[rp.idx], rp.idv);
+                    }
+
+                    if(!ok)   // We propagate a false fact at decision level 0 !!
+                        return R_UNSAT;
+
+                    nogoodCommunicator->recvAll(sharedNogoods);
+                    for(auto &tmp : sharedNogoods) {
+                        vec<Lit> tmp2;
+                        for(auto &l : tmp) tmp2.push(l);
+                        noGoodsEngine->addNoGood(tmp2);
+                    }
+                }
+            }
         } else {
             if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
                 break;
