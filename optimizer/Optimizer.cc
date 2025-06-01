@@ -61,6 +61,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     status        = RUNNING;
     c->isDisabled = true;   // Disable the objective
     while(status == RUNNING) {
+        verbose.log(NORMAL, "c core %d: update best %d\n", core, best);
         if(optimtype == Minimize)
             objective->updateBound(upper);
         else
@@ -73,10 +74,13 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         c->isDisabled = false;   // Enable the objective
 
-        if(threadsGroup != nullptr)
+        if(threadsGroup != nullptr) {
             importNewBound();
+            if(ret == R_UNKNOWN && solver->stopSearch)
+                continue;
+        }
         callToSolver++;
-        if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
+        if(solver->hasASolution()) {
             nbSolutions++;
             firstCall = false;
 
@@ -86,6 +90,8 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
+                verbose.log(NORMAL, "c core %d: new best %d\n", core, best);
+
                 if(threadsGroup != nullptr)
                     boundCommunicator->send(best);
                 //  Store solution in order to avoid a signal
@@ -127,15 +133,16 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
 
 void Optimizer::notifyConflict(Constraint *c, int level) {
-    if(threadsGroup != nullptr && solver->statistics[restarts] > 0 && solver->statistics[restarts] % 10 == 0)
+    if(threadsGroup != nullptr && solver->conflicts > 1000)
+        // && solver->statistics[restarts] > 0 && solver->statistics[restarts] % 10 == 0)
         importNewBound();
 }
 
-void Optimizer::importNewBound() {
+bool Optimizer::importNewBound() {
     std::vector<long> data;
     boundCommunicator->recvAll(data);
     firstCall = false;
-    nbSolutions++;
+    long b    = best;
     for(long newBound : data) {
         if((optimtype == Minimize && newBound < best) || (optimtype == Maximize && newBound > best)) {
             // bestSolution.cancelSolution();
@@ -143,6 +150,9 @@ void Optimizer::importNewBound() {
             solver->stopSearch = true;
         }
     }
+    if(b != best)
+        verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
+    return b != best;
 }
 
 void Optimizer::displayCurrentSolution() {
