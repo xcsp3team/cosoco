@@ -77,6 +77,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
 
     long bestBound() const { return (invertBestCost ? -1 : 1) * bound; }
 
+    long originalBound() const { return bound; }
     /**
      * return true is a solution was recorded
      */

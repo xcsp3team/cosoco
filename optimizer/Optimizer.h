@@ -50,6 +50,9 @@ class Optimizer : public AbstractSolver, ObserverConflict {
 
     bool hasSolution() override { return bestSolution->exists(); }
 
+    bool isBetterBound(long newBound) {
+        return (optimtype == Minimize && newBound < best) || (optimtype == Maximize && newBound > best);
+    }
 
     void addProgressSaving() {
         assert(solver != nullptr);
@@ -58,14 +61,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     }
 
 
-    void addBoundCommunicator(pFactory::Communicator<long> *boundC) {
-        // Concurrent mode : register to notification
-        solver->addObserverConflict(this);
-        boundCommunicator = boundC;
-    }
-
     void notifyConflict(Constraint *c, int level) override;
-    bool importNewBound();
 };
 }   // namespace Cosoco
 

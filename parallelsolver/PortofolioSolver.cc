@@ -25,14 +25,12 @@ void ParallelSolver::setSolvers(vec<AbstractSolver *> &s) {
     group->concurrent();
 
     rootPropagationsCommunicator = new pFactory::Communicator<RootPropagation>(*group);
-    boundCommunicator            = new pFactory::Communicator<long>(*group);
     nogoodsCommunicator          = new pFactory::Communicator<std::vector<Lit> >(*group);
 
     for(auto solver : solvers) {
         solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
         Optimizer *o = nullptr;
         if((o = dynamic_cast<Optimizer *>(solver)) != nullptr) {
-            o->addBoundCommunicator(boundCommunicator);
             o->solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
         }
     }

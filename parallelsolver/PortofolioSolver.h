@@ -17,7 +17,6 @@ class ParallelSolver : public AbstractSolver {
     vec<AbstractSolver *>                     solvers;
     pFactory::Group                          *group;
     pFactory::Communicator<RootPropagation>  *rootPropagationsCommunicator;
-    pFactory::Communicator<long>             *boundCommunicator;
     pFactory::Communicator<std::vector<Lit>> *nogoodsCommunicator;
 
     ParallelSolver(Problem &p, bool o);
