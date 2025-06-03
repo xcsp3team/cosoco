@@ -15,7 +15,8 @@ namespace Cosoco {
 
 class Optimizer : public AbstractSolver, ObserverConflict {
    protected:
-    long lower, upper;   // The current lower et upper bound
+    pFactory::Communicator<long> *boundCommunicator;
+    long                          lower, upper;   // The current lower et upper bound
 
     Solution *bestSolution;   // The solution callbacks (used to avoid problems if the solver is killed during solution storing
     long      best;           // Best value until now
@@ -49,6 +50,9 @@ class Optimizer : public AbstractSolver, ObserverConflict {
 
     bool hasSolution() override { return bestSolution->exists(); }
 
+    bool isBetterBound(long newBound) {
+        return (optimtype == Minimize && newBound < best) || (optimtype == Maximize && newBound > best);
+    }
 
     void addProgressSaving() {
         assert(solver != nullptr);

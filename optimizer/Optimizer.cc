@@ -61,6 +61,16 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     status        = RUNNING;
     c->isDisabled = true;   // Disable the objective
     while(status == RUNNING) {
+        if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
+            best = bestSolution->originalBound();
+            verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
+            if(optimtype == Minimize)
+                upper = best - 1;
+            else
+                lower = best + 1;
+            solver->stopSearch = true;
+        }
+
         if(optimtype == Minimize)
             objective->updateBound(upper);
         else
@@ -73,8 +83,13 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         c->isDisabled = false;   // Enable the objective
 
+        if(threadsGroup != nullptr) {
+            // importNewBound();
+            if(ret == R_UNKNOWN && solver->stopSearch)
+                continue;
+        }
         callToSolver++;
-        if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
+        if(solver->hasASolution()) {
             nbSolutions++;
             firstCall = false;
 
@@ -84,8 +99,10 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
+                verbose.log(NORMAL, "c core %d: new best %d\n", core, best);
 
-                // Store solution in order to avoid a signal
+
+                //   Store solution in order to avoid a signal
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
@@ -123,7 +140,13 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 }
 
 
-void Optimizer::notifyConflict(Constraint *c, int level) { }
+void Optimizer::notifyConflict(Constraint *c, int level) {
+    if(threadsGroup != nullptr && solver->conflicts % 500 == 0) {
+        if(hasSolution() && isBetterBound(bestSolution->originalBound())) {
+            solver->stopSearch = true;
+        }
+    }
+}
 
 
 void Optimizer::displayCurrentSolution() {

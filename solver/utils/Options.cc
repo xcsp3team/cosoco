@@ -19,7 +19,7 @@ void createOptions() {
     boolOptions["checksolutions"] = {"MAIN", "Check all solutions", true};
     intOptions["dsp"]             = {
         "MAIN", "1: Display the structure of the problem and exit (using python script). 2: display the xml file", 0, 0, 2};
-
+    intOptions["nbcores"] = {"MAIN", "Number of threads to use", 1, 1, INT_MAX};
 
     boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
     intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};

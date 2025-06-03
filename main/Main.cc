@@ -6,6 +6,7 @@
 #include <csignal>
 #include <vector>
 
+#include "PortofolioSolver.h"
 #include "XCSP3CoreParser.h"
 #include "solver/Solver.h"
 #include "utils/CosocoCallbacks.h"
@@ -49,7 +50,6 @@ static void SIGINT_interrupt(int signum) {
 
 int main(int argc, char **argv) {
     realTimeStart = realTime();
-    int nbcores   = 1;
     options::createOptions();
     if(argc == 0) {
         std::cout << "c USAGE: %s [options] <input-file>\n\n  where input may be either in plain or gzipped XCSP3.\n";
@@ -81,20 +81,39 @@ int main(int argc, char **argv) {
         }
 
         limitRessourcesUsage(options::intOptions["cpu_lim"].value, options::intOptions["mem_lim"].value);
+        int nbcores = options::intOptions["nbcores"].value;
 
         // --------------------------- PARSING ----------------------------------------
-        CosocoCallbacks cb(nbcores);
-        vec<Problem *>  solvingProblems;
+        vec<CosocoCallbacks> callbacks;
+        callbacks.growTo(nbcores);
+        vec<Problem *> solvingProblems;
 
         double initial_time = cpuTime();
         double real_time    = realTime();
 
-
+        int mem_lim = options::intOptions["mem_lim"].value;
+        int mem_used;
         try {
-            XCSP3CoreParser parser(&cb);
+            XCSP3CoreParser parser(&callbacks[0]);
             parser.parse(argv[1]);   // parse the input file
-            cb.problems.copyTo(solvingProblems);
-            optimize = cb.optimizationProblem;
+            solvingProblems.push(callbacks[0].problem);
+            optimize = callbacks[0].optimizationProblem;
+            mem_used = (int)(memUsed() * 1.2);   // Suppose 20% for solver
+            if(nbcores > 1 && mem_lim > 0) {
+                if(nbcores > mem_lim / mem_used) {
+                    nbcores = mem_lim / mem_used;
+                    std::cout << "c\nc WARNING: memory for one problem: " << mem_used << ". Memory allowed: " << mem_lim << "\n";
+                    std::cout << "c WARNING: limit the number of cores to " << nbcores << " due to memory limit\nc\n";
+                }
+            }
+
+
+            for(int i = 1; i < nbcores; i++) {
+                XCSP3CoreParser parser2(&callbacks[i]);
+                parser2.parse(argv[1]);   // parse the input file
+                solvingProblems.push(callbacks[i].problem);
+                optimize = callbacks[i].optimizationProblem;
+            }
         } catch(exception &e) {
             cout.flush();
             cout << "c " << e.what() << endl;
@@ -106,6 +125,7 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
+
         // if(nbcores > 1)
         //     options.intOptions["verb"].value = 0;
 
@@ -115,14 +135,15 @@ int main(int argc, char **argv) {
         auto *solution = new Solution(*solvingProblems[0], real_time);
         for(int core = 0; core < nbcores; core++) {
             auto *S = new Solver(*solvingProblems[core]);
+
             S->core = core;
             S->seed = S->seed * (core + 1);
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
                 S->displaySolution        = false;
-                optimizer->invertBestCost = cb.invertOptimization;
+                optimizer->invertBestCost = callbacks[0].invertOptimization;
                 optimizer->setSolver(S, solution);
-                
+
 
                 optimizer->core = core;
                 // if(pg && warmStart == nullptr)
@@ -144,12 +165,19 @@ int main(int argc, char **argv) {
         if(nbcores == 1)
             solver = solvers[0];
         else {
-            assert(false);
+            // PortofolioSolver *ps = new PortofolioSolver();
+            ParallelSolver *ps;
+            ps = new PortofolioSolver(*solvingProblems[0], optimize);
+            printf("c Parallel mode: Portfolio\n");
+            ps->setSolvers(solvers);
+            solver = ps;
         }
+
 
         // --------------------------- SOLVE ----------------------------------------
 
         int returnCode = solver->solve();
+        std::cout << returnCode << std::endl;
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
@@ -166,7 +194,6 @@ int main(int argc, char **argv) {
 
 
         std::cout << std::flush;
-
     } catch(OutOfMemoryException &) {
         printf("c =========================================================================================================\n");
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);

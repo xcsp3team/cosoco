@@ -5,6 +5,8 @@
 #ifndef COSOCO_NOGOODSENGINE_H
 #define COSOCO_NOGOODSENGINE_H
 
+#include <map>
+
 #include "ObserverDecision.h"
 #include "Solver.h"
 #include "Tuple.h"
@@ -12,8 +14,6 @@
 enum NoGoodStats { nbnogoods, size1, size2, sumsize, maxsize, cfl, props };
 
 namespace Cosoco {
-
-typedef long long Lit;
 
 
 class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {

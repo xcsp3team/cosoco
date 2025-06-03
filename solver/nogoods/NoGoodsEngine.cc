@@ -57,8 +57,14 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
     for(auto &currentDecision : currentBranch) {
         nogood.push(currentDecision);
         if(currentDecision < 0) {
-            if(nogood.size() < maxArity && currentDecision != currentBranch[0])
+            if(nogood.size() < maxArity && currentDecision != currentBranch[0]) {
                 addNoGood(nogood);
+                if(solver.threadsGroup != nullptr && nogood.size() < solver.problem.nbVariables() / 20) {
+                    std::vector<Lit> tmp;
+                    for(auto &l : nogood) tmp.push_back(l);
+                    solver.nogoodCommunicator->send(tmp);
+                }
+            }
             nogood.pop();   // Remove the negative one
         }
     }
