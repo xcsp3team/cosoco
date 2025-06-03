@@ -24,7 +24,7 @@ vec<AbstractSolver *> solvers;
 bool   optimize = false;
 double realTimeStart;
 
-string version("2.4");
+string version("2.5");
 
 void displayProblemStatistics(Problem *solvingProblem, double initial_time);
 
