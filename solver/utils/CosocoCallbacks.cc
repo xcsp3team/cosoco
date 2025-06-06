@@ -1102,7 +1102,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
     toMyVariables(origins);
     for(int i = 0; i < vars.size(); i++)
         for(int j = i + 1; j < vars.size(); j++) {
-            bool exist = false;
+            /*bool exist = false;
             for(auto *d : allDisjunctives)
                 if(d->same(vars[0]->_name, vars[1]->_name, lengths[i], lengths[j])) {
                     exist = true;
@@ -1110,6 +1110,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
                 }
             if(exist)
                 continue;
+                */
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             buildVariableInteger(auxVar, 0, 3);
             Variable *aux = problem->mapping[auxVar];
