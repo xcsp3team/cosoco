@@ -392,8 +392,27 @@ void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &lis
 void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) {
     vec<Variable *> list1, list2;
     for(unsigned int i = 0; i < lists.size() - 1; i++) {
-        toMyVariables(lists[i], list1);
-        toMyVariables(lists[i + 1], list2);
+        if(dynamic_cast<XInteger *>(lists[i][0]) != nullptr) {
+            list1.clear();
+            for(XVariable *xv : lists[i]) {
+                auto  *xi     = dynamic_cast<XInteger *>(xv);
+                string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+                buildVariableInteger(auxVar, xi->value, xi->value);
+                list1.push(problem->mapping[auxVar]);
+            }
+        } else
+            toMyVariables(lists[i], list1);
+        if(dynamic_cast<XInteger *>(lists[i + 1][0]) != nullptr) {
+            list2.clear();
+            for(XVariable *xv : lists[i + 1]) {
+                auto  *xi     = dynamic_cast<XInteger *>(xv);
+                string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+                buildVariableInteger(auxVar, xi->value, xi->value);
+                list2.push(problem->mapping[auxVar]);
+            }
+        } else
+            toMyVariables(lists[i + 1], list2);
+
         FactoryConstraints::createConstraintLex(problem, id, list1, list2, order);
     }
 }
