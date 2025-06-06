@@ -874,23 +874,23 @@ void Solver::displayCurrentSolution() {
     printf("c solution %d\n", nbSolutions);
     printf("\nv <instantiation type='solution'>\n");
     printf("v <list> ");
-    for(std::string tmp : problem.arrayNames) std::cout << tmp << " ";
+    // for(std::string tmp : problem.arrayNames) std::cout << tmp << " ";
 
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0 && x->array == -1)
+        if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */)
             printf("%s ", x->name());
     printf("</list>\n");
     printf("v <values> ");
 
-    for(auto &varArray : problem.variablesArray)
+    /*for(auto &varArray : problem.variablesArray)
         for(Variable *x : varArray)
             if(x->useless)
                 printf("* ");
             else
                 printf("%d ", lastSolution[x->idx]);
-
+*/
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0 && x->array == -1) {
+        if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */) {
             if(x->useless)
                 printf("* ");
             else
@@ -965,7 +965,7 @@ void Solver::interrupt() { }
 
 void Solver::printFinalStats() {
     double cpu_time = cpuTime();
-
+    filterCalls     = filterCalls == 0 ? 1 : filterCalls;
     printf("c restarts              : %lu\n", statistics[restarts]);
     printf("c decisions             : %lu (%.0f /sec)\n", decisions, decisions / cpu_time);
     printf("c wrong decisions       : %lu (%.0f /sec)\n", wrongDecisions, wrongDecisions / cpu_time);
