@@ -83,11 +83,9 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         c->isDisabled = false;   // Enable the objective
 
-        if(threadsGroup != nullptr) {
-            // importNewBound();
-            if(ret == R_UNKNOWN && solver->stopSearch)
-                continue;
-        }
+        if(threadsGroup != nullptr && solver->stopSearch)
+            continue;
+
         callToSolver++;
         if(solver->hasASolution()) {
             nbSolutions++;

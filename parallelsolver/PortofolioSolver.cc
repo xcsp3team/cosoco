@@ -32,6 +32,7 @@ void ParallelSolver::setSolvers(vec<AbstractSolver *> &s) {
         Optimizer *o = nullptr;
         if((o = dynamic_cast<Optimizer *>(solver)) != nullptr) {
             o->solver->setGroup(group, rootPropagationsCommunicator, nogoodsCommunicator);
+            o->solver->checkSolution = false;   // Avoid a concurrent problem. TODO: to be fixed
         }
     }
 }

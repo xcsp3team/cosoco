@@ -2,6 +2,7 @@
 
 #include "constraints/extensions/Extension.h"
 #include "constraints/genericFiltering/AC3rm.h"
+#include "solver/Solver.h"
 
 using namespace std;
 using namespace Cosoco;
@@ -84,7 +85,8 @@ bool Problem::checkSolution() {
             for(Variable *x : c->scope)
                 std::cout << x->name() << " " << x->value() << " " << x->domain.toVal(x->domain[0]) << endl;
             c->display();
-            fprintf(stderr, "Solution Error : constraint number %d (name %s) is not valid\n", c->idc, c->name.c_str());
+            fprintf(stderr, "Solution Error : (core %d) constraint number %d (name %s) is not valid\n", solver->core, c->idc,
+                    c->name.c_str());
             exit(1);
         }
     }
