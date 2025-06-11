@@ -966,8 +966,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
     string exp;
     if(xc.operandType == INTERVAL)
         throw runtime_error("Element with condition and interval not yet  implemented");
-    if(xc.operandType == INTEGER)
-        throw runtime_error("Element with condition and integer not yet  implemented");
+
 
     Variable *v   = problem->mapping[list[0]->id];
     int       min = v->minimum();
@@ -991,7 +990,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
         tmp = "gt(";
     if(xc.op == NE)
         tmp = "ne(";
-    tmp     = tmp + auxVar + "," + xc.var + ")";
+    tmp     = tmp + auxVar + "," + (xc.operandType == VARIABLE ? xc.var : std::to_string(xc.val)) + ")";
     auto *x = new XVariable(auxVar, nullptr);
     buildConstraintIntension(id, new Tree(tmp));
     buildConstraintElement(id, list, startIndex, index, ANY, x);

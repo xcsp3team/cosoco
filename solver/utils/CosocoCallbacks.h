@@ -204,7 +204,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
 
         if(node->type == OIF) {
-            assert(false);
+            int    mn = ranges[1].min, mx = ranges[1].max;
+            Range &r = ranges[2];
+            mn       = mn < r.min ? r.min : mn;
+            mx       = mx < r.max ? r.max : mx;
+            return {mn, mx};
         }
 
         assert(false);
