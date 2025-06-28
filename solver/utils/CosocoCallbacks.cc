@@ -589,6 +589,14 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
             FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val - 1);
             return;
         }
+        if(xc.op == GE) {
+            FactoryConstraints::createConstraintNValuesGE(problem, id, toMyVariables(list), xc.val);
+            return;
+        }
+        if(xc.op == GT) {
+            FactoryConstraints::createConstraintNValuesGE(problem, id, toMyVariables(list), xc.val + 1);
+            return;
+        }
         if(xc.op == EQ) {
             string           auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             std::vector<int> tmp;

@@ -138,6 +138,8 @@ void createConstraintExactlyVariable(Problem *p, std::string name, vec<Variable 
 
 void createConstraintNValuesLE(Problem *p, std::string name, vec<Variable *> &vars, int k);
 
+void createConstraintNValuesGE(Problem *p, std::string name, vec<Variable *> &vars, int k);
+
 void createConstraintNValuesEQV(Problem *p, std::string name, vec<Variable *> &vars, Variable *k);
 
 

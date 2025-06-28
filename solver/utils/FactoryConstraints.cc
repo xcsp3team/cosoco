@@ -23,6 +23,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "NValuesGEK.h"
 #include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
@@ -620,6 +621,9 @@ void FactoryConstraints::createConstraintNValuesLE(Problem *p, std::string name,
     p->addConstraint(new NValuesLEK(*p, name, vars, k));
 }
 
+void FactoryConstraints::createConstraintNValuesGE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
+    p->addConstraint(new NValuesGEK(*p, name, vars, k));
+}
 
 void FactoryConstraints::createConstraintNValuesEQV(Problem *p, std::string name, vec<Variable *> &vars, Variable *k) {
     p->addConstraint(new NValuesEQVar(*p, name, vars, k));
