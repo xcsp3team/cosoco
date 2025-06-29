@@ -63,7 +63,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     while(status == RUNNING) {
         if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
             best = bestSolution->originalBound();
-            verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
+            // verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
             if(optimtype == Minimize)
                 upper = best - 1;
             else
@@ -79,7 +79,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
         solver->stopSearch = false;
 
 
-        int ret = solver->solve(assumps);
+        solver->solve(assumps);
 
         c->isDisabled = false;   // Enable the objective
 
@@ -97,7 +97,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
-                verbose.log(NORMAL, "c core %d: new best %d\n", core, best);
+                // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
 
 
                 //   Store solution in order to avoid a signal

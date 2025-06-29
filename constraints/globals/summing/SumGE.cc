@@ -28,41 +28,41 @@ bool SumGE::filter(Variable *dummy) {
 
     for(int posx : unassignedVariablesIdx) {
         Variable *x     = scope[posx];
-        int       coeff = coefficients[posx];
+        long      coeff = coefficients[posx];
 
         int sizeBefore = x->size();
         if(sizeBefore == 1)
             continue;
         if(coeff > 0) {
             long maxBase       = max - x->maximum() * coeff;
-            int  minimumBefore = x->minimum();
+            long minimumBefore = x->minimum();
 
             if(maxBase + x->maximum() * coeff < limit)
                 return false;
             for(int idv : x->domain) {
-                int v = x->domain.toVal(idv);
+                long v = x->domain.toVal(idv);
                 if(maxBase + v * coeff >= limit)
                     break;
                 if(solver->delIdv(x, idv) == false)
                     return false;
             }
-            if((min += (x->minimum() - minimumBefore) * coeff) >= limit)
+            if((min += (((long)x->minimum()) - ((long)minimumBefore)) * coeff) >= limit)
                 return true;
         } else {
-            long maxBase   = max - x->minimum() * coeff;
-            int  maxBefore = x->maximum();
+            long maxBase   = max - ((long)x->minimum()) * coeff;
+            long maxBefore = x->maximum();
             if(maxBase + x->minimum() * coeff < limit)
                 return false;
 
             for(int idv : reverse(x->domain)) {
-                int v = x->domain.toVal(idv);
+                long v = x->domain.toVal(idv);
                 if(maxBase + v * coeff >= limit)
                     break;
                 if(maxBase + v * coeff < limit && solver->delIdv(x, idv) == false)
                     return false;
             }
             if(sizeBefore - x->size() > 0) {
-                if((min += (x->maximum() - maxBefore) * coeff) >= limit)
+                if((min += (((long)x->maximum()) - maxBefore) * coeff) >= limit)
                     return true;
             }
         }
@@ -75,9 +75,9 @@ void SumGE::computeBounds() {
     min = max = 0;
     for(int i = 0; i < scope.size(); i++) {
         Variable *x     = scope[i];
-        int       xmin  = x->minimum();
-        int       xmax  = x->maximum();
-        int       coeff = coefficients[i];
+        long      xmin  = x->minimum();
+        long      xmax  = x->maximum();
+        long      coeff = coefficients[i];
         min += coeff * (coeff >= 0 ? xmin : xmax);
         max += coeff * (coeff >= 0 ? xmax : xmin);
     }
