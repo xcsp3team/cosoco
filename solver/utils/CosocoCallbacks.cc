@@ -1061,6 +1061,19 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable 
                                                       problem->mapping[colIndex->id], value);
 }
 
+void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex,
+                                             XVariable *rowIndex, int startColIndex, XVariable *colIndex, XVariable *value) {
+    vec<vec<Variable *>> m2;
+    for(unsigned int i = 0; i < matrix.size(); i++) {
+        m2.push();
+        for(unsigned int j = 0; j < matrix[i].size(); j++) {
+            m2.last().push(problem->mapping[matrix[i][j]->id]);
+        }
+    }
+
+    FactoryConstraints::createConstraintElementMatrix(problem, id, m2, problem->mapping[rowIndex->id],
+                                                      problem->mapping[colIndex->id], problem->mapping[value->id]);
+}
 
 void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) {
     if(startIndex != 0)

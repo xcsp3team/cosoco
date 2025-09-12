@@ -1,4 +1,4 @@
-#include "ElementMatrix.h"
+#include "ElementMatrixConstant.h"
 
 #include "solver/Solver.h"
 
@@ -9,7 +9,7 @@ using namespace Cosoco;
 // check validity
 //----------------------------------------------------------
 
-bool ElementMatrix::isSatisfiedBy(vec<int> &tuple) {
+bool ElementMatrixConstant::isSatisfiedBy(vec<int> &tuple) {
     int i = tuple[rindexPosition], j = tuple[cindexPosition];
     return tuple[i * matrix.size() + j] == value;
 }
@@ -20,7 +20,7 @@ bool ElementMatrix::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------------------
 
 
-bool ElementMatrix::filter(Variable *x) {
+bool ElementMatrixConstant::filter(Variable *x) {
     // filtering the domain of rindex
 
     if(solver->decisionLevel() == 0) {
@@ -89,7 +89,9 @@ bool ElementMatrix::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, int v)
+ElementMatrix::ElementMatrix(Problem &p, std::string n) : GlobalConstraint(p, n, "", 0) { }
+
+ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci)
     : GlobalConstraint(p, n, "ElementMatrix", 0) {
     matrix.growTo(m.size());
     vec<Variable *> vars;
@@ -101,7 +103,6 @@ ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m
     }
     rindex = ri;
     cindex = ci;
-    value  = v;
 
     rindexPosition = vars.firstOccurrenceOf(rindex);
     cindexPosition = vars.firstOccurrenceOf(cindex);
@@ -112,11 +113,17 @@ ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m
     }
 
     if(cindexPosition == -1) {
-        vars.push(rindex);
+        vars.push(cindex);
         cindexPosition = vars.size() - 1;
     }
-
     addToScope(vars);
+}
+
+ElementMatrixConstant::ElementMatrixConstant(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci,
+                                             int v)
+    : ElementMatrix(p, n, m, ri, ci) {
+    type  = "Element Matrix Constant";
+    value = v;
 
     rsentinels.growTo(matrix.size(), -1);
     csentinels.growTo(matrix.size(), -1);

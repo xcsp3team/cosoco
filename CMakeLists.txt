@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.10)
 #set(CMAKE_C_COMPILER "gcc-7")
 #set(CMAKE_CXX_COMPILER "g++-7")
 project(cosoco)

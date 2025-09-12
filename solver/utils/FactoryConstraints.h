@@ -154,6 +154,9 @@ void createConstraintElementVariable(Problem *p, std::string name, vec<Variable 
 void createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix, Variable *rindex, Variable *cindex,
                                    int value);
 
+void createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix, Variable *rindex, Variable *cindex,
+                                   Variable *value);
+
 void createConstraintCardinality(Cosoco::Problem *p, std::string name, vec<Cosoco::Variable *> &vars, vec<int> &values,
                                  vec<Variable *> &occurs);
 

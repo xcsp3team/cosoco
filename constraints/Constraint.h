@@ -32,6 +32,7 @@ class Constraint {
 
 
    public:
+    virtual ~Constraint() = default;
     vec<int>        current;                  // to avoid creation during search
     Problem        &problem;                  // The linked problem
     Solver         *solver;                   // The linked solver

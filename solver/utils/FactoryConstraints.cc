@@ -23,12 +23,13 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "ElementMatrixVariable.h"
 #include "NValuesGEK.h"
 #include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
 #include "XCSP3Constants.h"
-#include "constraints/globals/connection/element/ElementMatrix.h"
+#include "constraints/globals/connection/element/ElementMatrixConstant.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
 #include "constraints/globals/counting/NValuesEQVar.h"
 #include "constraints/globals/graph/Circuit.h"
@@ -647,13 +648,21 @@ void FactoryConstraints::createConstraintElementVariable(Problem *p, std::string
 
 void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix,
                                                        Variable *rindex, Variable *cindex, int value) {
-    p->addConstraint(new ElementMatrix(*p, name, matrix, rindex, cindex, value));
+    p->addConstraint(new ElementMatrixConstant(*p, name, matrix, rindex, cindex, value));
 }
+
+
+void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix,
+                                                       Variable *rindex, Variable *cindex, Variable *value) {
+    p->addConstraint(new ElementMatrixVariable(*p, name, matrix, rindex, cindex, value));
+}
+
 
 void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, std::string name, vec<Cosoco::Variable *> &vars,
                                                      vec<int> &values, vec<Variable *> &occurs) {
     p->addConstraint(new CardinalityF(*p, name, vars, values, occurs));
 }
+
 
 void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                                      vec<Occurs> &occurs) {
