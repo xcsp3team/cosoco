@@ -12,9 +12,9 @@ using namespace Cosoco;
 //----------------------------------------------------------
 
 bool ElementMatrixVariable::isSatisfiedBy(vec<int> &tuple) {
-    return true; // TODO
+    return true;   // TODO
     int i = tuple[rindexPosition], j = tuple[cindexPosition];
-    int               v = tuple[vPosition];
+    int v = tuple[vPosition];
     return tuple[i * matrix.size() + j] == v;
 }
 
