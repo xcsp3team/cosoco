@@ -1160,8 +1160,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
 
     if(origins[0].size() == 3) {
-        throw runtime_error("K dim Nooverlap with 3 dimentsions is not yet supported");
- struct {
+        struct {
             string doit(Variable *a, Variable *b, Variable *c) {
                 return "le(add(" + a->_name + "," + b->_name + ")," + c->_name + ")";
             }
@@ -1187,7 +1186,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
                 Variable *di = problem->mapping[lengths[i][2]->id];
                 Variable *dj = problem->mapping[lengths[j][2]->id];
 
-                string tmp = "or(" + le.doit(xi, wi, wj) + "," + le.doit(xj, wj, wi) + "," + le.doit(yi, hi, yj) + "," +
+                string tmp = "or(" + le.doit(xi, wi, xj) + "," + le.doit(xj, wj, xi) + "," + le.doit(yi, hi, yj) + "," +
                              le.doit(yj, hj, yi) + "," + le.doit(zi, di, zj) + "," + le.doit(zj, dj, zi) + ")";
                 buildConstraintIntension(id, new Tree(tmp));
             }
