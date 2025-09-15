@@ -1159,6 +1159,43 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
 
+    if(origins[0].size() == 3) {
+        throw runtime_error("K dim Nooverlap with 3 dimentsions is not yet supported");
+ struct {
+            string doit(Variable *a, Variable *b, Variable *c) {
+                return "le(add(" + a->_name + "," + b->_name + ")," + c->_name + ")";
+            }
+        } le;
+
+        for(unsigned int i = 0; i < origins.size(); i++) {
+            for(unsigned int j = i + 1; j < origins.size(); j++) {
+                Variable *xi = problem->mapping[origins[i][0]->id];
+                Variable *xj = problem->mapping[origins[j][0]->id];
+
+                Variable *yi = problem->mapping[origins[i][1]->id];
+                Variable *yj = problem->mapping[origins[j][1]->id];
+
+                Variable *zi = problem->mapping[origins[i][2]->id];
+                Variable *zj = problem->mapping[origins[j][2]->id];
+
+                Variable *wi = problem->mapping[lengths[i][0]->id];
+                Variable *wj = problem->mapping[lengths[j][0]->id];
+
+                Variable *hi = problem->mapping[lengths[i][1]->id];
+                Variable *hj = problem->mapping[lengths[j][1]->id];
+
+                Variable *di = problem->mapping[lengths[i][2]->id];
+                Variable *dj = problem->mapping[lengths[j][2]->id];
+
+                string tmp = "or(" + le.doit(xi, wi, wj) + "," + le.doit(xj, wj, wi) + "," + le.doit(yi, hi, yj) + "," +
+                             le.doit(yj, hj, yi) + "," + le.doit(zi, di, zj) + "," + le.doit(zj, dj, zi) + ")";
+                buildConstraintIntension(id, new Tree(tmp));
+            }
+        }
+        return;
+    }
+
+
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
