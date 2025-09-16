@@ -117,13 +117,13 @@ void STR0::notifyDeleteDecision(Variable *x, int v, Solver &s) { set.fill(); }
 //----------------------------------------------
 
 STR0::STR0(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples) : Extension(p, n, vars, max_n_tuples, true) {
-    type = "STR0";
+    type = "Extension - STR0";
 }
 
 
 STR0::STR0(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint) {
-    type = "STR0";
+    type = "Extention - STR0";
 }
 
 

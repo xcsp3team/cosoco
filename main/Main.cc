@@ -262,15 +262,23 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     for(Constraint *c : solvingProblem->constraints)
         if(c->scope.size() > 100)
             bigConstraints.insert(c->type);
-
+    int hasExtension = 0;
+    int nbExtensions = 0;
     for(auto &iter : typeOfConstraints) {
-        if(iter.first == "Extension")
-            printf("Extension: %d  (nb tuples: %d..%d) -- (shared: %d)\nc |                          ", iter.second,
-                   solvingProblem->minimumTuplesInExtension(), solvingProblem->maximumTuplesInExtension(),
-                   solvingProblem->nbExtensionsSharded);
-        else
-            printf("%s: %d\nc |                          ", iter.first.c_str(), iter.second);
+        if(iter.first.rfind("Extension", 0) == 0) {
+            hasExtension = 1;
+            nbExtensions += iter.second;
+        } else {
+            if(hasExtension == 1) {
+                printf("Extension - Global Statistics: %d  (nb tuples: %d..%d) -- (shared: %d)\nc |                          ",
+                       nbExtensions, solvingProblem->minimumTuplesInExtension(), solvingProblem->maximumTuplesInExtension(),
+                       solvingProblem->nbExtensionsSharded);
+                hasExtension = 2;
+            }
+        }
+        printf("%s: %d\nc |                          ", iter.first.c_str(), iter.second);
     }
+
     if(bigConstraints.size() > 0) {
         printf("\nc |                   ");
         colorize(termcolor::blue, options::boolOptions["colors"].value);

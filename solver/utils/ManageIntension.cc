@@ -238,15 +238,14 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     }
 
 
+    callbacks.nbIntension2Extention++;
     if(existInCacheExtension(expr, scope)) {   // expression is in cache
         FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cachedExtensions[expr]);
-        callbacks.nbSharedIntension2Extension++;
         return true;
     }
 
 
     // Create extension
-    callbacks.nbIntension2Extention++;
     std::vector<std::vector<int>> tuples;
     bool                          isSupport = false;
     Constraint::toExtensionConstraint(tree, scope, tuples, isSupport);
@@ -436,7 +435,8 @@ class PBinary7 : public Primitive {   // x=  mul(y,y)
         if(callbacks.manageIntension->existInCacheExtension(expr, scope)) {   // expression is in cache
             FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope,
                                                             callbacks.manageIntension->cachedExtensions[expr]);
-            callbacks.nbSharedIntension2Extension++;
+
+            callbacks.nbIntension2Extention++;
             return true;
         }
         for(int idv : scope[0]->domain) {

@@ -10,7 +10,6 @@ void CosocoCallbacks::beginInstance(InstanceType type) {
     insideGroup                    = false;
     auxiliaryIdx                   = 0;
     nbIntension2Extention          = 0;
-    nbSharedIntension2Extension    = 0;
     inArray                        = false;
     recognizeSpecialIntensionCases = false;
 }
@@ -19,7 +18,7 @@ void CosocoCallbacks::endInstance() {
     if(auxiliaryIdx > 0)
         std::cout << "c " << auxiliaryIdx << " auxiliary variables\n";
     problem->delayedConstruction();
-    printf("c nb Intensions -> Extensions : %d (shared: %d)\n", nbIntension2Extention, nbSharedIntension2Extension);
+    printf("c nb Intensions -> Extensions : %d\n", nbIntension2Extention);
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {

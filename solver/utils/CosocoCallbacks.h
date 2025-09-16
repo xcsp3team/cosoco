@@ -241,10 +241,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     int                 auxiliaryIdx;
     map<string, string> expressionsToAuxiliaryVariables;
     vector<XVariable *> previousArgument;
-    int                 nbIntension2Extention;
     vec<Disj *>         allDisjunctives;
 
    public:
+    int                nbIntension2Extention;
     unsigned long long intension2extensionLimit;
     Cosoco::Problem   *problem;
     bool               optimizationProblem;
@@ -552,7 +552,6 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
                                   bool zeroIgnored) override;
-    int  nbSharedIntension2Extension;
 };
 
 

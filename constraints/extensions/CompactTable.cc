@@ -187,13 +187,13 @@ void CompactTable::intersectWithMask() {
 
 CompactTable::CompactTable(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &vars, size_t max_n_tuples)
     : Extension(p, n, vars, max_n_tuples, true), nonZeros() {
-    type = "Extension";
+    type = "Extension - CT";
 }
 
 
 CompactTable::CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint), nonZeros() {
-    type = "Extension";
+    type = "CT";
 }
 
 

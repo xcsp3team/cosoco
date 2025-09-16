@@ -75,6 +75,7 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
       nbtuples(0) {
     matrix = new Matrix<bool>(x->domain.maxSize(), y->domain.maxSize());
     matrix->growTo(x->domain.maxSize());
+    type = "Extension - Binary";
 }
 
 
@@ -87,6 +88,7 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
       maxConflictsy(y->size() + 1) {
     matrix   = hasSameTuples->matrix;
     nbtuples = hasSameTuples->nbtuples;
+    type     = "Extension - Binary";
 }
 
 

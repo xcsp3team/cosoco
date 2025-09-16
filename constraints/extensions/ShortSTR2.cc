@@ -125,14 +125,14 @@ void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples)
     : Extension(p, n, vars, max_n_tuples, true), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
-    type = "STR2";
+    type = "Extension - STR2";
 }
 
 
 ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
-    type = "STR2";
+    type = "Extension - STR2";
 }
 
 
