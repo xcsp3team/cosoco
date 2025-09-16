@@ -35,7 +35,7 @@ class Optimizer : public AbstractSolver, ObserverConflict {
 
     int  solve(vec<RootPropagation> &assumps) override;
     void printFinalStats() override;
-    void displayCurrentSolution() override;
+    void displayCurrentSolution(int verbosity) override;
 
     int solveInOneDirection(vec<RootPropagation> &assumps);
 

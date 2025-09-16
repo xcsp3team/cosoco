@@ -195,7 +195,7 @@ class Solver : public AbstractSolver {
     // minor methods
     // --------------------------------------------------------------------------------------
 
-    virtual void displayCurrentSolution() override;
+    virtual void displayCurrentSolution(int verbosity) override;
     virtual void printFinalStats() override;   // The final stats to print
 
     void displayHeaderCurrentSearchSpace();

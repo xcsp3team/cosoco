@@ -31,7 +31,7 @@ class ParallelSolver : public AbstractSolver {
     virtual void printFinalStats() override;   // The final stats to print
 
 
-    virtual void displayCurrentSolution() override;   // display the current solution
+    virtual void displayCurrentSolution(int verbosity) override;   // display the current solution
 };
 
 

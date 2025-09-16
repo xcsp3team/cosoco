@@ -147,9 +147,9 @@ void Optimizer::notifyConflict(Constraint *c, int level) {
 }
 
 
-void Optimizer::displayCurrentSolution() {
+void Optimizer::displayCurrentSolution(int verbosity) {
     if(bestSolution->exists())
-        bestSolution->display();
+        bestSolution->display(verbosity);
 }
 
 

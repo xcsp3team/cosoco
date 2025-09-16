@@ -48,10 +48,10 @@ bool ParallelSolver::hasSolution() {
 void ParallelSolver::printFinalStats() { solvers[0]->printFinalStats(); }
 
 
-void ParallelSolver::displayCurrentSolution() {
+void ParallelSolver::displayCurrentSolution(int verbosity) {
     for(auto solver : solvers) {
         if(solver->hasSolution()) {
-            solver->displayCurrentSolution();
+            solver->displayCurrentSolution(verbosity);
             break;
         }
     }

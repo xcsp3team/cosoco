@@ -53,7 +53,7 @@ Solver::Solver(Problem &p)
     nogoodsFromRestarts = false;
     firstPropagations   = false;
 
-    displaySolution = options::boolOptions["model"].value;
+    displaySolution = options::intOptions["model"].value;
 
     if(options::boolOptions["profile"].value)
         profiling = new Profiling(this);
@@ -347,7 +347,7 @@ bool Solver::manageSolution() {
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
     if(displaySolution)
-        displayCurrentSolution();
+        displayCurrentSolution(displaySolution);
 
     if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
         noGoodsEngine->generateNogoodFromSolution();
@@ -870,7 +870,21 @@ void Solver::updateStatisticsWithNewConflict() {
 }
 
 
-void Solver::displayCurrentSolution() {
+void Solver::displayCurrentSolution(int verbosity) {
+    if(verbosity == 1) {
+        printf("v ");
+        for(Variable *x : problem.variables)
+            if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */) {
+                if(x->useless)
+                    printf("* ");
+                else
+                    printf("%d ", lastSolution[x->idx]);
+            }
+        printf("\n");
+        return;
+    }
+
+
     printf("c solution %d\n", nbSolutions);
     printf("\nv <instantiation type='solution'>\n");
     printf("v <list> ");

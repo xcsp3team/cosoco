@@ -13,7 +13,7 @@ void createOptions() {
     intOptions["mem_lim"]         = {"MAIN", "Limit on MEM time allowed in megabytes", 0, 0, INT_MAX};
     intOptions["verb"]            = {"MAIN", "Verbosity level (0=silent, 1=some, 2=more, 3=full, 4=fullfull).", 1, 0, 4};
     intOptions["nbsols"]          = {"MAIN", "Number of solutions to find", 1, 0, INT_MAX};
-    boolOptions["model"]          = {"MAIN", "Display models", true};
+    intOptions["model"]           = {"MAIN", "Display models (0: none, 1: minimum verbosity, 2: full verbosity", 0, 0, 2};
     boolOptions["colors"]         = {"MAIN", "Add colors to output", true};
     boolOptions["profile"]        = {"MAIN", "Profile the solver", false};
     boolOptions["checksolutions"] = {"MAIN", "Check all solutions", true};

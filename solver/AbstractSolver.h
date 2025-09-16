@@ -46,7 +46,7 @@ class AbstractSolver {
     virtual void printFinalStats()                    = 0;   // The final stats to print
     virtual void printIntermediateStats() { }                // The intermediate stats to print
 
-    virtual void displayCurrentSolution() = 0;   // displayCurrentBranch the current solution
+    virtual void displayCurrentSolution(int verbosity) = 0;   // displayCurrentBranch the current solution
 
     AbstractSolver(Problem &pp)
         : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253), threadsGroup(nullptr) { }

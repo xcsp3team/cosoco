@@ -99,9 +99,23 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     }
 
 
-    void display() {
+    void display(int verbosity) {
         if(exists() == false)
             throw std::runtime_error("The solution does not exist");
+
+        if(verbosity == 1) {
+            printf("v ");
+            for(int i = 0; i < problem.nbVariables(); i++) {
+                if(problem.variables[i]->_name.rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
+                    if((*preserved)[i] == STAR)
+                        std::cout << "* ";
+                    else
+                        std::cout << (*preserved)[i] << " ";
+                }
+            }
+            printf("\n");
+            return;
+        }
         printf("\nv <instantiation type='solution' cost='%ld'>\n", bestBound());
         printf("v <list> ");
         // for(std::string tmp2 : problem.arrayNames) std::cout << tmp2 << " ";

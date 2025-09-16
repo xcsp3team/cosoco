@@ -183,14 +183,14 @@ int main(int argc, char **argv) {
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
                : returnCode == R_SAT   ? "s SATISFIABLE\n"
                                        : "s UNKNOWN\n");
-        if(nbcores == 1 && options::boolOptions["model"].value == false && solver->nbSolutions >= 1)
+        if(nbcores == 1 && options::intOptions["model"].value == false && solver->nbSolutions >= 1)
             printf("d N_SOLUTIONS %d\n\n", solvers[0]->nbSolutions);
         resetcolors();
         printStats(solvers[0]);
         printf("\n");
 
-        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::boolOptions["model"].value && solver->hasSolution())
-            solver->displayCurrentSolution();
+        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution())
+            solver->displayCurrentSolution(options::intOptions["model"].value);
 
 
         std::cout << std::flush;
@@ -371,8 +371,8 @@ static void SIGINT_exit(int signum) {
                 if(solvers[0]->hasSolution()) {
                     printf("s SATISFIABLE\n");
                     printf("c Best value found: %ld\n\n", ((Optimizer *)solvers[0])->bestCost());
-                    if(options::boolOptions["model"].value)
-                        solvers[0]->displayCurrentSolution();
+                    if(options::intOptions["model"].value)
+                        solvers[0]->displayCurrentSolution(options::intOptions["model"].value);
                 } else
                     printf("c No Bound found!\n\ns UNKNOWN\n");
             } else {
