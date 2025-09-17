@@ -6,6 +6,7 @@
 namespace Cosoco {
 class ObjectiveConstraint {   // This constraint can be used as an objective
    public:
+    virtual ~ObjectiveConstraint()                = default;
     virtual void updateBound(long bound)          = 0;   // Update the current bound
     virtual long maxUpperBound()                  = 0;   // Bounds are included
     virtual long minLowerBound()                  = 0;   // Bounds are included

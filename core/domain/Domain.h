@@ -18,6 +18,7 @@ class Domain {
     LinkedSet idvs;   // the set of elements
 
    public:
+    virtual ~Domain() = default;
     vec<int> nAssignments;
     // using const_iterator = LinkedSetIterator;
     using iterator = LinkedSetIterator;

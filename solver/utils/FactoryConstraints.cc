@@ -144,7 +144,7 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
     }
     if(vars.size() > 2) {
         if(sameConstraint->isSupport) {
-            if(sameConstraint->nbTuples() < options::intConstants["smallNbTuples"])
+            if(static_cast<int>(sameConstraint->nbTuples()) < options::intConstants["smallNbTuples"])
                 ctr = new STR0(*p, name, vars, sameConstraint->tuples);
             else
                 ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
@@ -584,6 +584,8 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
             break;
         case OrderType::NE:
             ctr = new SumNE(*p, name, vars, coeffs, l);
+            break;
+        case NOTIN:   // Avoid warning
             break;
     }
     assert(ctr != nullptr);

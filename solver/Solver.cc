@@ -941,6 +941,8 @@ void Solver::displayHeaderCurrentSearchSpace() {
     if(verbose.verbosity < 1)
         return;
     printf("c ");
+    if(optimizationSolution != nullptr)
+        printElement("best bound");
     printElement("conflicts");
     printElement("decisions");
     printElement("filterCalls");
@@ -949,12 +951,17 @@ void Solver::displayHeaderCurrentSearchSpace() {
     printElement("Nogoods");
 
     printElement("min/max/avg depth");
+
     cout << endl;
 }
 
 
 void Solver::displayCurrentSearchSpace() {
     printf("c ");
+
+    if(optimizationSolution != nullptr)
+        printElement(optimizationSolution->exists() ? std::to_string(optimizationSolution->bestBound()) : "-");
+
     printElement(conflicts);
     printElement(decisions);
     printElement(filterCalls);

@@ -6,7 +6,6 @@
 #include "ObjectiveConstraint.h"
 #include "Solution.h"
 #include "core/OptimizationProblem.h"
-#include "core/Problem.h"
 #include "solver/AbstractSolver.h"
 #include "solver/Solver.h"
 

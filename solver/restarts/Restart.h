@@ -7,6 +7,7 @@ namespace Cosoco {
 class Solver;
 class Restart {
    public:
+    virtual ~Restart() = default;
     Solver *solver;
     Restart(Solver *s) : solver(s) { }
     virtual bool isItTimeToRestart() = 0;   // Return true if the solver has to restart

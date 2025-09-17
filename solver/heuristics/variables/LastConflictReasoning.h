@@ -4,7 +4,6 @@
 
 #include "HeuristicVar.h"
 #include "solver/Solver.h"
-#include "solver/observers/ObserverConflict.h"
 namespace Cosoco {
 class LastConflictReasoning : public HeuristicVar, ObserverNewDecision, ObserverDeleteDecision {
     HeuristicVar   *hvar;   // The main heuristic

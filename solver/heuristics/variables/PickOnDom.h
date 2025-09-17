@@ -5,7 +5,6 @@
 #ifndef COSOCO_PICKONDOM_H
 #define COSOCO_PICKONDOM_H
 #include "HeuristicVar.h"
-#include "HeuristicVarDomWdeg.h"
 #include "solver/Solver.h"
 #include "solver/observers/ObserverConflict.h"
 #include "solver/observers/ObserverDecision.h"

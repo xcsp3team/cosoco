@@ -14,7 +14,7 @@
 
 namespace Cosoco {
 class AdapterAC3rm : public Constraint, public ObjectiveConstraint {
-    int maxSize;
+    unsigned long long maxSize;
 
    public:
     Constraint *constraint;

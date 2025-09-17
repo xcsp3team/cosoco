@@ -7,8 +7,8 @@
 
 #include <map>
 
+#include "AbstractSolver.h"
 #include "ObserverDecision.h"
-#include "Solver.h"
 #include "Tuple.h"
 #define NOGOODSSTATS 7
 enum NoGoodStats { nbnogoods, size1, size2, sumsize, maxsize, cfl, props };

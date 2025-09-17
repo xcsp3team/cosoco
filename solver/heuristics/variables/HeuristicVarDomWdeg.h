@@ -16,7 +16,7 @@ class HeuristicVarDomWdeg : public HeuristicVar, ObserverConflict, ObserverNewDe
     vec<double>      variablesWeights;
 
    public:
-    HeuristicVarDomWdeg(Solver &s);
+    explicit HeuristicVarDomWdeg(Solver &s);
     Mode              mode;
     virtual Variable *select() override;
     virtual void      notifyConflict(Constraint *c, int level) override;

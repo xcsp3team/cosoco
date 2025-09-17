@@ -6,7 +6,6 @@
 #include <utils/System.h>
 
 #include <iostream>
-#include <map>
 #include <mutex>
 
 #include "Termcolor.h"

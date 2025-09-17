@@ -8,6 +8,7 @@
 
 #include "AbstractSolver.h"
 #include "Profiling.h"
+#include "Solution.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
@@ -56,11 +57,11 @@ class Solver : public AbstractSolver {
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double seed = 91648253;   // A seed value
-    bool   displaySolution;
-    bool   checkSolution = true;         // Check solution or not
-    int    nbDeletedValuesByAVariable;   // count the number of deleted values by a filtering on one variable
-
+    double    seed = 91648253;   // A seed value
+    bool      displaySolution;
+    bool      checkSolution = true;             // Check solution or not
+    int       nbDeletedValuesByAVariable;       // count the number of deleted values by a filtering on one variable
+    Solution *optimizationSolution = nullptr;   // Used to display best bound during the search.
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables
     // Each level stores the SET variables of variables touched
@@ -99,7 +100,7 @@ class Solver : public AbstractSolver {
     // Construction and initialisation
     // --------------------------------------------------------------------------------------
 
-    Solver(Problem &p);
+    explicit Solver(Problem &p);
     void addLastConflictReasoning();
     void addRandomizationFirstDescent();
     void addStickingValue();

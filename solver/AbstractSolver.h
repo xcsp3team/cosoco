@@ -27,6 +27,7 @@ class RootPropagation {   // x equal idv ??
 
 class AbstractSolver {
    public:
+    virtual ~AbstractSolver() = default;
     Problem                                  &problem;       // The problem to solve
     int                                       core;          // The id of the core (used in // track)
     STATE                                     status;        // The status of the solver
@@ -48,7 +49,7 @@ class AbstractSolver {
 
     virtual void displayCurrentSolution(int verbosity) = 0;   // displayCurrentBranch the current solution
 
-    AbstractSolver(Problem &pp)
+    explicit AbstractSolver(Problem &pp)
         : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253), threadsGroup(nullptr) { }
 
 

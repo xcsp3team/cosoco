@@ -4,22 +4,23 @@
 
 #include "NoGoodsEngine.h"
 
+#include "Solver.h"
 #include "System.h"
 using namespace Cosoco;
 
-Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
+Constraint *NoGoodsEngine::fake = reinterpret_cast<Constraint *>(0x1);
 
 
 NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0) {
     // std::cout << n1 << " " << n2 << " " << sizeof(long) * 8 << std::endl;
 
     // if(n1 + n2 <= sizeof(long) * 8)
-    auto n1 = (unsigned int)ceil(log2(s.problem.nbVariables()));
-    auto n2 = (unsigned int)ceil(log2(s.problem.maximumDomainSize()));
+    auto n1 = static_cast<unsigned int>(ceil(log2(s.problem.nbVariables())));
+    auto n2 = static_cast<unsigned int>(ceil(log2(s.problem.maximumDomainSize())));
     if(n1 + n2 > 8 * sizeof(Lit) - 1)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
-    OFFSET    = (unsigned int)pow(2, n2 + 1);   // +1 because 0 excluded ???
+    OFFSET    = static_cast<unsigned int>(pow(2, n2 + 1));   // +1 because 0 excluded ???
     totalTime = 0;
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
@@ -27,7 +28,7 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0)
 
     // Manage space
     last    = 0;
-    nogoods = (Lit *)malloc(sizeof(Lit));
+    nogoods = static_cast<Lit *>(malloc(sizeof(Lit)));
     enlargeNogoodStructure(1024 * 1024);
 }
 

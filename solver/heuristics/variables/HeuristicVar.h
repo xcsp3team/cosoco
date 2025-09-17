@@ -9,6 +9,7 @@ class HeuristicVar {
     bool freezed;
 
    public:
+    virtual ~HeuristicVar() = default;
     Solver &solver;
     explicit HeuristicVar(Solver &s) : freezed(false), solver(s) { }
 
