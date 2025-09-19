@@ -181,7 +181,36 @@ void NoOverlap2D::prop(int idx) {
 }
 
 
-bool NoOverlap2D::energyCheck(int i) { return true; }
+bool NoOverlap2D::energyCheck(int i) {
+    int xm         = scope[i]->minimum();
+    int xM         = scope[i]->maximum() + scope[i + 2 * n]->maximum();
+    int ym         = scope[i + n]->minimum();
+    int yM         = scope[i + n]->maximum() + scope[i + 3 * n]->maximum();
+    int am         = scope[i + 2 * n]->minimum() * scope[i + 3 * n]->minimum();
+    int xLengthMin = scope[i + 2 * n]->minimum();
+    int yLengthMin = scope[i + 3 * n]->minimum();
+
+    for(int j : overlappingBoxes.edges[i]) {
+        xm = std::min(xm, scope[j]->minimum());
+        xM = std::max(xM, scope[j]->maximum() + scope[j + 2 * n]->maximum());
+        ym = std::min(ym, scope[j + n]->minimum());
+        yM = std::max(yM, scope[j + n]->maximum() + scope[j + 3 * n]->maximum());
+        am += scope[j + 2 * n]->minimum() * scope[j + 3 * n]->minimum();
+        if(am > (xM - xm) * (yM - ym)) {
+            return false;
+        }
+        xLengthMin = std::min(xLengthMin, scope[j + 2 * n]->minimum());
+        yLengthMin = std::min(yLengthMin, scope[j + 3 * n]->minimum());
+    }
+
+    if(xLengthMin > 0 && yLengthMin > 0) {
+        int maxNumberRectangles = ((xM - xm) / xLengthMin) * ((yM - ym) / yLengthMin);
+        if(maxNumberRectangles < overlappingBoxes.edges[i].size() + 1) {
+            return false;
+        }
+    }
+    return true;
+}
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -189,6 +218,7 @@ bool NoOverlap2D::energyCheck(int i) { return true; }
 NoOverlap2D::NoOverlap2D(Problem &p, std::string &_n, vec<Variable *> &_x, vec<Variable *> &_y, vec<Variable *> &_dx,
                          vec<Variable *> &_dy)
     : GlobalConstraint(p, _n, "NoOverlap 2D", 0), overlappingBoxes() {
+    isPostponable = true;
     vec<Variable *> vars;
 
     _x.copyTo(vars);
