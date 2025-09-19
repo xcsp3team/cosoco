@@ -25,6 +25,7 @@
 #include "DisjunctiveVars.h"
 #include "ElementMatrixVariable.h"
 #include "NValuesGEK.h"
+#include "NoOverlap2D.h"
 #include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
@@ -879,6 +880,10 @@ void FactoryConstraints::createConstraintNoOverlap(Problem *p, std::string name,
     p->addConstraint(new NoOverlap(*p, name, X, width, Y, heights));
 }
 
+void FactoryConstraints::createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<Variable *> &Y,
+                                                   vec<Variable *> &dx, vec<Variable *> &dy) {
+    p->addConstraint(new NoOverlap2D(*p, name, X, Y, dx, dy));
+}
 
 void FactoryConstraints::createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                                     bool covered) {

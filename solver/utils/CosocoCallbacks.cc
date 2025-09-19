@@ -1199,7 +1199,16 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         }
         return;
     }
-
+    vec<Variable *> x, y, dx, dy;
+    assert(origins[0].size() == 2);
+    for(unsigned int i = 0; i < origins.size(); i++) {
+        x.push(problem->mapping[origins[i][0]->id]);
+        y.push(problem->mapping[origins[i][1]->id]);
+        dx.push(problem->mapping[lengths[i][0]->id]);
+        dy.push(problem->mapping[lengths[i][1]->id]);
+    }
+    FactoryConstraints::createConstraintNoOverlap(problem, id, x, y, dx, dy);
+    return;
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";

@@ -18,7 +18,7 @@ bool NoOverlap2D::isSatisfiedBy(vec<int> &t) {
 
 bool NoOverlap2D::filter(Variable *xx) {
     bool hasFiltered = true;
-    prop(varIdx);
+    prop(xx->idx);
 
     while(hasFiltered) {
         hasFiltered = false;
@@ -37,19 +37,26 @@ bool NoOverlap2D::filter(Variable *xx) {
             }
         }
         pruneList.clear();
-        for(int k = 0; k < boxesToCompute.size(); k++) {
-            int i = boxesToCompute.getQuick(k);
-            if(!lcg())
-                energyCheck(i);
-            hasFiltered |= prune(i);
+        for(int i : boxesToCompute) {
+            if(energyCheck(i) == false)
+                return false;
+            int tmp = prune(i);
+            if(tmp == CONFLICT)
+                return false;
+            hasFiltered |= tmp;
         }
-        boxesToCompute.resetQuick();
+        boxesToCompute.clear();
         for(int k : pruneList) {
             prop(k);
         }
     }
+    return true;
 }
 
+bool NoOverlap2D::boxInstantiated(int i) {
+    return scope[i]->isAssigned() && scope[i + n]->isAssigned() && scope[i + 2 * n]->isAssigned() &&
+           scope[i + 3 * n]->isAssigned();
+}
 
 bool NoOverlap2D::mayOverlap(int i, int j) { return isNotDisjoint(i, j, true) && isNotDisjoint(i, j, false); }
 
@@ -69,67 +76,93 @@ bool NoOverlap2D::doOverlap(int i, int j, bool hori) {
     return (s_i < e_i && e_j > s_i && s_j < e_i) || (s_j < e_j && e_i > s_j && s_i < e_j);
 }
 
-bool NoOverlap2D::prune(int j) {
-    bool hasFiltered = false;
+int NoOverlap2D::prune(int j) {
+    bool hasFiltered = USELESS;
 
-    for(int i : neighbours[j]) {
-        if(doOverlap(i, j, true))
-            hasFiltered |= doFiltering(i, j, false);
-        if(doOverlap(i, j, false))
-            hasFiltered |= doFiltering(i, j, true);
+    for(int i : overlappingBoxes.edges[j]) {
+        if(doOverlap(i, j, true)) {
+            int tmp = doFiltering(i, j, false);
+            if(tmp == CONFLICT)
+                return CONFLICT;
+            if(tmp == PROP)
+                hasFiltered = PROP;
+        }
+        if(doOverlap(i, j, false)) {
+            int tmp = doFiltering(i, j, true);
+            if(tmp == CONFLICT)
+                return CONFLICT;
+            if(tmp == PROP)
+                hasFiltered = PROP;
+        }
     }
     return hasFiltered;
 }
 
 
-bool NoOverlap2D::doFiltering(int i, int j, bool hori) {
-    bool hasFiltered = false;
-    int  offSet      = hori ? 0 : n;
-    int  s_i         = scope[i + offSet]->maximum();                                          // latest start of i
-    int  e_i         = scope[i + offSet]->minimum() + scope[i + 2 * n + offSet]->minimum();   // earliest end of i
-    int  s_j         = scope[j + offSet]->maximum();                                          // latest start of j
-    int  e_j         = scope[j + offSet]->minimum() + scope[j + 2 * n + offSet]->minimum();   // earliest end of j
+int NoOverlap2D::doFiltering(int i, int j, bool hori) {
+    int hasFiltered = USELESS;
+    int offSet      = hori ? 0 : n;
+    int s_i         = scope[i + offSet]->maximum();                                          // latest start of i
+    int e_i         = scope[i + offSet]->minimum() + scope[i + 2 * n + offSet]->minimum();   // earliest end of i
+    int s_j         = scope[j + offSet]->maximum();                                          // latest start of j
+    int e_j         = scope[j + offSet]->minimum() + scope[j + 2 * n + offSet]->minimum();   // earliest end of j
     if(s_i < e_i || s_j < e_j) {   // if at least one mandatory part is not empty
         if(e_j > s_i) {            // if j ends after i starts
             // then update the start of j to the end of i
-            if(scope[j + offSet].updateLowerBound(e_i, this, explainFilter(j, i))) {
-                if(!pruneList.contains(j)) {
-                    pruneList.add(j);
+            int szBefore = scope[j + offSet]->size();
+            if(solver->delValuesLowerOrEqualThan(scope[j + offSet], e_i - 1) == false)
+                return CONFLICT;
+            if(scope[j + offSet]->size() != szBefore) {
+                if(pruneList.contains(j) == false) {
+                    pruneList.push(j);
                 }
-                hasFiltered = true;
+                hasFiltered = PROP;
             }
             // and update the start of i to the end of j
-            bool filtPrun1 =
-                scope[i + offSet].updateUpperBound(s_j - scope[i + 2 * n + offSet]->minimum(), this, explainFilter(i, j));
-            // and update the size of i to the space between the earliest start of j and the earliest start of i
-            bool filtPrun2 =
-                scope[i + offSet + 2 * n].updateUpperBound(s_j - scope[i + offSet]->minimum(), this, explainFilter(i, j));
+            szBefore = scope[i + offSet]->size();
+            if(solver->delValuesGreaterOrEqualThan(scope[i + offSet], s_j - scope[i + 2 * n + offSet]->minimum() + 1) == false)
+                return CONFLICT;
+            bool filtPrun1 = scope[i + offSet]->size() != szBefore;
+
+            szBefore = scope[i + offSet + 2 * n]->size();
+            if(solver->delValuesGreaterOrEqualThan(scope[i + offSet + 2 * n], s_j - scope[i + offSet]->minimum() + 1) == false)
+                return CONFLICT;
+            bool filtPrun2 = scope[i + offSet + 2 * n]->size() != szBefore;
             if(filtPrun1 || filtPrun2) {
                 if(!pruneList.contains(i)) {
-                    pruneList.add(i);
+                    pruneList.push(i);
                 }
-                hasFiltered = true;
+                hasFiltered = PROP;
             }
         }
         if(s_j < e_i) {   // if j starts before i ends
             // then update the start of i to the end of j
-            if(scope[i + offSet].updateLowerBound(e_j, this, explainFilter(i, j))) {
+            int szBefore = scope[i + offSet]->size();
+            if(solver->delValuesLowerOrEqualThan(scope[i + offSet], e_j - 1) == false)
+                return CONFLICT;
+            if(szBefore != scope[i + offSet]->size()) {
                 if(!pruneList.contains(i)) {
-                    pruneList.add(i);
+                    pruneList.push(i);
                 }
-                hasFiltered = true;
+                hasFiltered = PROP;
             }
+
             // and update the start of j to the end of i
-            bool filtPrun1 =
-                scope[j + offSet].updateUpperBound(s_i - scope[j + 2 * n + offSet]->minimum(), this, explainFilter(j, i));
+            szBefore = scope[j + offSet]->size();
+            if(solver->delValuesGreaterOrEqualThan(scope[j + offSet], s_i - scope[j + 2 * n + offSet]->minimum() + 1) == false)
+                return CONFLICT;
+            bool filtPrun1 = szBefore != scope[j + offSet]->size();
             // and update the size of j to the space between the earliest start of i and the earliest start of j
-            bool filtPrun2 =
-                scope[j + offSet + 2 * n].updateUpperBound(s_i - scope[j + offSet]->minimum(), this, explainFilter(j, i));
+            szBefore = scope[j + offSet + 2 * n]->size();
+            if(solver->delValuesGreaterOrEqualThan(scope[j + offSet + 2 * n], s_i - scope[j + offSet]->minimum() + 1) == false)
+                return CONFLICT;
+            bool filtPrun2 = szBefore != scope[j + offSet + 2 * n]->size();
+
             if(filtPrun1 || filtPrun2) {
                 if(!pruneList.contains(j)) {
-                    pruneList.add(j);
+                    pruneList.push(j);
                 }
-                hasFiltered = true;
+                hasFiltered = PROP;
             }
         }
     }
@@ -137,25 +170,25 @@ bool NoOverlap2D::doFiltering(int i, int j, bool hori) {
 }
 
 void NoOverlap2D::prop(int idx) {
-    int          v    = idx % n;
-    ISetIterator iter = overlappingBoxes.getNeighborsOf(v).iterator();
-    while(iter.hasNext()) {
-        int i = iter.nextInt();
-        if(!mayOverlap(v, i)) {
+    int v = idx % n;
+    for(int i : overlappingBoxes.edges[v]) {
+        if(mayOverlap(v, i) == false) {
             overlappingBoxes.removeEdge(v, i);
         }
     }
-    if(!boxesToCompute.contains(v)) {
-        boxesToCompute.add(v);
-    }
+    if(boxesToCompute.contains(v) == false)
+        boxesToCompute.push(v);
 }
+
+
+bool NoOverlap2D::energyCheck(int i) { return true; }
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-NoOverlap2D::NoOverlap2D(Problem &p, std::string _n, vec<Variable *> &_x, vec<Variable *> &_y, vec<Variable *> &_dx,
+NoOverlap2D::NoOverlap2D(Problem &p, std::string &_n, vec<Variable *> &_x, vec<Variable *> &_y, vec<Variable *> &_dx,
                          vec<Variable *> &_dy)
-    : GlobalConstraint(p, _n, "Disjunctive2DVar", 0) {
+    : GlobalConstraint(p, _n, "NoOverlap 2D", 0), overlappingBoxes() {
     vec<Variable *> vars;
 
     _x.copyTo(vars);
@@ -166,13 +199,12 @@ NoOverlap2D::NoOverlap2D(Problem &p, std::string _n, vec<Variable *> &_x, vec<Va
     n = _x.size();
     boxesToCompute.growTo(n);
     pruneList.growTo(n);
-    neighbours.growTo(n);
+    overlappingBoxes.setCapacity(n);
+
     for(int i = 0; i < n; i++) {
         for(int j = i + 1; j < n; j++) {
-            if(mayOverlap(i, j)) {
-                neighbours[i].push(j);
-                neighbours[j].push(i);
-            }
+            if(mayOverlap(i, j))
+                overlappingBoxes.addEdge(i, j);
         }
     }
 }
