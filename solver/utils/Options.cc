@@ -38,9 +38,9 @@ void createOptions() {
                                   INT_MAX};
     intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000, 0,
                          INT_MAX};
-    stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
-    boolOptions["decompose"]       = {"PARSE", "decompose intension using reification.", true};
-
+    stringOptions["removeclasses"]      = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
+    boolOptions["decompose"]            = {"PARSE", "decompose intension using reification.", true};
+    intOptions["bound"]                 = {"PARSE", "set the initial bound to the value", INT_MAX, INT_MIN, INT_MAX};
     intConstants["large_bin_extension"] = 1000;
     intConstants["smallNbTuples"]       = 16;   // if tuples.size() < 16 then create STR0 constraint, otherwise STR2/CT
 }

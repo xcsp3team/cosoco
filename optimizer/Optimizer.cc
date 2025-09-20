@@ -30,8 +30,14 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
     objectiveLB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
     objectiveUB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
     assert(objectiveLB != nullptr || objectiveUB != nullptr);
-    lower                    = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
-    upper                    = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();
+    lower = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
+    upper = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();
+
+    if(options::intOptions["bound"].value != INT_MAX) {
+        if(invertBestCost)
+            options::intOptions["bound"].value = -options::intOptions["bound"].value;
+        lower = upper = options::intOptions["bound"].value;
+    }
     best                     = optimtype == Minimize ? LONG_MAX : LONG_MIN;
     solution->invertBestCost = invertBestCost;
     solution->optimType      = optimtype;
@@ -59,8 +65,8 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     ObjectiveConstraint *objective = (optimtype == Minimize) ? objectiveUB : objectiveLB;
     auto                 c         = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
-    status        = RUNNING;
-    c->isDisabled = true;   // Disable the objective
+    status = RUNNING;
+    // c->isDisabled = true;   // Disable the objective
     while(status == RUNNING) {
         if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
             best = bestSolution->originalBound();
