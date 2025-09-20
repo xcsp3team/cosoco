@@ -146,10 +146,11 @@ class Solver : public AbstractSolver {
     Constraint *propagateComplete();   // fill the queue and propagate everything
     bool        isGACGuaranted();      // Return true if GAC is ensured
 
-    void entail(Constraint *c) {
+    bool entail(Constraint *c) {
         if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
             entailedConstraints.recordLimit(decisionLevel());
         entailedConstraints.add(c->idc);
+        return true;   //
     }
     bool isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }
     // --------------------------------------------------------------------------------------

@@ -128,10 +128,8 @@ bool ElementMatrixVariable::filter(Variable *x) {
             return false;
         if(solver->delValuesNotInDomain(value, x->domain) == false)
             return false;
-        if(value->size() == 1) {
+        if(value->size() == 1)
             solver->entail(this);
-            return true;
-        }
     }
     return true;
 }

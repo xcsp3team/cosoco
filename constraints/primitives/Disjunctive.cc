@@ -33,12 +33,18 @@ bool Disjunctive::filterDomain(Variable *z, int lbValue, int ubValue) {
 
 
 bool Disjunctive::filter(Variable *xx) {
-    if(x->maximum() + lx <= y->minimum())   // x + wx <= y => z = 0
+    if(x->maximum() + lx <= y->minimum()) {
+        // x + wx <= y => z = 0
         if(solver->delVal(z, 1) == false)
             return false;
-    if(y->maximum() + ly <= x->minimum())   // y + wy <= x => z = 1
+        return solver->entail(this);
+    }
+    if(y->maximum() + ly <= x->minimum()) {
+        // y + wy <= x => z = 1
         if(solver->delVal(z, 0) == false)
             return false;
+        return solver->entail(this);
+    }
 
     if(z->maximum() == 0)   // z = 0 => x + wx <= y
         return solver->enforceLE(x, y, lx);

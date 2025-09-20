@@ -78,9 +78,11 @@ bool ElementMatrixConstant::filter(Variable *x) {
         }
     }
     // be careful : not a else because of statements above that may modify the domain of indexes
-    if(rindex->size() == 1 && cindex->size() == 1)
+    if(rindex->size() == 1 && cindex->size() == 1) {
         if(solver->assignToVal(matrix[rindex->value()][cindex->value()], value) == false)
             return false;
+        solver->entail(this);
+    }
     return true;
 }
 
