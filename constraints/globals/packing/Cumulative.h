@@ -61,10 +61,12 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
     vec<int>          wheights;
     TimeTableReasoner timetableReasoner;
 
-    int limit;
-    int horizon;
+    int  limit;
+    int  horizon;
+    long volume;
 
-    int _horizon(vec<Variable *> &);
+    long taskVolume();
+    long _horizon(vec<Variable *> &);
 
 
    public:
@@ -80,7 +82,7 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
     void filterHeightVariables(vec<Variable *> &_heights);   // Don't want to use multiple inheritance
     void filterWidthVariables(vec<Variable *> &_lenghts);
     void filterLimitVariable(Variable *x);
-    
+
 
     virtual int maxWidth(int posx);
     // Checking

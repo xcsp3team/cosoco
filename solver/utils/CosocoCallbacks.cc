@@ -1250,23 +1250,34 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         }
     }
     // Add redundant constraint
-    vec<Variable *> ox, oy;
-    vec<int>        lx, ly;
+    vector<XVariable *> ox, oy;
+    vector<int>         lx, ly;
     for(unsigned int i = 0; i < origins.size(); i++) {
-        ox.push(problem->mapping[origins[i][0]->id]);
-        lx.push(lengths[i][0]);
-        oy.push(problem->mapping[origins[i][1]->id]);
-        ly.push(lengths[i][1]);
+        ox.push_back(origins[i][0]);
+        lx.push_back(lengths[i][0]);
+        oy.push_back(origins[i][1]);
+        ly.push_back(lengths[i][1]);
     }
     int minX = INT_MAX, minY = INT_MAX, maxX = INT_MIN, maxY = INT_MIN;
     for(unsigned int i = 0; i < origins.size(); i++) {
-        minX = std::min(minX, ox[i]->minimum());
-        minY = std::min(minY, oy[i]->minimum());
-        maxX = std::max(maxX, ox[i]->maximum() + lx[i]);
-        maxY = std::max(maxY, oy[i]->maximum() + ly[i]);
+        minX = std::min(minX, ox[i]->domain->minimum());
+        minY = std::min(minY, oy[i]->domain->minimum());
+        maxX = std::max(maxX, ox[i]->domain->maximum() + lx[i]);
+        maxY = std::max(maxY, oy[i]->domain->maximum() + ly[i]);
     }
-    FactoryConstraints::createConstraintCumulative(problem, id, ox, lx, ly, maxY - minY);
-    FactoryConstraints::createConstraintCumulative(problem, id, oy, ly, lx, maxX - minX);
+    // string id, vector<XVariable *> &origins, vector<int> &lengths,
+    //                                                vector<int> &heights, XCondition &xc)
+
+    XCondition xc;
+    xc.op  = LE;
+    xc.val = maxY - minY;
+    // string id, vector<XVariable *> &origins, vector<int> &lengths,
+    //                                             vector<int> &heights, XCondition &xc
+    buildConstraintCumulative(id, ox, lx, ly, xc);
+    xc.val = maxX - minX;
+    buildConstraintCumulative(id, oy, ly, lx, xc);
+    // FactoryConstraints::createConstraintCumulative(problem, id, ox, lx, ly, maxY - minY);
+    // FactoryConstraints::createConstraintCumulative(problem, id, oy, ly, lx, maxX - minX);
 
     return;
 
