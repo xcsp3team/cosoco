@@ -61,12 +61,10 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
     vec<int>          wheights;
     TimeTableReasoner timetableReasoner;
 
-    int  limit;
-    int  horizon;
-    long volume;
+    int limit;
 
     long taskVolume();
-    long _horizon(vec<Variable *> &);
+    long _horizon();
 
 
    public:
