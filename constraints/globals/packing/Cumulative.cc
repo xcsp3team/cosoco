@@ -13,7 +13,7 @@ using namespace Cosoco;
 
 
 bool Cumulative::isSatisfiedBy(vec<int> &tuple) {
-    int min = horizon;
+    int min = INT_MAX;
     int max = -1;
     for(int i = 0; i < tuple.size(); i++) {
         if(tuple[i] < min)
@@ -144,18 +144,16 @@ TimeTableReasoner::TimeTableReasoner(Cumulative &c) : cumulative(c), nSlots(0) {
 int Cumulative::maxWidth(int posx) { return wwidths[posx]; }
 
 bool Cumulative::filter(Variable *dummy) {
+    long margin = _horizon() * limit - taskVolume();
+    if(margin < 0)
+        return false;
+
     int b = timetableReasoner.buildSlots();
     if(b == 0)
         return false;   // seems better than x.dom.fail()
     if(b == 1)
         return true;
 
-    /*b = energeticReasoner.filter();
-    if (b == Boolean.FALSE)
-        return false; // seems better than x.dom.fail()
-    if (b == Boolean.TRUE)
-        return true;
-*/
     return timetableReasoner.filter();
 }
 
@@ -174,20 +172,26 @@ void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 // Construction and initialisation
 //----------------------------------------------
 
-int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars) {
-    int h = -1;
-    for(int i = 0; i < vars.size(); i++)
-        if(vars[i]->maximum() + maxWidth(i) > h)
-            h = vars[i]->maximum() + maxWidth(i);
-    h++;
-    return h;
+long Cumulative::_horizon() {
+    int min = INT_MAX, max = INT_MIN;
+    for(int i = 0; i < starts.size(); i++) {
+        min = std::min(min, starts[i]->minimum());
+        max = std::max(max, starts[i]->maximum() + maxWidth(i));
+    }
+    return max - min;
+}
+
+long Cumulative::taskVolume() {
+    long sum = 0;
+    for(int i = 0; i < starts.size(); i++)
+        sum += wwidths[i] * wheights[i];   // correct because we always store the minimal values in these arrays
+    return sum;
 }
 
 
 Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int lm)
     : GlobalConstraint(p, n, "Cumulative", scope), timetableReasoner(*this) {
-    limit = lm;
-
+    limit         = lm;
     isPostponable = true;
     vars.copyTo(starts);
 
@@ -198,10 +202,13 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Var
 
 void Cumulative::attachSolver(Solver *s) {
     // Init timetableReasoner here..
-    horizon = _horizon(starts);
-    timetableReasoner.offsets.growTo(horizon);
-    timetableReasoner.slots.growTo(horizon);
-    timetableReasoner.ticks.setCapacity(horizon, false);
+    int timeline = INT_MIN;
+    for(int i = 0; i < starts.size(); i++) timeline = std::max(timeline, starts[i]->maximum() + maxWidth(i));
+    timeline++;
+
+    timetableReasoner.offsets.growTo(timeline);
+    timetableReasoner.slots.growTo(timeline);
+    timetableReasoner.ticks.setCapacity(timeline, false);
     timetableReasoner.relevantTasks.setCapacity(starts.size(), true);
 
     Constraint::attachSolver(s);

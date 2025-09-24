@@ -42,9 +42,11 @@ bool NoOverlap::filter(Variable *dummy) {
 
 // optimizations are possible ; to be done
 bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2, vec<vec<int> > &residues) {
+    bool find = false;
     for(int i = 0; i < half; i++) {
         Variable *dom1 = x1[i];
         for(int k = 0; k < dom1->domain.size(); k++) {
+            find    = false;
             int idv = dom1->domain[k];
             int v   = dom1->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
             // we compute the set of tasks overlapping on the first axis wrt (x1[i],v)
@@ -80,13 +82,13 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
                     int w = dom2->domain.toVal(idv2);
                     if(findSupport(x1, t1, x2, t2, w, w + t2[i])) {
                         residues[i][idv] = idv2;
-                        k                = dom1->size() + 1;
+                        find             = true;
                         break;
                     }
                 }
             }
             // at this step, no support has been found
-            if(k < dom1->size() && solver->delIdv(dom1, idv) == false)
+            if(find == false && solver->delIdv(dom1, idv) == false)
                 return false;
         }
     }
