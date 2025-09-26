@@ -19,7 +19,8 @@ void createOptions() {
     boolOptions["checksolutions"] = {"MAIN", "Check all solutions", true};
     intOptions["dsp"]             = {
         "MAIN", "1: Display the structure of the problem and exit (using python script). 2: display the xml file", 0, 0, 2};
-    intOptions["nbcores"] = {"MAIN", "Number of threads to use", 1, 1, INT_MAX};
+    intOptions["nbcores"]  = {"MAIN", "Number of threads to use", 1, 1, INT_MAX};
+    boolOptions["options"] = {"MAIN", "Display Selected options", 0};
 
     boolOptions["nogoods"]     = {"SEARCH", "Learn nogoods from restarts", true};
     intOptions["lc"]           = {"SEARCH", "Last Conflict reasoning (0 to disable)", 1, 0, 100};
@@ -38,9 +39,11 @@ void createOptions() {
                                   INT_MAX};
     intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000, 0,
                          INT_MAX};
-    stringOptions["removeclasses"]      = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
-    boolOptions["decompose"]            = {"PARSE", "decompose intension using reification.", true};
-    intOptions["bound"]                 = {"PARSE", "set the initial bound to the value", INT_MAX, INT_MIN, INT_MAX};
+    stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
+    boolOptions["decompose"]       = {"PARSE", "decompose intension using reification.", true};
+    intOptions["bound"]            = {"OPTIMIZER", "set the initial bound to the value", INT_MAX, INT_MIN, INT_MAX};
+    intOptions["rr"]               = {"OPTIMIZER", "heuristic Var and Val Robin with Bs deactivated during first runs", 0, 0, 2};
+
     intConstants["large_bin_extension"] = 1000;
     intConstants["smallNbTuples"]       = 16;   // if tuples.size() < 16 then create STR0 constraint, otherwise STR2/CT
 }

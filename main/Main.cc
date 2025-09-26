@@ -65,6 +65,15 @@ int main(int argc, char **argv) {
         printf("\n");
 
         parseOptions(argc, argv);
+        if(options::intOptions["rr"].value >= 1) {
+            options::boolOptions["bs"].value    = true;
+            options::stringOptions["var"].value = "robin";
+            options::stringOptions["val"].value = "robin";
+        }
+
+        if(options::boolOptions["options"].value)
+            displaySelectedOptions();
+
         if((options::intOptions["nbsols"].value > 1 || options::intOptions["nbsols"].value == 0) &&
            options::boolOptions["nogoods"].value == false) {
             cout << "c count solutions without nogoods is impossible" << endl;

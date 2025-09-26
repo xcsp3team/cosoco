@@ -33,6 +33,7 @@ namespace Cosoco {
 
 extern void printUsageAndExit();
 extern void parseOptions(int& argc, char** argv);
+extern void displaySelectedOptions();
 
 
 }   // namespace Cosoco

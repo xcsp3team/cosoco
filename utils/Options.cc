@@ -135,3 +135,36 @@ void Cosoco::printUsageAndExit() {
     std::cout << "\n";
     exit(1);
 }
+
+void Cosoco::displaySelectedOptions() {
+    std::set<std::string> categories;
+
+    for(auto const& it : options::doubleOptions) categories.insert(it.second.category);
+    for(auto const& it : options::stringOptions) categories.insert(it.second.category);
+    for(auto const& it : options::intOptions) categories.insert(it.second.category);
+    for(auto const& it : options::boolOptions) categories.insert(it.second.category);
+
+    for(auto const& cat : categories) {
+        std::cout << "\n\n" << cat << " options\n";
+        for(auto const& it : options::doubleOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " =  "
+                          << it.second.value << "\n";
+
+        for(auto const& it : options::intOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " = "
+                          << it.second.value << "\n";
+
+        for(auto const& it : options::stringOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " = "
+                          << it.second.value << "\n";
+
+        for(auto const& it : options::boolOptions)
+            if(it.second.category == cat)
+                std::cout << std::left << std::setw(15) << it.first << std::left << std::setw(1) << std::setfill(' ') << " = "
+                          << it.second.value << "\n";
+    }
+    std::cout << "\n";
+}
