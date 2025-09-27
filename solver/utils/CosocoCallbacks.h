@@ -67,14 +67,15 @@ class ManageIntension {
     CosocoCallbacks          &callbacks;
     map<string, Constraint *> cachedExtensions;
     explicit ManageIntension(CosocoCallbacks &callbacks);
-    void createPrimitives();
-    void intension(std::string id, Tree *tree);
-    bool recognizePrimitives(std::string id, Tree *tree);
-    bool toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
-    bool existInCacheExtension(string &expr, vec<Variable *> &scope);
-    bool decompose(std::string id, Tree *tree);
-    bool decompose(Node *node);
-    void extractVariables(Node *node, vector<string> &listOfVariables);
+    void  createPrimitives();
+    void  intension(std::string id, Tree *tree);
+    bool  recognizePrimitives(std::string id, Tree *tree);
+    bool  toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
+    bool  existInCacheExtension(string &expr, vec<Variable *> &scope);
+    bool  decompose(std::string id, Tree *tree);
+    bool  decompose(Node *node);
+    void  extractVariables(Node *node, vector<string> &listOfVariables);
+    Node *simplify(Node *node);
 };
 
 class Disj {

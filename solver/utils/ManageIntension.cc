@@ -27,9 +27,55 @@ void getVariables(Node *n, std::set<string> &variables) {
     for(Node *np : n->parameters) getVariables(np, variables);
 }
 
+Node *ManageIntension::simplify(Node *node) {
+    if(node->type == OVAR || node->type == ODECIMAL)
+        return node;
+    auto *nary = dynamic_cast<NodeOperator *>(node);
+
+    if(node->type == OMUL) {
+        int i = 0;
+        while(i < nary->parameters.size()) {
+            auto *tmp = dynamic_cast<NodeConstant *>(nary->parameters[i]);
+            if(tmp != nullptr && tmp->val == 0)
+                return new NodeConstant(0);
+            if(tmp != nullptr && tmp->val == 1) {
+                nary->parameters[i] = nary->parameters.back();
+                nary->parameters.pop_back();
+            } else
+                i++;
+        }
+        if(nary->parameters.size() == 1)
+            return nary->parameters[0];
+    }
+    for(int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
+    return node;
+}
+
+
 void ManageIntension::intension(std::string id, Tree *tree) {
     bool            done = false;
     vec<Variable *> scope;
+
+    //----------------------------------------------------------------------------
+    // Simplify constraint
+    auto       *nary       = dynamic_cast<NodeOperator *>(tree->root);
+    std::string expression = tree->root->toString();
+    if(nary != nullptr) {
+        for(int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
+    }
+    if(expression != tree->root->toString()) {
+        // std::cout << "c intension : " << bf << " " << tree->root->toString() << "\n";
+        //    exit(1);
+        std::string newExpression = tree->root->toString();
+        int         i             = 0;
+        while(i < tree->listOfVariables.size()) {
+            if(newExpression.find(tree->listOfVariables[i]) == std::string::npos) {
+                tree->listOfVariables[i] = tree->listOfVariables.back();
+                tree->listOfVariables.pop_back();
+            } else
+                i++;
+        }
+    }
     while(done == false) {
         scope.clear();
         if(callbacks.startToParseObjective == false)
@@ -53,6 +99,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
             return;
         }
+
 
         //----------------------------------------------------------------------------
         // Primitive recognition
