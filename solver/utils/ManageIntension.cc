@@ -33,7 +33,7 @@ Node *ManageIntension::simplify(Node *node) {
     auto *nary = dynamic_cast<NodeOperator *>(node);
 
     if(node->type == OMUL) {
-        int i = 0;
+        unsigned int i = 0;
         while(i < nary->parameters.size()) {
             auto *tmp = dynamic_cast<NodeConstant *>(nary->parameters[i]);
             if(tmp != nullptr && tmp->val == 0)
@@ -47,7 +47,7 @@ Node *ManageIntension::simplify(Node *node) {
         if(nary->parameters.size() == 1)
             return nary->parameters[0];
     }
-    for(int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
+    for(unsigned int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
     return node;
 }
 
@@ -61,13 +61,13 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     auto       *nary       = dynamic_cast<NodeOperator *>(tree->root);
     std::string expression = tree->root->toString();
     if(nary != nullptr) {
-        for(int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
+        for(unsigned int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
     }
     if(expression != tree->root->toString()) {
-        // std::cout << "c intension : " << bf << " " << tree->root->toString() << "\n";
         //    exit(1);
         std::string newExpression = tree->root->toString();
-        int         i             = 0;
+        std::cout << "c intension : " << expression << " " << tree->root->toString() << "\n";
+        unsigned int i = 0;
         while(i < tree->listOfVariables.size()) {
             if(newExpression.find(tree->listOfVariables[i]) == std::string::npos) {
                 tree->listOfVariables[i] = tree->listOfVariables.back();
@@ -155,9 +155,12 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         forceExtension = tree->arity() == 2;
 
         if(toExtension(id, tree, scope, forceExtension)) {
-            // std::cout << "extension : " << tree->root->toString();
-            // for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
-            // std::cout << "\n";
+            /*std::cout << "TO extension : " << tree->root->toString();
+            Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
+            std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
+            for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
+            std::cout << "\n\n\n";
+      */
             return;
         }
 

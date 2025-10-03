@@ -33,7 +33,8 @@ void Profiling::display() {
     std::cout << "c                       ";
     std::cout << "  Time";
     std::cout << "                Calls";
-    std::cout << "               Useless\n";
+    std::cout << "               perCalls";
+    std::cout << "            Useless\n";
 
 
     for(auto &pair : constraintsData) {
@@ -41,6 +42,8 @@ void Profiling::display() {
         std::cout << std::left << std::setw(22) << std::setfill(' ') << pair.first << ": ";
         std::cout << std::left << std::setw(20) << std::setfill(' ') << pair.second.totalTime;
         std::cout << std::left << std::setw(20) << std::setfill(' ') << pair.second.nbCalls;
+        std::cout << std::left << std::setw(20) << std::setfill(' ')
+                  << (static_cast<double>(pair.second.totalTime) / static_cast<double>(pair.second.nbCalls));
         std::cout << std::left << std::setw(20) << std::setfill(' ')
                   << (1.0 * pair.second.uselessCalls / pair.second.nbCalls) * 100;
         std::cout << "\n";

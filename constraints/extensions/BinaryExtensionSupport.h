@@ -10,10 +10,13 @@ class BinaryExtensionSupport : public Extension {
     int           nbtuples;
     vec<vec<int>> supportsForX;
     vec<vec<int>> supportsForY;
+    vec<int>      limitX, limitY;
+    vec<int>      resx;   // residue for x
+    vec<int>      resy;   // residue for y
+    uint64_t      lastConflict;
 
-    vec<int> resx;   // residue for x
-    vec<int> resy;   // residue for y
-
+    bool filterOn(Variable *x, Variable *y, vec<vec<int>> &supportForXX, vec<vec<int>> &supportForYY, vec<int> &resXX,
+                  vec<int> &resYY);
 
    public:
     // Constructors and initialisation

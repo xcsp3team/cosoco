@@ -22,7 +22,43 @@ bool BinaryExtensionSupport::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
+bool BinaryExtensionSupport::filterOn(Variable *xx, Variable *yy, vec<vec<int>> &supportsForXX, vec<vec<int>> &supportsForYY,
+                                      vec<int> &resXX, vec<int> &resYY) {
+    if(xx->size() == 1) {
+        vec<bool> appears;
+        appears.growTo(yy->domain.maxSize(), false);
+        for(int i : supportsForXX[xx->domain[0]]) appears[i] = true;
 
+        for(int idvy : yy->domain) {
+            if(appears[idvy] == false && solver->delIdv(yy, idvy) == false)
+                return false;
+        }
+        return solver->entail(this);
+    }
+
+    for(int idvx : xx->domain) {
+        if(resXX[idvx] != -1 && yy->containsIdv(resXX[idvx]) == true)
+            continue;
+        int pos = 0;
+        for(int idvy : supportsForXX[idvx]) {
+            if(yy->containsIdv(idvy)) {
+                resXX[idvx] = idvy;
+                resYY[idvy] = idvx;
+                break;
+            }
+            pos++;
+        }
+        if(pos == supportsForXX[idvx].size() && solver->delIdv(xx, idvx) == false)
+            return false;
+        if(pos == supportsForXX[idvx].size() || supportsForXX[idvx].size() == 0 || pos == 0)
+            continue;
+        assert(supportsForXX[idvx].size() > 0);
+        int tmp                  = supportsForXX[idvx][0];
+        supportsForXX[idvx][0]   = supportsForXX[idvx][pos];
+        supportsForXX[idvx][pos] = tmp;
+    }
+    return true;
+}
 
 bool BinaryExtensionSupport::filter(Variable *dummy) {
     if(x->size() == 1 && y->size() == 1) {
@@ -32,50 +68,9 @@ bool BinaryExtensionSupport::filter(Variable *dummy) {
         return true;
     }
 
-    for(int idvx : x->domain) {
-        if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
-            continue;
-        int pos = 0;
-        for(int idvy : supportsForX[idvx]) {
-            if(y->containsIdv(idvy)) {
-                resx[idvx] = idvy;
-                resy[idvy] = idvx;
-                break;
-            }
-            pos++;
-        }
-        if(pos == supportsForX[idvx].size() && solver->delIdv(x, idvx) == false)
-            return false;
-        if(pos == supportsForX[idvx].size() || supportsForX[idvx].size() == 0 || pos == 0)
-            continue;
-        assert(supportsForX[idvx].size() > 0);
-        int tmp                 = supportsForX[idvx][0];
-        supportsForX[idvx][0]   = supportsForX[idvx][pos];
-        supportsForX[idvx][pos] = tmp;
-    }
-
-    for(int idvy : y->domain) {
-        if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
-            continue;
-        int pos = 0;
-        for(int idvx : supportsForY[idvy]) {
-            if(x->containsIdv(idvx)) {
-                resy[idvy] = idvx;
-                break;
-            }
-            pos++;
-        }
-        if(pos == supportsForY[idvy].size() && solver->delIdv(y, idvy) == false)
-            return false;
-        if(pos == supportsForY[idvy].size() || supportsForY[idvy].size() == 0 || pos == 0)
-            continue;
-        assert(supportsForY[idvy].size() > 0);
-
-        int tmp                 = supportsForY[idvy][0];
-        supportsForY[idvy][0]   = supportsForY[idvy][pos];
-        supportsForY[idvy][pos] = tmp;
-    }
-    return true;
+    if(filterOn(x, y, supportsForX, supportsForY, resx, resy) == false)
+        return false;
+    return filterOn(y, x, supportsForY, supportsForX, resy, resx);
 }
 
 
