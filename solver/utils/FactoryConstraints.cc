@@ -28,6 +28,7 @@
 #include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
+#include "SumBoolean.h"
 #include "XCSP3Constants.h"
 #include "constraints/globals/connection/element/ElementMatrixConstant.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
@@ -479,6 +480,17 @@ void FactoryConstraints::createConstraintDiff(Problem *p, std::string name, Vari
     coeffs.push(1);
     p->addConstraint(new SumEQ(*p, name, vars, coeffs, 0));
 }
+
+
+void FactoryConstraints::createConstraintSumBooleanEQ(Problem *p, std::string name, vec<Variable *> &vars, long value) {
+    p->addConstraint(new SumBooleanEQ(*p, name, vars, value));
+}
+
+
+void FactoryConstraints::createConstraintSumBooleanLE(Problem *p, std::string name, vec<Variable *> &vars, long value) {
+    p->addConstraint(new SumBooleanLE(*p, name, vars, value));
+}
+
 
 void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {   // x+y=z
     vec<Variable *> vars;

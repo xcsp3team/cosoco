@@ -116,6 +116,10 @@ void createConstraintNotAllEqual(Problem *p, std::string name, vec<Variable *> &
 
 void createConstraintDiff(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
 
+void createConstraintSumBooleanEQ(Problem *p, std::string name, vec<Variable *> &vars, long value);
+
+void createConstraintSumBooleanLE(Problem *p, std::string name, vec<Variable *> &vars, long value);
+
 void createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
 
 

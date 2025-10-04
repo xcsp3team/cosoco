@@ -747,6 +747,22 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
                 sum += (dynamic_cast<NodeConstant *>(n))->val;
             else
                 return false;
+
+        bool sumBoolean = true;
+        for(Variable *x : vars)
+            if(x->domain.maxSize() != 2)
+                sumBoolean = false;
+        if(sumBoolean && canonized->root->type == OEQ && canonized->root->parameters[1]->type == ODECIMAL) {
+            int k = (dynamic_cast<NodeConstant *>(canonized->root->parameters[1]))->val;
+            FactoryConstraints::createConstraintSumBooleanEQ(callbacks.problem, id, vars, -sum + k);
+            return true;
+        }
+
+        if(sumBoolean && canonized->root->type == OLE && canonized->root->parameters[1]->type == ODECIMAL) {
+            int k = (dynamic_cast<NodeConstant *>(canonized->root->parameters[1]))->val;
+            FactoryConstraints::createConstraintSumBooleanLE(callbacks.problem, id, vars, -sum + k);
+            return true;
+        }
         coefs.growTo(vars.size(), 1);
         int k = 0;
         if(canonized->root->parameters[1]->type == OVAR) {

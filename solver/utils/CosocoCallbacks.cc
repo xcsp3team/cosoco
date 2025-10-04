@@ -437,6 +437,28 @@ void CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariabl
 //--------------------------------------------------------------------------------------
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) {
+    bool sumboolean = true;
+    if(xc.operandType == INTEGER && xc.op == EQ) {
+        toMyVariables(list);
+        for(Variable *x : vars)
+            if(x->domain.maxSize() > 2) {
+                sumboolean = false;
+                break;
+            }
+
+        if(sumboolean) {
+            if(xc.op == EQ) {
+                FactoryConstraints::createConstraintSumBooleanEQ(problem, id, vars, xc.val);
+                return;
+            }
+            if(xc.op == LE) {
+                FactoryConstraints::createConstraintSumBooleanLE(problem, id, vars, xc.val);
+                return;
+            }
+        }
+    }
+
+
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildConstraintSum(id, list, coeffs, xc);
