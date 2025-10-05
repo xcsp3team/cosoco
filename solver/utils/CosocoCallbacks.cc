@@ -455,6 +455,10 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
                 FactoryConstraints::createConstraintSumBooleanLE(problem, id, vars, xc.val);
                 return;
             }
+            if(xc.op == GE) {
+                FactoryConstraints::createConstraintSumBooleanGE(problem, id, vars, xc.val);
+                return;
+            }
         }
     }
 
@@ -1601,6 +1605,25 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) {
+    toMyVariables(list);
+    bool sumboolean = true;
+    if(type == SUM_O) {
+        toMyVariables(list);
+        for(Variable *x : vars)
+            if(x->domain.maxSize() > 2) {
+                sumboolean = false;
+                break;
+            }
+        if(sumboolean) {
+            auto *po = static_cast<OptimizationProblem *>(problem);
+            po->type = OptimisationType::Maximize;
+            FactoryConstraints::createConstraintSumBooleanGE(problem, "objective", vars, INT_MIN);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+            po->addObjectiveLB(oc, true);
+            return;
+        }
+    }
+
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildObjectiveMaximize(type, list, coeffs);
@@ -1659,7 +1682,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
-    auto *po = static_cast<OptimizationProblem *>(problem);
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
 
     switch(type) {
@@ -1692,6 +1715,27 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Varia
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) {
     toMyVariables(list, vars);
+    bool sumboolean = true;
+    if(type == SUM_O) {
+        toMyVariables(list);
+        for(Variable *x : vars)
+            if(x->domain.maxSize() > 2) {
+                sumboolean = false;
+                break;
+            }
+        for(int l : origcoeffs)
+            if(l != 1)
+                sumboolean = false;
+        if(sumboolean) {
+            auto *po = dynamic_cast<OptimizationProblem *>(problem);
+            po->type = Maximize;
+            FactoryConstraints::createConstraintSumBooleanGE(problem, "objective", vars, INT_MIN);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+            po->addObjectiveLB(oc, true);
+            return;
+        }
+    }
+
     buildObjectiveMaximize(type, vars, origcoeffs);
 }
 
@@ -1758,7 +1802,6 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tr
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
     vector<string> auxiliaryVariables;
-
     startToParseObjective = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
     startToParseObjective = false;

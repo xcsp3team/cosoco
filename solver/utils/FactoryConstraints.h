@@ -120,6 +120,8 @@ void createConstraintSumBooleanEQ(Problem *p, std::string name, vec<Variable *> 
 
 void createConstraintSumBooleanLE(Problem *p, std::string name, vec<Variable *> &vars, long value);
 
+void createConstraintSumBooleanGE(Problem *p, std::string name, vec<Variable *> &vars, long value);
+
 void createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
 
 

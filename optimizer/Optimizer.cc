@@ -26,9 +26,9 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
     bestSolution                 = solution;
     solver->optimizationSolution = solution;
     solver->setVerbosity(options::intOptions["verb"].value);
-    optimtype   = (static_cast<OptimizationProblem &>(solver->problem)).type;
-    objectiveLB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
-    objectiveUB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
+    optimtype   = (dynamic_cast<OptimizationProblem &>(solver->problem)).type;
+    objectiveLB = (dynamic_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
+    objectiveUB = (dynamic_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
     assert(objectiveLB != nullptr || objectiveUB != nullptr);
     lower = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
     upper = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();

@@ -492,6 +492,10 @@ void FactoryConstraints::createConstraintSumBooleanLE(Problem *p, std::string na
 }
 
 
+void FactoryConstraints::createConstraintSumBooleanGE(Problem *p, std::string name, vec<Variable *> &vars, long value) {
+    p->addConstraint(new SumBooleanGE(*p, name, vars, value));
+}
+
 void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {   // x+y=z
     vec<Variable *> vars;
     vec<int>        coeffs;

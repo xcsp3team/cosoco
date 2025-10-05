@@ -123,7 +123,7 @@ STR0::STR0(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples
 
 STR0::STR0(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, true, tuplesFromOtherConstraint) {
-    type = "Extention - STR0";
+    type = "Extension - STR0";
 }
 
 
