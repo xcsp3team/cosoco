@@ -21,7 +21,7 @@ class BinaryExtension : public Extension {
 
     // filtering
     bool filter(Variable *x) override;
-
+    bool filterOn(Variable *x);
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 

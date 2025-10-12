@@ -18,12 +18,12 @@ bool EQ::filter(Variable *xx) {
     if(x->size() == 1) {
         if(solver->assignToVal(y, x->value() - k) == false)
             return false;
-        return true;
+        return solver->entail(this);
     }
     if(y->size() == 1) {
         if(solver->assignToVal(x, y->value() + k) == false)
             return false;
-        return true;
+        return solver->entail(this);
     }
 
 
@@ -41,8 +41,6 @@ bool EQ::filter(Variable *xx) {
         if(y->containsValue(v) == false && solver->delIdv(x, idv) == false)
             return false;
     }
-
-
     return true;
 }
 

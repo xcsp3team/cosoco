@@ -64,10 +64,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         for(unsigned int i = 0; i < nary->parameters.size(); i++) nary->parameters[i] = simplify(nary->parameters[i]);
     }
     if(expression != tree->root->toString()) {
-        //    exit(1);
-        std::string newExpression = tree->root->toString();
-        std::cout << "c intension : " << expression << " " << tree->root->toString() << "\n";
-        unsigned int i = 0;
+        std::string  newExpression = tree->root->toString();
+        unsigned int i             = 0;
         while(i < tree->listOfVariables.size()) {
             if(newExpression.find(tree->listOfVariables[i]) == std::string::npos) {
                 tree->listOfVariables[i] = tree->listOfVariables.back();

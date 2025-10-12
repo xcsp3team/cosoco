@@ -361,6 +361,23 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
 
 
 void FactoryConstraints::createConstraintAllDiffExcept(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &except) {
+    /*std::set<int> set;
+    for(Variable *x : vars) {
+        for(int idv : x->domain) set.insert(x->domain.toVal(idv));
+    }
+    for(int v : except) set.erase(v);
+    vec<int> values;
+    for(int v : set) values.push(v);
+    vec<Occurs> occurs;
+    for(int v : values) {
+        occurs.push();
+        occurs.last().min  = 0;
+        occurs.last().max  = 1;
+        occurs.last().type = OCCURS_INTERVAL;
+    }
+    createConstraintCardinality(p, name, vars, values, occurs);
+    return;
+*/
     for(int i = 0; i < vars.size(); i++) {
         Variable *x1 = vars[i];
         for(int j = 0; j < i; j++) {
