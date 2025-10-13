@@ -595,8 +595,16 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         while(queue4Nogoods.isEmpty() == false) {
             int idx = queue4Nogoods.pop();
 
-            if(nogoodsFromRestarts && noGoodsEngine->propagate(problem.variables[idx]) == false)
-                return NoGoodsEngine::fake;
+            if(nogoodsFromRestarts) {
+                if(doProfiling)
+                    profiling->beforeConstraintCall(nullptr);
+                bool status = noGoodsEngine->propagate(problem.variables[idx]);
+                if(doProfiling)
+                    profiling->afterConstraintCall(nullptr, 0);
+
+                if(status == false)
+                    return NoGoodsEngine::fake;
+            }
         }
 
         // Filter postponed constraints

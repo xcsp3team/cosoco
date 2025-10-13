@@ -25,7 +25,6 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
                                               // them in the solver propagation queue
     vec<Lit>     currentBranch;               // The current branch of the search tree
     unsigned int OFFSET;                      //
-    double       totalTime;                   // Total time spent in nogood propagator
     int          maxArity;                    // Maximum arity of nogoods stored
 
     Lit         *nogoods;          // Nogoods are stored in a 1-dim array

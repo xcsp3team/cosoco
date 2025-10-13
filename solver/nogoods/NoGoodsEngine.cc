@@ -20,8 +20,7 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0)
     if(n1 + n2 > 8 * sizeof(Lit) - 1)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
-    OFFSET    = static_cast<unsigned int>(pow(2, n2 + 1));   // +1 because 0 excluded ???
-    totalTime = 0;
+    OFFSET = static_cast<unsigned int>(pow(2, n2 + 1));   // +1 because 0 excluded ???
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
@@ -142,9 +141,8 @@ bool NoGoodsEngine::propagate(Variable *x) {
     Lit ng = getNegativeDecisionFor(x, x->valueId());
     if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
         return true;
-    double currentTime = realTime();
-    int    position    = watcherPosition[ng];
-    int    i = 0, j = 0;
+    int position = watcherPosition[ng];
+    int i = 0, j = 0;
     for(; i < watchers[position].size();) {
         unsigned int ngposition    = watchers[position][i++];
         Lit         *nogood        = &(nogoods[ngposition]);
@@ -177,13 +175,11 @@ bool NoGoodsEngine::propagate(Variable *x) {
                 watchers[position][j++] = watchers[position][i++];
 
             watchers[position].shrink(i - j);
-            totalTime += realTime() - currentTime;
             return false;
         }
     nextNoGood:;
     }
     watchers[position].shrink(i - j);
-    totalTime += realTime() - currentTime;
     return true;
 }
 
@@ -249,7 +245,6 @@ void NoGoodsEngine::printStats() {
            statistics[maxsize], statistics[nbnogoods] == 0 ? 0 : statistics[sumsize] / statistics[nbnogoods]);
     printf("c ng propagations       : %lu\n", statistics[props]);
     printf("c ng conflicts          : %lu\n", statistics[cfl]);
-    printf("c time in nogoods       : %5.3f s\n", totalTime);
 }
 
 void NoGoodsEngine::checkWatchers() {

@@ -13,6 +13,7 @@ void Profiling::initialize() {
     for(Constraint *c : solver->problem.constraints)
         if(constraintsData.find(c->type) == constraintsData.end())
             constraintsData.insert(make_pair(c->type, ConstraintData()));
+    constraintsData.insert(std::make_pair("nogoods", ConstraintData()));
 }
 
 bool Profiling::beforeConstraintCall(Constraint *c) {
@@ -21,9 +22,10 @@ bool Profiling::beforeConstraintCall(Constraint *c) {
 }
 
 bool Profiling::afterConstraintCall(Constraint *c, int nbDeletedVariables) {
-    constraintsData[c->type].totalTime += (realTime() - currentTime);
-    constraintsData[c->type].nbCalls++;
-    constraintsData[c->type].uselessCalls += (nbDeletedVariables > 0) ? 0 : 1;
+    std::string ct = c == nullptr ? "nogoods" : c->type;
+    constraintsData[ct].totalTime += (realTime() - currentTime);
+    constraintsData[ct].nbCalls++;
+    constraintsData[ct].uselessCalls += (nbDeletedVariables > 0) ? 0 : 1;
     return true;
 }
 
