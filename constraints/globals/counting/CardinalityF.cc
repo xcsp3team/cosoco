@@ -9,6 +9,7 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
+#define OFFSET(i) ((i) - offset)
 
 bool CardinalityF::isSatisfiedBy(vec<int> &tuple) {
     /*clear();
@@ -39,18 +40,14 @@ void CardinalityF::init() {
     for(int i = 0; i < vars.size(); i++) {
         Variable *x = vars[i];
         if(x->size() == 1) {
-            auto it = values2indexes.find(x->value());
-            if(it != values2indexes.end()) {
-                int j = it->second;
+            int j = values2indexes[OFFSET(x->value())];
+            if(j != -1)
                 mandatories[j].add(i);
-            }
         } else {
             for(int idv : x->domain) {
-                auto it = values2indexes.find(x->domain.toVal(idv));
-                if(it != values2indexes.end()) {
-                    int j = it->second;
+                int j = values2indexes[OFFSET(x->domain.toVal(idv))];
+                if(j != -1)
                     possibles[j].add(i);
-                }
             }
         }
     }
@@ -133,8 +130,6 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
     _vars.copyTo(vars);
     o.copyTo(occurs);
     v.copyTo(values);
-    int idx = 0;
-    for(int v1 : values) values2indexes[v1] = idx++;
     valueToCompute.setCapacity(values.size(), false);
     possibles.growTo(values.size());
     mandatories.growTo(values.size());
@@ -142,4 +137,17 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
         mandatories[i].setCapacity(vars.size(), false);
         possibles[i].setCapacity(vars.size(), false);
     }
+    int max = vars[0]->domain.maxSize();
+    int min = vars[0]->domain.maxSize();
+    for(Variable *x : vars) {
+        if(x->maximum() > max)
+            max = x->maximum();
+        if(x->minimum() < min)
+            min = x->minimum();
+    }
+    std::cout << min << " " << max << std::endl;
+    values2indexes.growTo(max - min + 1, -1);
+    offset  = min;
+    int idx = 0;
+    for(int v1 : values) values2indexes[OFFSET(v1)] = idx++;
 }

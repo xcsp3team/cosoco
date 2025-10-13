@@ -8,13 +8,14 @@ namespace Cosoco {
 
 class CardinalityF : public GlobalConstraint {
    protected:
-    std::map<int, int> values2indexes;
-    vec<Variable *>    vars;
-    vec<Variable *>    occurs;
-    vec<int>           values;
-    vec<SparseSet>     possibles;
-    vec<SparseSet>     mandatories;
-    SparseSet          valueToCompute;
+    int             offset;
+    vec<int>        values2indexes;
+    vec<Variable *> vars;
+    vec<Variable *> occurs;
+    vec<int>        values;
+    vec<SparseSet>  possibles;
+    vec<SparseSet>  mandatories;
+    SparseSet       valueToCompute;
 
     int doFiltering();   // 0 finish, 1 perform again, -1 fail
 
