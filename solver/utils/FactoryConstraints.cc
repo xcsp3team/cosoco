@@ -13,6 +13,7 @@
 #include "Among.h"
 #include "BinPacking.h"
 #include "BinPackingLoad.h"
+#include "BinaryExtensionSupportConflict.h"
 #include "CardinalityF.h"
 #include "CardinalityWeak.h"
 #include "CompactTable.h"
@@ -91,7 +92,7 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
                                                        bool isSupport, bool hasStar) {
     Extension *ctr = nullptr;
 
-    if(false && tuples.size() == 1 && isSupport == false) {
+    if(tuples.size() == 1 && isSupport == false) {
         p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
         return nullptr;
     }
@@ -100,8 +101,12 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
 
         if(isSupport && max_size > options::intConstants["large_bin_extension"])
             ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
-        else
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+        else {
+            if(isSupport == false)
+                ctr = new BinaryExtensionConflict(*p, name, vars[0], vars[1]);
+            else
+                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+        }
 
     } else {
         if(isSupport) {
@@ -139,9 +144,15 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
         int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
         if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
             ctr = new BinaryExtensionSupport(*p, name, sameConstraint->isSupport, vars[0], vars[1],
-                                             (BinaryExtensionSupport *)sameConstraint);
-        else
-            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+                                             dynamic_cast<BinaryExtensionSupport *>(sameConstraint));
+        else {
+            if(sameConstraint->isSupport == false)
+                ctr = new BinaryExtensionConflict(*p, name, vars[0], vars[1],
+                                                  dynamic_cast<BinaryExtensionConflict *>(sameConstraint));
+            else
+                ctr =
+                    new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+        }
     }
     if(vars.size() > 2) {
         if(sameConstraint->isSupport) {

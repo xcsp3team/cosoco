@@ -1,0 +1,88 @@
+#include "BinaryExtensionSupportConflict.h"
+
+#include <utility>
+
+#include "Extension.h"
+#include "solver/Solver.h"
+
+using namespace Cosoco;
+
+
+//----------------------------------------------------------
+// check validity and correct definition
+//----------------------------------------------------------
+
+
+bool BinaryExtensionConflict::isSatisfiedBy(vec<int> &tuple) {
+    int idvx = x->domain.toIdv(tuple[0]);
+    int idvy = y->domain.toIdv(tuple[1]);
+    return supportsForX[idvx].contains(idvy) == false;
+}
+
+//----------------------------------------------------------
+// Filtering
+//----------------------------------------------------------
+
+bool BinaryExtensionConflict::filter(Variable *dummy) {
+    if(x->size() == 1) {
+        for(int idvy : supportsForX[x->domain[0]]) {
+            if(solver->delIdv(y, idvy) == false)
+                return false;
+        }
+        return solver->entail(this);
+    }
+    if(x->size() == 1) {
+        for(int idvx : supportsForY[y->domain[0]]) {
+            if(solver->delIdv(x, idvx) == false)
+                return false;
+        }
+        return solver->entail(this);
+    }
+}
+
+
+//----------------------------------------------------------
+// Construction and initialisation
+//----------------------------------------------------------
+
+BinaryExtensionConflict::BinaryExtensionConflict(Problem &p, std::string n, Variable *xx, Variable *yy)
+    : Extension(p, n, createScopeVec(xx, yy), 0, false), x(xx), y(yy), nbtuples(0) {
+    type = "Extension - Binary Conflict";
+    supportsForX.growTo(x->domain.maxSize());
+    supportsForY.growTo(y->domain.maxSize());
+}
+
+
+BinaryExtensionConflict::BinaryExtensionConflict(Problem &p, std::string n, Variable *xx, Variable *yy,
+                                                 BinaryExtensionConflict *hasSameTuples)
+    : Extension(p, n, createScopeVec(xx, yy), 0, false), x(xx), y(yy) {
+    nbtuples = hasSameTuples->nbtuples;
+    supportsForX.growTo(xx->domain.maxSize());
+    supportsForY.growTo(yy->domain.maxSize());
+    for(int i = 0; i < hasSameTuples->supportsForX.size(); i++) hasSameTuples->supportsForX[i].copyTo(supportsForX[i]);
+    for(int i = 0; i < hasSameTuples->supportsForY.size(); i++) hasSameTuples->supportsForY[i].copyTo(supportsForY[i]);
+    type = "Extension - Binary Conflict";
+}
+
+
+void BinaryExtensionConflict::addTuple(vec<int> &tupleIdv) {
+    // Check if tuples are inside domains
+    assert(tupleIdv[0] != STAR && tupleIdv[1] != STAR);
+    if((tupleIdv[0] > x->domain.maxSize()) || tupleIdv[0] < 0)
+        return;
+    if((tupleIdv[1] > y->domain.maxSize()) || tupleIdv[1] < 0)
+        return;
+    addTuple(tupleIdv[0], tupleIdv[1]);
+}
+
+
+void BinaryExtensionConflict::addTuple(int idv1, int idv2) {
+    assert(idv1 >= 0 && idv1 < x->domain.maxSize());
+    assert(idv2 >= 0 && idv2 < y->domain.maxSize());
+    supportsForX[idv1].push(idv2);
+    supportsForY[idv2].push(idv1);
+    nbtuples++;
+}
+
+
+size_t BinaryExtensionConflict::nbTuples() { return nbtuples; }
