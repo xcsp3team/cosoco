@@ -22,9 +22,10 @@ Variable *HeuristicVarFRBA::select() {
     double    best = data[x->idx](nFailedAssignments) / x->size();
 
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
-        Variable *y = solver.decisionVariables[i];
-        if(data[y->idx](nFailedAssignments) / y->size() > best) {
-            best = data[y->idx](nFailedAssignments) / y->size();
+        Variable *y   = solver.decisionVariables[i];
+        double    tmp = data[y->idx](nFailedAssignments) / y->size();
+        if(tmp > best) {
+            best = tmp;
             x    = y;
         }
     }

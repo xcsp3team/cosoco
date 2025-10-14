@@ -1,5 +1,7 @@
 #include "CosocoCallbacks.h"
 
+#include "DomainSmallValues.h"
+
 using namespace Cosoco;
 
 void CosocoCallbacks::beginInstance(InstanceType type) {
@@ -37,8 +39,35 @@ void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
-    Variable *x =
-        problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
+    bool isRange = true;
+    for(unsigned int i = 1; i < values.size(); i++)
+        if(values[i] != values[i - 1] + 1) {
+            isRange = false;
+            break;
+        }
+    if(isRange) {
+        buildVariableInteger(id, values[0], values[values.size() - 1]);
+        return;
+    }
+
+    /*int       min = values[0];
+    int       max = values[values.size() - 1];
+    Variable *x   = nullptr;
+    if(false && max - min <= 10000) {
+        std::cout << "ici \n";
+        buildVariableInteger(id, min, max);
+        Variable *x = problem->variables.last();
+        FactoryConstraints::createConstraintUnary(problem, id, x, vector2vec(values), true);
+        x->domain.fakeSize = values.size();
+        return;
+        x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
+
+    }*/
+    Variable *x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
+                                          inArray ? problem->variablesArray.size() - 1 : -1);
+    // Variable *x =
+    //     problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";
@@ -441,7 +470,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
     if(xc.operandType == INTEGER && xc.op == EQ) {
         toMyVariables(list);
         for(Variable *x : vars)
-            if(x->domain.maxSize() > 2) {
+            if(x->minimum() != 0 || x->maximum() != 1) {
                 sumboolean = false;
                 break;
             }

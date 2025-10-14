@@ -198,6 +198,12 @@ int Solver::solve(vec<RootPropagation> &assumps) {
     status            = RUNNING;
     nbSolutions       = 0;
     firstPropagations = true;
+
+    for(Constraint *c : problem.constraints)
+        if(c->scope.size() == 1 && c->filterFrom(c->scope[0]) == false)
+            return R_UNSAT;
+    queue.clear();
+
     Constraint *pc    = propagateComplete();
     firstPropagations = false;
     if(pc != nullptr) {
