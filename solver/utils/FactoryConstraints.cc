@@ -24,6 +24,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
 #include "NValuesGEK.h"
 #include "Options.h"
@@ -31,6 +32,7 @@
 #include "Reification.h"
 #include "SumBoolean.h"
 #include "XCSP3Constants.h"
+#include "Xor.h"
 #include "constraints/globals/connection/element/ElementMatrixConstant.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
 #include "constraints/globals/counting/NValuesEQVar.h"
@@ -244,6 +246,16 @@ void FactoryConstraints::createReification(Problem *p, std::string name, Variabl
     }
     assert(false);
 }
+
+void FactoryConstraints::createConstraintXor(Problem *p, std::string name, vec<Variable *> &vars) {
+    p->addConstraint(new Xor(*p, name, vars));
+}
+
+void FactoryConstraints::createConstraintDoubleDiff(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
+                                                    Variable *y2) {
+    p->addConstraint(new DoubleDiff(*p, name, x1, x2, y1, y2));
+}
+
 
 void FactoryConstraints::createConstraintMult(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
     if(1 || x == y || x == z || y == z) {

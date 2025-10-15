@@ -153,12 +153,12 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         forceExtension = tree->arity() == 2;
 
         if(toExtension(id, tree, scope, forceExtension)) {
-            /*std::cout << "TO extension : " << tree->root->toString();
+            std::cout << "TO extension : " << tree->root->toString() << "   :   ";
             Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
-            std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
+            // std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
             for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
             std::cout << "\n\n\n";
-      */
+
             return;
         }
 
@@ -645,6 +645,18 @@ class PQuater1 : public Primitive {
     }
 };
 
+
+class PQuater2 : public Primitive {
+   public:
+    explicit PQuater2(CosocoCallbacks &m) : Primitive(m, "imp(eq(x,y),ne(z,k))", 4) { }
+    bool post() override {
+        vec<Variable *> vars;
+        for(const auto &v : variables) vars.push(callbacks.problem->mapping[v]);
+        FactoryConstraints::createConstraintDoubleDiff(callbacks.problem, id, vars[0], vars[1], vars[2], vars[3]);
+        return true;
+    }
+};
+
 class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
                                            // do the job (see PNary1)
    public:
@@ -683,7 +695,7 @@ class PNary2 : public FakePrimitive {   // or(x1,x2,x3..)
    public:
     explicit PNary2(CosocoCallbacks &c) : FakePrimitive(c) { }
     bool post() override {
-        if(canonized->root->type == OOR) {
+        if(canonized->root->type == OOR || canonized->root->type == OXOR) {
             for(Node *n : canonized->root->parameters)
                 if(n->type != OVAR)
                     return false;
@@ -693,7 +705,10 @@ class PNary2 : public FakePrimitive {   // or(x1,x2,x3..)
                 auto *nv = dynamic_cast<NodeVariable *>(n);
                 cl.push(callbacks.problem->mapping[nv->var]);
             }
-            FactoryConstraints::createConstraintAtLeast(callbacks.problem, id, cl, 1, 1);
+            if(canonized->root->type == OOR)
+                FactoryConstraints::createConstraintAtLeast(callbacks.problem, id, cl, 1, 1);
+            if(canonized->root->type == OXOR)
+                FactoryConstraints::createConstraintXor(callbacks.problem, id, cl);
             return true;
         }
         return false;
@@ -856,9 +871,10 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));
+    patterns.push(new PQuater2(callbacks));
     patterns.push(new PNary1(callbacks));
     patterns.push(new PNary2(callbacks));
     patterns.push(new PNary3(callbacks));
     patterns.push(new PNary4(callbacks));
-    // patterns.push(new PNary5(callbacks));
+    patterns.push(new PNary5(callbacks));
 }
