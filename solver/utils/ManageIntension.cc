@@ -657,6 +657,17 @@ class PQuater2 : public Primitive {
     }
 };
 
+class PQuater3 : public Primitive {
+   public:
+    explicit PQuater3(CosocoCallbacks &m) : Primitive(m, "or(ne(x,y),ne(z,k))", 4) { }
+    bool post() override {
+        vec<Variable *> vars;
+        for(const auto &v : variables) vars.push(callbacks.problem->mapping[v]);
+        FactoryConstraints::createConstraintDoubleDiff(callbacks.problem, id, vars[0], vars[1], vars[2], vars[3]);
+        return true;
+    }
+};
+
 class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
                                            // do the job (see PNary1)
    public:
@@ -872,6 +883,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PQuater2(callbacks));
+    patterns.push(new PQuater3(callbacks));
     patterns.push(new PNary1(callbacks));
     patterns.push(new PNary2(callbacks));
     patterns.push(new PNary3(callbacks));
