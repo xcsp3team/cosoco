@@ -31,13 +31,14 @@ bool BinaryExtensionConflict::filter(Variable *dummy) {
         }
         return solver->entail(this);
     }
-    if(x->size() == 1) {
+    if(y->size() == 1) {
         for(int idvx : supportsForY[y->domain[0]]) {
             if(solver->delIdv(x, idvx) == false)
                 return false;
         }
         return solver->entail(this);
     }
+    return true;
 }
 
 
