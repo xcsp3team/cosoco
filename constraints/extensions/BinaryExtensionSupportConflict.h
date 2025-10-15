@@ -1,14 +1,19 @@
 #ifndef BINARYEXTENSIONCONFLICT_H
 #define BINARYEXTENSIONCONFLICT_H
 
+#include <set>
+
 #include "constraints/extensions/Extension.h"
 
 namespace Cosoco {
 class BinaryExtensionConflict : public Extension {
    protected:
-    Variable     *x, *y;   // Do not want to extends Binary
-    int           nbtuples;
-    vec<vec<int>> supportsForX, supportsForY;
+    Variable      *x, *y;   // Do not want to extends Binary
+    int            nbtuples;
+    vec<SparseSet> supportsForX, supportsForY;
+    std::set<int>  inConflictsX, inConflictsY;
+    vec<int>       resx;   // residue for x
+    vec<int>       resy;   // residue for y
 
 
    public:
