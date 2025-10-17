@@ -104,10 +104,7 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
         if(isSupport && max_size > options::intConstants["large_bin_extension"])
             ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
         else {
-            if(isSupport == false)
-                ctr = new BinaryExtensionConflict(*p, name, vars[0], vars[1]);
-            else
-                ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
         }
 
     } else {
@@ -148,12 +145,7 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
             ctr = new BinaryExtensionSupport(*p, name, sameConstraint->isSupport, vars[0], vars[1],
                                              dynamic_cast<BinaryExtensionSupport *>(sameConstraint));
         else {
-            if(sameConstraint->isSupport == false)
-                ctr = new BinaryExtensionConflict(*p, name, vars[0], vars[1],
-                                                  dynamic_cast<BinaryExtensionConflict *>(sameConstraint));
-            else
-                ctr =
-                    new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
         }
     }
     if(vars.size() > 2) {

@@ -153,11 +153,12 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         forceExtension = tree->arity() == 2;
 
         if(toExtension(id, tree, scope, forceExtension)) {
-            std::cout << "TO extension : " << tree->root->toString() << "   :   ";
+            /*std::cout << "TO extension : " << tree->root->toString() << "   :   ";
             Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
             // std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
             for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
             std::cout << "\n\n\n";
+*/
 
             return;
         }
