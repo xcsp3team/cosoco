@@ -9,6 +9,7 @@ class BinaryExtension : public Extension {
     vec<int>  resx;    // residue for x
     vec<int>  resy;    // residue for y
     Variable *x, *y;   // Do not want to extends Binary
+    vec<int> *existingX, *existingY;
 
     int           maxConflictsx, maxConflictsy;
     int           nbtuples;
@@ -21,7 +22,9 @@ class BinaryExtension : public Extension {
 
     // filtering
     bool filter(Variable *x) override;
-    bool filterOn(Variable *x);
+    bool filterSupport(Variable *x);
+    bool filterConflict(Variable *x);
+
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 

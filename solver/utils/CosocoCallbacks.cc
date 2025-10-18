@@ -1,6 +1,5 @@
 #include "CosocoCallbacks.h"
 
-#include "DomainSmallValues.h"
 
 using namespace Cosoco;
 
@@ -64,10 +63,10 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
                                     inArray ? problem->variablesArray.size() - 1 : -1);
 
     }*/
-    Variable *x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
-                                          inArray ? problem->variablesArray.size() - 1 : -1);
-    // Variable *x =
-    //     problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
+    // Variable *x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
+    //                                       inArray ? problem->variablesArray.size() - 1 : -1);
+    Variable *x =
+        problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";

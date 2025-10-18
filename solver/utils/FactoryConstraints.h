@@ -59,6 +59,11 @@ void createConstraintXeqYleK(Problem *p, std::string name, Variable *x, Variable
 
 void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op);
 
+void createConstraintXor(Problem *p, std::string name, vec<Variable *> &vars);
+
+void createConstraintDoubleDiff(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1, Variable *y2);
+
+
 void createConstraintMult(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
 
 void createConstraintUnary(Problem *p, std::string name, Variable *x, vec<int> &values, bool isSupport);

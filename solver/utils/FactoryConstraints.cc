@@ -23,6 +23,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
 #include "NValuesGEK.h"
 #include "Options.h"
@@ -30,6 +31,7 @@
 #include "Reification.h"
 #include "SumBoolean.h"
 #include "XCSP3Constants.h"
+#include "Xor.h"
 #include "constraints/globals/connection/element/ElementMatrixConstant.h"
 #include "constraints/globals/connection/maximum/MaximumVariableEQ.h"
 #include "constraints/globals/counting/NValuesEQVar.h"
@@ -91,7 +93,7 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
                                                        bool isSupport, bool hasStar) {
     Extension *ctr = nullptr;
 
-    if(false && tuples.size() == 1 && isSupport == false) {
+    if(tuples.size() == 1 && isSupport == false) {
         p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
         return nullptr;
     }
@@ -100,8 +102,9 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
 
         if(isSupport && max_size > options::intConstants["large_bin_extension"])
             ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
-        else
+        else {
             ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+        }
 
     } else {
         if(isSupport) {
@@ -139,9 +142,10 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
         int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
         if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
             ctr = new BinaryExtensionSupport(*p, name, sameConstraint->isSupport, vars[0], vars[1],
-                                             (BinaryExtensionSupport *)sameConstraint);
-        else
+                                             dynamic_cast<BinaryExtensionSupport *>(sameConstraint));
+        else {
             ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+        }
     }
     if(vars.size() > 2) {
         if(sameConstraint->isSupport) {
@@ -233,6 +237,16 @@ void FactoryConstraints::createReification(Problem *p, std::string name, Variabl
     }
     assert(false);
 }
+
+void FactoryConstraints::createConstraintXor(Problem *p, std::string name, vec<Variable *> &vars) {
+    p->addConstraint(new Xor(*p, name, vars));
+}
+
+void FactoryConstraints::createConstraintDoubleDiff(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
+                                                    Variable *y2) {
+    p->addConstraint(new DoubleDiff(*p, name, x1, x2, y1, y2));
+}
+
 
 void FactoryConstraints::createConstraintMult(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
     if(1 || x == y || x == z || y == z) {

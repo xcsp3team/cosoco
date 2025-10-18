@@ -40,7 +40,10 @@ class SparseSet {
         copy.elements.copyTo(elements);
     }
 
-    SparseSet() { }
+    SparseSet() {
+        capacity = 0;
+        limit    = 0;
+    }
 
     void setCapacity(int cap, bool full) {
         capacity = cap;
