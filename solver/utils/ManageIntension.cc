@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "CosocoCallbacks.h"
+#include "xEqOryk.h"
 using namespace XCSP3Core;
 
 void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
@@ -153,12 +154,12 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         forceExtension = tree->arity() == 2;
 
         if(toExtension(id, tree, scope, forceExtension)) {
-            /*std::cout << "TO extension : " << tree->root->toString() << "   :   ";
+            std::cout << "TO extension : " << tree->root->toString() << "   :   ";
             Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
             // std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
             for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
             std::cout << "\n\n\n";
-*/
+
 
             return;
         }
@@ -679,24 +680,63 @@ class FakePrimitive : public Primitive {   // Does not try to match a pattern tr
 class PNary1 : public FakePrimitive {
    public:
     explicit PNary1(CosocoCallbacks &c) : FakePrimitive(c) { }
-    bool post() override {
-        if(canonized->root->type == OEQ && canonized->root->parameters[0]->type == OOR &&
-           canonized->root->parameters[1]->type == OVAR) {
-            for(Node *n : canonized->root->parameters[0]->parameters)
-                if(n->type != OEQ || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL) {
-                    return false;
-                }
-            auto           *nv = dynamic_cast<NodeVariable *>(canonized->root->parameters[1]);
-            Variable       *r  = callbacks.problem->mapping[nv->var];
-            vec<Variable *> cl;
-            vec<int>        values;
-            for(Node *n : canonized->root->parameters[0]->parameters) {
-                auto *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
-                auto *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
-                cl.push(callbacks.problem->mapping[nv2->var]);
-                values.push(nc2->val);
+
+    void createArrays(vector<Node *> &parameters, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+        for(Node *n : parameters) {
+            if(n->type == OVAR) {
+                auto     *nv2 = dynamic_cast<NodeVariable *>(n);
+                Variable *x   = callbacks.problem->mapping[nv2->var];
+                vars.push(x);
+                nodes.push(new BasicNodeVar(x));
+                continue;
             }
-            FactoryConstraints::createConstraintXeqOrYeqK(callbacks.problem, id, r, cl, values);
+            auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+            auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
+            Variable  *x   = callbacks.problem->mapping[nv2->var];
+            BasicNode *tmp = nullptr;
+            if(n->type == OEQ)
+                tmp = new BasicNodeEq(x, nc2->val);
+            if(n->type == ONE)
+                tmp = new BasicNodeNe(x, nc2->val);
+            vars.push(x);
+            nodes.push(tmp);
+        }
+    }
+
+
+    bool post() override {
+        /*if(canonized->root->type == OOR) {
+            bool ok = true;
+            for(Node *n : canonized->root->parameters) {
+                if(n->type == OVAR)
+                    continue;
+                if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
+                    return false;
+            }
+        }*/
+
+
+        if(canonized->root->type == OEQ &&
+           (canonized->root->parameters[0]->type == OOR || canonized->root->parameters[0]->type == OAND) &&
+           canonized->root->parameters[1]->type == OVAR) {
+            for(Node *n : canonized->root->parameters[0]->parameters) {
+                if(n->type == OVAR)
+                    continue;
+                if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
+                    return false;
+            }
+            vec<BasicNode *> nodes;
+            vec<Variable *>  vars;
+            createArrays(canonized->root->parameters[0]->parameters, vars, nodes);
+            auto     *nv = dynamic_cast<NodeVariable *>(canonized->root->parameters[1]);
+            Variable *r  = callbacks.problem->mapping[nv->var];
+            std::cout << "GENERALIZED ";
+            canonized->prefixe();
+            std::cout << std::endl;
+            if(canonized->root->parameters[0]->type == OOR)
+                FactoryConstraints::createConstraintXeqGenOr(callbacks.problem, id, r, vars, nodes);
+            if(canonized->root->parameters[0]->type == OAND)
+                FactoryConstraints::createConstraintXeqGenAnd(callbacks.problem, id, r, vars, nodes);
             return true;
         }
         return false;
@@ -885,8 +925,8 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PQuater2(callbacks));
     patterns.push(new PQuater3(callbacks));
-    patterns.push(new PNary1(callbacks));
     patterns.push(new PNary2(callbacks));
+    patterns.push(new PNary1(callbacks));
     patterns.push(new PNary3(callbacks));
     patterns.push(new PNary4(callbacks));
     patterns.push(new PNary5(callbacks));

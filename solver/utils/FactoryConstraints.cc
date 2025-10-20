@@ -173,9 +173,14 @@ void FactoryConstraints::createConstraintXeqAndY(Problem *p, std::string name, V
     p->addConstraint(new XeqAndY(*p, name, l));
 }
 
-void FactoryConstraints::createConstraintXeqOrYeqK(Problem *p, std::string name, Variable *res, vec<Variable *> &cl,
-                                                   vec<int> &vals) {
-    p->addConstraint(new xEqOryk(*p, name, res, cl, vals));
+void FactoryConstraints::createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
+                                                  vec<BasicNode *> &nodes) {
+    p->addConstraint(new xEqGenOr(*p, name, res, vars, nodes));
+}
+
+void FactoryConstraints::createConstraintXeqGenAnd(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
+                                                   vec<BasicNode *> &nodes) {
+    p->addConstraint(new xEqGenAnd(*p, name, res, vars, nodes));
 }
 
 void FactoryConstraints::createConstraintIntension(Problem *p, std::string name, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
