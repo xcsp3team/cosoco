@@ -84,7 +84,9 @@ class xEqGenAnd : public GlobalConstraint {
 
 class GenOr : public GlobalConstraint {
     vec<BasicNode *> nodes;
-    BasicNode       *s1, *s2;
+    int              s1, s2;
+
+    int findSentinel(int other);
 
    public:
     GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nn);

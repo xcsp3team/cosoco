@@ -183,6 +183,10 @@ void FactoryConstraints::createConstraintXeqGenAnd(Problem *p, std::string name,
     p->addConstraint(new xEqGenAnd(*p, name, res, vars, nodes));
 }
 
+void FactoryConstraints::createConstraintGenOr(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    p->addConstraint(new GenOr(*p, name, vars, nodes));
+}
+
 void FactoryConstraints::createConstraintIntension(Problem *p, std::string name, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
     p->addConstraint(new AdapterAC3rm(new Intension(*p, name, tree, scope)));
 }

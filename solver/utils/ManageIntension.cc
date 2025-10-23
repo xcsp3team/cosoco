@@ -703,28 +703,32 @@ class PNary1 : public FakePrimitive {
         }
     }
 
+    bool matchParams(vector<Node *> parameters) {
+        for(Node *n : parameters) {
+            if(n->type == OVAR)
+                continue;
+            if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
+                return false;
+        }
+        return true;
+    }
 
     bool post() override {
-        /*if(canonized->root->type == OOR) {
-            bool ok = true;
-            for(Node *n : canonized->root->parameters) {
-                if(n->type == OVAR)
-                    continue;
-                if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
-                    return false;
-            }
-        }*/
+        if(canonized->root->type == OOR && matchParams(canonized->root->parameters)) {
+            vec<BasicNode *> nodes;
+            vec<Variable *>  vars;
+            createArrays(canonized->root->parameters, vars, nodes);
+            FactoryConstraints::createConstraintGenOr(callbacks.problem, id, vars, nodes);
+            return true;
+        }
 
 
         if(canonized->root->type == OEQ &&
            (canonized->root->parameters[0]->type == OOR || canonized->root->parameters[0]->type == OAND) &&
            canonized->root->parameters[1]->type == OVAR) {
-            for(Node *n : canonized->root->parameters[0]->parameters) {
-                if(n->type == OVAR)
-                    continue;
-                if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
-                    return false;
-            }
+            if(matchParams(canonized->root->parameters[0]->parameters) == false)
+                return false;
+
             vec<BasicNode *> nodes;
             vec<Variable *>  vars;
             createArrays(canonized->root->parameters[0]->parameters, vars, nodes);

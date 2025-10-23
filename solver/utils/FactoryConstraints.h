@@ -42,6 +42,9 @@ void createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<V
 
 void createConstraintXeqGenAnd(Problem *p, std::string name, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes);
 
+void createConstraintGenOr(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes);
+
+
 void createConstraintIntension(Problem *p, std::string name, XCSP3Core::Tree *tree, vec<Variable *> &scope);
 
 void createConstraintLessThan(Problem *p, std::string name, Variable *x, int k, Variable *y, bool strict);

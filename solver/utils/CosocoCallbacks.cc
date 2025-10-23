@@ -1,5 +1,7 @@
 #include "CosocoCallbacks.h"
 
+#include "DomainSmallValues.h"
+
 
 using namespace Cosoco;
 
@@ -49,10 +51,10 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
         return;
     }
 
-    /*int       min = values[0];
+    int       min = values[0];
     int       max = values[values.size() - 1];
     Variable *x   = nullptr;
-    if(false && max - min <= 10000) {
+    /*if(false && max - min <= 10000) {
         std::cout << "ici \n";
         buildVariableInteger(id, min, max);
         Variable *x = problem->variables.last();
@@ -63,10 +65,12 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
                                     inArray ? problem->variablesArray.size() - 1 : -1);
 
     }*/
-    // Variable *x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
-    //                                       inArray ? problem->variablesArray.size() - 1 : -1);
-    Variable *x =
-        problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
+    if(max - min < 1000)
+        x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
+    else
+        x = problem->createVariable(id, *(new DomainValue(vector2vec(values))),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";

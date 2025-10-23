@@ -176,17 +176,24 @@ bool xEqGenAnd::filter(Variable *x) {
 }
 
 
-bool GenOr::filter(Variable *x) {
-    int nb = 0;
-    for(BasicNode *n : nodes) {
-        if(n->minimum() == 1)
-            return solver->entail(this);
+int GenOr::findSentinel(int other) {
+    for(int i = 0; i < nodes.size(); i++)
+        if(i != other && nodes[i]->maximum() == 1)
+            return i;
+    return -1;
+}
 
-        if(n->maximum() == 1)
-            nb++;
+bool GenOr::filter(Variable *x) {
+    if(nodes[s1]->maximum() == 0) {
+        int o = findSentinel(s2);
+        if(o == -1 && nodes[s2]->setTrue(solver) == false)
+            return false;
+        return solver->entail(this);
     }
-    if(nb == 0) {
-        solver->assignToVal(result, 0);
+    if(nodes[s2]->maximum() == 0) {
+        int o = findSentinel(s1);
+        if(o == -1 && nodes[s1]->setTrue(solver) == false)
+            return false;
         return solver->entail(this);
     }
     return true;
@@ -205,4 +212,11 @@ xEqGenOr::xEqGenOr(Problem &p, std::string n, Variable *r, vec<Variable *> &vars
 xEqGenAnd::xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
     : GlobalConstraint(p, n, "X = Generalized AND", Constraint::createScopeVec(&vars, r)), result(r) {
     nnodes.copyTo(nodes);
+}
+
+GenOr::GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, n, "Generalized OR", Constraint::createScopeVec(&vars)) {
+    nnodes.copyTo(nodes);
+    s1 = 0;
+    s2 = 1;
 }
