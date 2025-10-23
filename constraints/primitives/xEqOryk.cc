@@ -186,15 +186,21 @@ int GenOr::findSentinel(int other) {
 bool GenOr::filter(Variable *x) {
     if(nodes[s1]->maximum() == 0) {
         int o = findSentinel(s2);
-        if(o == -1 && nodes[s2]->setTrue(solver) == false)
-            return false;
-        return solver->entail(this);
+        if(o == -1) {
+            if(nodes[s2]->setTrue(solver) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s1 = o;
     }
     if(nodes[s2]->maximum() == 0) {
         int o = findSentinel(s1);
-        if(o == -1 && nodes[s1]->setTrue(solver) == false)
-            return false;
-        return solver->entail(this);
+        if(o == -1) {
+            if(nodes[s1]->setTrue(solver) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s2 = o;
     }
     return true;
 }
