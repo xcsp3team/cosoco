@@ -1774,7 +1774,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 
     for(Tree *tree : trees) {
         string predicate = tree->toString();
-        std::cout << "Predicate: " << predicate << std::endl;
+        // std::cout << "Predicate: " << predicate << std::endl;
         if(expressionsToAuxiliaryVariables.find(predicate) !=
            expressionsToAuxiliaryVariables.end()) {   // The aux = expression already exists
             auxiliaryVariables.push_back(expressionsToAuxiliaryVariables[predicate]);
@@ -1808,7 +1808,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
             // idem core duplication is done in the variable
             string tmp = "eq(" + auxVar + "," + predicate + ")";
             buildConstraintIntension("auxConstraint__" + std::to_string(auxiliaryIdx), new Tree(tmp));
-            std::cout << tmp << std::endl;
+            // std::cout << tmp << std::endl;
 
         } else {   // The expresison is just a variable
             auxiliaryVariables.push_back(predicate);
