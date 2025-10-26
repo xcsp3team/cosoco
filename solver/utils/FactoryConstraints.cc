@@ -369,6 +369,23 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
         p->addConstraint(new DiffXY(*p, name, vars[0], vars[1]));
         return;
     }
+
+    if(false && vars.size() <= 4) {   // Do not create AllDif for small constraint
+        set<int> values;
+        for(Variable *x : vars)
+            for(int idv : x->domain) values.insert(x->domain.toVal(idv));
+        if(vars.size() == values.size()) {
+            vector<int>   permutations(values.begin(), values.end());
+            vec<vec<int>> tuples;
+            do {
+                tuples.push();
+                for(int i : permutations) tuples.last().push(i);
+            } while(std::next_permutation(permutations.begin(), permutations.end()));
+            p->addConstraint(newExtensionConstraint(p, name, vars, tuples, true));
+            return;
+        }
+    }
+
     int nb = 0;
     for(Variable *x : vars)
         if(x->size() > 2 * vars.size())
