@@ -5,6 +5,7 @@
 #include "XCSP3Constants.h"
 #include "constraints/extensions/MDDExtension.h"
 #include "utils/Verbose.h"
+#include "xEqOryk.h"
 
 namespace Cosoco {
 using namespace XCSP3Core;
@@ -37,7 +38,12 @@ void createConstraintExtension(Problem *p, std::string name, vec<Variable *> &va
 
 void createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l);
 
-void createConstraintXeqOrYeqK(Problem *p, std::string name, Variable *res, vec<Variable *> &cl, vec<int> &vals);
+void createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes);
+
+void createConstraintXeqGenAnd(Problem *p, std::string name, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes);
+
+void createConstraintGenOr(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes);
+
 
 void createConstraintIntension(Problem *p, std::string name, XCSP3Core::Tree *tree, vec<Variable *> &scope);
 
