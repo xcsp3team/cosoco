@@ -59,12 +59,12 @@ AllDifferent::AllDifferent(Problem &p, std::string n, vec<Variable *> &vars) : G
 
 AllDifferentWeak::AllDifferentWeak(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
     type    = "All Different Weak";
-    matcher = new Matcher(this);
+    matcher = new MatcherAllDifferent(this);
 }
 
 AllDifferentAC::AllDifferentAC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
     type          = "All Different AC";
-    matcher       = new Matcher(this);
+    matcher       = new MatcherAllDifferent(this);
     isPostponable = true;
 }
 

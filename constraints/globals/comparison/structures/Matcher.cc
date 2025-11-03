@@ -11,6 +11,43 @@
 
 using namespace Cosoco;
 
+MatcherAllDifferent::MatcherAllDifferent(Constraint* c) : Matcher(c) {
+    val2var = new int[interval];
+    std::fill_n(val2var, interval, -1);
+    predBFS = new int[arity];
+    std::fill_n(predBFS, arity, -1);
+}
+
+MatcherCardinality::MatcherCardinality(Constraint* c, vec<int>& _keys, vec<int>& _minOccs, vec<int>& _maxOccs) : Matcher(c) {
+    _keys.copyTo(keys);
+
+    predBFS = new int[std::max(arity, interval)];
+    std::fill_n(predBFS, std::max(arity, interval), -1);
+
+    minOccs = new int[interval];
+    maxOccs = new int[interval];
+    std::fill_n(maxOccs, interval, INT_MAX);
+    for(int i = 0; i < interval; i++) {
+        minOccs[normalizedValue(keys[i])] = _minOccs[i];
+        maxOccs[normalizedValue(keys[i])] = _maxOccs[i];
+    }
+
+    predValue = new int[interval];
+    std::fill_n(predValue, interval, -1);
+
+    possibleVars.growTo(interval);
+    for(int u = 0; u < interval; u++) {
+        possibleVars[u].setCapacity(arity, false);
+        for(int posx = 0; posx < arity; posx++)
+            if(scope[posx]->containsValue(domainValue(u)))
+                possibleVars[u].add(posx);
+    }
+
+    val2var.growTo(interval);
+    for(int i = 0; i < interval; i++) val2var[i].setCapacity(arity, false);
+}
+
+
 Matcher::Matcher(Constraint* cc)
     : constraint(cc), scope(cc->scope), unfixed(cc->scope.size(), true), fixedVars(cc->scope.size()) {
     arity    = constraint->scope.size();
@@ -36,12 +73,9 @@ Matcher::Matcher(Constraint* cc)
     for(auto& tmp : neighborsOfValues) tmp.setCapacity(arity + 1, false);
 
     var2val = new int[arity];
-    val2var = new int[interval];
     std::fill_n(var2val, arity, -1);
-    std::fill_n(val2var, interval, -1);
 
-    predBFS = new int[arity];
-    std::fill_n(predBFS, arity, -1);
+
     time      = 1;
     visitTime = new long[nNodes];
     std::fill_n(visitTime, nNodes, -1);
@@ -59,7 +93,7 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
 }
 
 
-bool Matcher::findMatchingFor(int x) {
+bool MatcherAllDifferent::findMatchingFor(int x) {
     std::stack<int> stack;
     assert(stack.size() == 0);
     time++;
@@ -97,7 +131,7 @@ bool Matcher::findMatchingFor(int x) {
     return false;
 }
 
-bool Matcher::findMaximumMatching() {
+bool MatcherAllDifferent::findMaximumMatching() {
     unmatched.clear();
     int level = constraint->solver->decisionLevel();
     for(int idx = 0; idx < arity; idx++) {   // Find unmatched variables
@@ -154,7 +188,7 @@ void Matcher::removeInconsistentValues() {
 }
 
 
-void Matcher::computeNeighbors() {
+void MatcherAllDifferent::computeNeighbors() {
     int level = constraint->solver->decisionLevel();
     for(SparseSet& set : neighborsOfValues) set.clear();
     neighborsOfT.clear();
@@ -264,4 +298,156 @@ void Matcher::tarjanRemoveValues(int node) {
             }
         }
     }
+}
+
+
+void MatcherCardinality::handleAugmentingPath(int x, int v) {
+    while(predBFS[v] != -1) {
+        int y      = predBFS[v];
+        var2val[x] = v;
+        val2var[v].add(x);
+        val2var[v].del(y);
+        x = y;
+        v = predValue[v];
+    }
+    var2val[x] = v;
+    val2var[v].add(x);
+}
+
+bool MatcherCardinality::findMatchingForValue(int u) {
+    time++;
+    queueBFS.clear();
+    queueBFS.add(u);
+    predBFS[u]   = -1;
+    visitTime[u] = time;
+    while(!queueBFS.isEmpty()) {
+        int v = queueBFS.shift();
+        for(int posx : possibleVars[v]) {
+            if(scope[posx]->containsValue(domainValue(v))) {
+                int w = var2val[posx];
+                if(w == -1) {
+                    handleAugmentingPath(posx, v);
+                    return true;
+                } else if(w != v) {
+                    if(val2var[w].size() > minOccs[w] && var2val[posx] == w) {
+                        val2var[w].del(posx);   // IfPresent(x);
+                        handleAugmentingPath(posx, v);
+                        return true;
+                    } else if(visitTime[w] < time) {
+                        visitTime[w] = time;
+                        queueBFS.add(w);
+                        predBFS[w]   = posx;
+                        predValue[w] = v;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool MatcherCardinality::findMatchingForVariable(int x) {
+    time++;
+    queueBFS.clear();
+    queueBFS.add(x);
+
+    predBFS[x]   = -1;
+    visitTime[x] = time;
+    while(!queueBFS.isEmpty()) {
+        int y = queueBFS.shift();
+
+        for(int idv : scope[y]->domain) {
+            int u = normalizedValue(scope[y]->domain.toVal(idv));
+            if(val2var[u].size() < maxOccs[u]) {
+                while(predBFS[y] != -1) {
+                    int v      = var2val[y];   // previous value
+                    var2val[y] = u;
+                    val2var[u].add(y);
+                    val2var[v].del(y);
+                    y = predBFS[y];
+                    u = v;
+                }
+                var2val[y] = u;
+                val2var[u].add(y);
+                return true;
+            }
+            for(int z : val2var[u]) {
+                assert(var2val[z] == u);
+                if(visitTime[z] < time) {
+                    visitTime[z] = time;
+                    predBFS[z]   = y;
+                    queueBFS.add(z);
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void MatcherCardinality::computeNeighbors() {
+    for(auto& set : neighborsOfValues) set.clear();
+    for(int u = 0; u < interval; u++) {
+        if(val2var[u].size() < maxOccs[u])
+            neighborsOfT.add(u);
+        else
+            neighborsOfT.del(u);
+        if(val2var[u].size() > minOccs[u])
+            neighborsOfValues[u].add(arity);
+        else
+            neighborsOfValues[u].del(arity);
+        for(int posx : possibleVars[u]) {
+            if(scope[posx]->containsValue(domainValue(u)) && var2val[posx] != u)
+                neighborsOfValues[u].add(posx);
+            else
+                neighborsOfValues[u].del(posx);
+        }
+    }
+}
+
+bool MatcherCardinality::findMaximumMatching() {
+    // Make sure each variable is not matched with a value that is not in its domain anymore
+    for(int posx = 0; posx < arity; posx++) {
+        int u = var2val[posx];
+        if(u == -1 || scope[posx]->containsValue(domainValue(u)) == false) {
+            if(scope[posx]->size() == 1) {
+                int v = normalizedValue(scope[posx]->value());
+                if(u != -1)
+                    val2var[u].del(posx);
+                if(maxOccs[v] == val2var[v].size()) {
+                    var2val[posx] = -1;
+                } else {
+                    var2val[posx] = v;
+                    val2var[v].add(posx);
+                }
+            } else if(u != -1) {
+                val2var[u].del(posx);
+                var2val[posx] = -1;
+            }
+        }
+    }
+    // Generate a feasible flow (part of the matching)
+    for(int i = 0; i < keys.size(); i++) {
+        int u = normalizedValue(keys[i]);
+        while(val2var[u].size() < minOccs[u])
+            if(findMatchingForValue(u) == false)
+                return false;
+    }
+    int level = constraint->solver->decisionLevel();
+    unmatched.clear();
+    for(int x = 0; x < arity; x++) {
+        if(var2val[x] == -1)
+            unmatched.push(x);
+        else if(scope[x]->size() == 1 && unfixed.contains(x)) {
+            if(unfixed.isLimitRecordedAtLevel(level) == false)
+                unfixed.recordLimit(level);
+            unfixed.del(x);
+        }
+    }
+    while(unmatched.size() > 0) {
+        int idx = unmatched.last();
+        unmatched.pop();
+        if(findMatchingForVariable(idx) == false)
+            return false;
+    }
+    return true;
 }
