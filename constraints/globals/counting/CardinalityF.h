@@ -1,5 +1,6 @@
 #ifndef COSOCO_CARDINALITYF_H
 #define COSOCO_CARDINALITYF_H
+#include "Matcher.h"
 #include "constraints/globals/GlobalConstraint.h"
 
 
@@ -32,5 +33,23 @@ class CardinalityF : public GlobalConstraint {
     bool isCorrectlyDefined() override;
 };
 
+
+class CardinalityM : public GlobalConstraint {
+   protected:
+    vec<int>           minOccs, maxOccs;
+    vec<int>           values;
+    MatcherCardinality matcher;
+
+   public:
+    // A weak cardinality filtering used when list is too big
+    CardinalityM(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max);
+
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isCorrectlyDefined() override;
+}
 }   // namespace Cosoco
 #endif   // COSOCO_CARDINALITYWEAK_H
