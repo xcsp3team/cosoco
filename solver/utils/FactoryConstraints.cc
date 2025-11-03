@@ -740,6 +740,11 @@ void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, std::st
 
 
 void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
+                                                     vec<int> &min, vec<int> &max) {
+    p->addConstraint(new CardinalityM(*p, name, vars, values, min, max));
+}
+
+void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                                      vec<Occurs> &occurs) {
     verbose.log(DEBUGVERBOSE, "c Create Cardinality(vars,values,occurs) constraint using %d Exactly/AtMost.. constraint \nc\n",
                 vars.size());

@@ -179,6 +179,9 @@ void createConstraintCardinality(Cosoco::Problem *p, std::string name, vec<Cosoc
 
 void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, vec<Occurs> &occurs);
 
+void createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, vec<int> &min,
+                                 vec<int> &max);
+
 void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths, OrderType op);
 
 void createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths, OrderType op);

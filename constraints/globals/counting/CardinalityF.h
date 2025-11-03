@@ -50,6 +50,6 @@ class CardinalityM : public GlobalConstraint {
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool isCorrectlyDefined() override;
-}
+};
 }   // namespace Cosoco
 #endif   // COSOCO_CARDINALITYWEAK_H

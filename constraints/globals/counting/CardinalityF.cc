@@ -163,7 +163,7 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
 }
 
 CardinalityM::CardinalityM(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max)
-    : GlobalConstraint(p, n "Cardinality M", vars), Matcher() {
+    : GlobalConstraint(p, n, "Cardinality M", vars), matcher(this, v, min, max) {
     min.copyTo(minOccs);
     max.copyTo(maxOccs);
     v.copyTo(values);

@@ -23,6 +23,7 @@ MatcherCardinality::MatcherCardinality(Constraint* c, vec<int>& _keys, vec<int>&
 
     predBFS = new int[std::max(arity, interval)];
     std::fill_n(predBFS, std::max(arity, interval), -1);
+    queueBFS.setCapacity(std::max(interval, arity), false);
 
     minOccs = new int[interval];
     maxOccs = new int[interval];
@@ -330,7 +331,7 @@ bool MatcherCardinality::findMatchingForValue(int u) {
                     return true;
                 } else if(w != v) {
                     if(val2var[w].size() > minOccs[w] && var2val[posx] == w) {
-                        val2var[w].del(posx);   // IfPresent(x);
+                        val2var[w].del(posx);
                         handleAugmentingPath(posx, v);
                         return true;
                     } else if(visitTime[w] < time) {
