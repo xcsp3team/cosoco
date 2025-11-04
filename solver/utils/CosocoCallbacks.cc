@@ -818,7 +818,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
                                                  vector<XInterval> &intervalOccurs, bool closed) {
-    vec<Variable *> occurs;
+    /*vec<Variable *> occurs;
     for(XInterval &xi : intervalOccurs) {
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
         buildVariableInteger(auxVar, xi.min, xi.max);
@@ -826,6 +826,13 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
         occurs.push(problem->mapping[x->id]);
     }
     FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+*/
+    vec<int> min, max;
+    for(XInterval &xi : intervalOccurs) {
+        min.push(xi.min);
+        max.push(xi.max);
+    }
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), min, max);
 }
 
 

@@ -28,7 +28,7 @@ MatcherCardinality::MatcherCardinality(Constraint* c, vec<int>& _keys, vec<int>&
     minOccs = new int[interval];
     maxOccs = new int[interval];
     std::fill_n(maxOccs, interval, INT_MAX);
-    for(int i = 0; i < interval; i++) {
+    for(int i = 0; i < keys.size(); i++) {
         minOccs[normalizedValue(keys[i])] = _minOccs[i];
         maxOccs[normalizedValue(keys[i])] = _maxOccs[i];
     }
@@ -54,11 +54,11 @@ Matcher::Matcher(Constraint* cc)
     arity    = constraint->scope.size();
     minValue = constraint->scope[0]->minimum();
     maxValue = constraint->scope[0]->maximum();
-    for(Variable* c : constraint->scope) {
-        if(minValue > c->minimum())
-            minValue = c->minimum();
-        if(maxValue < c->maximum())
-            maxValue = c->maximum();
+    for(Variable* x : constraint->scope) {
+        if(minValue > x->minimum())
+            minValue = x->minimum();
+        if(maxValue < x->maximum())
+            maxValue = x->maximum();
     }
     interval      = maxValue - minValue + 1;
     nNodes        = arity + interval + 1;
@@ -426,13 +426,25 @@ bool MatcherCardinality::findMaximumMatching() {
             }
         }
     }
+
+
     // Generate a feasible flow (part of the matching)
     for(int i = 0; i < keys.size(); i++) {
         int u = normalizedValue(keys[i]);
         while(val2var[u].size() < minOccs[u])
-            if(findMatchingForValue(u) == false)
+            if(findMatchingForValue(u) == false) {
                 return false;
+            }
     }
+    /*    for(int i = 0; i < arity; i++) std::cout << var2val[i] << " ";
+        std::cout << std::endl;
+
+        for(auto& s : val2var) {
+            s.display();
+            std::cout << "\n";
+        }
+    */
+
     int level = constraint->solver->decisionLevel();
     unmatched.clear();
     for(int x = 0; x < arity; x++) {
@@ -447,8 +459,10 @@ bool MatcherCardinality::findMaximumMatching() {
     while(unmatched.size() > 0) {
         int idx = unmatched.last();
         unmatched.pop();
-        if(findMatchingForVariable(idx) == false)
+        if(findMatchingForVariable(idx) == false) {
+            //      std::cout << "BBB\n";
             return false;
+        }
     }
     return true;
 }
