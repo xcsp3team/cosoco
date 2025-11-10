@@ -1,5 +1,7 @@
 #include "CosocoCallbacks.h"
 
+#include "DomainSmallValues.h"
+
 
 using namespace Cosoco;
 
@@ -49,10 +51,10 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
         return;
     }
 
-    /*int       min = values[0];
+    int       min = values[0];
     int       max = values[values.size() - 1];
     Variable *x   = nullptr;
-    if(false && max - min <= 10000) {
+    /*if(false && max - min <= 10000) {
         std::cout << "ici \n";
         buildVariableInteger(id, min, max);
         Variable *x = problem->variables.last();
@@ -63,10 +65,12 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
                                     inArray ? problem->variablesArray.size() - 1 : -1);
 
     }*/
-    // Variable *x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
-    //                                       inArray ? problem->variablesArray.size() - 1 : -1);
-    Variable *x =
-        problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
+    if(max - min < 1000)
+        x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
+    else
+        x = problem->createVariable(id, *(new DomainValue(vector2vec(values))),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";
@@ -1159,37 +1163,33 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
 //--------------------------------------------------------------------------------------
 // packing and schedulling constraints
 //--------------------------------------------------------------------------------------
-bool Disj::same(string xx, string yy, int llx, int lly) { return (x == xx && y == yy && lx == llx && ly == lly); }
-Disj::Disj(string xx, string yy, int llx, int lly) {
-    x  = xx;
-    y  = yy;
-    lx = llx;
-    ly = lly;
-}
 
 
 void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<int> &lengths, bool zeroIgnored) {
     if(!zeroIgnored)
         throw runtime_error("Nooverlap with zeroIgnored not yet supported");
-
     toMyVariables(origins);
     for(int i = 0; i < vars.size(); i++)
         for(int j = i + 1; j < vars.size(); j++) {
-            bool exist = false;
-            for(auto *d : allDisjunctives)
-                if(d->same(vars[i]->_name, vars[j]->_name, lengths[i], lengths[j])) {
-                    exist = true;
-                    break;
-                }
-            if(exist)
+            if(vars[i]->maximum() + lengths[i] <= vars[j]->minimum() || vars[j]->maximum() + lengths[j] <= vars[i]->minimum())
                 continue;
+            bool exist = false;
+            int  li = lengths[i], lj = lengths[j];
+
+            string key = vars[i]->idx < vars[j]->idx ? (std::to_string(vars[i]->idx) + "_" + std::to_string(vars[j]->idx) + "_" +
+                                                        std::to_string(li) + "_" + std::to_string(lj))
+                                                     : (std::to_string(vars[j]->idx) + "_" + std::to_string(vars[i]->idx) + "_" +
+                                                        std::to_string(lj) + "_" + std::to_string(li));
+            if(allDisjunctives.find(key) != allDisjunctives.end())
+                continue;
+            allDisjunctives.insert(key);
+
 
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             buildVariableInteger(auxVar, 0, 3);
             Variable *aux = problem->mapping[auxVar];
 
             FactoryConstraints::createConstraintDisjunctive(problem, id, vars[i], vars[j], lengths[i], lengths[j], aux);
-            allDisjunctives.push(new Disj(vars[0]->_name, vars[1]->_name, lengths[i], lengths[j]));
         }
 }
 
@@ -1774,6 +1774,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 
     for(Tree *tree : trees) {
         string predicate = tree->toString();
+        // std::cout << "Predicate: " << predicate << std::endl;
         if(expressionsToAuxiliaryVariables.find(predicate) !=
            expressionsToAuxiliaryVariables.end()) {   // The aux = expression already exists
             auxiliaryVariables.push_back(expressionsToAuxiliaryVariables[predicate]);
@@ -1807,6 +1808,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
             // idem core duplication is done in the variable
             string tmp = "eq(" + auxVar + "," + predicate + ")";
             buildConstraintIntension("auxConstraint__" + std::to_string(auxiliaryIdx), new Tree(tmp));
+            // std::cout << tmp << std::endl;
 
         } else {   // The expresison is just a variable
             auxiliaryVariables.push_back(predicate);

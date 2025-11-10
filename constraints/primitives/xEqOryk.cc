@@ -12,23 +12,49 @@ using namespace Cosoco;
 //----------------------------------------------
 
 
-bool xEqOryk::isSatisfiedBy(vec<int> &tuple) {
+bool xEqGenOr::isSatisfiedBy(vec<int> &tuple) {
+    return true;
     int r            = tuple.last();
     int clauseResult = 0;
-    for(int i = 0; i < tuple.size() - 1; i++) {
-        if(tuple[i] == values[i])
+    int i            = 0;
+    for(BasicNode *n : nodes) {
+        if(n->value())
             clauseResult = 1;
     }
 
     return r == clauseResult;
 }
 
+bool xEqGenAnd::isSatisfiedBy(vec<int> &tuple) {
+    return true;
+    int r            = tuple.last();
+    int clauseResult = 0;
+    int i            = 0;
+    for(BasicNode *n : nodes) {
+        if(n->value())
+            clauseResult = 1;
+    }
 
+    return r == clauseResult;
+}
+
+bool GenOr::isSatisfiedBy(vec<int> &tuple) {
+    return true;
+    int r            = tuple.last();
+    int clauseResult = 0;
+    int i            = 0;
+    for(BasicNode *n : nodes) {
+        if(n->value())
+            clauseResult = 1;
+    }
+
+    return r == clauseResult;
+}
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
 
-bool xEqOryk::filter(Variable *x) {
+bool xEqGenOr::filter(Variable *x) {
     // useless ??
     if(solver->decisionLevel() == 0 && (result->size() > 2 || result->minimum() != 0 || result->maximum() != 1)) {
         for(int idv : result->domain) {
@@ -40,9 +66,8 @@ bool xEqOryk::filter(Variable *x) {
 
     if(result->size() == 1) {
         if(result->value() == 0) {
-            int i = 0;
-            for(Variable *y : clause)
-                if(solver->delVal(y, values[i++]) == false)
+            for(BasicNode *n : nodes)
+                if(n->setFalse(solver) == false)
                     return false;
             solver->entail(this);
             return true;
@@ -51,12 +76,12 @@ bool xEqOryk::filter(Variable *x) {
         int nb  = 0;
         int pos = -1;
         int i   = 0;
-        for(Variable *y : clause) {
-            if(y->size() == 1 && y->value() == values[i]) {
+        for(BasicNode *n : nodes) {
+            if(n->minimum() == 1) {
                 solver->entail(this);
                 return true;
             }
-            if(y->containsValue(values[i])) {
+            if(n->maximum() == 1) {
                 nb++;
                 if(pos == -1)
                     pos = i;
@@ -68,28 +93,114 @@ bool xEqOryk::filter(Variable *x) {
         if(nb == 0)
             return false;
         if(nb == 1) {
-            solver->assignToVal(clause[pos], values[pos]);
-            solver->entail(this);
-            return true;
+            nodes[pos]->setTrue(solver);
+            return solver->entail(this);
         }
     }
 
-    int i  = 0;
     int nb = 0;
-    for(Variable *y : clause) {
-        if(y->size() == 1 && y->value() == values[i]) {
+    for(BasicNode *n : nodes) {
+        if(n->minimum() == 1) {
             solver->assignToVal(result, 1);
-            solver->entail(this);
-            return true;
+            return solver->entail(this);
         }
-        if(y->containsValue(values[i]))
+        if(n->maximum() == 1)
             nb++;
-        i++;
     }
     if(nb == 0) {
         solver->assignToVal(result, 0);
-        solver->entail(this);
-        return true;
+        return solver->entail(this);
+    }
+    return true;
+}
+
+
+bool xEqGenAnd::filter(Variable *x) {
+    // useless ??
+    if(solver->decisionLevel() == 0 && (result->size() > 2 || result->minimum() != 0 || result->maximum() != 1)) {
+        for(int idv : result->domain) {
+            int v = result->domain.toVal(idv);
+            if(v != 0 && v != 1 && solver->delVal(x, idv) == false)
+                return false;
+        }
+    }
+
+    if(result->size() == 1) {
+        if(result->value() == 1) {
+            for(BasicNode *n : nodes)
+                if(n->setTrue(solver) == false)
+                    return false;
+            solver->entail(this);
+            return true;
+        }
+        assert(result->value() == 0);
+        int nb  = 0;
+        int pos = -1;
+        int i   = 0;
+        for(BasicNode *n : nodes) {
+            if(n->maximum() == 0) {
+                solver->entail(this);
+                return true;
+            }
+            if(n->minimum() == 0) {
+                nb++;
+                if(pos == -1)
+                    pos = i;
+                else
+                    break;
+            }
+            i++;
+        }
+        if(nb == 0)
+            return false;
+        if(nb == 1) {
+            nodes[pos]->setFalse(solver);
+            return solver->entail(this);
+        }
+    }
+
+    int nb = 0;
+    for(BasicNode *n : nodes) {
+        if(n->maximum() == 0) {
+            solver->assignToVal(result, 0);
+            return solver->entail(this);
+        }
+        if(n->minimum() == 0)
+            nb++;
+    }
+    if(nb == 0) {
+        solver->assignToVal(result, 1);
+        return solver->entail(this);
+    }
+    return true;
+}
+
+
+int GenOr::findSentinel(int other) {
+    for(int i = 0; i < nodes.size(); i++)
+        if(i != other && nodes[i]->maximum() == 1)
+            return i;
+    return -1;
+}
+
+bool GenOr::filter(Variable *x) {
+    if(nodes[s1]->maximum() == 0) {
+        int o = findSentinel(s2);
+        if(o == -1) {
+            if(nodes[s2]->setTrue(solver) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s1 = o;
+    }
+    if(nodes[s2]->maximum() == 0) {
+        int o = findSentinel(s1);
+        if(o == -1) {
+            if(nodes[s1]->setTrue(solver) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s2 = o;
     }
     return true;
 }
@@ -98,8 +209,20 @@ bool xEqOryk::filter(Variable *x) {
 // Constructor and initialisation methods
 //----------------------------------------------
 
-xEqOryk::xEqOryk(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<int> &_values)
-    : GlobalConstraint(p, n, "X = Or(X1=k1, X2=k2...)", Constraint::createScopeVec(&vars, r)), result(r) {
-    vars.copyTo(clause);
-    _values.copyTo(values);
+xEqGenOr::xEqGenOr(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, n, "X = Generalized OR", Constraint::createScopeVec(&vars, r)), result(r) {
+    nnodes.copyTo(nodes);
+}
+
+
+xEqGenAnd::xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, n, "X = Generalized AND", Constraint::createScopeVec(&vars, r)), result(r) {
+    nnodes.copyTo(nodes);
+}
+
+GenOr::GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, n, "Generalized OR", Constraint::createScopeVec(&vars)) {
+    nnodes.copyTo(nodes);
+    s1 = 0;
+    s2 = 1;
 }

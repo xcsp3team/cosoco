@@ -173,9 +173,18 @@ void FactoryConstraints::createConstraintXeqAndY(Problem *p, std::string name, V
     p->addConstraint(new XeqAndY(*p, name, l));
 }
 
-void FactoryConstraints::createConstraintXeqOrYeqK(Problem *p, std::string name, Variable *res, vec<Variable *> &cl,
-                                                   vec<int> &vals) {
-    p->addConstraint(new xEqOryk(*p, name, res, cl, vals));
+void FactoryConstraints::createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
+                                                  vec<BasicNode *> &nodes) {
+    p->addConstraint(new xEqGenOr(*p, name, res, vars, nodes));
+}
+
+void FactoryConstraints::createConstraintXeqGenAnd(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
+                                                   vec<BasicNode *> &nodes) {
+    p->addConstraint(new xEqGenAnd(*p, name, res, vars, nodes));
+}
+
+void FactoryConstraints::createConstraintGenOr(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    p->addConstraint(new GenOr(*p, name, vars, nodes));
 }
 
 void FactoryConstraints::createConstraintIntension(Problem *p, std::string name, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
@@ -364,6 +373,23 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
         p->addConstraint(new DiffXY(*p, name, vars[0], vars[1]));
         return;
     }
+
+    if(false && vars.size() <= 4) {   // Do not create AllDif for small constraint
+        set<int> values;
+        for(Variable *x : vars)
+            for(int idv : x->domain) values.insert(x->domain.toVal(idv));
+        if(vars.size() == values.size()) {
+            vector<int>   permutations(values.begin(), values.end());
+            vec<vec<int>> tuples;
+            do {
+                tuples.push();
+                for(int i : permutations) tuples.last().push(i);
+            } while(std::next_permutation(permutations.begin(), permutations.end()));
+            p->addConstraint(newExtensionConstraint(p, name, vars, tuples, true));
+            return;
+        }
+    }
+
     int nb = 0;
     for(Variable *x : vars)
         if(x->size() > 2 * vars.size())
