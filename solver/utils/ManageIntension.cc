@@ -196,6 +196,16 @@ bool ManageIntension::decompose(XCSP3Core::Node *node) {
         if(node->parameters[i]->type == OVAR || node->parameters[i]->type == ODECIMAL) {
             continue;   // Nothing to do
         }
+
+        // Generalized OR and AND (See Generalized OR....)
+        if((node->type == OOR || node->type == OAND) && node->parameters[i]->type == OEQ &&
+           node->parameters[i]->parameters[0]->type == OVAR && node->parameters[i]->parameters[1]->type == ODECIMAL)
+            continue;
+        if((node->type == OOR || node->type == OAND) && node->parameters[i]->type == ONE &&
+           node->parameters[i]->parameters[0]->type == OVAR && node->parameters[i]->parameters[1]->type == ODECIMAL)
+            continue;
+
+
         modified = true;
         trees.push_back(new Tree(node->parameters[i]));
         callbacks.createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
