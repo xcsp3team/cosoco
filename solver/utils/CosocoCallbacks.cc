@@ -999,6 +999,45 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
 }
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex, XCondition &xc) {
+    if(xc.operandType == VARIABLE) {
+        Variable     *x = problem->mapping[index->id];
+        Variable     *z = problem->mapping[xc.var];
+        vec<vec<int>> tuples;
+
+        for(int idv : x->domain) {
+            int va = x->domain.toVal(idv) - startIndex;
+            if(0 <= va && va < list.size()) {   // if valid value index a in dx
+                int v = list[va];
+                if(xc.op == EQ) {
+                    if(z->containsValue(v)) {
+                        tuples.push();
+                        tuples.last().push(va + startIndex);
+                        tuples.last().push(v);
+                    }
+                } else {
+                    for(int b : z->domain) {
+                        int  vb    = z->domain.toVal(b);
+                        bool valid = xc.op == LT   ? v < vb
+                                     : xc.op == LE ? v <= vb
+                                     : xc.op == GE ? v >= vb
+                                     : xc.op == GT ? v > vb
+                                                   : v != vb;
+                        if(valid) {
+                            tuples.push();
+                            tuples.last().push(va + startIndex);
+                            tuples.last().push(vb);
+                        }
+                    }
+                }
+            }
+        }
+        vec<Variable *> tmp;
+        tmp.push(x);
+        tmp.push(z);
+        FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
+        return;
+    }
+
     vector<XVariable *> aux;
     for(int value : list) {
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
