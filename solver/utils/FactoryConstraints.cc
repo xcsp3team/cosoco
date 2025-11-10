@@ -216,6 +216,10 @@ void FactoryConstraints::createConstraintXeqYleK(Problem *p, std::string name, V
     p->addConstraint(new XeqYleK(*p, name, x, y, k));
 }
 
+void FactoryConstraints::createConstraintXeqMinSubY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+    p->addConstraint(new XeqMinSubkYY(*p, name, x, y, k));
+}
+
 void FactoryConstraints::createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z,
                                            ExpressionType op) {
     assert(x != y && x != z && y != z);

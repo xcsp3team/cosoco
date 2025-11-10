@@ -75,6 +75,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         }
     }
     while(done == false) {
+        std::cout << "go \n";
         scope.clear();
         if(callbacks.startToParseObjective == false)
             tree->canonize();
@@ -153,16 +154,17 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         forceExtension = tree->arity() == 2;
 
         if(toExtension(id, tree, scope, forceExtension)) {
-            /*std::cout << "TO extension : " << tree->root->toString() << "   :   ";
-            Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
-            // std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
+            std::cout << "TO extension : " << tree->root->toString() << "   :   ";
+            // Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
+            //  std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
             for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
             std::cout << "\n\n\n";
-*/
 
             return;
         }
 
+        if(replaceSameNodes(tree))
+            continue;
 
         //----------------------------------------------------------------------------
         // decomposition
@@ -210,7 +212,7 @@ bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
     if(tree->arity() == 1)   // => objective see MultiAgen in XCSP22 for instance
         return false;
     bool modified = false;
-    // std::cout << "ici " << tree->root->toString() << "\n";
+    std::cout << "ici " << tree->root->toString() << "\n";
 
     if(tree->root->type == OEQ && (tree->root->parameters[0]->type == OVAR || tree->root->parameters[1]->type == OVAR)) {
         if(tree->root->parameters[0]->type == OVAR)
@@ -223,7 +225,71 @@ bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
         tree->listOfVariables.clear();
         extractVariables(tree->root, tree->listOfVariables);
     }
+    std::cout << "la " << tree->root->toString() << "\n";
+
     return modified;
+}
+
+/********************************************************************************************************************/
+
+void ManageIntension::internalNodes(Node *node, vec<InternNode> &list) {
+    int i = -1;
+    for(Node *n : node->parameters) {
+        i++;
+        if(n->type == OVAR || n->type == ODECIMAL)
+            continue;
+        list.push(InternNode(node, i));
+        internalNodes(n, list);
+    }
+}
+
+void ManageIntension::extractSameNodes(vec<InternNode> &list, vec<InternNode> &same) {
+    vec<bool> done;
+    done.growTo(list.size(), false);
+    for(int i = 0; i < list.size(); i++) {
+        if(done[i])
+            continue;
+        bool   isSame = false;
+        string first  = list[i].parent->parameters[list[i].index]->toString();
+        for(int j = i + 1; j < list.size(); j++) {
+            string second = list[j].parent->parameters[list[j].index]->toString();
+            if(first == second) {
+                if(same.size() > 0) {
+                    string initial = same[0].parent->parameters[same[0].index]->toString();
+                    if(initial == first) {
+                        isSame = true;
+                        same.push(InternNode(list[j].parent, list[j].index));
+                    }
+                } else {
+                    isSame = true;
+                    same.push(InternNode(list[j].parent, list[j].index));
+                }
+            }
+            if(isSame)
+                same.push(InternNode(list[i].parent, list[i].index));
+        }
+    }
+}
+
+bool ManageIntension::replaceSameNodes(XCSP3Core::Tree *tree) {
+    vec<InternNode>     list, same;
+    std::vector<Tree *> trees;
+    std::vector<string> auxiliaryVariables;
+    internalNodes(tree->root, list);
+    extractSameNodes(list, same);
+    if(same.size() == 0)
+        return false;
+
+    trees.push_back(new Tree(same[0].parent->parameters[same[0].index]));
+    callbacks.createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
+    delete trees[0];
+    trees.pop_back();
+    for(auto &n : same) n.parent->parameters[n.index] = new NodeVariable(auxiliaryVariables.back());
+    tree->listOfVariables.clear();
+    extractVariables(tree->root, tree->listOfVariables);
+    std::cout << "Apres " << tree->root->toString() << "\n";
+
+    return true;
 }
 
 /********************************************************************************************************************/
@@ -519,6 +585,20 @@ class PBinary9 : public Primitive {   // x=  (3 <= z)
     bool post() override {
         FactoryConstraints::createConstraintXeqYleK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
                                                     callbacks.problem->mapping[variables[0]], constants[0]);
+        return true;
+    }
+};
+
+class PBinary10 : public Primitive {   // x=  (3 <= z)
+   public:
+    explicit PBinary10(CosocoCallbacks &m) : Primitive(m, "eq(min(sub(665,y),y),x)", 2) { }
+
+
+    bool post() override {
+        if(variables.size() != 3 || variables[0] != variables[1])
+            return false;
+        FactoryConstraints::createConstraintXeqMinSubY(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+                                                       callbacks.problem->mapping[variables[0]], constants[0]);
         return true;
     }
 };
@@ -880,6 +960,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary7(callbacks));
     patterns.push(new PBinary8(callbacks));
     patterns.push(new PBinary9(callbacks));
+    patterns.push(new PBinary10(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));

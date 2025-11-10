@@ -86,6 +86,16 @@ class XeqAndY : public Constraint {
     bool      isSatisfiedBy(vec<int> &tuple) override;
     Variable *findSentinel(Variable *other);
 };
+
+
+class XeqMinSubkYY : public Binary {
+   public:
+    int k;
+    XeqMinSubkYY(Problem &p, std::string n, Variable *xx, Variable *yy, int kk);
+    bool isCorrectlyDefined() override;
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
 }   // namespace Cosoco
 
 

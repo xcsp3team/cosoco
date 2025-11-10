@@ -1779,7 +1779,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
             auxiliaryVariables.push_back(expressionsToAuxiliaryVariables[predicate]);
             continue;
         }
-
+        std::cout << "Creating auxiliary variable for " << predicate << std::endl;
         if(problem->mapping.find(predicate) == problem->mapping.end()) {   // This is a real expression
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
 

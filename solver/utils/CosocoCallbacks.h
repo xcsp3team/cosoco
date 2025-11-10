@@ -60,6 +60,12 @@ class Primitive {
     }
 };
 
+struct InternNode {
+   public:
+    XCSP3Core::Node *parent;
+    int              index;
+    InternNode(XCSP3Core::Node *_parent, int _index) : parent(_parent), index(_index) { }
+};
 
 class ManageIntension {
    public:
@@ -67,15 +73,19 @@ class ManageIntension {
     CosocoCallbacks          &callbacks;
     map<string, Constraint *> cachedExtensions;
     explicit ManageIntension(CosocoCallbacks &callbacks);
-    void  createPrimitives();
-    void  intension(std::string id, Tree *tree);
-    bool  recognizePrimitives(std::string id, Tree *tree);
-    bool  toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
-    bool  existInCacheExtension(string &expr, vec<Variable *> &scope);
-    bool  decompose(std::string id, Tree *tree);
-    bool  decompose(Node *node);
-    void  extractVariables(Node *node, vector<string> &listOfVariables);
-    Node *simplify(Node *node);
+    void        createPrimitives();
+    void        intension(std::string id, Tree *tree);
+    bool        recognizePrimitives(std::string id, Tree *tree);
+    bool        toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
+    bool        existInCacheExtension(string &expr, vec<Variable *> &scope);
+    bool        decompose(std::string id, Tree *tree);
+    bool        decompose(Node *node);
+    static void extractVariables(Node *node, vector<string> &listOfVariables);
+
+    bool        replaceSameNodes(Tree *tree);                                     // Replace same internal nodes
+    static void internalNodes(Node *node, vec<InternNode> &list);                 // Get all internal nodes
+    static void extractSameNodes(vec<InternNode> &list, vec<InternNode> &same);   // Extract same internal nodes
+    Node       *simplify(Node *node);
 };
 
 class Disj {
