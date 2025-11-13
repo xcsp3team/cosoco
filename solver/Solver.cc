@@ -88,7 +88,7 @@ Solver::Solver(Problem &p)
     if(options::stringOptions["var"].value == "frba")
         heuristicVar = new HeuristicVarFRBA(*this);
     if(options::stringOptions["var"].value == "robin")
-        heuristicVar = new HeuristicVarRoundRobin(*this);
+        heuristicVar = new HeuristicVarRoundRobin(*this, options::intOptions["rr"].value == 1 ? 1 : 10);
     if(heuristicVar == nullptr) {
         std::cerr << "unknown heuristic variable " << options::stringOptions["var"].value << "\n";
         exit(1);

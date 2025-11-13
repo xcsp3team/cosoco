@@ -11,11 +11,11 @@
 
 using namespace Cosoco;
 
-HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s) : HeuristicVar(s) {
+HeuristicVarRoundRobin::HeuristicVarRoundRobin(Cosoco::Solver &s, int nb) : HeuristicVar(s) {
     s.addObserverDeleteDecision(this);
 
     std::string sequence = "WPFC";
-    nbrestarts           = 10;
+    nbrestarts           = nb;
     for(auto c : sequence) {
         if(c == 'W')
             heuristics.push(new HeuristicVarDomWdeg(s));
