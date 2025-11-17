@@ -1105,7 +1105,6 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &mat
     if(startRowIndex != 0 || startColIndex != 0)
         throw runtime_error("Element int matrix with startRowIndex or StartColIndex !=0 not yet supported");
 
-
     vec<vec<int>>   tuples;
     vec<Variable *> vars;
     Variable       *row = problem->mapping[rowIndex->id];
@@ -1665,6 +1664,25 @@ void CosocoCallbacks::buildObjectiveMaximizeVariable(XVariable *x) {
 
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list) {
+    toMyVariables(list);
+    bool sumboolean = true;
+
+    if(type == SUM_O) {
+        toMyVariables(list);
+        for(Variable *x : vars)
+            if(x->minimum() != 0 || x->maximum() != 1) {
+                sumboolean = false;
+                break;
+            }
+        if(sumboolean) {
+            auto *po = dynamic_cast<OptimizationProblem *>(problem);
+            po->type = Minimize;
+            FactoryConstraints::createConstraintSumBooleanLE(problem, "objective", vars, INT_MAX);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+            po->addObjectiveUB(oc, true);
+            return;
+        }
+    }
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildObjectiveMinimize(type, list, coeffs);
@@ -1677,7 +1695,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
     if(type == SUM_O) {
         toMyVariables(list);
         for(Variable *x : vars)
-            if(x->domain.maxSize() > 2) {
+            if(x->minimum() != 0 || x->maximum() != 1) {
                 sumboolean = false;
                 break;
             }
@@ -1744,6 +1762,26 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) {
     toMyVariables(list, vars);
+    bool sumboolean = true;
+    if(type == SUM_O) {
+        for(Variable *x : vars)
+            if(x->minimum() != 0 || x->maximum() != 1) {
+                sumboolean = false;
+                break;
+            }
+        for(int l : origcoeffs)
+            if(l != 1)
+                sumboolean = false;
+        if(sumboolean) {
+            auto *po = dynamic_cast<OptimizationProblem *>(problem);
+            po->type = Minimize;
+            FactoryConstraints::createConstraintSumBooleanLE(problem, "objective", vars, INT_MAX);
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+            po->addObjectiveUB(oc, true);
+            return;
+        }
+    }
+
     buildObjectiveMinimize(type, vars, origcoeffs);
 }
 
@@ -1786,7 +1824,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
     if(type == SUM_O) {
         toMyVariables(list);
         for(Variable *x : vars)
-            if(x->domain.maxSize() > 2) {
+            if(x->minimum() != 0 || x->maximum() != 1) {
                 sumboolean = false;
                 break;
             }

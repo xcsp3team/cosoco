@@ -27,7 +27,7 @@ class SumBooleanEQ : public SumBoolean {
     bool filter(Variable *x) override;
 };
 
-class SumBooleanLE : public SumBoolean, ObjectiveConstraint {
+class SumBooleanLE : public SumBoolean, public ObjectiveConstraint {
    public:
     SumBooleanLE(Problem &p, std::string n, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
