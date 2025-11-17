@@ -79,6 +79,7 @@
 #include "primitives/LT.h"
 #include "primitives/xEqOryk.h"
 #include "utils/Verbose.h"
+#include "xAddyEqz.h"
 
 using namespace Cosoco;
 /// using namespace FactoryConstraints;
@@ -228,6 +229,11 @@ void FactoryConstraints::createConstraintXeqYleK(Problem *p, std::string name, V
 void FactoryConstraints::createConstraintXeqMinSubY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
     p->addConstraint(new XeqMinSubkYY(*p, name, x, y, k));
 }
+
+void FactoryConstraints::createConstraintAddEq3(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
+    p->addConstraint(new xAddyEQz(*p, name, x, y, z));
+}
+
 
 void FactoryConstraints::createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z,
                                            ExpressionType op) {

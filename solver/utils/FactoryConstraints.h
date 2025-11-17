@@ -63,6 +63,8 @@ void createConstraintXeqKleY(Problem *p, std::string name, Variable *x, Variable
 
 void createConstraintXeqYleK(Problem *p, std::string name, Variable *x, Variable *y, int k);
 
+void createConstraintAddEq3(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
+
 void createConstraintXeqMinSubY(Problem *p, std::string name, Variable *x, Variable *y, int k);
 
 void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op);

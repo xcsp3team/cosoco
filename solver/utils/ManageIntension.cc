@@ -615,6 +615,19 @@ class PBinary10 : public Primitive {   // x=  (3 <= z)
 };
 
 
+class PTernary0 : public Primitive {
+    // x = y + z
+   public:
+    explicit PTernary0(CosocoCallbacks &m) : Primitive(m, "eq(add(x,y),z)", 3) { }
+
+    bool post() override {
+        FactoryConstraints::createConstraintAddEq3(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+                                                   callbacks.problem->mapping[variables[2]],
+                                                   callbacks.problem->mapping[variables[0]]);
+        return true;
+    }
+};
+
 // x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
    public:
@@ -1015,6 +1028,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary8(callbacks));
     patterns.push(new PBinary9(callbacks));
     patterns.push(new PBinary10(callbacks));
+    patterns.push(new PTernary0(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PQuater1(callbacks));
