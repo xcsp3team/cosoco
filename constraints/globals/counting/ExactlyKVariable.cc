@@ -16,14 +16,6 @@ bool ExactlyKVariable::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
-bool ExactlyKVariable::isCorrectlyDefined() {
-    for(Variable *x : list)   // k is in the last position of scope
-        if(x->containsValue(value) == false)
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": ExactlyKVariable, all variables must contain value");
-    return true;
-}
-
-
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------

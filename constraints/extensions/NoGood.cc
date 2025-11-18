@@ -13,13 +13,11 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool NoGood::isSatisfiedBy(vec<int> &t) {
-    int nb = 0;
     for(int i = 0; i < tuple.size(); i++) {
-        if(tuple[i] != t[i])
-            break;
-        nb++;
+        if(scope[i]->domain.toVal(tuple[i]) != t[i])
+            return true;
     }
-    return nb != scope.size();
+    return false;
 }
 
 
