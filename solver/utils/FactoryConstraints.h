@@ -219,6 +219,8 @@ void createConstraintMinimumVariableEQ(Problem *p, std::string name, vec<Variabl
 
 void createConstraintMaximumVariableEQ(Problem *p, std::string name, vec<Variable *> &vars, Variable *value);
 
+void createConstraintMaximumArg(Problem *p, std::string name, vec<Variable *> &vars, Variable *index, RankType rank);
+
 //--------------------------------------------------------------------------------------
 // Packing constraints
 //--------------------------------------------------------------------------------------

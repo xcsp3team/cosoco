@@ -880,6 +880,22 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XC
     throw runtime_error("minimum over set is not yet supported");
 }
 
+void CosocoCallbacks::buildConstraintMaximumArg(string id, vector<XVariable *> &list, RankType rank, XCondition &xc) {
+    if(xc.op != EQ || xc.operandType != VARIABLE)
+        throw runtime_error("maximum arg with condition != (eq,x) not yet implemented");
+    FactoryConstraints::createConstraintMaximumArg(problem, id, toMyVariables(list), problem->mapping[xc.var], rank);
+}
+
+
+void CosocoCallbacks::buildConstraintMaximumArg(string id, vector<Tree *> &list, RankType rank, XCondition &xc) {
+    vector<string> auxiliaryVariables;
+    insideGroup = false;
+    createAuxiliaryVariablesAndExpressions(list, auxiliaryVariables);
+    vector<XVariable *> xvars;
+    for(auto &auxiliaryVariable : auxiliaryVariables) xvars.push_back(new XVariable(auxiliaryVariable, nullptr));   // ugly
+    buildConstraintMaximumArg(id, xvars, rank, xc);
+}
+
 void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) {
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {

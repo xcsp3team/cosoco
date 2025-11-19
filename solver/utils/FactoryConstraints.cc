@@ -25,6 +25,7 @@
 #include "DisjunctiveVars.h"
 #include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
+#include "MaximumArg.h"
 #include "NValuesGEK.h"
 #include "Options.h"
 #include "Precedence.h"
@@ -904,6 +905,10 @@ void FactoryConstraints::createConstraintMaximumVariableEQ(Problem *p, std::stri
         p->addConstraint(new MaximumVariableEQ(*p, name, vars, value));
 }
 
+void FactoryConstraints::createConstraintMaximumArg(Problem *p, std::string name, vec<Variable *> &vars, Variable *index,
+                                                    RankType rank) {
+    p->addConstraint(new MaximumArg(*p, name, vars, index, rank));
+}
 
 //--------------------------------------------------------------------------------------
 // Packing constraints

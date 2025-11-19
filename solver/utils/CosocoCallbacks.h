@@ -428,6 +428,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) override;
 
+    void buildConstraintMaximumArg(string id, vector<Tree *> &list, RankType rank, XCondition &xc) override;
+
+    void buildConstraintMaximumArg(string id, vector<XVariable *> &list, RankType rank, XCondition &xc) override;
+
+
     void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override;
 
     void buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) override;
