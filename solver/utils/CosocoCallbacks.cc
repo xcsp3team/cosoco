@@ -1050,6 +1050,15 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVari
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
                                              XCondition &xc) {
+    if(xc.op == IN) {
+        assert(xc.operandType == SET);
+        string           auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        std::vector<int> tmp(xc.set.begin(), xc.set.end());
+        buildVariableInteger(auxVar, tmp);
+        xc.op          = EQ;
+        xc.operandType = VARIABLE;
+        xc.var         = auxVar;
+    }
     if(xc.op == EQ) {
         if(xc.operandType == INTEGER) {
             buildConstraintElement(id, list, startIndex, index, ANY, xc.val);
