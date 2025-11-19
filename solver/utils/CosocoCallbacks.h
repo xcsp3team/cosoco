@@ -461,7 +461,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex, XVariable *rowIndex,
                                 int startColIndex, XVariable *colIndex, XVariable *value) override;
 
-
+    void buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
+                                int value) override;
     void buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
                                 int startIndex2) override;
 

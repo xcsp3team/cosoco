@@ -1156,6 +1156,19 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &mat
     FactoryConstraints::createConstraintExtension(problem, id, vars, tuples, true, false);
 }
 
+void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
+                                             int value) {
+    Variable *x = problem->mapping[index->id];
+    vec<int>  values;
+    for(int idv : x->domain) {
+        int tmp = x->domain.toVal(idv) + startIndex;
+        if(tmp >= 0 && tmp < list.size() && list[tmp] == value)
+            values.push(idv);
+    }
+
+    FactoryConstraints::createConstraintUnary(problem, id, x, values, true);
+}
+
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex,
                                              XVariable *rowIndex, int startColIndex, XVariable *colIndex, int value) {
