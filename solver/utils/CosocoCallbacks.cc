@@ -1428,6 +1428,18 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
     }*/
 }
 
+void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<XVariable *> &varLengths,
+                                               vector<int> &intLengths, bool zeroIgnored) {
+    vector<vector<XVariable *>> lengths;
+    for(int i = 0; i < varLengths.size(); i++) {
+        lengths.push_back(vector<XVariable *>());
+        lengths.back().push_back(varLengths[i]);
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        buildVariableInteger(auxVar, intLengths[i], intLengths[i]);
+        lengths.back().push_back(new XVariable(auxVar, NULL));
+    }
+    buildConstraintNoOverlap(id, origins, lengths, zeroIgnored);
+}
 
 void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths,
                                                 vector<int> &heights, XCondition &xc) {

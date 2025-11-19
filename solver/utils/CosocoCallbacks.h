@@ -481,6 +481,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<int>> &lengths,
                                   bool zeroIgnored) override;
 
+    void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<XVariable *> &varLengths,
+                                  vector<int> &intLengths, bool zeroIgnored) override;
+
     void buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths, vector<int> &heights,
                                    XCondition &xc) override;
 
