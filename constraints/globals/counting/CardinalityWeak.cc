@@ -34,7 +34,7 @@ void CardinalityWeak::clear() {
 }
 
 //----------------------------------------------
-// Check validity and correct definition
+// Filtering
 //----------------------------------------------
 
 

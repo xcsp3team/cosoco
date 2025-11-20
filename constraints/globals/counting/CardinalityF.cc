@@ -11,7 +11,7 @@ using namespace Cosoco;
 
 #define OFFSET(i) ((i) - offset)
 
-bool CardinalityF::isSatisfiedBy(vec<int> &tuple) {
+bool AbstractCardinalityF::isSatisfiedBy(vec<int> &tuple) {
     /*clear();
     for(int v : tuple) {
         if(data.find(v) == data.end())
@@ -27,14 +27,21 @@ bool CardinalityF::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
-bool CardinalityF::isCorrectlyDefined() { return true; }
+bool AbstractCardinalityF::isCorrectlyDefined() { return true; }
 
-void CardinalityF::init() {
-    valueToCompute.clear();
+//----------------------------------------------
+// Filtering
+//----------------------------------------------
+
+
+void AbstractCardinalityF::init(bool full) {
+    if(full)
+        valueToCompute.clear();
     for(int i = 0; i < values.size(); i++) {
         mandatories[i].clear();
         possibles[i].clear();
-        valueToCompute.add(i);
+        if(full)
+            valueToCompute.add(i);
     }
 
     for(int i = 0; i < vars.size(); i++) {
@@ -53,34 +60,21 @@ void CardinalityF::init() {
     }
 }
 
-//----------------------------------------------
-// Check validity and correct definition
-//----------------------------------------------
 
-bool CardinalityF::filter(Variable *dummy) {
+bool AbstractCardinalityF::filter(Variable *dummy) {
+    init(true);
     while(true) {
         int status = doFiltering();
         if(status == -1)
             return false;
         if(status == 0)
             break;
-        for(int v : valueToCompute) {
-            for(int posx : reverse(possibles[v])) {
-                if(vars[posx]->containsValue(v) == false) {
-                    possibles[v].del(posx);
-
-                } else if(vars[posx]->isAssigned()) {
-                    possibles[v].del(posx);
-                    mandatories[v].add(posx);
-                }
-            }
-        }
+        init(false);
     }
     return true;
 }
 
 int CardinalityF::doFiltering() {
-    init();
     bool again = false;
     for(int i : reverse(valueToCompute)) {
         int szBefore = occurs[i]->size();
@@ -96,13 +90,10 @@ int CardinalityF::doFiltering() {
         if(occurs[i]->isAssigned()) {
             if(possibles[i].size() + mandatories[i].size() == occurs[i]->value()) {
                 for(int j : possibles[i]) {
-                    mandatories[i].add(j);
                     again |= vars[j]->size() > 1;
                     if(solver->assignToVal(vars[j], values[i]) == false)
                         return -1;
                 }
-                possibles[i].clear();
-                valueToCompute.del(i);   // value[i] restriction entailed
             } else if(mandatories[i].size() == occurs[i]->value()) {
                 for(int j : possibles[i]) {
                     int szBefore = vars[j]->size();
@@ -110,8 +101,6 @@ int CardinalityF::doFiltering() {
                         return -1;
                     again |= (vars[j]->size() < szBefore);
                 }
-                possibles[i].clear();
-                valueToCompute.del(i);   // value[i] restriction entailed
             }
         }
     }
@@ -120,15 +109,47 @@ int CardinalityF::doFiltering() {
 }
 
 
+int CardinalityInt::doFiltering() {
+    bool again = false;
+    for(int i : reverse(valueToCompute)) {
+        if(mandatories[i].size() > occurs[i])
+            return -1;
+        if(mandatories[i].size() + possibles[i].size() < occurs[i])
+            return -1;
+
+
+        if(possibles[i].size() + mandatories[i].size() == occurs[i]) {
+            if(possibles[i].size() > 0)
+                valueToCompute.del(i);
+
+            for(int j : possibles[i]) {
+                again |= vars[j]->size() > 1;
+                if(solver->assignToVal(vars[j], values[i]) == false)
+                    return -1;
+            }
+        } else if(mandatories[i].size() == occurs[i]) {
+            valueToCompute.del(i);
+            for(int j : possibles[i]) {
+                int szBefore = vars[j]->size();
+                if(solver->delVal(vars[j], values[i]) == false)
+                    return -1;
+                again |= (vars[j]->size() < szBefore);
+            }
+        }
+    }
+    return again;
+}
+
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
-    : GlobalConstraint(p, n, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
+
+AbstractCardinalityF::AbstractCardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &v)
+    : GlobalConstraint(p, n, "Cardinality F", 0) {
     isPostponable = true;
     _vars.copyTo(vars);
-    o.copyTo(occurs);
+    addToScope(vars);
     v.copyTo(values);
     valueToCompute.setCapacity(values.size(), false);
     possibles.growTo(values.size());
@@ -150,4 +171,17 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
     offset  = min;
     int idx = 0;
     for(int v1 : values) values2indexes[OFFSET(v1)] = idx++;
+}
+
+CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<Variable *> &o)
+    : AbstractCardinalityF(p, n, vars, v) {
+    o.copyTo(occurs);
+    addToScope(o);
+}
+
+CardinalityInt::CardinalityInt(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &o)
+    : AbstractCardinalityF(p, n, vars, v) {
+    for(int i : values) std::cout << i << " ";
+
+    o.copyTo(occurs);
 }

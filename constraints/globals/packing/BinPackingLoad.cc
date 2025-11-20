@@ -24,7 +24,7 @@ bool BinPackingLoad::isSatisfiedBy(vec<int> &tuple) {
 
 
 //----------------------------------------------
-// Filrtering
+// Filtering
 //----------------------------------------------
 
 bool BinPackingLoad::filter(Variable *x) {

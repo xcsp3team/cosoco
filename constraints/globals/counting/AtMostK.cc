@@ -28,7 +28,7 @@ bool AtMostK::isCorrectlyDefined() {
 }
 
 //----------------------------------------------
-// Check validity and correct definition
+// Filtering
 //----------------------------------------------
 
 bool AtMostK::filter(Variable *x) {

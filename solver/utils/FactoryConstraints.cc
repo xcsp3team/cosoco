@@ -738,6 +738,10 @@ void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, std::st
     p->addConstraint(new CardinalityF(*p, name, vars, values, occurs));
 }
 
+void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, std::string name, vec<Cosoco::Variable *> &vars,
+                                                     vec<int> &values, vec<int> &occurs) {
+    p->addConstraint(new CardinalityInt(*p, name, vars, values, occurs));
+}
 
 void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
                                                      vec<Occurs> &occurs) {
