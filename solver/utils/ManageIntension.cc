@@ -780,6 +780,15 @@ class PNary1 : public FakePrimitive {
                 nodes.push(new BasicNodeVar(x));
                 continue;
             }
+            if(n->type == OLE && n->parameters[1]->type == OVAR && n->parameters[0]->type == ODECIMAL) {
+                auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[1]);
+                auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[0]);
+                Variable  *x   = callbacks.problem->mapping[nv2->var];
+                BasicNode *tmp = new BasicNodeGe(x, nc2->val);
+                vars.push(x);
+                nodes.push(tmp);
+                continue;
+            }
             auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
             auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
             Variable  *x   = callbacks.problem->mapping[nv2->var];
@@ -788,15 +797,23 @@ class PNary1 : public FakePrimitive {
                 tmp = new BasicNodeEq(x, nc2->val);
             if(n->type == ONE)
                 tmp = new BasicNodeNe(x, nc2->val);
+            if(n->type == OLE && n->parameters[0]->type == OVAR)
+                tmp = new BasicNodeLe(x, nc2->val);
+
             vars.push(x);
             nodes.push(tmp);
         }
     }
 
-    bool matchParams(vector<Node *> parameters) {
+    static bool matchParams(const vector<Node *> &parameters) {
         for(Node *n : parameters) {
             if(n->type == OVAR)
                 continue;
+            if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)
+                continue;
+            if(n->type == OLE && n->parameters[0]->type == ODECIMAL && n->parameters[1]->type == OVAR)
+                continue;
+
             if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
                 return false;
         }

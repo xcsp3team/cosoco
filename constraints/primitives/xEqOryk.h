@@ -54,6 +54,28 @@ class BasicNodeNe : public BasicNode {
     bool setFalse(Solver *solver) override { return solver->assignToVal(x, v); }
 };
 
+class BasicNodeLe : public BasicNode {   // le(x,10)
+   public:
+    int v;
+    BasicNodeLe(Variable *xx, int vv) : BasicNode(xx), v(vv) { }
+    int  value() override { return x->value(); }
+    int  minimum() override { return x->maximum() <= v; }
+    int  maximum() override { return x->minimum() > v ? 0 : 1; }
+    bool setTrue(Solver *solver) override { return solver->delValuesGreaterOrEqualThan(x, v + 1); }
+    bool setFalse(Solver *solver) override { return solver->delValuesLowerOrEqualThan(x, v); }
+};
+
+class BasicNodeGe : public BasicNode {   // le(x,10)
+   public:
+    int v;
+    BasicNodeGe(Variable *xx, int vv) : BasicNode(xx), v(vv) { }
+    int  value() override { return x->value(); }
+    int  minimum() override { return x->minimum() >= v; }
+    int  maximum() override { return x->maximum() < v ? 0 : 1; }
+    bool setTrue(Solver *solver) override { return solver->delValuesLowerOrEqualThan(x, v - 1); }
+    bool setFalse(Solver *solver) override { return solver->delValuesGreaterOrEqualThan(x, v); }
+};
+
 class xEqGenOr : public GlobalConstraint {
     Variable        *result;
     vec<BasicNode *> nodes;
