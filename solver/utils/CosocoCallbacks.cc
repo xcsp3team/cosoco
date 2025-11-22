@@ -513,7 +513,25 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
     bool   varCondition = xc.operandType == VARIABLE;
     vector2vec(coeffs);
     vec<Variable *> tmpVars;
+    if(xc.operandType == INTEGER) {
+        bool sumboolean = true;
+        for(int i = 0; i < coeffs.size(); i++) {
+            if(coeffs[i] != 1 || variables[i]->isBoolean() == false) {
+                sumboolean = false;
+                break;
+            }
+        }
 
+        if(sumboolean) {
+            if(xc.op == EQ)
+                FactoryConstraints::createConstraintSumBooleanEQ(problem, id, variables, xc.val);
+            if(xc.op == LE || xc.op == LT)
+                FactoryConstraints::createConstraintSumBooleanLE(problem, id, variables, xc.op == LE ? xc.val : xc.val - 1);
+            if(xc.op == GE || xc.op == GT)
+                FactoryConstraints::createConstraintSumBooleanGE(problem, id, variables, xc.op == GE ? xc.val : xc.val + 1);
+            return;
+        }
+    }
     variables.copyTo(tmpVars);
     if(varCondition) {
         xc.operandType = INTEGER;
