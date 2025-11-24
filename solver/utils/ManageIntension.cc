@@ -76,7 +76,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         }
     }
     while(done == false) {
-        std::cout << "go \n";
+        std::cout << "go : " << tree->root->toString() << "\n";
         scope.clear();
         if(callbacks.startToParseObjective == false)
             tree->canonize();

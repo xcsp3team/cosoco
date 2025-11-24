@@ -1091,6 +1091,48 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVari
     buildConstraintElement(id, aux, index, startIndex, xc);
 }
 
+void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex,
+                                             int startColIndex, XVariable *colIndex, XCondition &xc) {
+    if(xc.operandType == INTEGER) {
+        vec<Variable *> tmp;
+        Variable       *x = problem->mapping[rowIndex->id];
+        Variable       *y = problem->mapping[colIndex->id];
+        vec<vec<int>>   tuples;
+
+        tmp.push(x);
+        tmp.push(y);
+        for(int idvx : x->domain) {
+            int vx = x->domain.toVal(idvx) + startRowIndex;
+            for(int idvy : y->domain) {
+                int  vy   = y->domain.toVal(idvy) + startColIndex;
+                bool todo = false;
+                if(xc.op == EQ && matrix[vx][vy] == xc.val)
+                    todo = true;
+                if(xc.op == LE && matrix[vx][vy] <= xc.val)
+                    todo = true;
+                if(xc.op == LT && matrix[vx][vy] < xc.val)
+                    todo = true;
+                if(xc.op == GE && matrix[vx][vy] >= xc.val)
+                    todo = true;
+                if(xc.op == GT && matrix[vx][vy] > xc.val)
+                    todo = true;
+                if(xc.op == NE && matrix[vx][vy] != xc.val)
+                    todo = true;
+                if(todo) {
+                    tuples.push();
+                    tuples.last().push(vx - startRowIndex);
+                    tuples.last().push(vy - startColIndex);
+                }
+            }
+        }
+        FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
+        return;
+    }
+
+    throw runtime_error("c element with matrix constraint is not yet supported ");
+}
+
+
 void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
                                              XCondition &xc) {
     if(xc.op == IN) {

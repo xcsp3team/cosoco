@@ -306,7 +306,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                                   bool hasStar) override;
 
 
-    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar);
+    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
 
     void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples, bool support,
                                    bool hasStar) const;
@@ -463,6 +463,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
                                 int value) override;
+
+    void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex, int startColIndex,
+                                XVariable *colIndex, XCondition &xc) override;
+
     void buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
                                 int startIndex2) override;
 
