@@ -26,6 +26,7 @@
 #include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
 #include "MaximumArg.h"
+#include "MinimumConstantEQ.h"
 #include "NValuesGEK.h"
 #include "Options.h"
 #include "Precedence.h"
@@ -879,6 +880,10 @@ void FactoryConstraints::createConstraintMinimumLE(Problem *p, std::string name,
 
 void FactoryConstraints::createConstraintMinimumGE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
     p->addConstraint(new MinimumConstantGE(*p, name, vars, k));
+}
+
+void FactoryConstraints::createConstraintMinimumEQ(Problem *p, std::string name, vec<Variable *> &vars, int k) {
+    p->addConstraint(new MinimumConstantEQ(*p, name, vars, k));
 }
 
 

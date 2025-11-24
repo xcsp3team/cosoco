@@ -214,6 +214,7 @@ void createConstraintMaximumGE(Problem *p, std::string name, vec<Variable *> &va
 void createConstraintMinimumLE(Problem *p, std::string name, vec<Variable *> &vars, int k);
 
 void createConstraintMinimumGE(Problem *p, std::string name, vec<Variable *> &vars, int k);
+void createConstraintMinimumEQ(Problem *p, std::string name, vec<Variable *> &vars, int k);
 
 void createConstraintMinimumVariableEQ(Problem *p, std::string name, vec<Variable *> &vars, Variable *value);
 

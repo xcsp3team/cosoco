@@ -935,7 +935,10 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &lis
             FactoryConstraints::createConstraintMaximumGE(problem, id, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
-        buildConstraintIntension(id, new XCSP3Core::Tree(createExpression("max", xc.op, list, std::to_string(xc.val))));
+
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        buildVariableInteger(auxVar, xc.val, xc.val);
+        FactoryConstraints::createConstraintMaximumVariableEQ(problem, id, vars, problem->mapping[auxVar]);
         return;
     }
     // Interval
@@ -966,7 +969,13 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
             FactoryConstraints::createConstraintMinimumGE(problem, id, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
-        buildConstraintIntension(id, new XCSP3Core::Tree(createExpression("min", xc.op, list, std::to_string(xc.val))));
+        FactoryConstraints::createConstraintMinimumEQ(problem, id, vars, xc.val);
+        // string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        // buildVariableInteger(auxVar, xc.val, xc.val);
+        // FactoryConstraints::createConstraintMinimumVariableEQ(problem, id, vars, problem->mapping[auxVar]);
+        //  Tree *tmp = new Tree(createExpression("min", xc.op, list, std::to_string(xc.val)));
+        //  tmp->prefixe();
+        //  buildConstraintIntension(id, new XCSP3Core::Tree(createExpression("min", xc.op, list, std::to_string(xc.val))));
         return;
     }
     /// Interval
