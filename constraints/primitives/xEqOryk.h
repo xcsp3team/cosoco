@@ -76,6 +76,38 @@ class BasicNodeGe : public BasicNode {   // le(x,10)
     bool setFalse(Solver *solver) override { return solver->delValuesGreaterOrEqualThan(x, v); }
 };
 
+class BasicNodeIn : public BasicNode {   // le(x,10)
+   public:
+    vec<int> elements;
+    BasicNodeIn(Variable *xx, vec<int> &s) : BasicNode(xx) { s.copyTo(elements); }
+    int value() override { return x->value(); }
+    int minimum() override {
+        for(int idv : x->domain)
+            if(elements.contains(x->domain.toVal(idv)) == false)
+                return 0;
+        return 1;
+    }
+    int maximum() override {
+        for(int v : elements)
+            if(x->containsValue(v))
+                return 1;
+        return 0;
+    }
+    bool setTrue(Solver *solver) override {
+        for(int idv : x->domain)
+            if(elements.contains(x->domain.toVal(idv)) == false && solver->delIdv(x, idv) == false)
+                return false;
+        return true;
+    }
+    bool setFalse(Solver *solver) override {
+        for(int v : elements)
+            if(solver->delVal(x, v) == false)
+                return false;
+        return true;
+    }
+};
+
+// in(sk[50][2],set(1,2,4))
 class xEqGenOr : public GlobalConstraint {
     Variable        *result;
     vec<BasicNode *> nodes;

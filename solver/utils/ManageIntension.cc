@@ -789,6 +789,22 @@ class PNary1 : public FakePrimitive {
                 nodes.push(tmp);
                 continue;
             }
+            std::cout << (n->type == OIN) << std::endl;
+            if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET) {
+                auto     *nv1 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+                auto     *ns2 = dynamic_cast<NodeSet *>(n->parameters[1]);
+                Variable *x   = callbacks.problem->mapping[nv1->var];
+                vec<int>  tmp2;
+                for(unsigned int i = 0; i < ns2->parameters.size(); i++) {
+                    NodeConstant *nc = dynamic_cast<NodeConstant *>(ns2->parameters[i]);
+                    tmp2.push(nc->val);
+                }
+                BasicNode *tmp = new BasicNodeIn(x, tmp2);
+                vars.push(x);
+                nodes.push(tmp);
+                continue;
+            }
+
             auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
             auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
             Variable  *x   = callbacks.problem->mapping[nv2->var];
@@ -813,7 +829,8 @@ class PNary1 : public FakePrimitive {
                 continue;
             if(n->type == OLE && n->parameters[0]->type == ODECIMAL && n->parameters[1]->type == OVAR)
                 continue;
-
+            if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET)
+                continue;
             if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
                 return false;
         }
