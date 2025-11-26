@@ -266,6 +266,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         }
     }
 
+    void createArrays(vector<Node *> &parameters, vec<Variable *> &vars, vec<BasicNode *> &nodes);
+
+    bool matchParams(const vector<Node *> &parameters);
+
     void beginInstance(InstanceType type) override;
 
     void endInstance() override;

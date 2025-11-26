@@ -559,6 +559,23 @@ void FactoryConstraints::createConstraintSumBooleanGE(Problem *p, std::string na
     p->addConstraint(new SumBooleanGE(*p, name, vars, value));
 }
 
+void FactoryConstraints::createConstraintSumBooleanNodesEQ(Problem *p, std::string name, vec<Variable *> &vars,
+                                                           vec<BasicNode *> &_nodes, long value) {
+    p->addConstraint(new SumBooleanNodesEQ(*p, name, vars, _nodes, value));
+}
+
+
+void FactoryConstraints::createConstraintSumBooleanNodesLE(Problem *p, std::string name, vec<Variable *> &vars,
+                                                           vec<BasicNode *> &_nodes, long value) {
+    p->addConstraint(new SumBooleanNodesLE(*p, name, vars, _nodes, value));
+}
+
+
+void FactoryConstraints::createConstraintSumBooleanNodesGE(Problem *p, std::string name, vec<Variable *> &vars,
+                                                           vec<BasicNode *> &_nodes, long value) {
+    p->addConstraint(new SumBooleanNodesGE(*p, name, vars, _nodes, value));
+}
+
 void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {   // x+y=z
     vec<Variable *> vars;
     vec<int>        coeffs;

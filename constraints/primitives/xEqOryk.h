@@ -19,6 +19,7 @@ class BasicNode {
     virtual int  maximum()                = 0;
     virtual bool setFalse(Solver *solver) = 0;
     virtual bool setTrue(Solver *solver)  = 0;
+    int          size() { return (minimum() == 0 && maximum() == 1) ? 2 : 1; }
 };
 
 class BasicNodeEq : public BasicNode {

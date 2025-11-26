@@ -135,6 +135,13 @@ void createConstraintSumBooleanLE(Problem *p, std::string name, vec<Variable *> 
 
 void createConstraintSumBooleanGE(Problem *p, std::string name, vec<Variable *> &vars, long value);
 
+
+void createConstraintSumBooleanNodesEQ(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &_nodes, long value);
+
+void createConstraintSumBooleanNodesLE(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &_nodes, long value);
+
+void createConstraintSumBooleanNodesGE(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &_nodes, long value);
+
 void createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
 
 

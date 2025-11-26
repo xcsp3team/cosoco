@@ -5,6 +5,76 @@
 
 using namespace Cosoco;
 
+void CosocoCallbacks::createArrays(vector<Node *> &parameters, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    for(Node *n : parameters) {
+        if(n->type == OVAR) {
+            auto     *nv2 = dynamic_cast<NodeVariable *>(n);
+            Variable *x   = problem->mapping[nv2->var];
+            if(vars.contains(x) == false)
+                vars.push(x);
+            nodes.push(new BasicNodeVar(x));
+            continue;
+        }
+        if(n->type == OLE && n->parameters[1]->type == OVAR && n->parameters[0]->type == ODECIMAL) {
+            auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[1]);
+            auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[0]);
+            Variable  *x   = problem->mapping[nv2->var];
+            BasicNode *tmp = new BasicNodeGe(x, nc2->val);
+            if(vars.contains(x) == false)
+                vars.push(x);
+            nodes.push(tmp);
+            continue;
+        }
+        std::cout << (n->type == OIN) << std::endl;
+        if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET) {
+            auto     *nv1 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+            auto     *ns2 = dynamic_cast<NodeSet *>(n->parameters[1]);
+            Variable *x   = problem->mapping[nv1->var];
+            vec<int>  tmp2;
+            for(unsigned int i = 0; i < ns2->parameters.size(); i++) {
+                NodeConstant *nc = dynamic_cast<NodeConstant *>(ns2->parameters[i]);
+                tmp2.push(nc->val);
+            }
+            BasicNode *tmp = new BasicNodeIn(x, tmp2);
+            if(vars.contains(x) == false)
+                vars.push(x);
+            nodes.push(tmp);
+            continue;
+        }
+
+        auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+        auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
+        Variable  *x   = problem->mapping[nv2->var];
+        BasicNode *tmp = nullptr;
+        if(n->type == OEQ)
+            tmp = new BasicNodeEq(x, nc2->val);
+        if(n->type == ONE)
+            tmp = new BasicNodeNe(x, nc2->val);
+        if(n->type == OLE && n->parameters[0]->type == OVAR)
+            tmp = new BasicNodeLe(x, nc2->val);
+
+        if(vars.contains(x) == false)
+            vars.push(x);
+        nodes.push(tmp);
+    }
+}
+
+bool CosocoCallbacks::matchParams(const vector<Node *> &parameters) {
+    for(Node *n : parameters) {
+        if(n->type == OVAR)
+            continue;
+        if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)
+            continue;
+        if(n->type == OLE && n->parameters[0]->type == ODECIMAL && n->parameters[1]->type == OVAR)
+            continue;
+        if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET)
+            continue;
+        if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
+            return false;
+    }
+    return true;
+}
+
 void CosocoCallbacks::beginInstance(InstanceType type) {
     problem                        = type == CSP ? new Problem("") : new OptimizationProblem("");
     optimizationProblem            = type == COP;
@@ -616,8 +686,32 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCond
 
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vector<int> &coefs, XCondition &cond) {
-    vector<string> auxiliaryVariables;
     insideGroup = false;
+
+    int all1 = true;
+    for(int i : coefs)
+        if(i != 1)
+            all1 = false;
+    if(cond.operandType == INTEGER && all1 && cond.op != IN && cond.op != NOTIN && cond.op != NE) {
+        vector<Node *> nodes;
+        for(Tree *t : trees) nodes.push_back(t->root);
+        if(matchParams(nodes)) {
+            vec<BasicNode *> basicNodes;
+            createArrays(nodes, vars, basicNodes);
+            if(cond.op == EQ)
+                FactoryConstraints::createConstraintSumBooleanNodesEQ(problem, id, vars, basicNodes, cond.val);
+            if(cond.op == LE)
+                FactoryConstraints::createConstraintSumBooleanNodesLE(problem, id, vars, basicNodes, cond.val);
+            if(cond.op == LT)
+                FactoryConstraints::createConstraintSumBooleanNodesLE(problem, id, vars, basicNodes, cond.val - 1);
+            if(cond.op == GE)
+                FactoryConstraints::createConstraintSumBooleanNodesGE(problem, id, vars, basicNodes, cond.val);
+            if(cond.op == GT)
+                FactoryConstraints::createConstraintSumBooleanNodesGE(problem, id, vars, basicNodes, cond.val + 1);
+            return;
+        }
+    }
+    vector<string> auxiliaryVariables;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
     // Create the new objective
     // core duplication is here

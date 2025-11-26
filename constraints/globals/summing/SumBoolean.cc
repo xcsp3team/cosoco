@@ -35,6 +35,34 @@ bool SumBoolean::isCorrectlyDefined() {
 
 bool SumBooleanGE::isSatisfiedBy(vec<int>& tuple) { return sum(tuple) >= limit; }
 
+
+bool SumBooleanNodesEQ::isSatisfiedBy(vec<int>& tuple) {
+    return true;
+    int cnt = 0;
+    for(int v : tuple)
+        if(v == 1)
+            cnt++;
+    return cnt == limit;
+}
+
+bool SumBooleanNodesLE::isSatisfiedBy(vec<int>& tuple) {
+    return true;
+    return sum(tuple) <= limit;
+}
+
+bool SumBooleanNodes::isCorrectlyDefined() {
+    for(Variable* x : scope)
+        if(x->size() != 2)
+            return false;
+    return true;
+}
+
+bool SumBooleanNodesGE::isSatisfiedBy(vec<int>& tuple) {
+    return true;
+    return sum(tuple) >= limit;
+}
+
+
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
@@ -44,6 +72,8 @@ long SumBoolean::sum(vec<int>& tuple) {
     for(int v : tuple) sum += v;
     return sum;
 }
+
+long SumBooleanNodes::sum(vec<int>& tuple) { assert(false); }
 
 bool SumBooleanEQ::filter(Variable* dummy) {
     int cnt0 = 0, cnt1 = 0;
@@ -125,6 +155,89 @@ bool SumBooleanGE::filter(Variable* dummy) {
 }
 
 
+bool SumBooleanNodesEQ::filter(Variable* dummy) {
+    int cnt0 = 0, cnt1 = 0;
+    for(BasicNode* n : nodes)
+        if(n->size() == 1) {
+            if(n->maximum() == 0)
+                cnt0++;
+            else
+                cnt1++;
+        }
+
+    int diff = scope.size() - cnt0 - cnt1;
+    if(cnt1 > limit || cnt1 + diff < limit)
+        return false;
+    if(cnt1 < limit && cnt1 + diff > limit)
+        return true;
+    // at this point, either cnt1 == limit, and we have to remove all 1s or cnt1 + diff == limit, and we have to remove all 0s
+    int v = cnt1 == limit ? 1 : 0;
+    for(BasicNode* n : nodes) {
+        if(n->size() != 1) {
+            if(v == 0)
+                n->setTrue(solver);
+            else
+                n->setFalse(solver);
+        }
+    }
+    return solver->entail(this);
+}
+
+bool SumBooleanNodesLE::filter(Variable* dummy) {
+    int cnt0 = 0, cnt1 = 0;
+    for(BasicNode* n : nodes)
+        if(n->size() == 1) {
+            if(n->maximum() == 0)
+                cnt0++;
+            else
+                cnt1++;
+        }
+    if(cnt1 > limit)
+        return false;
+
+    int diff = scope.size() - cnt0 - cnt1;
+    if(cnt1 + diff <= limit)
+        return solver->entail(this);
+
+    if(cnt1 == limit) {
+        for(BasicNode* n : nodes) {
+            if(n->size() != 1)
+                n->setFalse(solver);
+        }
+        return solver->entail(this);
+    }
+    return true;
+}
+
+bool SumBooleanNodesGE::filter(Variable* dummy) {
+    int cnt0 = 0, cnt1 = 0;
+    for(BasicNode* n : nodes)
+        if(n->size() == 1) {
+            if(n->maximum() == 0)
+                cnt0++;
+            else
+                cnt1++;
+        }
+
+    int diff = scope.size() - cnt0 - cnt1;
+
+    if(cnt1 >= limit)
+        return solver->entail(this);
+
+
+    if(cnt1 + diff < limit)
+        return false;
+
+    if(cnt1 + diff == limit) {
+        for(BasicNode* n : nodes) {
+            if(n->size() != 1)
+                n->setTrue(solver);
+        }
+        return solver->entail(this);
+    }
+    return true;
+}
+
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -143,6 +256,28 @@ SumBooleanLE::SumBooleanLE(Problem& p, std::string n, vec<Variable*>& vars, long
 
 SumBooleanGE::SumBooleanGE(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
     type = "Sum Boolean GE";
+}
+
+
+SumBooleanNodes::SumBooleanNodes(Problem& p, std::string n, vec<Variable*>& vars, vec<BasicNode*>& _nodes, long l)
+    : GlobalConstraint(p, n, "Sum", vars), limit(l) {
+    isPostponable = true;
+    _nodes.copyTo(nodes);
+}
+
+SumBooleanNodesEQ::SumBooleanNodesEQ(Problem& p, std::string n, vec<Variable*>& vars, vec<BasicNode*>& _nodes, long l)
+    : SumBooleanNodes(p, n, vars, _nodes, l) {
+    type = "Sum Boolean Nodes EQ";
+}
+
+SumBooleanNodesLE::SumBooleanNodesLE(Problem& p, std::string n, vec<Variable*>& vars, vec<BasicNode*>& _nodes, long l)
+    : SumBooleanNodes(p, n, vars, _nodes, l) {
+    type = "Sum Boolean Nodes LE";
+}
+
+SumBooleanNodesGE::SumBooleanNodesGE(Problem& p, std::string n, vec<Variable*>& vars, vec<BasicNode*>& _nodes, long l)
+    : SumBooleanNodes(p, n, vars, _nodes, l) {
+    type = "Sum Boolean Nodes GE";
 }
 
 
