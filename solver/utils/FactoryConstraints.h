@@ -38,6 +38,8 @@ void createConstraintExtension(Problem *p, std::string name, vec<Variable *> &va
 
 void createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l);
 
+void createConstraintXeqXor(Problem *p, std::string name, Variable *x, vec<Variable *> &l);
+
 void createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes);
 
 void createConstraintXeqGenAnd(Problem *p, std::string name, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes);

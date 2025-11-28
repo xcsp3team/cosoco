@@ -175,6 +175,10 @@ void FactoryConstraints::createConstraintXeqAndY(Problem *p, std::string name, V
     p->addConstraint(new XeqAndY(*p, name, l));
 }
 
+void FactoryConstraints::createConstraintXeqXor(Problem *p, std::string name, Variable *x, vec<Variable *> &l) {
+    p->addConstraint(new XeqXor(*p, name, l, x));
+}
+
 void FactoryConstraints::createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
                                                   vec<BasicNode *> &nodes) {
     p->addConstraint(new xEqGenOr(*p, name, res, vars, nodes));

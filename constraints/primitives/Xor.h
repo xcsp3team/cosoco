@@ -15,7 +15,7 @@ class Xor : public GlobalConstraint {
     Variable *sentinel1, *sentinel2;
 
     Variable *findAnotherSentinel();
-    bool      enforceSentinel(Variable *sentinel, int value = 1);
+    bool      enforceSentinel(Variable *sentinel);
 
    public:
     // Constructors
@@ -28,17 +28,22 @@ class Xor : public GlobalConstraint {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
-class XeqXor : public Xor {
-    Variable *x;
-
+class XeqXor : public GlobalConstraint {
    protected:
+    Variable       *x;
+    vec<Variable *> vars;
+    Variable       *sentinel1, *sentinel2;
+
+    bool enforceSentinel(Variable *sentinel, int value);
+    int  toBeRemoved(Variable *sentinel);
+
    public:
     // Constructors
     XeqXor(Problem &p, std::string n, vec<Variable *> &vars, Variable *xx);
+    Variable *findAnotherSentinel(Variable *other);
 
     // filtering
     bool filter(Variable *x) override;
-    bool enforceX();
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };

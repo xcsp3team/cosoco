@@ -975,9 +975,11 @@ class PNary5 : public FakePrimitive {   // eq(and(__av1__,x[0],110),__av0__)
    public:
     explicit PNary5(CosocoCallbacks &c) : FakePrimitive(c) { }
     bool post() override {
-        if(canonized->root->type != OEQ || canonized->root->parameters[0]->type != OAND ||
-           canonized->root->parameters[1]->type != OVAR)
+        if(canonized->root->type != OEQ || canonized->root->parameters[1]->type != OVAR)
             return false;
+        if(canonized->root->parameters[0]->type != OAND && canonized->root->parameters[0]->type != OXOR)
+            return false;
+
         vec<Variable *> vars;
 
         for(Node *n : canonized->root->parameters[0]->parameters) {
@@ -985,9 +987,14 @@ class PNary5 : public FakePrimitive {   // eq(and(__av1__,x[0],110),__av0__)
                 return false;
             vars.push(callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(n))->var]);
         }
-        FactoryConstraints::createConstraintXeqAndY(
-            callbacks.problem, id,
-            callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var], vars);
+        if(canonized->root->parameters[0]->type == OAND)
+            FactoryConstraints::createConstraintXeqAndY(
+                callbacks.problem, id,
+                callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var], vars);
+        if(canonized->root->parameters[0]->type == OXOR)
+            FactoryConstraints::createConstraintXeqXor(
+                callbacks.problem, id,
+                callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var], vars);
         return true;
     }
 };
