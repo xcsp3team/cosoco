@@ -121,4 +121,5 @@ ElementVariable::ElementVariable(Problem &p, std::string n, vec<Variable *> &var
     vars.copyTo(list);
     valueSentinels.growTo(value->domain.maxSize(), -1);
     indexSentinels.growTo(vars.size(), STAR);
+    isPostponable = true;
 }
