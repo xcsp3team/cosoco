@@ -1435,13 +1435,22 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         }
         FactoryConstraints::createConstraintNoOverlap(problem, id, X, w, Y, h);
     }
+    std::cout << origins.size() << " " << lengths.size() << std::endl;
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
-            Variable *x1     = problem->mapping[origins[i][0]->id];
-            Variable *x2     = problem->mapping[origins[j][0]->id];
-            Variable *y1     = problem->mapping[origins[i][1]->id];
-            Variable *y2     = problem->mapping[origins[j][1]->id];
-            string    auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            Variable *x1 = problem->mapping[origins[i][0]->id];
+            Variable *x2 = problem->mapping[origins[j][0]->id];
+            Variable *y1 = problem->mapping[origins[i][1]->id];
+            Variable *y2 = problem->mapping[origins[j][1]->id];
+            int       wi = lengths[i][0], wj = lengths[j][0];
+            int       hi = lengths[i][1], hj = lengths[j][1];
+            if(x1->maximum() + wi <= x2->minimum() || x2->maximum() + wj <= x1->minimum())
+                continue;
+            if(y1->maximum() + hi <= y2->minimum() || y2->maximum() + hj <= y1->minimum())
+                continue;
+
+            string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            std::cout << auxVar << std::endl;
             buildVariableInteger(auxVar, 0, 3);
             Variable *aux = problem->mapping[auxVar];
             FactoryConstraints::createConstraintDisjunctive2D(problem, id, x1, x2, y1, y2, lengths[i][0], lengths[j][0],
@@ -1970,13 +1979,13 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 
     for(Tree *tree : trees) {
         string predicate = tree->toString();
-        // std::cout << "Predicate: " << predicate << std::endl;
         if(expressionsToAuxiliaryVariables.find(predicate) !=
            expressionsToAuxiliaryVariables.end()) {   // The aux = expression already exists
             auxiliaryVariables.push_back(expressionsToAuxiliaryVariables[predicate]);
             continue;
         }
-        std::cout << "Creating auxiliary variable for " << predicate << std::endl;
+        if(verbose)
+            std::cout << "Creating auxiliary variable for " << predicate << std::endl;
         if(problem->mapping.find(predicate) == problem->mapping.end()) {   // This is a real expression
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
 

@@ -76,7 +76,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         }
     }
     while(done == false) {
-        std::cout << "go : " << tree->root->toString() << "\n";
+        if(callbacks.verbose)
+            std::cout << "go : " << tree->root->toString() << "\n";
         scope.clear();
         if(callbacks.startToParseObjective == false)
             tree->canonize();
@@ -155,11 +156,14 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         forceExtension = tree->arity() == 2;
 
         if(toExtension(id, tree, scope, forceExtension)) {
-            std::cout << "TO extension : " << tree->root->toString() << "   :   ";
-            Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
-            // std::cout << ext->isSupport << " " << ext->nbTuples() << std::endl;
-            for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
-            std::cout << "\n\n\n";
+            if(callbacks.verbose) {
+                std::cout << "TO extension : " << tree->root->toString() << "   :   ";
+                Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
+                if(ext != nullptr)
+                    std::cout << "[support: " << ext->isSupport << " , tuples: " << ext->nbTuples() << "]" << std::endl;
+                for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
+                std::cout << "\n\n\n";
+            }
 
             return;
         }
@@ -174,10 +178,11 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             done = true;
     }
 
-    std::cout << "c keep intension : " << tree->root->toString();
-    for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
-    std::cout << " arity: " << tree->arity() << "\n";
-
+    if(callbacks.verbose) {
+        std::cout << "c keep intension : " << tree->root->toString();
+        for(const auto &s : tree->listOfVariables) std::cout << callbacks.problem->mapping[s]->domain.maxSize() << " ";
+        std::cout << " arity: " << tree->arity() << "\n";
+    }
     // This is the end... nothing else than an intension constraint
     FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
 }
@@ -223,7 +228,6 @@ bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
     if(tree->arity() == 1)   // => objective see MultiAgen in XCSP22 for instance
         return false;
     bool modified = false;
-    std::cout << "ici " << tree->root->toString() << "\n";
 
     if(tree->root->type == OEQ && (tree->root->parameters[0]->type == OVAR || tree->root->parameters[1]->type == OVAR)) {
         if(tree->root->parameters[0]->type == OVAR)
@@ -236,7 +240,6 @@ bool ManageIntension::decompose(std::string id, XCSP3Core::Tree *tree) {
         tree->listOfVariables.clear();
         extractVariables(tree->root, tree->listOfVariables);
     }
-    std::cout << "la " << tree->root->toString() << "\n";
 
     return modified;
 }
@@ -298,7 +301,6 @@ bool ManageIntension::replaceSameNodes(XCSP3Core::Tree *tree) {
     for(auto &n : same) n.parent->parameters[n.index] = new NodeVariable(auxiliaryVariables.back());
     tree->listOfVariables.clear();
     extractVariables(tree->root, tree->listOfVariables);
-    std::cout << "Apres " << tree->root->toString() << "\n";
 
     return true;
 }
@@ -789,7 +791,6 @@ class PNary1 : public FakePrimitive {
                 nodes.push(tmp);
                 continue;
             }
-            std::cout << (n->type == OIN) << std::endl;
             if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET) {
                 auto     *nv1 = dynamic_cast<NodeVariable *>(n->parameters[0]);
                 auto     *ns2 = dynamic_cast<NodeSet *>(n->parameters[1]);
@@ -858,9 +859,6 @@ class PNary1 : public FakePrimitive {
             createArrays(canonized->root->parameters[0]->parameters, vars, nodes);
             auto     *nv = dynamic_cast<NodeVariable *>(canonized->root->parameters[1]);
             Variable *r  = callbacks.problem->mapping[nv->var];
-            std::cout << "GENERALIZED ";
-            canonized->prefixe();
-            std::cout << std::endl;
             if(canonized->root->parameters[0]->type == OOR)
                 FactoryConstraints::createConstraintXeqGenOr(callbacks.problem, id, r, vars, nodes);
             if(canonized->root->parameters[0]->type == OAND)

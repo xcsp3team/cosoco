@@ -266,6 +266,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         }
     }
 
+    bool verbose = true;
+
     void beginInstance(InstanceType type) override;
 
     void endInstance() override;
