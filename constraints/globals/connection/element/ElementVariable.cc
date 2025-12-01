@@ -103,6 +103,8 @@ bool ElementVariable::validValue(int idv) {
 }
 
 bool ElementVariable::filterValue() {
+    if(value->size() > 200)
+        return true;
     for(int idv : value->domain)
         if(validValue(idv) == false && solver->delIdv(value, idv) == false)
             return false;

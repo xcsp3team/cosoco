@@ -1282,6 +1282,7 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
         throw runtime_error("Channel is not implemented with index != 0");
     toMyVariables(list);
     FactoryConstraints::createConstraintChannel(problem, id, vars, 0);
+    buildConstraintAlldifferent(id, list);
 }
 
 void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
@@ -1291,6 +1292,10 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
     toMyVariables(list1, X);
     toMyVariables(list2, Y);
     FactoryConstraints::createContraintChannelXY(problem, id, X, Y, startIndex1, startIndex2);
+    if(list1.size() == list2.size()) {
+        buildConstraintAlldifferent(id, list1);
+        buildConstraintAlldifferent(id, list2);
+    }
 }
 
 
