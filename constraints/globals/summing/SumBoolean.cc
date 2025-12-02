@@ -320,3 +320,28 @@ long SumBooleanGE::minLowerBound() {
 
 
 long SumBooleanGE::computeScore(vec<int>& solution) { return sum(solution); }
+
+
+long SumBooleanNodesLE::computeScore(vec<int>& solution) {
+    long sum = 0;
+    for(BasicNode* n : nodes) {
+        int idx = toScopePosition(n->x->idx);
+        sum += solution[idx];
+    }
+    return sum;
+}
+
+void SumBooleanNodesLE::updateBound(long bound) { limit = bound; }   // Update the current bound
+
+long SumBooleanNodesLE::maxUpperBound() {
+    long max = 0;
+    for(BasicNode* node : nodes) max += node->maximum();
+    return max;
+}
+
+
+long SumBooleanNodesLE::minLowerBound() {
+    long min = 0;
+    for(BasicNode* node : nodes) min += node->maximum();
+    return min;
+}

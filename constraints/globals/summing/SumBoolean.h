@@ -71,17 +71,17 @@ class SumBooleanNodesEQ : public SumBooleanNodes {
     bool filter(Variable *x) override;
 };
 
-class SumBooleanNodesLE : public SumBooleanNodes /*, public ObjectiveConstraint */ {
+class SumBooleanNodesLE : public SumBooleanNodes, public ObjectiveConstraint {
    public:
     SumBooleanNodesLE(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &_nodes, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 
     // Functions related to Objective constraint
-    // void updateBound(long bound) override;
-    // long maxUpperBound() override;
-    // long minLowerBound() override;
-    // long computeScore(vec<int> &solution) override;
+    void updateBound(long bound) override;
+    long maxUpperBound() override;
+    long minLowerBound() override;
+    long computeScore(vec<int> &solution) override;
 };
 
 class SumBooleanNodesGE : public SumBooleanNodes /*, public ObjectiveConstraint */ {
