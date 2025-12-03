@@ -69,7 +69,7 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
                 // also, a local form of energetic reasoning is used
                 Variable *dom2    = x2[i];
                 int       residue = residues[i][idv];
-                if(dom2->domain.containsIdv(residue)) {
+                if(residue != -1 && dom2->domain.containsIdv(residue)) {
                     int w = dom2->domain.toVal(residue);
                     if(findSupport(x1, t1, x2, t2, w, w + t2[i])) {
                         k = dom1->size();
