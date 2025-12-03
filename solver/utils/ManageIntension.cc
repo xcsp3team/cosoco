@@ -762,6 +762,25 @@ class PQuater3 : public Primitive {
     }
 };
 
+//
+class PQuater4 : public Primitive {   // See FoxCorn Mzn.. To be
+   public:
+    explicit PQuater4(CosocoCallbacks &m) : Primitive(m, "le(add(x,y),add(z,t))", 4) { }
+    bool post() override {
+        vec<Variable *> vars;
+        for(const auto &v : variables) vars.push(callbacks.problem->mapping[v]);
+        vec<int> coeffs;
+        coeffs.push(1);
+        coeffs.push(1);
+        coeffs.push(-1);
+        coeffs.push(-1);
+
+        FactoryConstraints::createConstraintSum(callbacks.problem, id, vars, coeffs, 0, LE);
+        return true;
+    }
+};
+
+
 class FakePrimitive : public Primitive {   // Does not try to match a pattern tree. Just return true, the post function d
                                            // do the job (see PNary1)
    public:
@@ -1059,6 +1078,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PQuater2(callbacks));
     patterns.push(new PQuater3(callbacks));
+    patterns.push(new PQuater4(callbacks));
     patterns.push(new PNary2(callbacks));
     patterns.push(new PNary1(callbacks));
     patterns.push(new PNary3(callbacks));
