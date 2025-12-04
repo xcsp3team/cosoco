@@ -77,7 +77,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
     }
     while(done == false) {
         if(callbacks.verbose)
-            std::cout << "go : " << tree->root->toString() << "\n";
+            std::cout << "\ngo : " << tree->root->toString() << "\n";
         scope.clear();
         if(callbacks.startToParseObjective == false)
             tree->canonize();
@@ -162,7 +162,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 if(ext != nullptr)
                     std::cout << "[support: " << ext->isSupport << " , tuples: " << ext->nbTuples() << "]" << std::endl;
                 for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
-                std::cout << "\n\n\n";
+                std::cout << "\n";
             }
 
             return;
@@ -333,13 +333,12 @@ bool ManageIntension::existInCacheExtension(string &expr, vec<Variable *> &scope
 }
 
 bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Variable *> &scope, bool forceExtension) {
-    unsigned long long nbTuples = 1;
+    double nbTuples = 1;
 
     // Compute cartesian product
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();
-
     bool isProduct = true;
     if(tree->root->type == OEQ && tree->root->parameters[0]->type == OMUL && tree->root->parameters[1]->type == OVAR) {
         for(Node *n : tree->root->parameters[0]->parameters) {
@@ -354,7 +353,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
 
     if(callbacks.startToParseObjective || options::intOptions["i2e"].value == 0)
         return false;
-    if(forceExtension == false && isProduct == false && nbTuples >= ((unsigned long long)options::intOptions["i2e"].value))
+    if(forceExtension == false && isProduct == false && nbTuples >= ((double)options::intOptions["i2e"].value))
         return false;
 
     // Create generic intension
@@ -702,6 +701,25 @@ class PTernary2 : public Primitive {
         cond.operandType = INTEGER;
         cond.op          = expressionTypeToOrderType(operators[0]);
         cond.val         = 0;
+        callbacks.buildConstraintSum(id, list, coefs, cond);
+        return true;
+    }
+};
+
+class PTernary3 : public Primitive {   // le(x2[3],add(dur1[3],x1[3],6))See groupSplitter
+   public:
+    explicit PTernary3(CosocoCallbacks &m) : Primitive(m, "le(x,add(y,z,6))", 3) { pattern->root->type = OFAKEOP; }
+    bool post() override {
+        std::vector<XVariable *> list;
+        for(string &s : variables) list.push_back(callbacks.mappingXV[s]);
+        vector<int> coefs;
+        coefs.push_back(1);
+        coefs.push_back(-1);
+        coefs.push_back(-1);
+        XCondition cond;
+        cond.operandType = INTEGER;
+        cond.op          = expressionTypeToOrderType(operators[0]);
+        cond.val         = constants[0];
         callbacks.buildConstraintSum(id, list, coefs, cond);
         return true;
     }
@@ -1075,6 +1093,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary10(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
+    patterns.push(new PTernary3(callbacks));
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PQuater2(callbacks));
     patterns.push(new PQuater3(callbacks));
