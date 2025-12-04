@@ -189,6 +189,10 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
     for(Lit lit : nogoodsOfSize1) {
         Variable *x   = getVariableIn(lit);
         int       idv = getIndexIn(lit);
+        if(idv < 0 || idv >= x->domain.maxSize()) {
+            solver.nogoodsFromRestarts = false;   // :(
+            return;
+        }
         solver.delIdv(x, idv);
     }
 }
@@ -201,8 +205,14 @@ void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.pu
 
 
 void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+    if(solver.nogoodsFromRestarts == false)
+        return;
     Lit current = getPositiveDecisionFor(x, x->domain.toIdv(v));
     int pos     = currentBranch.firstOccurrenceOf(current);
+    if(pos == -1) {
+        solver.nogoodsFromRestarts = false;
+        return;
+    }
     assert(pos >= 0);
     currentBranch.cut(pos + 1);
     assert(currentBranch.last() == current);
