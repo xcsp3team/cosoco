@@ -35,21 +35,25 @@ bool ElementVariable::filter(Variable *dummy) {
     if(index->size() > 1) {
         if(filterValue() == false)
             return false;
-        while(true) {
-            // updating idom (and indexSentinels)
-            int sizeBefore = index->size();
-            if(filterIndex() == false)
-                return false;
-            if(sizeBefore == index->size())
-                break;
-            // updating vdom (and valueSentinels)
-            sizeBefore = value->size();
-            if(filterValue() == false)
-                return false;
-            if(sizeBefore == value->size())
-                break;
-        }
+        if(filterIndex() == false)
+            return false;
+        /*        while(true) {
+                    // updating idom (and indexSentinels)
+                    int sizeBefore = index->size();
+                    if(filterIndex() == false)
+                        return false;
+                    if(sizeBefore == index->size())
+                        break;
+                    // updating vdom (and valueSentinels)
+                    sizeBefore = value->size();
+                    if(filterValue() == false)
+                        return false;
+                    if(sizeBefore == value->size())
+                        break;
+                }
+            */
     }
+
     // If index is singleton, we update dom(list[index]) and vdom so that they are both equal to the
     // intersection of the two domains
     if(index->size() == 1) {
@@ -95,7 +99,8 @@ bool ElementVariable::validValue(int idv) {
     for(int idv2 : index->domain) {
         int v2 = index->domain.toVal(idv2);
         if(v2 >= 0 && v2 < list.size() && list[v2]->containsValue(v)) {
-            valueSentinels[idv] = v2;
+            valueSentinels[idv]  = v2;
+            indexSentinels[idv2] = v;
             return true;
         }
     }
