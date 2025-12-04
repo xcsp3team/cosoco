@@ -40,6 +40,11 @@ Variable *HeuristicVarCACD::select() {
                 return x;
     }
 
+    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
 
     Variable *x = solver.decisionVariables[0];
 
@@ -48,8 +53,12 @@ Variable *HeuristicVarCACD::select() {
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
         if(vscores[y->idx] > bestV) {
-            bestV = vscores[y->idx];
-            x     = y;
+            bestV      = vscores[y->idx];
+            secondBest = x;
+            x          = y;
+        } else {
+            if(vscores[y->idx] > bestV)
+                secondBest = y;
         }
     }
     assert(x != nullptr);
@@ -58,6 +67,7 @@ Variable *HeuristicVarCACD::select() {
 
 
 void HeuristicVarCACD::notifyConflict(Constraint *c, int level) {
+    secondBest = nullptr;
     if(freezed)
         return;
     double increment = 1;
@@ -98,11 +108,11 @@ void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarCACD::notifyFullBacktrack() {
+    secondBest = nullptr;
     if(options::boolOptions["rw"].value == false)
         return;
     if(freezed)
         return;
-
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0)
         reset();

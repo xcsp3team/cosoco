@@ -18,15 +18,26 @@ HeuristicVarFRBA::HeuristicVarFRBA(Solver &s) : HeuristicVar(s) {
 
 
 Variable *HeuristicVarFRBA::select() {
+    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
+
     Variable *x    = solver.decisionVariables[0];
     double    best = data[x->idx](nFailedAssignments) / x->size();
+
 
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y   = solver.decisionVariables[i];
         double    tmp = data[y->idx](nFailedAssignments) / y->size();
         if(tmp > best) {
-            best = tmp;
-            x    = y;
+            best       = tmp;
+            secondBest = x;
+            x          = y;
+        } else {
+            if(tmp == best)
+                secondBest = y;
         }
     }
     return x;
@@ -40,6 +51,7 @@ void HeuristicVarFRBA::notifyNewDecision(Cosoco::Variable *x, Cosoco::Solver &s)
 
 
 void HeuristicVarFRBA::notifyConflict(Constraint *c, int level) {
+    secondBest = nullptr;
     if(freezed)
         return;
     if(solver.decisionLevel() == 0)
@@ -55,6 +67,7 @@ void HeuristicVarFRBA::notifyDeleteDecision(Variable *x, int v, Solver &s) { }
 
 
 void HeuristicVarFRBA::notifyFullBacktrack() {
+    secondBest = nullptr;
     if(options::boolOptions["rw"].value == false)
         return;
     if(freezed)

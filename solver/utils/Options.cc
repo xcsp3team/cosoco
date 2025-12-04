@@ -29,6 +29,7 @@ void createOptions() {
     stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool, max)", "first"};
     stringOptions["robin"]     = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
     stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick, frba, robin)", "robin"};
+    boolOptions["lazyvar"]     = {"SEARCH", "Compute lazily var heuristics", 0};
     intOptions["limitac3card"] = {"SEARCH", "Max size to perform AC3 on intensional constraints", 1000, 0, INT_MAX};
     boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
     stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};

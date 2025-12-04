@@ -6,7 +6,8 @@ namespace Cosoco {
 class Solver;
 class HeuristicVar {
    protected:
-    bool freezed;
+    bool      freezed;
+    Variable *secondBest = nullptr;
 
    public:
     virtual ~HeuristicVar() = default;

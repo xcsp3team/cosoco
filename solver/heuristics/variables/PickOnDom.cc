@@ -17,13 +17,23 @@ PickOnDom::PickOnDom(Solver &s) : HeuristicVar(s) {
 
 
 Variable *PickOnDom::select() {
+    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
+
     Variable *x     = solver.decisionVariables[0];
     double    bestV = ((double)x->size()) / x->wdeg;
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
         if(y->wdeg / ((double)y->size()) > bestV) {
-            bestV = y->wdeg / ((double)y->size());
-            x     = y;
+            bestV      = y->wdeg / ((double)y->size());
+            secondBest = x;
+            x          = y;
+        } else {
+            if(y->wdeg / ((double)y->size()) == bestV)
+                secondBest = y;
         }
     }
     assert(x != nullptr);
@@ -32,6 +42,7 @@ Variable *PickOnDom::select() {
 
 
 void PickOnDom::notifyConflict(Constraint *c, int level) {
+    secondBest = nullptr;
     if(freezed)
         return;
     if(mode == 0) {
@@ -52,6 +63,7 @@ void PickOnDom::notifyConflict(Constraint *c, int level) {
 
 
 void PickOnDom::notifyFullBacktrack() {
+    secondBest = nullptr;
     if(freezed)
         return;
     if(options::boolOptions["rw"].value == false)
