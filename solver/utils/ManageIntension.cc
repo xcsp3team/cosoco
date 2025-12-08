@@ -82,6 +82,13 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         if(callbacks.startToParseObjective == false)
             tree->canonize();
 
+
+        //----------------------------------------------------------------------------
+        // Primitive recognition
+
+        if(callbacks.startToParseObjective == false && recognizePrimitives(std::move(id), tree))
+            return;
+
         //----------------------------------------------------------------------------
         // Unary constraints
         if(tree->arity() == 1 && callbacks.startToParseObjective == false) {
@@ -101,16 +108,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             return;
         }
 
-
-        //----------------------------------------------------------------------------
-        // Primitive recognition
-
-        if(callbacks.startToParseObjective == false && recognizePrimitives(std::move(id), tree))
-            return;
-
         //----------------------------------------------------------------------------
         //
-
 
         for(string &s : tree->listOfVariables) scope.push(callbacks.problem->mapping[s]);
 
@@ -429,6 +428,64 @@ static bool createXopYk(Problem *problem, ExpressionType ope, std::string x, std
 //--------------------------------------------------------------------------------------
 // Classes used to recognized expressions.
 //--------------------------------------------------------------------------------------
+class PUnary1 : public Primitive {   // x <op> k
+   public:
+    explicit PUnary1(CosocoCallbacks &m) : Primitive(m, "eq(x,3)", 1) { pattern->root->type = OFAKEOP; }
+
+
+    bool post() override {
+        if(operators[0] == OEQ || operators[0] == ONE) {
+            vec<int> values;
+            values.push(constants[0]);
+            FactoryConstraints::createConstraintUnary(callbacks.problem, id, callbacks.problem->mapping[variables[0]], values,
+                                                      operators[0] == OEQ);
+            return true;
+        }
+
+
+        if(operators[0] == OLE) {
+            FactoryConstraints::createConstraintUnaryLE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                        constants[0]);
+            return true;
+        }
+        if(operators[0] == OGE) {
+            FactoryConstraints::createConstraintUnaryGE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                        constants[0]);
+            return true;
+        }
+        return false;
+    }
+};
+
+class PUnary2 : public Primitive {   // x <op> k
+   public:
+    explicit PUnary2(CosocoCallbacks &m) : Primitive(m, "le(3,x)", 1) { pattern->root->type = OFAKEOP; }
+
+
+    bool post() override {
+        if(operators[0] == OEQ || operators[0] == ONE) {
+            vec<int> values;
+            values.push(constants[0]);
+            FactoryConstraints::createConstraintUnary(callbacks.problem, id, callbacks.problem->mapping[variables[0]], values,
+                                                      operators[0] == OEQ);
+            return true;
+        }
+
+
+        if(operators[0] == OGE) {
+            FactoryConstraints::createConstraintUnaryLE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                        constants[0]);
+            return true;
+        }
+
+        if(operators[0] == OLE) {
+            FactoryConstraints::createConstraintUnaryGE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                        constants[0]);
+            return true;
+        }
+        return false;
+    }
+};
 
 
 class PBinary1 : public Primitive {   // x <op> y
@@ -1081,6 +1138,8 @@ ManageIntension::ManageIntension(CosocoCallbacks &c) : callbacks(c) { createPrim
 
 
 void ManageIntension::createPrimitives() {
+    patterns.push(new PUnary1(callbacks));
+    patterns.push(new PUnary2(callbacks));
     patterns.push(new PBinary1(callbacks));
     patterns.push(new PBinary2(callbacks));
     patterns.push(new PBinary3(callbacks));
