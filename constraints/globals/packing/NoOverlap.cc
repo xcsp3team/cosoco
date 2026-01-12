@@ -139,4 +139,5 @@ NoOverlap::NoOverlap(Problem &pb, std::string &n, vec<Variable *> &X, vec<int> &
 
     residues2.growTo(ys.size());
     for(int i = 0; i < ys.size(); i++) residues2[i].growTo(ys[i]->domain.maxSize(), -1);
+    isPostponable = true;
 }
