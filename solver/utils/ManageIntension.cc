@@ -8,6 +8,77 @@
 #include "xEqOryk.h"
 using namespace XCSP3Core;
 
+Node *createNode(std::string op) {
+    NodeOperator *tmp = nullptr;
+    if(op == "neg")
+        tmp = new NodeNeg();
+    if(op == "abs")
+        tmp = new NodeAbs();
+
+    if(op == "add")
+        tmp = new NodeAdd();
+    if(op == "sub")
+        tmp = new NodeSub();
+    if(op == "mul")
+        tmp = new NodeMult();
+    if(op == "div")
+        tmp = new NodeDiv();
+    if(op == "mod")
+        tmp = new NodeMod();
+
+    if(op == "sqr")
+        tmp = new NodeSquare();
+    if(op == "pow")
+        tmp = new NodePow();
+
+    if(op == "min")
+        tmp = new NodeMin();
+    if(op == "max")
+        tmp = new NodeMax();
+    if(op == "dist")
+        tmp = new NodeDist();
+
+    if(op == "le")
+        tmp = new NodeLE();
+    if(op == "lt")
+        tmp = new NodeLT();
+    if(op == "ge")
+        tmp = new NodeGE();
+    if(op == "gt")
+        tmp = new NodeGT();
+
+    if(op == "ne")
+        tmp = new NodeNE();
+    if(op == "eq")
+        tmp = new NodeEQ();
+
+    if(op == "not")
+        tmp = new NodeNot();
+    if(op == "and")
+        tmp = new NodeAnd();
+    if(op == "or")
+        tmp = new NodeOr();
+    if(op == "xor")
+        tmp = new NodeXor();
+    if(op == "imp")
+        tmp = new NodeImp();
+    if(op == "if")
+        tmp = new NodeIf();
+    if(op == "iff")
+        tmp = new NodeIff();
+
+    if(op == "in")
+        tmp = new NodeIn();
+    if(op == "notin")
+        tmp = new NodeNotIn();
+    if(op == "set")
+        tmp = new NodeSet();
+
+    if(tmp == nullptr)
+        throw std::runtime_error("in expression, unexpected keyword " + op);
+    return tmp;
+}
+
 void replace_all_occurrences(std::string &input, const std::string &replace_word, const std::string &replace_by) {
     size_t pos = input.find(replace_word);
     while(pos != std::string::npos) {
@@ -79,8 +150,18 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         if(callbacks.verbose)
             std::cout << "\ngo : " << tree->root->toString() << "\n";
         scope.clear();
-        if(callbacks.startToParseObjective == false)
+        if(callbacks.startToParseObjective == false) {
+            if(tree->root->type == OIMP && logicalInversion(tree->root->parameters[0]->type) != OUNDEF) {   //  imp to or...
+                Node  *tmp  = new NodeOr();
+                string op   = operatorToString(logicalInversion(tree->root->parameters[0]->type));
+                Node  *tmp2 = createNode(op);
+                for(Node *n : tree->root->parameters[0]->parameters) tmp2->parameters.push_back(n);
+                tmp->parameters.push_back(tmp2);
+                tmp->parameters.push_back(tree->root->parameters[1]);
+                tree->root = tmp;
+            }
             tree->canonize();
+        }
 
 
         //----------------------------------------------------------------------------
