@@ -34,13 +34,22 @@ class BasicNodeEq : public BasicNode {
 
 class BasicNodeVar : public BasicNode {
    public:
-    int v;
     BasicNodeVar(Variable *xx) : BasicNode(xx) { }
     int  value() override { return x->value(); }
     int  minimum() override { return x->minimum(); }
     int  maximum() override { return x->maximum(); }
     bool setTrue(Solver *solver) override { return solver->assignToVal(x, 1); }
     bool setFalse(Solver *solver) override { return solver->assignToVal(x, 0); }
+};
+
+class BasicNodeNegVar : public BasicNode {
+   public:
+    explicit BasicNodeNegVar(Variable *xx) : BasicNode(xx) { }
+    int  value() override { return x->value(); }
+    int  minimum() override { return x->maximum(); }
+    int  maximum() override { return x->minimum(); }
+    bool setTrue(Solver *solver) override { return solver->assignToVal(x, 0); }
+    bool setFalse(Solver *solver) override { return solver->assignToVal(x, 1); }
 };
 
 class BasicNodeNe : public BasicNode {

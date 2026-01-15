@@ -96,8 +96,9 @@ bool MaximumArg::filter(Variable *dummy) {
 
     if(index->size() == 1) {
         int a = index->value();
-        if(solver->delValuesLowerOrEqualThan(list[a], maxMind - 1) == false)
+        if(maxMind != INT_MIN && solver->delValuesLowerOrEqualThan(list[a], maxMind - 1) == false)
             return false;
+
         if(rank == XCSP3Core::ANY && list[a]->minimum() >= maxMaxd)
             // if (list[a].dom.firstValue() >= maxMaxd - (rank == TypeRank.ANY ? 0 : 1)) // Not correct
             return solver->entail(this);
