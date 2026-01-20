@@ -684,6 +684,11 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
 void FactoryConstraints::createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
     if(k == 0)
         return;
+    if(k == 1 && value == 1) {
+        p->addConstraint(new Or(*p, name, vars));
+        return;
+    }
+
     p->addConstraint(new AtLeastK(*p, name, vars, k, value));
 }
 

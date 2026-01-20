@@ -50,6 +50,14 @@ bool GenOr::isSatisfiedBy(vec<int> &tuple) {
 
     return r == clauseResult;
 }
+
+bool Or::isSatisfiedBy(vec<int> &tuple) {
+    for(int v : tuple)
+        if(v == 1)
+            return true;
+    return false;
+}
+
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
@@ -205,6 +213,36 @@ bool GenOr::filter(Variable *x) {
     return true;
 }
 
+int Or::findSentinel(int other) {
+    for(int i = 0; i < scope.size(); i++)
+        if(i != other && scope[i]->maximum() >= 1)
+            return i;
+    return -1;
+}
+
+bool Or::filter(Variable *x) {
+    if(scope[s1]->maximum() == 0) {
+        int o = findSentinel(s2);
+        if(o == -1) {
+            if(solver->assignToVal(scope[s2], 1) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s1 = o;
+    }
+    if(scope[s2]->maximum() == 0) {
+        int o = findSentinel(s1);
+        if(o == -1) {
+            if(solver->assignToVal(scope[s1], 1) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s2 = o;
+    }
+    return true;
+}
+
+
 //----------------------------------------------
 // Constructor and initialisation methods
 //----------------------------------------------
@@ -223,6 +261,11 @@ xEqGenAnd::xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &va
 GenOr::GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
     : GlobalConstraint(p, n, "Generalized OR", Constraint::createScopeVec(&vars)) {
     nnodes.copyTo(nodes);
+    s1 = 0;
+    s2 = 1;
+}
+
+Or::Or(Problem &p, std::string n, vec<Variable *> &vars) : GlobalConstraint(p, n, "OR", vars) {
     s1 = 0;
     s2 = 1;
 }

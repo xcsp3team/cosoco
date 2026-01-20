@@ -74,7 +74,7 @@ class BasicNodeLe : public BasicNode {   // le(x,10)
     bool setFalse(Solver *solver) override { return solver->delValuesLowerOrEqualThan(x, v); }
 };
 
-class BasicNodeGe : public BasicNode {   // le(x,10)
+class BasicNodeGe : public BasicNode {   // ge(x,10)
    public:
     int v;
     BasicNodeGe(Variable *xx, int vv) : BasicNode(xx), v(vv) { }
@@ -153,6 +153,22 @@ class GenOr : public GlobalConstraint {
 
    public:
     GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nn);
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+class Or : public GlobalConstraint {
+    vec<Variable *> nodes;
+    int             s1, s2;
+
+    int findSentinel(int other);
+
+   public:
+    Or(Problem &p, std::string n, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
