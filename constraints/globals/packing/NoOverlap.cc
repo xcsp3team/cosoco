@@ -42,6 +42,9 @@ bool NoOverlap::filter(Variable *dummy) {
 
 // optimizations are possible ; to be done
 bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2, vec<vec<int> > &residues) {
+    if(unassignedVariablesIdx.size() > 100)
+        return true;
+
     bool find = false;
     for(int i = 0; i < half; i++) {
         Variable *dom1 = x1[i];

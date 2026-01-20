@@ -753,6 +753,18 @@ class PBinary10 : public Primitive {   // x=  (3 <= z)
     }
 };
 
+class PBinary11 : public Primitive {   // x=  (3 <= z)
+   public:
+    explicit PBinary11(CosocoCallbacks &m) : Primitive(m, "eq(dist(x,y),238)", 2) { }
+
+
+    bool post() override {
+        FactoryConstraints::createConstraintDistXYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                      callbacks.problem->mapping[variables[1]], constants[0]);
+        return true;
+    }
+};
+
 
 // x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
@@ -1231,6 +1243,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary8(callbacks));
     patterns.push(new PBinary9(callbacks));
     patterns.push(new PBinary10(callbacks));
+    patterns.push(new PBinary11(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PTernary3(callbacks));

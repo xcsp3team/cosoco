@@ -23,6 +23,7 @@
 #include "CumulativeVariablesHWC.h"
 #include "CumulativeVariablesW.h"
 #include "DisjunctiveVars.h"
+#include "Dist2.h"
 #include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
 #include "MaximumArg.h"
@@ -213,6 +214,10 @@ void FactoryConstraints::createConstraintXeqYplusk(Problem *p, std::string name,
 
 void FactoryConstraints::createConstraintDistXYeqZ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
     p->addConstraint(new DistXYeqZ(*p, name, x, y, z));
+}
+
+void FactoryConstraints::createConstraintDistXYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+    p->addConstraint(new DistEQ(*p, name, x, y, k));
 }
 
 void FactoryConstraints::createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {

@@ -57,6 +57,8 @@ void createConstraintXeqYplusk(Problem *p, std::string name, Variable *x, Variab
 
 void createConstraintDistXYeqZ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
 
+void createConstraintDistXYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k);
+
 void createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k);
 
 void createConstraintXeqYneK(Problem *p, std::string name, Variable *x, Variable *y, int k);
