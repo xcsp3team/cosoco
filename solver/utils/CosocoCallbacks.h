@@ -22,7 +22,7 @@ using namespace Cosoco;
 using namespace std;
 namespace XCSP3Core {
 class CosocoCallbacks;
-
+class BasicNode;
 
 class Primitive {
    public:
@@ -267,6 +267,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
     bool verbose = true;
+
+    static bool matchParams(const std::vector<Node *> &parameters);
+
+    void createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes);
 
     void beginInstance(InstanceType type) override;
 

@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "CosocoCallbacks.h"
+#include "constraints/primitives/BasicNodes.h"
 #include "xEqOryk.h"
 using namespace XCSP3Core;
 
@@ -960,76 +961,12 @@ class PNary1 : public FakePrimitive {
    public:
     explicit PNary1(CosocoCallbacks &c) : FakePrimitive(c) { }
 
-    void createArrays(vector<Node *> &parameters, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
-        for(Node *n : parameters) {
-            if(n->type == OVAR) {
-                auto     *nv2 = dynamic_cast<NodeVariable *>(n);
-                Variable *x   = callbacks.problem->mapping[nv2->var];
-                vars.push(x);
-                nodes.push(new BasicNodeVar(x));
-                continue;
-            }
-            if(n->type == OLE && n->parameters[1]->type == OVAR && n->parameters[0]->type == ODECIMAL) {
-                auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[1]);
-                auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[0]);
-                Variable  *x   = callbacks.problem->mapping[nv2->var];
-                BasicNode *tmp = new BasicNodeGe(x, nc2->val);
-                vars.push(x);
-                nodes.push(tmp);
-                continue;
-            }
-            if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET) {
-                auto     *nv1 = dynamic_cast<NodeVariable *>(n->parameters[0]);
-                auto     *ns2 = dynamic_cast<NodeSet *>(n->parameters[1]);
-                Variable *x   = callbacks.problem->mapping[nv1->var];
-                vec<int>  tmp2;
-                for(unsigned int i = 0; i < ns2->parameters.size(); i++) {
-                    NodeConstant *nc = dynamic_cast<NodeConstant *>(ns2->parameters[i]);
-                    tmp2.push(nc->val);
-                }
-                BasicNode *tmp = new BasicNodeIn(x, tmp2);
-                vars.push(x);
-                nodes.push(tmp);
-                continue;
-            }
-
-            auto      *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
-            auto      *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
-            Variable  *x   = callbacks.problem->mapping[nv2->var];
-            BasicNode *tmp = nullptr;
-            if(n->type == OEQ)
-                tmp = new BasicNodeEq(x, nc2->val);
-            if(n->type == ONE)
-                tmp = new BasicNodeNe(x, nc2->val);
-            if(n->type == OLE && n->parameters[0]->type == OVAR)
-                tmp = new BasicNodeLe(x, nc2->val);
-
-            vars.push(x);
-            nodes.push(tmp);
-        }
-    }
-
-    static bool matchParams(const vector<Node *> &parameters) {
-        for(Node *n : parameters) {
-            if(n->type == OVAR)
-                continue;
-            if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)
-                continue;
-            if(n->type == OLE && n->parameters[0]->type == ODECIMAL && n->parameters[1]->type == OVAR)
-                continue;
-            if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET)
-                continue;
-            if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
-                return false;
-        }
-        return true;
-    }
 
     bool post() override {
-        if(canonized->root->type == OOR && matchParams(canonized->root->parameters)) {
-            vec<BasicNode *> nodes;
-            vec<Variable *>  vars;
-            createArrays(canonized->root->parameters, vars, nodes);
+        if(canonized->root->type == OOR && CosocoCallbacks::matchParams(canonized->root->parameters)) {
+            vec<Cosoco::BasicNode *> nodes;
+            vec<Variable *>          vars;
+            callbacks.createArrays(canonized->root->parameters, vars, nodes);
             FactoryConstraints::createConstraintGenOr(callbacks.problem, id, vars, nodes);
             return true;
         }
@@ -1038,12 +975,12 @@ class PNary1 : public FakePrimitive {
         if(canonized->root->type == OEQ &&
            (canonized->root->parameters[0]->type == OOR || canonized->root->parameters[0]->type == OAND) &&
            canonized->root->parameters[1]->type == OVAR) {
-            if(matchParams(canonized->root->parameters[0]->parameters) == false)
+            if(CosocoCallbacks::matchParams(canonized->root->parameters[0]->parameters) == false)
                 return false;
 
-            vec<BasicNode *> nodes;
-            vec<Variable *>  vars;
-            createArrays(canonized->root->parameters[0]->parameters, vars, nodes);
+            vec<Cosoco::BasicNode *> nodes;
+            vec<Variable *>          vars;
+            callbacks.createArrays(canonized->root->parameters[0]->parameters, vars, nodes);
             auto     *nv = dynamic_cast<NodeVariable *>(canonized->root->parameters[1]);
             Variable *r  = callbacks.problem->mapping[nv->var];
             if(canonized->root->parameters[0]->type == OOR)

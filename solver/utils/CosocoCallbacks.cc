@@ -1,9 +1,75 @@
 #include "CosocoCallbacks.h"
 
 #include "DomainSmallValues.h"
-
+#include "constraints/primitives/BasicNodes.h"
 
 using namespace Cosoco;
+
+bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &parameters) {
+    for(Node *n : parameters) {
+        if(n->type == OVAR)
+            continue;
+        if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)
+            continue;
+        if(n->type == OLE && n->parameters[0]->type == ODECIMAL && n->parameters[1]->type == OVAR)
+            continue;
+        if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET)
+            continue;
+        if((n->type != OEQ && n->type != ONE) || n->parameters[0]->type != OVAR || n->parameters[1]->type != ODECIMAL)
+            return false;
+    }
+    return true;
+}
+
+
+void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes) {
+    for(Node *n : parameters) {
+        if(n->type == OVAR) {
+            auto     *nv2 = dynamic_cast<NodeVariable *>(n);
+            Variable *x   = problem->mapping[nv2->var];
+            vars.push(x);
+            nodes.push(new BasicNodeVar(x));
+            continue;
+        }
+        if(n->type == OLE && n->parameters[1]->type == OVAR && n->parameters[0]->type == ODECIMAL) {
+            auto              *nv2 = dynamic_cast<NodeVariable *>(n->parameters[1]);
+            auto              *nc2 = dynamic_cast<NodeConstant *>(n->parameters[0]);
+            Variable          *x   = problem->mapping[nv2->var];
+            Cosoco::BasicNode *tmp = new BasicNodeGe(x, nc2->val);
+            vars.push(x);
+            nodes.push(tmp);
+            continue;
+        }
+        if(n->type == OIN && n->parameters[0]->type == OVAR && n->parameters[1]->type == OSET) {
+            auto     *nv1 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+            auto     *ns2 = dynamic_cast<NodeSet *>(n->parameters[1]);
+            Variable *x   = problem->mapping[nv1->var];
+            vec<int>  tmp2;
+            for(unsigned int i = 0; i < ns2->parameters.size(); i++) {
+                NodeConstant *nc = dynamic_cast<NodeConstant *>(ns2->parameters[i]);
+                tmp2.push(nc->val);
+            }
+            Cosoco::BasicNode *tmp = new BasicNodeIn(x, tmp2);
+            vars.push(x);
+            nodes.push(tmp);
+            continue;
+        }
+
+        auto              *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+        auto              *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
+        Variable          *x   = problem->mapping[nv2->var];
+        Cosoco::BasicNode *tmp = nullptr;
+        if(n->type == OEQ)
+            tmp = new BasicNodeEq(x, nc2->val);
+        if(n->type == ONE)
+            tmp = new BasicNodeNe(x, nc2->val);
+        if(n->type == OLE && n->parameters[0]->type == OVAR)
+            tmp = new BasicNodeLe(x, nc2->val);
+
+        vars.push(x);
+        nodes.push(tmp);
+    }
+}
 
 void CosocoCallbacks::beginInstance(InstanceType type) {
     problem                        = type == CSP ? new Problem("") : new OptimizationProblem("");
@@ -172,7 +238,8 @@ void CosocoCallbacks::buildConstraintExtension(string id, XVariable *variable, v
 
 void CosocoCallbacks::buildConstraintIntension(string id, Tree *tree) { manageIntension->intension(id, tree); }
 
-void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k, XVariable *y) {   // x + k op y
+void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *x, int k,
+                                               XVariable *y) {   // x + k op y
     assert(op == LE || op == LT || op == EQ || op == NE);
 
 
@@ -204,7 +271,8 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariabl
     buildConstraintIntension(id, new Tree(tmp));   // TODO
 }
 
-void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *xx, int k) {   // x op k op is <= or >=
+void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariable *xx,
+                                               int k) {   // x op k op is <= or >=
     Variable *x = problem->mapping[xx->id];
     vec<int>  values;
     for(int idv : x->domain) {
@@ -609,6 +677,18 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
 
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCondition &cond) {
+    if(cond.operandType == INTEGER) {
+        vector<Node *> parameters;
+        for(Tree *t : trees) parameters.push_back(t->root);
+        if((cond.op == LE || cond.op == GE || cond.op == LT || cond.op == GT || cond.op == EQ) && matchParams(parameters)) {
+            vec<Cosoco::BasicNode *> nodes;
+            vec<Variable *>          vars;
+            createArrays(parameters, vars, nodes);
+            FactoryConstraints::createConstraintSumGen(problem, id, vars, nodes, cond.val, cond.op);
+            return;
+        }
+    }
+
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);
     buildConstraintSum(id, trees, coeffs, cond);
@@ -1495,11 +1575,13 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
 
     /*for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
-            string le1 = "le(add(" + origins[i][0]->id + "," + std::to_string(lengths[i][0]) + ")," + origins[j][0]->id + ")";
-            string le2 = "le(add(" + origins[j][0]->id + "," + std::to_string(lengths[j][0]) + ")," + origins[i][0]->id + ")";
+            string le1 = "le(add(" + origins[i][0]->id + "," + std::to_string(lengths[i][0]) + ")," + origins[j][0]->id +
+    ")"; string le2 = "le(add(" + origins[j][0]->id + "," + std::to_string(lengths[j][0]) + ")," + origins[i][0]->id +
+    ")";
 
-            string le3 = "le(add(" + origins[i][1]->id + "," + std::to_string(lengths[i][1]) + ")," + origins[j][1]->id + ")";
-            string le4 = "le(add(" + origins[j][1]->id + "," + std::to_string(lengths[j][1]) + ")," + origins[i][1]->id + ")";
+            string le3 = "le(add(" + origins[i][1]->id + "," + std::to_string(lengths[i][1]) + ")," + origins[j][1]->id +
+    ")"; string le4 = "le(add(" + origins[j][1]->id + "," + std::to_string(lengths[j][1]) + ")," + origins[i][1]->id +
+    ")";
 
             string tmp = "or(" + le1 + "," + le2 + "," + le3 + "," + le4 + ")";
             // intension(or(le(add(x1, w1), x2), le(add(x2, w2), x1), le(add(y1, h1), y2), le(add(y2, h2), y1)));
@@ -2026,6 +2108,25 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
 
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
+    bool allOne = true;
+    for(int c : coefs)
+        if(c != 1)
+            allOne = false;
+    if(type == SUM_O && allOne) {
+        vector<Node *> parameters;
+        for(Tree *t : trees) parameters.push_back(t->root);
+        if(matchParams(parameters)) {
+            vec<Cosoco::BasicNode *> nodes;
+            vec<Variable *>          vars;
+            createArrays(parameters, vars, nodes);
+            FactoryConstraints::createConstraintSumGen(problem, "objective", vars, nodes, INT_MAX, LE);
+            auto *po = dynamic_cast<OptimizationProblem *>(problem);
+            po->type = Minimize;
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+            po->addObjectiveUB(oc, true);
+            return;
+        }
+    }
     vector<string> auxiliaryVariables;
     startToParseObjective = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
@@ -2039,6 +2140,26 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tr
 
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<int> &coefs) {
+    bool allOne = true;
+    for(int c : coefs)
+        if(c != 1)
+            allOne = false;
+    if(type == SUM_O && allOne) {
+        vector<Node *> parameters;
+        for(Tree *t : trees) parameters.push_back(t->root);
+        if(matchParams(parameters)) {
+            vec<Cosoco::BasicNode *> nodes;
+            vec<Variable *>          vars;
+            createArrays(parameters, vars, nodes);
+            FactoryConstraints::createConstraintSumGen(problem, "objective", vars, nodes, INT_MIN, GE);
+            auto *po = dynamic_cast<OptimizationProblem *>(problem);
+            po->type = Maximize;
+            auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
+            po->addObjectiveLB(oc, true);
+            return;
+        }
+    }
+
     vector<string> auxiliaryVariables;
     startToParseObjective = false;
     createAuxiliaryVariablesAndExpressions(trees, auxiliaryVariables);
