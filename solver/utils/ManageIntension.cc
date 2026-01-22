@@ -233,7 +233,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         } else
             forceExtension = false;
         */
-        forceExtension = tree->arity() == 2;
+        forceExtension = false;   // tree->arity() == 2; // Too dangerous !!!
 
         if(toExtension(id, tree, scope, forceExtension)) {
             if(callbacks.verbose) {
