@@ -820,6 +820,55 @@ bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variabl
            delValuesLowerOrEqualThan(z, x->minimum() + y->minimum() - 1);
 }
 
+bool Solver::enforceEQ(Variable *x, Variable *y, int k) {   // X = Y + k
+    for(int idv : reverse(y->domain)) {
+        int v = y->domain.toVal(idv) + k;
+        if(x->containsValue(v) == false && delIdv(y, idv) == false)
+            return false;
+    }
+
+    if(x->size() == y->size())
+        return true;
+
+    for(int idv : reverse(x->domain)) {
+        int v = x->domain.toVal(idv) - k;
+        if(y->containsValue(v) == false && delIdv(x, idv) == false)
+            return false;
+    }
+    return true;
+}
+
+
+bool Solver::enforceAddEQ(Variable *x, Variable *y, int k) {   // X + Y = k
+    for(int idv : reverse(y->domain)) {
+        int v = k - y->domain.toVal(idv);
+        if(x->containsValue(v) == false && delIdv(y, idv) == false)
+            return false;
+    }
+
+    if(x->size() == y->size())
+        return true;
+
+    for(int idv : reverse(x->domain)) {
+        int v = k - x->domain.toVal(idv);
+        if(y->containsValue(v) == false && delIdv(x, idv) == false)
+            return false;
+    }
+    return true;
+}
+
+
+bool Solver::enforceAddLE(Variable *x, Variable *y, int k) {   // X + Y <= k
+    return delValuesLowerOrEqualThan(x, k - y->maximum() - 1) && delValuesLowerOrEqualThan(y, k - x->maximum() - 1);
+}
+
+bool Solver::enforceAddGE(Variable *x, Variable *y, int k) {   // X + Y <= k
+    return delValuesGreaterOrEqualThan(x, k - y->minimum() + 1) && delValuesGreaterOrEqualThan(y, k - x->minimum() + 1);
+}
+
+
+bool Solver::enforceAddGE(Variable *x, Variable *y, int k) {   // X + Y >= k
+}
 //----------------------------------------------
 // Observers methods
 //----------------------------------------------

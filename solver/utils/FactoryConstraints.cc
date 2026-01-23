@@ -72,6 +72,7 @@
 #include "globals/summing/SumNE.h"
 #include "intension/Intension.h"
 #include "mtl/Vec.h"
+#include "primitives/Add.h"
 #include "primitives/DiffXY.h"
 #include "primitives/Disjunctive.h"
 #include "primitives/DistXYeqZ.h"
@@ -79,7 +80,6 @@
 #include "primitives/GEUnary.h"
 #include "primitives/LE.h"
 #include "primitives/LEUnary.h"
-#include "primitives/LT.h"
 #include "primitives/xEqOryk.h"
 #include "utils/Verbose.h"
 

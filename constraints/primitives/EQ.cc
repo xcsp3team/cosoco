@@ -26,22 +26,7 @@ bool EQ::filter(Variable *xx) {
         return solver->entail(this);
     }
 
-
-    for(int idv : reverse(y->domain)) {
-        int v = y->domain.toVal(idv) + k;
-        if(x->containsValue(v) == false && solver->delIdv(y, idv) == false)
-            return false;
-    }
-
-    if(x->size() == y->size())
-        return true;
-
-    for(int idv : reverse(x->domain)) {
-        int v = x->domain.toVal(idv) - k;
-        if(y->containsValue(v) == false && solver->delIdv(x, idv) == false)
-            return false;
-    }
-    return true;
+    return solver->enforceEQ(x, y, k);
 }
 
 

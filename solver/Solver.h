@@ -176,6 +176,10 @@ class Solver : public AbstractSolver {
     bool delValuesInRange(Variable *x, int min, int max);    // del values from min to max excluded
     bool enforceLE(Variable *x, Variable *y, int k);         // x + k <= y
     bool enforceLE(Variable *x, Variable *y, Variable *z);   // x + y <= z
+    bool enforceEQ(Variable *x, Variable *y, int k);         // X = Y + k
+    bool enforceAddEQ(Variable *x, Variable *y, int k);      // X + Y = k
+    bool enforceAddLE(Variable *x, Variable *y, int k);      // X + Y <= k
+    bool enforceAddGE(Variable *x, Variable *y, int k);      // X + Y >= k
     // --------------------------------------------------------------------------------------
     // Observers methods
     // --------------------------------------------------------------------------------------
