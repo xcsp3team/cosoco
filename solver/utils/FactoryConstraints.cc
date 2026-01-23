@@ -680,6 +680,29 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
     p->addConstraint(ctr);
 }
 
+void FactoryConstraints::createConstraintSumGen(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes,
+                                                long l, OrderType order) {
+    SumBooleanGen *ctr = nullptr;
+    switch(order) {
+        case OrderType::LE:
+            ctr = new SumBooleanGenLE(*p, name, nodes, vars, l);
+            break;
+        case OrderType::LT:
+            ctr = new SumBooleanGenLE(*p, name, nodes, vars, l - 1);
+            break;
+        case OrderType::GE:
+            ctr = new SumBooleanGenGE(*p, name, nodes, vars, l);
+            break;
+        case OrderType::GT:
+            ctr = new SumBooleanGenGE(*p, name, nodes, vars, l + 1);
+            break;
+        case OrderType::EQ:
+            ctr = new SumBooleanGenEQ(*p, name, nodes, vars, l);
+            break;
+    }
+    assert(ctr != nullptr);
+    p->addConstraint(ctr);
+}
 
 void FactoryConstraints::createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
     if(k == 0)

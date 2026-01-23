@@ -4,6 +4,7 @@
 #include "Variable.h"
 #include "XCSP3Constants.h"
 #include "constraints/extensions/MDDExtension.h"
+#include "constraints/primitives/BasicNodes.h"
 #include "utils/Verbose.h"
 #include "xEqOryk.h"
 
@@ -20,6 +21,7 @@ struct Occurs {
 
 enum { OCCURS_INTEGER, OCCURS_INTERVAL, OCCURS_VARIABLE };
 
+class BasicNode;
 
 namespace FactoryConstraints {
 //--------------------------------------------------------------------------------------
@@ -148,6 +150,9 @@ void createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, ve
                          OrderType order);
 
 void createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &coeffs, long l, OrderType order);
+
+void createConstraintSumGen(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes, long l,
+                            OrderType order);
 
 void createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars, int value, int k);
 

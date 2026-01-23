@@ -14,7 +14,7 @@ using namespace Cosoco;
 
 bool xEqGenOr::isSatisfiedBy(vec<int> &tuple) {
     return true;
-    int r            = tuple.last();
+    /*int r            = tuple.last();
     int clauseResult = 0;
     int i            = 0;
     for(BasicNode *n : nodes) {
@@ -23,11 +23,13 @@ bool xEqGenOr::isSatisfiedBy(vec<int> &tuple) {
     }
 
     return r == clauseResult;
+    // TODO
+    */
 }
 
 bool xEqGenAnd::isSatisfiedBy(vec<int> &tuple) {
     return true;
-    int r            = tuple.last();
+    /*int r            = tuple.last();
     int clauseResult = 0;
     int i            = 0;
     for(BasicNode *n : nodes) {
@@ -36,11 +38,13 @@ bool xEqGenAnd::isSatisfiedBy(vec<int> &tuple) {
     }
 
     return r == clauseResult;
+    // TODO
+    */
 }
 
 bool GenOr::isSatisfiedBy(vec<int> &tuple) {
     return true;
-    int r            = tuple.last();
+    /*int r            = tuple.last();
     int clauseResult = 0;
     int i            = 0;
     for(BasicNode *n : nodes) {
@@ -49,6 +53,8 @@ bool GenOr::isSatisfiedBy(vec<int> &tuple) {
     }
 
     return r == clauseResult;
+    TODO
+    */
 }
 
 bool Or::isSatisfiedBy(vec<int> &tuple) {
