@@ -570,14 +570,7 @@ void FactoryConstraints::createConstraintSumBooleanGE(Problem *p, std::string na
 
 void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {   // x+y=z
     vec<Variable *> vars;
-    vec<int>        coeffs;
-    vars.push(z);
-    vars.push(x);
-    vars.push(y);
-    coeffs.push(-1);
-    coeffs.push(1);
-    coeffs.push(1);
-    p->addConstraint(new SumEQ(*p, name, vars, coeffs, 0));
+    p->addConstraint(new Add3(*p, name, x, y, z));
 }
 
 
@@ -602,6 +595,21 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
 void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &coeffs, long l,
                                              OrderType order) {
     Sum *ctr = nullptr;
+
+    if(vars.size() == 3 && l == 0 && order == OrderType::EQ) {
+        if(coeffs[0] == 1 && coeffs[1] == 1 && coeffs[2] == -1) {
+            p->addConstraint(new Add3(*p, name, vars[0], vars[1], vars[2]));
+            return;
+        }
+        if(coeffs[0] == 1 && coeffs[1] == -1 && coeffs[2] == 1) {
+            p->addConstraint(new Add3(*p, name, vars[0], vars[2], vars[1]));
+            return;
+        }
+        if(coeffs[0] == -1 && coeffs[1] == 1 && coeffs[2] == 1) {
+            p->addConstraint(new Add3(*p, name, vars[2], vars[1], vars[0]));
+            return;
+        }
+    }
 
     // Rearrange coeffs.
     if(order == OrderType::LE || order == OrderType::LT) {
