@@ -178,3 +178,5 @@ bool HeuristicVarDomWdeg::stop() {
     for(int i = 0; i < constraintsWeights.size(); i++) constraintsWeights[i].copyTo(solver.problem.constraints[i]->wdeg);
     return false;
 }
+
+void HeuristicVarDomWdeg::penalize(Variable *var) { var->wdeg--; }

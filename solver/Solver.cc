@@ -234,7 +234,7 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 int Solver::search(vec<RootPropagation> &assumptions) {
     std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
     std::vector<std::vector<Lit>> sharedNogoods;
-
+    uint64_t                      nbPropagationsForDecision = -1;
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
@@ -278,6 +278,9 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                 }
             }
         } else {
+            if(propagations == nbPropagationsForDecision && options::boolOptions["impl"].value)
+                heuristicVar->penalize(decisionVariableAtLevel(decisionLevel()));
+
             if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
                 break;
             if(decisionVariables.isEmpty()) {   // A solution is found
@@ -312,6 +315,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                     idv = heuristicVal->select(x);
                 }
                 newDecision(x, idv);
+                nbPropagationsForDecision = propagations;
             }
         }
     }

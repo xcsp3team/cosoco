@@ -25,6 +25,7 @@ class HeuristicVarDomWdeg : public HeuristicVar, ObserverConflict, ObserverNewDe
     virtual void      notifyNewDecision(Variable *x, Solver &s) override;
     bool              stop() override;
     bool              start() override;
+    void              penalize(Variable *var) override;
 };
 
 }   // namespace Cosoco

@@ -27,6 +27,7 @@ void createOptions() {
     boolOptions["stick"]       = {"SEARCH", "Sticking Value on heuristic val", false};
     stringOptions["restarts"]  = {"SEARCH", "Restarts: no (no restarts), luby, geo, io (inner outer)", "io"};
     stringOptions["val"]       = {"SEARCH", "Heuristic for values (first, last, random, robin, occs, asgs, pool, max)", "first"};
+    boolOptions["impl"]        = {"SEARCH", "Penalize impactless variables", false};
     stringOptions["robin"]     = {"SEARCH", "sequence for robin (F (first), L(last), R(random), O(occs), A(asgs))", "FLR"};
     stringOptions["var"]       = {"SEARCH", "Heuristic for variables (wdeg, cacd, pick, frba, robin)", "robin"};
     boolOptions["lazyvar"]     = {"SEARCH", "Compute lazily var heuristics", 0};

@@ -57,3 +57,5 @@ void LastConflictReasoning::notifyNewDecision(Variable *x, Solver &s) {
     if(lcs.size() == 0)
         lastAssigned = x;
 }
+
+void LastConflictReasoning::penalize(Variable *var) { hvar->penalize(var); }

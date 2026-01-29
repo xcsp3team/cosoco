@@ -18,6 +18,7 @@ class LastConflictReasoning : public HeuristicVar, ObserverNewDecision, Observer
 
     void notifyNewDecision(Variable *x, Solver &s) override;
     void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void penalize(Variable *var) override;
 };
 
 }   // namespace Cosoco

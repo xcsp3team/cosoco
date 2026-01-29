@@ -24,6 +24,7 @@ class HeuristicVar {
         freezed = false;
         return true;
     }
+    virtual void penalize(Variable *var) { }   // Penalize impactless variables
 };
 }   // namespace Cosoco
 
