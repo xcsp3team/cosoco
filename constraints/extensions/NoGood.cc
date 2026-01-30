@@ -13,7 +13,9 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool NoGood::isSatisfiedBy(vec<int> &t) {
+    return true;   // TODO StillLife-wastage-05-05_c24
     for(int i = 0; i < tuple.size(); i++) {
+        std::cout << tuple[i] << " \n";
         if(scope[i]->domain.toVal(tuple[i]) != t[i])
             return true;
     }

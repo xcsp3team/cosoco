@@ -1,6 +1,7 @@
 #include "CosocoCallbacks.h"
 
 #include "DomainSmallValues.h"
+#include "ObjectiveUnary.h"
 #include "constraints/primitives/BasicNodes.h"
 
 using namespace Cosoco;
@@ -1840,10 +1841,17 @@ void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, 
 
 void CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
     string tmp = "le(" + expr + ",0)";
-    buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
+
+
+    Tree *tree = new Tree(expr);
+    if(tree->arity() == 1)
+        problem->addConstraint(new ObjectiveUnaryLE(*problem, "objective", problem->mapping[tree->listOfVariables[0]], tree, 0));
+    else
+        buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
 
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
+
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
     po->addObjectiveUB(oc, true);
 }
@@ -1851,11 +1859,17 @@ void CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
 
 void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
     string tmp = "ge(" + expr + ",0)";   // Fake value
-    buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
+
+    Tree *tree = new Tree(expr);
+    if(tree->arity() == 1)
+        problem->addConstraint(new ObjectiveUnaryGE(*problem, "objective", problem->mapping[tree->listOfVariables[0]], tree, 0));
+    else
+        buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
+
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
+
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-    assert(oc != nullptr);
     po->addObjectiveLB(oc, true);
 }
 

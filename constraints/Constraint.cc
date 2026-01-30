@@ -138,7 +138,6 @@ bool Constraint::isSatisfiedByOfIndexes(vec<int> &tupleOfIndex) {
     //    return isSatisfiedBy(tupleOfIndex);
     // std::cout << tupleOfIndex.size() << " " << scope[2]->_name << "\n";
     for(int i = 0; i < scope.size(); i++) current[i] = scope[i]->domain.toVal(tupleOfIndex[i]);
-
     return isSatisfiedBy(current);
 }
 
