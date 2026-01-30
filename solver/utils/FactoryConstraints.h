@@ -71,6 +71,8 @@ void createConstraintXeqYleK(Problem *p, std::string name, Variable *x, Variable
 
 void createConstraintXeqMinSubY(Problem *p, std::string name, Variable *x, Variable *y, int k);
 
+void createConstraintMulEQ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z);
+
 void createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z, ExpressionType op);
 
 void createConstraintXor(Problem *p, std::string name, vec<Variable *> &vars);
