@@ -33,11 +33,12 @@ void createOptions() {
     intOptions["limitac3card"] = {"SEARCH", "Max size to perform AC3 on intensional constraints", 1000, 0, INT_MAX};
     boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
     stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
-    boolOptions["bs"]          = {"SEARCH", "Enable progress saving (only after a new solution)", true};
-    boolOptions["rw"]          = {"SEARCH", "Enable weights reseting for heuristics every 30 restarts", false};
-    boolOptions["ct"]          = {"CONSTRAINTS", "Enable Compact Table", true};
-    intOptions["postponesize"] = {"CONSTRAINTS", "The size of postponed constraints (0=no postponed constraints)", 100, 0,
-                                  INT_MAX};
+    intOptions["disablesingleton"] = {"SEARCH", "disable singleton variables if nb vars >=", 750};
+    boolOptions["bs"]              = {"SEARCH", "Enable progress saving (only after a new solution)", true};
+    boolOptions["rw"]              = {"SEARCH", "Enable weights reseting for heuristics every 30 restarts", false};
+    boolOptions["ct"]              = {"CONSTRAINTS", "Enable Compact Table", true};
+    intOptions["postponesize"]     = {"CONSTRAINTS", "The size of postponed constraints (0=no postponed constraints)", 100, 0,
+                                      INT_MAX};
     intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000, 0,
                          INT_MAX};
     stringOptions["removeclasses"] = {"PARSE", "Remove special classes when parsing (symmetryBreaking,redundant...)", ""};
