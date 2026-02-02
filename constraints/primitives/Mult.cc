@@ -165,7 +165,6 @@ bool Mult3EQ::filter(Variable *dummy) {
             }
         }
 
-
     for(int c : z->domain) {
         found  = false;
         int vc = z->domain.toVal(c);
@@ -176,18 +175,35 @@ bool Mult3EQ::filter(Variable *dummy) {
         }
         if(rzx[c] != -1 && x->containsIdv(rzx[c]) && y->containsIdv(rzy[c]))
             continue;
-        for(int a : x->domain) {
-            int va = x->domain.toVal(a);
-            if(va == 0)   // because it involves vc=0, and vc = 0 already handled
-                continue;
-            int vb = vc / va;
-            if(va > 0 && vc > 0 && va * y->minimum() > vc)   // TODO other ways of breaking?
-                break;
-            if(vc % va == 0 && y->containsValue(vb)) {
-                rzx[c] = a;
-                rzy[c] = y->domain.toIdv(vb);
-                found  = true;
-                break;
+        if(x->size() < y->size()) {
+            for(int a : x->domain) {
+                int va = x->domain.toVal(a);
+                if(va == 0)   // because it involves vc=0, and vc = 0 already handled
+                    continue;
+                int vb = vc / va;
+                if(va > 0 && vc > 0 && va * y->minimum() > vc)   // TODO other ways of breaking?
+                    break;
+                if(vc % va == 0 && y->containsValue(vb)) {
+                    rzx[c] = a;
+                    rzy[c] = y->domain.toIdv(vb);
+                    found  = true;
+                    break;
+                }
+            }
+        } else {
+            for(int a : y->domain) {
+                int va = y->domain.toVal(a);
+                if(va == 0)   // because it involves vc=0, and vc = 0 already handled
+                    continue;
+                int vb = vc / va;
+                if(va > 0 && vc > 0 && va * x->minimum() > vc)   // TODO other ways of breaking?
+                    break;
+                if(vc % va == 0 && x->containsValue(vb)) {
+                    rzy[c] = a;
+                    rzx[c] = x->domain.toIdv(vb);
+                    found  = true;
+                    break;
+                }
             }
         }
         if(found == false && solver->delIdv(z, c) == false) {
