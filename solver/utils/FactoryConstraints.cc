@@ -28,6 +28,7 @@
 #include "ElementMatrixVariable.h"
 #include "MaximumArg.h"
 #include "MinimumConstantEQ.h"
+#include "Mult.h"
 #include "NValuesGEK.h"
 #include "Options.h"
 #include "Precedence.h"
@@ -211,6 +212,9 @@ void FactoryConstraints::createConstraintXeqYplusk(Problem *p, std::string name,
     p->addConstraint(new Cosoco::EQ(*p, name, x, y, k));
 }
 
+void FactoryConstraints::createConstraintMulEQ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
+    p->addConstraint(new Mult3EQ(*p, name, x, y, z));
+}
 
 void FactoryConstraints::createConstraintDistXYeqZ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
     p->addConstraint(new DistXYeqZ(*p, name, x, y, z));

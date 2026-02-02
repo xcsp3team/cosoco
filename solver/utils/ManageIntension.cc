@@ -876,6 +876,19 @@ class PTernary3 : public Primitive {   // le(x2[3],add(dur1[3],x1[3],6))See grou
     }
 };
 
+class PTernary4 : public Primitive {   // x * y = z
+   public:
+    explicit PTernary4(CosocoCallbacks &m) : Primitive(m, "eq(mul(y,z),x)", 3) { }
+
+
+    bool post() override {
+        FactoryConstraints::createConstraintMulEQ(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                  callbacks.problem->mapping[variables[1]],
+                                                  callbacks.problem->mapping[variables[2]]);
+        return true;
+    }
+};
+
 class PQuater1 : public Primitive {
    public:
     explicit PQuater1(CosocoCallbacks &m) : Primitive(m, "eq(if(x,y,z),w)", 4) { }
@@ -1181,6 +1194,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary9(callbacks));
     patterns.push(new PBinary10(callbacks));
     patterns.push(new PBinary11(callbacks));
+    patterns.push(new PTernary4(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PTernary3(callbacks));
