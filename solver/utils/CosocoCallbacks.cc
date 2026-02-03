@@ -583,7 +583,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
     vec<Variable *> tmpVars;
     if(xc.operandType == INTEGER) {
         bool sumboolean = true;
-        for(int i = 0; i < coeffs.size(); i++) {
+        for(unsigned int i = 0; i < coeffs.size(); i++) {
             if(coeffs[i] != 1 || variables[i]->isBoolean() == false) {
                 sumboolean = false;
                 break;
@@ -1129,7 +1129,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVari
 
         for(int idv : x->domain) {
             int va = x->domain.toVal(idv) - startIndex;
-            if(0 <= va && va < list.size()) {   // if valid value index a in dx
+            if(0 <= va && static_cast<unsigned int>(va) < list.size()) {   // if valid value index a in dx
                 int v = list[va];
                 if(xc.op == EQ) {
                     if(z->containsValue(v)) {
@@ -1311,7 +1311,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
     vec<int>  values;
     for(int idv : x->domain) {
         int tmp = x->domain.toVal(idv) + startIndex;
-        if(tmp >= 0 && tmp < list.size() && list[tmp] == value)
+        if(tmp >= 0 && static_cast<unsigned int>(tmp) < list.size() && list[tmp] == value)
             values.push(idv);
     }
 
@@ -1403,8 +1403,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
         for(int j = i + 1; j < vars.size(); j++) {
             if(vars[i]->maximum() + lengths[i] <= vars[j]->minimum() || vars[j]->maximum() + lengths[j] <= vars[i]->minimum())
                 continue;
-            bool exist = false;
-            int  li = lengths[i], lj = lengths[j];
+            int li = lengths[i], lj = lengths[j];
 
             string key = vars[i]->idx < vars[j]->idx ? (std::to_string(vars[i]->idx) + "_" + std::to_string(vars[j]->idx) + "_" +
                                                         std::to_string(li) + "_" + std::to_string(lj))
@@ -1594,7 +1593,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
 void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<XVariable *> &varLengths,
                                                vector<int> &intLengths, bool zeroIgnored) {
     vector<vector<XVariable *>> lengths;
-    for(int i = 0; i < varLengths.size(); i++) {
+    for(unsigned int i = 0; i < varLengths.size(); i++) {
         lengths.push_back(vector<XVariable *>());
         lengths.back().push_back(varLengths[i]);
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";

@@ -209,7 +209,6 @@ bool SumBooleanGenEQ::filter(Variable* dummy) {
     if(cnt1 < limit && cnt1 + diff > limit)
         return true;
     // at this point, either cnt1 == limit, and we have to remove all 1s or cnt1 + diff == limit, and we have to remove all 0s
-    int v = cnt1 == limit ? 1 : 0;
 
     for(BasicNode* x : nodes) {
         if(x->size() != 1) {
