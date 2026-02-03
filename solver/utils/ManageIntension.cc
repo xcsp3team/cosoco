@@ -152,7 +152,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             std::cout << "\ngo : " << tree->root->toString() << "\n";
         scope.clear();
         if(callbacks.startToParseObjective == false) {
-            if(tree->root->type == OIMP && logicalInversion(tree->root->parameters[0]->type) != OUNDEF) {   //  imp to or...
+            if(tree->root->type == OIMP && tree->root->parameters[0]->parameters.size() <= 2 &&
+               logicalInversion(tree->root->parameters[0]->type) != OUNDEF) {   //  imp to or...
                 Node  *tmp  = new NodeOr();
                 string op   = operatorToString(logicalInversion(tree->root->parameters[0]->type));
                 Node  *tmp2 = createNode(op);
@@ -245,7 +246,11 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
                 std::cout << "\n";
             }
-
+            if(tree->arity() <= 3) {
+                std::cout << "to extension " << tree->root->toString() << "   : ";
+                for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
+                std::cout << "\n";
+            }
             return;
         }
 
