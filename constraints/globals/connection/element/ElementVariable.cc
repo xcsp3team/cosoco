@@ -37,22 +37,17 @@ bool ElementVariable::filter(Variable *dummy) {
             return false;
         if(filterIndex() == false)
             return false;
-        /*        while(true) {
-                    // updating idom (and indexSentinels)
-                    int sizeBefore = index->size();
-                    if(filterIndex() == false)
-                        return false;
-                    if(sizeBefore == index->size())
-                        break;
-                    // updating vdom (and valueSentinels)
-                    sizeBefore = value->size();
-                    if(filterValue() == false)
-                        return false;
-                    if(sizeBefore == value->size())
-                        break;
-                }
-            */
     }
+
+    // If value is singleton, we update idom so that only variables in the list having the value remain in the domain of index
+    /*if(value->size() == 1) {
+        int v = value->value();
+                if(index->size() == 1)
+                    return solver->assignToVal(list[index->value()], v) && solver->entail(this);
+        for(int idv : index->domain)
+            if(list[index->domain.toVal(idv)]->containsValue(v) == false && solver->delIdv(index, idv) == false)
+                return false;
+    }*/
 
     // If index is singleton, we update dom(list[index]) and vdom so that they are both equal to the
     // intersection of the two domains
@@ -72,11 +67,24 @@ bool ElementVariable::validIndex(int posx) {
     int v = indexSentinels[posx];
     if(v != STAR && list[posx]->containsValue(v) && value->containsValue(v))
         return true;
-    for(int idv2 : list[posx]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
-        int v2 = list[posx]->domain.toVal(idv2);
-        if(value->containsValue(v2)) {
-            indexSentinels[posx] = v2;
-            return true;
+
+    if(value->size() < list[posx]->size()) {
+        for(int idv : value->domain) {
+            v = value->domain.toVal(idv);   // singleValue();
+            if(list[posx]->containsValue(v)) {
+                valueSentinels[idv]  = posx;
+                indexSentinels[posx] = v;
+                return true;
+            }
+        }
+    } else {
+        for(int idv2 : list[posx]->domain) {   // int a = dom.first(); a != -1; a = dom.next(a)) {
+            int v2 = list[posx]->domain.toVal(idv2);
+            if(value->containsValue(v2)) {
+                valueSentinels[idv2] = posx;
+                indexSentinels[posx] = v2;
+                return true;
+            }
         }
     }
     return false;
