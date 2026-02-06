@@ -591,13 +591,18 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
         }
 
         if(sumboolean) {
-            if(xc.op == EQ)
+            if(xc.op == EQ) {
                 FactoryConstraints::createConstraintSumBooleanEQ(problem, id, variables, xc.val);
-            if(xc.op == LE || xc.op == LT)
+                return;
+            }
+            if(xc.op == LE || xc.op == LT) {
                 FactoryConstraints::createConstraintSumBooleanLE(problem, id, variables, xc.op == LE ? xc.val : xc.val - 1);
-            if(xc.op == GE || xc.op == GT)
+                return;
+            }
+            if(xc.op == GE || xc.op == GT) {
                 FactoryConstraints::createConstraintSumBooleanGE(problem, id, variables, xc.op == GE ? xc.val : xc.val + 1);
-            return;
+                return;
+            }
         }
     }
     variables.copyTo(tmpVars);
@@ -627,7 +632,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
         FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, 0, EQ);
         return;
     }
-
     std::vector<int> tmp;
     if(xc.operandType == INTERVAL) {
         for(int i = xc.min; i <= xc.max; i++) tmp.push_back(i);
