@@ -72,6 +72,7 @@ class Solver : public AbstractSolver {
     SparseSetMultiLevel  entailedConstraints;
     bool                 stopSearch = false;   // Stop the search usefull, in // with the optimizer
     bool                 warmStart;
+    long                 currentNbValues;
     // -- Heuristics ------------------------------------------------------------------------
     HeuristicVar *heuristicVar;        // The heuristic to choose variables
     HeuristicVal *heuristicVal;        // The heuristic to choose values

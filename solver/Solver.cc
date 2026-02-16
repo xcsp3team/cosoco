@@ -52,6 +52,7 @@ Solver::Solver(Problem &p)
     warmStart           = false;
     nogoodsFromRestarts = false;
     firstPropagations   = false;
+    currentNbValues     = problem.nbValues();
 
     displaySolution = options::intOptions["model"].value;
 
@@ -239,8 +240,10 @@ int Solver::search(vec<RootPropagation> &assumptions) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
 
-        if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value) {
-            int nb = decisionVariables.size();
+        if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value &&
+           currentNbValues > problem.nbValues()) {
+            currentNbValues = problem.nbValues();
+            int nb          = decisionVariables.size();
             for(int i = decisionVariables.size() - 1; i >= 0; i--) {
                 if(decisionVariables[i]->size() == 1)
                     decisionVariables.del(decisionVariables[i]);
@@ -531,6 +534,11 @@ void Solver::addToQueue(Variable *x) {
 Variable *Solver::pickInQueue() {   // Select the variable with the smallest domain
     int       minDomain = INT_MAX;
     Variable *x         = nullptr;
+    if(queue.size() > 100) {
+        Variable *x = queue[queue.size() - 1];
+        queue.del(x);
+        return x;
+    }
     for(int i = 0; i < queue.size(); i++) {
         int curSize = queue[i]->size();
 

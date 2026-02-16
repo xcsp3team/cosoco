@@ -33,7 +33,7 @@ void createOptions() {
     intOptions["limitac3card"] = {"SEARCH", "Max size to perform AC3 on intensional constraints", 1000, 0, INT_MAX};
     boolOptions["annotations"] = {"SEARCH", "Enable annotations (if any)", true};
     stringOptions["warmstart"] = {"SEARCH", "add a FILE that contains a list of values used as heuristic val", ""};
-    intOptions["disablesingleton"] = {"SEARCH", "disable singleton variables if nb vars >=", 750};
+    intOptions["disablesingleton"] = {"SEARCH", "disable singleton variables if nb vars >=", 750, 0, INT_MAX};
     boolOptions["bs"]              = {"SEARCH", "Enable progress saving (only after a new solution)", true};
     boolOptions["rw"]              = {"SEARCH", "Enable weights reseting for heuristics every 30 restarts", false};
     boolOptions["ct"]              = {"CONSTRAINTS", "Enable Compact Table", true};
