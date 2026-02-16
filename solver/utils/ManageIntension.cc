@@ -153,14 +153,23 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         scope.clear();
         if(callbacks.startToParseObjective == false) {
             if(tree->root->type == OIMP && tree->root->parameters[0]->parameters.size() <= 2 &&
-               logicalInversion(tree->root->parameters[0]->type) != OUNDEF) {   //  imp to or...
-                Node  *tmp  = new NodeOr();
-                string op   = operatorToString(logicalInversion(tree->root->parameters[0]->type));
-                Node  *tmp2 = createNode(op);
-                for(Node *n : tree->root->parameters[0]->parameters) tmp2->parameters.push_back(n);
-                tmp->parameters.push_back(tmp2);
-                tmp->parameters.push_back(tree->root->parameters[1]);
-                tree->root = tmp;
+               (logicalInversion(tree->root->parameters[0]->type) != OUNDEF || tree->root->parameters[0]->type == OVAR)) {
+                //  imp to or...
+                Node *tmp = new NodeOr();
+                if(tree->root->parameters[0]->type == OVAR) {
+                    Node *tmp2 = new NodeNot();
+                    tmp2->parameters.push_back(tree->root->parameters[0]);
+                    tmp->parameters.push_back(tmp2);
+                    tmp->parameters.push_back(tree->root->parameters[1]);
+                    tree->root = tmp;
+                } else {
+                    string op   = operatorToString(logicalInversion(tree->root->parameters[0]->type));
+                    Node  *tmp2 = createNode(op);
+                    for(Node *n : tree->root->parameters[0]->parameters) tmp2->parameters.push_back(n);
+                    tmp->parameters.push_back(tmp2);
+                    tmp->parameters.push_back(tree->root->parameters[1]);
+                    tree->root = tmp;
+                }
             }
             tree->canonize();
         }

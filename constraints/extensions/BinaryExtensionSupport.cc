@@ -61,12 +61,19 @@ bool BinaryExtensionSupport::filterOn(Variable *xx, Variable *yy, vec<vec<int>> 
 }
 
 bool BinaryExtensionSupport::filter(Variable *dummy) {
-    if(x->size() == 1 && y->size() == 1) {
-        if(supportsForX[x->domain[0]].contains(y->domain[0]) == false)
-            return false;
-        solver->entail(this);
-        return true;
+    if(x->size() == 1) {
+        for(int idv : supportsForX[x->domain[0]])
+            if(solver->delIdv(y, idv) == false)
+                return false;
+        return solver->entail(this);
     }
+    if(y->size() == 1) {
+        for(int idv : supportsForY[y->domain[0]])
+            if(solver->delIdv(x, idv) == false)
+                return false;
+        return solver->entail(this);
+    }
+
 
     if(filterOn(x, y, supportsForX, supportsForY, resx, resy) == false)
         return false;

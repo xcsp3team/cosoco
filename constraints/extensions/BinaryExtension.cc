@@ -25,38 +25,47 @@ bool BinaryExtension::isSatisfiedBy(vec<int> &tuple) {
 
 
 bool BinaryExtension::filterSupport(Variable *dummy) {
-    if(solver->isAssigned(x) == false) {
-        for(int idvx : reverse(x->domain)) {
-            if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
-                continue;
-            bool found = false;
-            for(int idvy : y->domain) {
-                if((*matrix)[idvx][idvy] == true) {
-                    resx[idvx] = idvy;
-                    resy[idvy] = idvx;
-                    found      = true;
-                    break;
-                }
-            }
-            if(found == false && solver->delIdv(x, idvx) == false)
+    if(x->size() == 1) {
+        for(int idvy : y->domain)
+            if((*matrix)[x->domain[0]][idvy] == false && solver->delIdv(y, idvy) == false)
                 return false;
-        }
+        return solver->entail(this);
     }
-    if(solver->isAssigned(y) == false) {
-        for(int idvy : reverse(y->domain)) {
-            if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
-                continue;
-            bool found = false;
-            for(int idvx : x->domain) {
-                if((*matrix)[idvx][idvy] == true) {
-                    resy[idvy] = idvx;
-                    found      = true;
-                    break;
-                }
-            }
-            if(found == false && solver->delIdv(y, idvy) == false)
+
+    if(y->size() == 1) {
+        for(int idvx : x->domain)
+            if((*matrix)[idvx][y->domain[0]] == false && solver->delIdv(x, idvx) == false)
                 return false;
+        return solver->entail(this);
+    }
+    for(int idvx : reverse(x->domain)) {
+        if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
+            continue;
+        bool found = false;
+        for(int idvy : y->domain) {
+            if((*matrix)[idvx][idvy] == true) {
+                resx[idvx] = idvy;
+                resy[idvy] = idvx;
+                found      = true;
+                break;
+            }
         }
+        if(found == false && solver->delIdv(x, idvx) == false)
+            return false;
+    }
+    for(int idvy : reverse(y->domain)) {
+        if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
+            continue;
+        bool found = false;
+        for(int idvx : x->domain) {
+            if((*matrix)[idvx][idvy] == true) {
+                resy[idvy] = idvx;
+                found      = true;
+                break;
+            }
+        }
+        if(found == false && solver->delIdv(y, idvy) == false)
+            return false;
     }
     return true;
 }
@@ -78,78 +87,74 @@ bool BinaryExtension::filterConflict(Variable *dummy) {
         return solver->entail(this);
     }
 
-    if(solver->isAssigned(x) == false) {
-        if(existingX->size() < x->size()) {
-            for(int idvx : (*existingX)) {
-                if(x->containsIdv(idvx) == false)   // Just to avoid duplicate code
-                    continue;
-                if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
-                    continue;
-                bool found = false;
-                for(int idvy : y->domain) {
-                    if((*matrix)[idvx][idvy] == false) {
-                        resx[idvx] = idvy;
-                        resy[idvy] = idvx;
-                        found      = true;
-                        break;
-                    }
+    if(existingX->size() < x->size()) {
+        for(int idvx : (*existingX)) {
+            if(x->containsIdv(idvx) == false)   // Just to avoid duplicate code
+                continue;
+            if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
+                continue;
+            bool found = false;
+            for(int idvy : y->domain) {
+                if((*matrix)[idvx][idvy] == false) {
+                    resx[idvx] = idvy;
+                    resy[idvy] = idvx;
+                    found      = true;
+                    break;
                 }
-                if(found == false && solver->delIdv(x, idvx) == false)
-                    return false;
             }
-        } else {
-            for(int idvx : x->domain) {
-                if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
-                    continue;
-                bool found = false;
-                for(int idvy : y->domain) {
-                    if((*matrix)[idvx][idvy] == false) {
-                        resx[idvx] = idvy;
-                        resy[idvy] = idvx;
-                        found      = true;
-                        break;
-                    }
+            if(found == false && solver->delIdv(x, idvx) == false)
+                return false;
+        }
+    } else {
+        for(int idvx : x->domain) {
+            if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
+                continue;
+            bool found = false;
+            for(int idvy : y->domain) {
+                if((*matrix)[idvx][idvy] == false) {
+                    resx[idvx] = idvy;
+                    resy[idvy] = idvx;
+                    found      = true;
+                    break;
                 }
-                if(found == false && solver->delIdv(x, idvx) == false)
-                    return false;
             }
+            if(found == false && solver->delIdv(x, idvx) == false)
+                return false;
         }
     }
 
 
-    if(solver->isAssigned(y) == false) {
-        if(existingY->size() < y->size()) {
-            for(int idvy : *existingY) {
-                if(y->containsIdv(idvy) == false)   // Just to avoid duplicate code
-                    continue;
-                if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
-                    continue;
-                bool found = false;
-                for(int idvx : x->domain) {
-                    if((*matrix)[idvx][idvy] == false) {
-                        resy[idvy] = idvx;
-                        found      = true;
-                        break;
-                    }
+    if(existingY->size() < y->size()) {
+        for(int idvy : *existingY) {
+            if(y->containsIdv(idvy) == false)   // Just to avoid duplicate code
+                continue;
+            if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
+                continue;
+            bool found = false;
+            for(int idvx : x->domain) {
+                if((*matrix)[idvx][idvy] == false) {
+                    resy[idvy] = idvx;
+                    found      = true;
+                    break;
                 }
-                if(found == false && solver->delIdv(y, idvy) == false)
-                    return false;
             }
-        } else {
-            for(int idvy : y->domain) {
-                if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
-                    continue;
-                bool found = false;
-                for(int idvx : x->domain) {
-                    if((*matrix)[idvx][idvy] == false) {
-                        resy[idvy] = idvx;
-                        found      = true;
-                        break;
-                    }
+            if(found == false && solver->delIdv(y, idvy) == false)
+                return false;
+        }
+    } else {
+        for(int idvy : y->domain) {
+            if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
+                continue;
+            bool found = false;
+            for(int idvx : x->domain) {
+                if((*matrix)[idvx][idvy] == false) {
+                    resy[idvy] = idvx;
+                    found      = true;
+                    break;
                 }
-                if(found == false && solver->delIdv(y, idvy) == false)
-                    return false;
             }
+            if(found == false && solver->delIdv(y, idvy) == false)
+                return false;
         }
     }
     return true;

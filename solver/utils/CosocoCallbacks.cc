@@ -9,6 +9,8 @@ bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &paramete
     for(Node *n : parameters) {
         if(n->type == OVAR)
             continue;
+        if(n->type == ONOT && n->parameters[0]->type == OVAR)
+            continue;
         if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)
             continue;
         if(n->type == OLE && n->parameters[0]->type == ODECIMAL && n->parameters[1]->type == OVAR)
@@ -59,6 +61,8 @@ void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable
         auto              *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
         Variable          *x   = problem->mapping[nv2->var];
         Cosoco::BasicNode *tmp = nullptr;
+        if(n->type == ONOT)
+            tmp = new BasicNodeNegVar(x);
         if(n->type == OEQ)
             tmp = new BasicNodeEq(x, nc2->val);
         if(n->type == ONE)

@@ -46,8 +46,8 @@ class BasicNodeNegVar : public BasicNode {
    public:
     explicit BasicNodeNegVar(Variable *xx) : BasicNode(xx) { }
     int  value(int k) override { return 1 - k; }
-    int  minimum() override { return x->maximum(); }
-    int  maximum() override { return x->minimum(); }
+    int  minimum() override { return 1 - x->maximum(); }
+    int  maximum() override { return 1 - x->minimum(); }
     bool setTrue(Solver *solver) override { return solver->assignToVal(x, 0); }
     bool setFalse(Solver *solver) override { return solver->assignToVal(x, 1); }
 };
