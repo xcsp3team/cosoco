@@ -24,18 +24,6 @@ bool BinaryExtensionSupport::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------------------
 bool BinaryExtensionSupport::filterOn(Variable *xx, Variable *yy, vec<vec<int>> &supportsForXX, vec<vec<int>> &supportsForYY,
                                       vec<int> &resXX, vec<int> &resYY) {
-    if(xx->size() == 1) {
-        vec<bool> appears;
-        appears.growTo(yy->domain.maxSize(), false);
-        for(int i : supportsForXX[xx->domain[0]]) appears[i] = true;
-
-        for(int idvy : yy->domain) {
-            if(appears[idvy] == false && solver->delIdv(yy, idvy) == false)
-                return false;
-        }
-        return solver->entail(this);
-    }
-
     for(int idvx : xx->domain) {
         if(resXX[idvx] != -1 && yy->containsIdv(resXX[idvx]) == true)
             continue;
@@ -62,18 +50,27 @@ bool BinaryExtensionSupport::filterOn(Variable *xx, Variable *yy, vec<vec<int>> 
 
 bool BinaryExtensionSupport::filter(Variable *dummy) {
     if(x->size() == 1) {
-        for(int idv : supportsForX[x->domain[0]])
-            if(solver->delIdv(y, idv) == false)
+        vec<bool> appears;
+        appears.growTo(y->domain.maxSize(), false);
+        for(int i : supportsForX[x->domain[0]]) appears[i] = true;
+
+        for(int idvy : y->domain) {
+            if(appears[idvy] == false && solver->delIdv(y, idvy) == false)
                 return false;
+        }
         return solver->entail(this);
     }
     if(y->size() == 1) {
-        for(int idv : supportsForY[y->domain[0]])
-            if(solver->delIdv(x, idv) == false)
+        vec<bool> appears;
+        appears.growTo(x->domain.maxSize(), false);
+        for(int i : supportsForY[y->domain[0]]) appears[i] = true;
+
+        for(int idvx : x->domain) {
+            if(appears[idvx] == false && solver->delIdv(x, idvx) == false)
                 return false;
+        }
         return solver->entail(this);
     }
-
 
     if(filterOn(x, y, supportsForX, supportsForY, resx, resy) == false)
         return false;
