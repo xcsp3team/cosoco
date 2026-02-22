@@ -181,6 +181,15 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         if(callbacks.startToParseObjective == false && recognizePrimitives(std::move(id), tree))
             return;
 
+        if(callbacks.startToParseObjective == false && tree->arity() == 2 && tree->root->type == OIFF &&
+           CosocoCallbacks::matchParams(tree->root->parameters)) {
+            vec<Cosoco::BasicNode *> nodes;
+            vec<Variable *>          vars;
+            callbacks.createArrays(tree->root->parameters, vars, nodes);
+            return;
+        }
+
+
         //----------------------------------------------------------------------------
         // Unary constraints
         if(tree->arity() == 1 && callbacks.startToParseObjective == false) {

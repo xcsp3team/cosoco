@@ -38,6 +38,8 @@ void createConstraintExtension(Problem *p, std::string name, vec<Variable *> &va
                                bool hasStar = false);
 
 
+void createConstraintIff(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes);
+
 void createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l);
 
 void createConstraintXeqXor(Problem *p, std::string name, Variable *x, vec<Variable *> &l);

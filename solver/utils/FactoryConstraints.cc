@@ -26,6 +26,7 @@
 #include "Dist2.h"
 #include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
+#include "Iff.h"
 #include "MaximumArg.h"
 #include "MinimumConstantEQ.h"
 #include "Mult.h"
@@ -169,6 +170,10 @@ void FactoryConstraints::createConstraintExtension(Problem *p, std::string name,
     if(c == nullptr)
         return;
     p->addConstraint(c);
+}
+
+void FactoryConstraints::createConstraintIff(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    p->addConstraint(new Iff(*p, name, vars[0], vars[1], nodes[0], nodes[1]));
 }
 
 
