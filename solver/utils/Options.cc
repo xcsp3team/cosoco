@@ -36,7 +36,7 @@ void createOptions() {
     intOptions["disablesingleton"] = {"SEARCH", "disable singleton variables if nb vars >=", 750, 0, INT_MAX};
     boolOptions["bs"]              = {"SEARCH", "Enable progress saving (only after a new solution)", true};
     boolOptions["rw"]              = {"SEARCH", "Enable weights reseting for heuristics every 30 restarts", false};
-    boolOptions["ct"]              = {"CONSTRAINTS", "Enable Compact Table", true};
+    intOptions["ct"]               = {"CONSTRAINTS", "Limit for CT extension constraints sum size", 8000, 0, INT_MAX};
     intOptions["postponesize"]     = {"CONSTRAINTS", "The size of postponed constraints (0=no postponed constraints)", 100, 0,
                                       INT_MAX};
     intOptions["i2e"] = {"PARSE", "Transform intension to extension. Max size of cartesian product (0 -> disable it)", 100000, 0,

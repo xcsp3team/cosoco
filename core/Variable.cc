@@ -82,3 +82,18 @@ bool Variable::haveSameDomainType(vec<Variable *> &vars) {
             return false;
     return true;
 }
+
+int Variable::maxDomainSize(vec<Variable *> &list) {
+    int tmp = 0;
+    for(Variable *x : list)
+        if(x->size() > tmp)
+            tmp = x->size();
+    return tmp;
+}
+
+
+int Variable::sumDomainSize(vec<Variable *> &list) {
+    int tmp = 0;
+    for(Variable *x : list) tmp += x->size();
+    return tmp;
+}
