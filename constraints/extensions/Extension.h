@@ -17,18 +17,21 @@ namespace Cosoco {
 class Extension : public Constraint {
    public:
     bool         isSupport;
+    bool         hasStar;
     Matrix<int> *tuples;
 
     Extension(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples, bool support)
         : Constraint(p, n, vars), isSupport(support) {
-        type   = "Extension";
-        tuples = new Matrix<int>(max_n_tuples, vars.size());
+        type    = "Extension";
+        tuples  = new Matrix<int>(max_n_tuples, vars.size());
+        hasStar = false;
     }
 
 
     Extension(Problem &p, std::string n, vec<Variable *> &vars, bool support, Matrix<int> *tuplesFromOtherConstraint)
         : Constraint(p, n, vars), isSupport(support), tuples(tuplesFromOtherConstraint) {
-        type = "Extension";
+        type    = "Extension";
+        hasStar = false;
     }
 
 
