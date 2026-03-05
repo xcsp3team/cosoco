@@ -50,7 +50,6 @@ class CompactTable : public Extension, ObserverDeleteDecision {
     bool                firstCall;        // First filtering call?
     vec<vec<int>>       residues;   // residues[x][a] is the index of the word where a support was found the last time for (x,a)
     uint64_t            lastTimestamps;   // last time it was called
-    bool                lastFail;
     // Bitset methods
     void fillTo1(BITSET *bitset) const {
         for(int i = 0; i < nWords; i++) bitset[i] = BIT_ALL_ONE;
