@@ -113,8 +113,8 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
     } else {
         if(isSupport) {
             // ctr = new CompactTable(*p, name, vars, tuples.size());
-            std::cout << "WARNING!!!!!! remove false\n";
-            if(false && tuples.size() < options::intConstants["smallNbTuples"])
+            // std::cout << "WARNING!!!!!! remove false\n";
+            if(tuples.size() < options::intConstants["smallNbTuples"])
                 ctr = new STR0(*p, name, vars, tuples.size());
             else {
                 if(hasStar == false && Variable::sumDomainSize(vars) < options::intOptions["ct"].value)

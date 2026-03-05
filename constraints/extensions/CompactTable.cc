@@ -33,8 +33,9 @@ bool CompactTable::isSatisfiedBy(vec<int> &tuple) {
 // Main filtering method
 //----------------------------------------------
 bool CompactTable::filter(Variable *dummy) {
-    if(firstCall && onFirstCall() == false)
-        return false;
+    if(firstCall)
+        return onFirstCall();   //&& onFirstCall() == false)
+    // return false;
     beforeFiltering();
     // std::cout << "\nbefore\n";
     // displayCurrent(current);
@@ -43,7 +44,7 @@ bool CompactTable::filter(Variable *dummy) {
     for(int posx : SVal) {
         Variable *x = scope[posx];
         // std::cout << "modify mask for " << x->_name << " " << x->size() << std::endl;
-        if(0 && x->size() > 1 && deltaSizes[posx] <= x->size()) {
+        if(lastFail == false && x->size() > 1 && deltaSizes[posx] <= x->size()) {
             for(int cnt = deltaSizes[posx] - 1, idv = x->domain.lastRemoved(); cnt >= 0; cnt--) {
                 addToMask(!starred ? masks[posx][idv] : masksStarred[posx][idv]);
                 idv = x->domain.prevRemoved(idv);
@@ -63,7 +64,9 @@ bool CompactTable::filter(Variable *dummy) {
     if(nonZeros.size() == 0)
         return false;   // inconsistency detected
 
-    updateDomains();   //
+    updateDomains();
+    lastFail = false;
+    //
     return true;
 }
 
@@ -81,7 +84,7 @@ void CompactTable::beforeFiltering() {
     manageLastPastVar();
     for(int posx : unassignedVariablesIdx) {
         Variable *x = scope[posx];
-        if(lastSizes[posx] != x->size()) {
+        if(lastFail || lastSizes[posx] != x->size()) {
             deltaSizes[posx] = lastSizes[posx] - x->size();
             SVal.push(posx);
             lastSizes[posx] = x->size();
@@ -160,6 +163,7 @@ void CompactTable::notifyDeleteDecision(Variable *x, int v, Solver &s) {
         nonZeros.restoreLimit(s.decisionLevel() + 1);
     lastTimestamps = 0;
     lastSizes.fill(0);
+    lastFail = true;
 }
 
 void CompactTable::intersectWithMask() {
@@ -264,7 +268,35 @@ void CompactTable::delayedConstruction(int id) {
 
 bool CompactTable::onFirstCall() {
     firstCall = false;
-    int posx  = 0;
+    fillTo0(tmp);
+    for(int posx = 0; posx < scope.size(); posx++) {
+        Variable *x   = scope[posx];
+        int       cnt = 0;
+        for(int idv = x->domain.lastRemoved(); idv != -1; idv = x->domain.prevRemoved(idv)) {
+            make_or(tmp, !starred ? masks[posx][idv] : masksStarred[posx][idv]);
+            cnt++;
+        }
+        if(cnt + x->size() != x->domain.maxSize()) {   // if some values have been removed at construction time
+            for(int idv = 0; idv < x->domain.maxSize(); idv++)
+                if(x->containsIdv(idv) == false)
+                    make_or(tmp, !starred ? masks[posx][idv] : masksStarred[posx][idv]);
+        }
+    }
+    inverse(tmp);
+
+    for(int j : reverse(nonZeros)) {
+        BITSET l = current[j] & tmp[j];
+        if(current[j] != l) {
+            current[j] = l;
+            if(l == 0uLL) {
+                if(nonZeros.isLimitRecordedAtLevel(0) == false)
+                    nonZeros.recordLimit(0);
+                nonZeros.del(j);
+            }
+        }
+    }
+
+    int posx = 0;
     for(Variable *x : scope) {
         for(int idv : x->domain) {
             int r = firstNonNullIntersectionIndex(current, masks[posx][idv]);
