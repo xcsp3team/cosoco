@@ -39,7 +39,7 @@ bool Precedence::isCorrectlyDefined() { return true; }
 // Check validity and correct definition
 //----------------------------------------------
 
-void Precedence::notifyDeleteDecision(Variable *x, int v, Solver &s) { reinit = true; }
+void Precedence::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { reinit = true; }
 
 bool Precedence::filter(Variable *x) {
     if(solver->decisionLevel() == 0 && solver->conflicts == 0) {

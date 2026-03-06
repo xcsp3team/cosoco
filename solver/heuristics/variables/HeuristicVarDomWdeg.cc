@@ -139,7 +139,7 @@ void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
 }
 
 
-void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(freezed)
         return;
     for(Constraint *c : x->constraints) {

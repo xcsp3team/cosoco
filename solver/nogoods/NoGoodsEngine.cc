@@ -204,7 +204,7 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
 void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.push(getPositiveDecisionFor(x, x->valueId())); }
 
 
-void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(solver.nogoodsFromRestarts == false)
         return;
     Lit current = getPositiveDecisionFor(x, x->domain.toIdv(v));

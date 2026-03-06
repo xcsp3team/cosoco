@@ -139,21 +139,6 @@ void CompactTable::wordModified(int index, BITSET oldValue) {
 }
 
 
-void CompactTable::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    if(stackedWords.size() > 0 && stackStructure.last().level == s.decisionLevel() + 1) {
-        for(int i = stackStructure.last().nb - 1; i >= 0; i--) {
-            current[stackedIndexes.last()] = stackedWords.last();
-            stackedIndexes.pop();
-            stackedWords.pop();
-        }
-        stackStructure.pop();
-    }
-    if(nonZeros.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        nonZeros.restoreLimit(s.decisionLevel() + 1);
-    lastTimestamps = 0;
-    for(int i = 0; i < scope.size(); i++) lastSizes[i] = scope[i]->size();
-}
-
 void CompactTable::intersectWithMask() {
     int level = solver->decisionLevel();
     for(int id : reverse(nonZeros)) {
@@ -169,6 +154,33 @@ void CompactTable::intersectWithMask() {
         }
     }
 }
+
+//----------------------------------------------
+// Observers
+//----------------------------------------------
+
+void CompactTable::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    if(stackedWords.size() > 0 && stackStructure.last().level == s.decisionLevel() + 1) {
+        for(int i = stackStructure.last().nb - 1; i >= 0; i--) {
+            current[stackedIndexes.last()] = stackedWords.last();
+            stackedIndexes.pop();
+            stackedWords.pop();
+        }
+        stackStructure.pop();
+    }
+
+    if(nonZeros.isLimitRecordedAtLevel(s.decisionLevel() + 1))
+        nonZeros.restoreLimit(s.decisionLevel() + 1);
+    lastTimestamps = 0;
+    if(isFull == false)
+        for(int i = 0; i < scope.size(); i++) lastSizes[i] = scope[i]->size();
+}
+
+void CompactTable::notifyFullBacktrack() {
+    for(int i = 0; i < scope.size(); i++) lastSizes[i] = scope[i]->size();
+}
+
+
 //----------------------------------------------
 // Constructors and initialisation
 //----------------------------------------------

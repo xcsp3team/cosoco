@@ -35,7 +35,7 @@ class Precedence : public GlobalConstraint, ObserverDeleteDecision {
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;

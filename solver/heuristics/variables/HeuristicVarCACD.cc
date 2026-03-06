@@ -95,7 +95,7 @@ void HeuristicVarCACD::notifyNewDecision(Variable *x, Solver &s) {
 }
 
 
-void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(freezed)
         return;
 

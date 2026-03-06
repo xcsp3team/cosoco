@@ -162,7 +162,7 @@ bool Cumulative::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(timetableReasoner.relevantTasks.isLimitRecordedAtLevel(s.decisionLevel() + 1))
         timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
 }

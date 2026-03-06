@@ -129,7 +129,7 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
 
     void doRestart();
-    void backtrack();                           // Backtrack to previous level
+    void backtrack(bool isFull = false);        // Backtrack to previous level
     void backtrack(int level);                  // Backtrack to a given level
     void fullBacktrack(bool all = false);       // Backtrack to the root, if all=true remove everything (including root AC)
     void handleFailure(Variable *x, int idv);   // manage backtrack until fix point
@@ -191,7 +191,7 @@ class Solver : public AbstractSolver {
     void addObserverNewDecision(ObserverNewDecision *od);         // od wants to know when a decision is added or deleted
     void notifyNewDecision(Variable *x);                          // Notify classes that x is a new decision
     void addObserverDeleteDecision(ObserverDeleteDecision *od);   // od wants to know when a decision is added or deleted
-    void notifyDeleteDecision(Variable *x, int v);                // Notify classes that x=v is not a decision,
+    void notifyDeleteDecision(Variable *x, int v, bool isFull);   // Notify classes that x=v is not a decision,
     void notifyFullBactrack();                                    // Notify classes that we remove all facts
 
     void addObserverDomainReduction(ObserverDomainReduction *odr);

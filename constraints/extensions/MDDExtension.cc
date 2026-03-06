@@ -147,4 +147,4 @@ void MDDExtension::attachSolver(Solver *s) {
 }
 
 
-void MDDExtension::notifyDeleteDecision(Variable *x, int v, Solver &s) { falseTimestamp++; }
+void MDDExtension::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { falseTimestamp++; }

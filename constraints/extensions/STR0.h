@@ -32,7 +32,7 @@ class STR0 : public Extension, ObserverDeleteDecision {
     bool isSatisfiedBy(vec<int> &tuple) override;
 
     // Notifications : restore validTuples when backtrack is performed
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 
     void delayedConstruction(int id) override;
     void attachSolver(Solver *s) override;

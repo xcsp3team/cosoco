@@ -109,7 +109,7 @@ bool STR0::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-void STR0::notifyDeleteDecision(Variable *x, int v, Solver &s) { set.fill(); }
+void STR0::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { set.fill(); }
 
 
 //----------------------------------------------

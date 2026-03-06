@@ -13,7 +13,7 @@ class ObserverNewDecision {
 class ObserverDeleteDecision {
    public:
     virtual ~ObserverDeleteDecision() = default;
-    virtual void notifyDeleteDecision(Variable *x, int v, Solver &s) { }   // Notify, when everything is done
+    virtual void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { }   // Notify, when everything is done
     virtual void notifyFullBacktrack() { }
 };
 

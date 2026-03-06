@@ -51,7 +51,7 @@ Matcher::Matcher(Constraint* cc)
     std::fill_n(lowLink, nNodes, 0);
 }
 
-void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s) {
+void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
     if(unfixed.isLimitRecordedAtLevel(s.decisionLevel() + 1))
         unfixed.restoreLimit(s.decisionLevel() + 1);
     if(fixedVars.isLimitRecordedAtLevel(s.decisionLevel() + 1))

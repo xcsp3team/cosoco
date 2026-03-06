@@ -63,7 +63,7 @@ void HeuristicVarFRBA::notifyConflict(Constraint *c, int level) {
 }
 
 
-void HeuristicVarFRBA::notifyDeleteDecision(Variable *x, int v, Solver &s) { }
+void HeuristicVarFRBA::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { }
 
 
 void HeuristicVarFRBA::notifyFullBacktrack() {

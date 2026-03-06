@@ -20,7 +20,7 @@ class HeuristicVarDomWdeg : public HeuristicVar, ObserverConflict, ObserverNewDe
     Mode              mode;
     virtual Variable *select() override;
     virtual void      notifyConflict(Constraint *c, int level) override;
-    virtual void      notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    virtual void      notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void              notifyFullBacktrack() override;
     virtual void      notifyNewDecision(Variable *x, Solver &s) override;
     bool              stop() override;

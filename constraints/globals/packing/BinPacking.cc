@@ -33,7 +33,7 @@ bool BinPacking::isCorrectlyDefined() {
 //----------------------------------------------
 // Filrtering
 //----------------------------------------------
-void BinPacking::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void BinPacking::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(usableBins.isLimitRecordedAtLevel(s.decisionLevel() + 1))
         usableBins.restoreLimit(s.decisionLevel() + 1);
 }

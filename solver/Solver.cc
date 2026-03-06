@@ -432,7 +432,7 @@ void Solver::backtrack(int lvl) {
 void Solver::fullBacktrack(bool all) {
     queue.clear();
 
-    while(decisionLevel() > 0) backtrack();
+    while(decisionLevel() > 0) backtrack(true);
     if(all) {
         trail.clear();
         queue.clear();   // Useless ?
@@ -445,7 +445,7 @@ void Solver::fullBacktrack(bool all) {
 }
 
 
-void Solver::backtrack() {
+void Solver::backtrack(bool isFull) {
     assert(decisionLevel() > 0);
     verbose.log(DEBUGVERBOSE, "%s--- BACKTRACK %d ---%s\n", KRED, decisionLevel() - 1, KNRM);
     if(verbose.verbosity == TOTALVERBOSE)
@@ -469,7 +469,7 @@ void Solver::backtrack() {
         c->unassignVariable(assigned);
     if(assigned->size() > 1)
         wrongDecisions++;
-    notifyDeleteDecision(assigned, v);
+    notifyDeleteDecision(assigned, v, isFull);
 }
 
 
@@ -908,8 +908,8 @@ void Solver::notifyNewDecision(Variable *x) {
 }
 
 
-void Solver::notifyDeleteDecision(Variable *x, int v) {
-    for(ObserverDeleteDecision *od : observersDeleteDecision) od->notifyDeleteDecision(x, v, *this);
+void Solver::notifyDeleteDecision(Variable *x, int v, bool isFull) {
+    for(ObserverDeleteDecision *od : observersDeleteDecision) od->notifyDeleteDecision(x, v, *this, isFull);
 }
 
 

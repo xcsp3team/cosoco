@@ -111,12 +111,16 @@ void ShortSTR2::delTuple(int position, int level) {
 //----------------------------------------------
 
 
-void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
         validTuples.restoreLimit(s.decisionLevel() + 1);
-    for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
+    if(isFull == false)
+        for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
 }
 
+void ShortSTR2::notifyFullBacktrack() {
+    for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
+}
 
 //----------------------------------------------
 // Constructors and initialisation

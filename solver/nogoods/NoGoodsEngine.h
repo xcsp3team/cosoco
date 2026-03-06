@@ -48,7 +48,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
 
     // Callbacks to store and delete the current branch
     void notifyNewDecision(Variable *x, Solver &s) override;
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void notifyFullBacktrack() override;
 
 
