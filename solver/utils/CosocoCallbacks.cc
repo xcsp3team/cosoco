@@ -33,6 +33,13 @@ void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable
             nodes.push(new BasicNodeVar(x));
             continue;
         }
+        if(n->type == ONOT) {
+            auto     *nv2 = dynamic_cast<NodeVariable *>(n->parameters[0]);
+            Variable *x   = problem->mapping[nv2->var];
+            vars.push(x);
+            nodes.push(new BasicNodeNegVar(x));
+            continue;
+        }
         if(n->type == OLE && n->parameters[1]->type == OVAR && n->parameters[0]->type == ODECIMAL) {
             auto              *nv2 = dynamic_cast<NodeVariable *>(n->parameters[1]);
             auto              *nc2 = dynamic_cast<NodeConstant *>(n->parameters[0]);
@@ -61,8 +68,7 @@ void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable
         auto              *nc2 = dynamic_cast<NodeConstant *>(n->parameters[1]);
         Variable          *x   = problem->mapping[nv2->var];
         Cosoco::BasicNode *tmp = nullptr;
-        if(n->type == ONOT)
-            tmp = new BasicNodeNegVar(x);
+
         if(n->type == OEQ)
             tmp = new BasicNodeEq(x, nc2->val);
         if(n->type == ONE)

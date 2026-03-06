@@ -113,16 +113,23 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
     } else {
         if(isSupport) {
             // ctr = new CompactTable(*p, name, vars, tuples.size());
+            // std::cout << "WARNING!!!!!! remove false\n";
             if(tuples.size() < options::intConstants["smallNbTuples"])
                 ctr = new STR0(*p, name, vars, tuples.size());
-            else
-                ctr = new ShortSTR2(*p, name, vars, tuples.size());
+            else {
+                if(hasStar == false && Variable::sumDomainSize(vars) < options::intOptions["ct"].value)
+                    ctr = new CompactTable(*p, name, vars, tuples.size());
+                else {
+                    ctr = new ShortSTR2(*p, name, vars, tuples.size());
+                }
+            }
         } else {
             assert(hasStar == false);   // TODO
             ctr = new STRNeg(*p, name, vars, tuples.size());
         }
     }
     for(auto &tuple : tuples) ctr->addTuple(tuple);
+    ctr->hasStar = hasStar;
     return ctr;
 }
 
@@ -155,11 +162,16 @@ void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string nam
         if(sameConstraint->isSupport) {
             if(static_cast<int>(sameConstraint->nbTuples()) < options::intConstants["smallNbTuples"])
                 ctr = new STR0(*p, name, vars, sameConstraint->tuples);
-            else
-                ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+            else {
+                if(sameConstraint->hasStar == false && Variable::maxDomainSize(vars) < options::intOptions["ct"].value)
+                    ctr = new CompactTable(*p, name, vars, sameConstraint->tuples);
+                else
+                    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+            }
         } else
             ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
     }
+    ctr->hasStar = sameConstraint->hasStar;
     p->addConstraint(ctr);
 }
 
