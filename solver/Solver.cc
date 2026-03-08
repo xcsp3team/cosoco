@@ -240,18 +240,22 @@ int Solver::search(vec<RootPropagation> &assumptions) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
 
-        if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value &&
-           currentNbValues > problem.nbValues()) {
-            currentNbValues = problem.nbValues();
-            int nb          = decisionVariables.size();
-            for(int i = decisionVariables.size() - 1; i >= 0; i--) {
-                if(decisionVariables[i]->size() == 1)
-                    decisionVariables.del(decisionVariables[i]);
+
+        if(propagate() != nullptr) {
+            if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value &&
+               currentNbValues > problem.nbValues()) {
+                currentNbValues = problem.nbValues();
+                int nb          = decisionVariables.size();
+                for(int i = decisionVariables.size() - 1; i >= 0; i--) {
+                    if(decisionVariables[i]->size() == 1)
+                        decisionVariables.del(decisionVariables[i]);
+                    if(decisionVariables.size() == 1)
+                        break;
+                }
+                if(nb > decisionVariables.size())
+                    std::cout << decisionVariables.size() << "après " << nb << std::endl;
             }
-            if(nb > decisionVariables.size())
-                std::cout << decisionVariables.size() << "après " << nb << std::endl;
-        }
-        if(propagate() != nullptr) {   // A conflict occurs
+            // A conflict occurs
             if(stopSearch)
                 return R_UNKNOWN;
             conflicts++;
