@@ -81,9 +81,13 @@ bool ElementMatrixVariable::validValue(int a) {
 
 
 bool ElementMatrixVariable::filterIndex() {
+    if(rindex->size() == 1 && validRowIndex(rindex->domain[0]) == false)
+        return false;
     for(int idvr : rindex->domain)
         if(validRowIndex(idvr) == false && solver->delIdv(rindex, idvr) == false)
             return false;
+    if(cindex->size() == 1 && validColIndex(cindex->domain[0]) == false)
+        return false;
     for(int idvc : cindex->domain)
         if(validColIndex(idvc) == false && solver->delIdv(cindex, idvc) == false)
             return false;
@@ -106,22 +110,12 @@ bool ElementMatrixVariable::filter(Variable *x) {
         // updating vdom (and some sentinels)
         if(filterValue() == false)
             return false;
-        while(true) {
-            // updating rdom,and cdom (and some sentinels)
-            int sizeBefore = rindex->size() + cindex->size();
-            if(filterIndex() == false)
-                return false;
-            if(sizeBefore == rindex->size() + cindex->size())
-                break;
-            // updating vdom (and some sentinels)
-            sizeBefore = value->size();
-            if(filterValue() == false)
-                return false;
-            if(sizeBefore == value->size())
-                break;
-        }
+        if(filterIndex() == false)
+            return false;
     }
+
     // If indexes are both singleton, we enforce value to the corresponding cell of the matrix
+
     if(rindex->size() == 1 && cindex->size() == 1) {
         Variable *x = matrix[rindex->value()][cindex->value()];
         if(solver->delValuesNotInDomain(x, value->domain) == false)
