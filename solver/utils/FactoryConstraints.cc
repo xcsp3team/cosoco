@@ -236,6 +236,10 @@ void FactoryConstraints::createConstraintDistXYeqK(Problem *p, std::string name,
     p->addConstraint(new DistEQ(*p, name, x, y, k));
 }
 
+void FactoryConstraints::createConstraintDistXYneK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
+    p->addConstraint(new DistNE(*p, name, x, y, k));
+}
+
 void FactoryConstraints::createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
     p->addConstraint(new XeqYeqK(*p, name, x, y, k));
 }

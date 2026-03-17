@@ -61,6 +61,8 @@ void createConstraintDistXYeqZ(Problem *p, std::string name, Variable *x, Variab
 
 void createConstraintDistXYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k);
 
+void createConstraintDistXYneK(Problem *p, std::string name, Variable *x, Variable *y, int k);
+
 void createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k);
 
 void createConstraintXeqYneK(Problem *p, std::string name, Variable *x, Variable *y, int k);

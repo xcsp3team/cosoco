@@ -770,13 +770,23 @@ class PBinary10 : public Primitive {   // x=  (3 <= z)
 
 class PBinary11 : public Primitive {   // x=  (3 <= z)
    public:
-    explicit PBinary11(CosocoCallbacks &m) : Primitive(m, "eq(dist(x,y),238)", 2) { }
+    explicit PBinary11(CosocoCallbacks &m) : Primitive(m, "eq(dist(x,y),238)", 2) {
+        pattern->root->type = OFAKEOP;   // We do not care between logical operator
+    }
 
 
     bool post() override {
-        FactoryConstraints::createConstraintDistXYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
-                                                      callbacks.problem->mapping[variables[1]], constants[0]);
-        return true;
+        if(operators[0] == OEQ) {
+            FactoryConstraints::createConstraintDistXYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                          callbacks.problem->mapping[variables[1]], constants[0]);
+            return true;
+        }
+        if(operators[0] == ONE) {
+            FactoryConstraints::createConstraintDistXYneK(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+                                                          callbacks.problem->mapping[variables[1]], constants[0]);
+            return true;
+        }
+        return false;
     }
 };
 
