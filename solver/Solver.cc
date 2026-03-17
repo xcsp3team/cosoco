@@ -841,6 +841,19 @@ bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variabl
 }
 
 bool Solver::enforceEQ(Variable *x, Variable *y, int k) {   // X = Y + k
+
+    int minx = x->minimum(), miny = y->minimum() + k;
+    int maxx = x->maximum(), maxy = y->maximum() + k;
+    if(maxx < miny || maxy < minx)
+        return false;
+
+    // if(x->isConnex() && y->isConnex()) {
+    if(delValuesGreaterOrEqualThan(x, maxy + 1) == false)
+        return false;
+    if(delValuesLowerOrEqualThan(y, minx - k - 1) == false)
+        return false;
+    //}
+
     for(int idv : reverse(y->domain)) {
         int v = y->domain.toVal(idv) + k;
         if(x->containsValue(v) == false && delIdv(y, idv) == false) {
