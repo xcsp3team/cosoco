@@ -1101,8 +1101,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
             if(vars[i]->containsValue(i)) {
                 tuples.push();
                 for(int j = 0; j < vars.size(); j++) tuples.last().push(STAR);
-                tuples.last()[i]     = i;
-                tuples.last().last() = i;
+                tuples.last()[i]     = vars[i]->domain.toIdv(i);
+                tuples.last().last() = vars.last()->domain.toIdv(i);
             }
         }
         FactoryConstraints::createConstraintExtension(problem, id, vars, tuples, true, true);
