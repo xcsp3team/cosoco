@@ -38,7 +38,7 @@ bool Knapsack::isCorrectlyDefined() {
 //----------------------------------------------
 void Knapsack::recomputeBounds() {
     wmin = wmax = pmin = pmax = 0;
-    for(int posx = 0; posx < scope.size(); posx++) {
+    for(int posx = 0; posx < weights.size(); posx++) {
         wmin += weights[posx] * scope[posx]->minimum();
         wmax += weights[posx] * scope[posx]->maximum();
         pmin += profits[posx] * scope[posx]->minimum();
@@ -196,7 +196,6 @@ KnapsackVARWP::KnapsackVARWP(Problem &p, std::string n, vec<Variable *> &_vars, 
     : Knapsack(p, n, _vars, _w, _p, 0, 0) {
     addToScope(wl);
     addToScope(pl);
-    std::cout << scope.size() << std::endl;
     varPLimit = pl;
     varWLimit = wl;
     basic     = false;
