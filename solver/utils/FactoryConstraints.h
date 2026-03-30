@@ -265,6 +265,10 @@ void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X,
 
 void createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, bool covered);
 
+
+void createConstraintKnapsack(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &weights, vec<int> &profits,
+                              XCondition &weightsCondition, XCondition &profitCondition);
+
 void createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes, vec<int> &limits);
 
 void createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes, vec<Variable *> &loads);

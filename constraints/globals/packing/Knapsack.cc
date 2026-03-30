@@ -14,7 +14,9 @@ using namespace Cosoco;
 
 int sum(vec<int> &tuple, vec<int> &coefs) {
     int sum = 0;
-    for(int posx = 0; posx < coefs.size(); posx++) sum += tuple[posx];
+    for(int posx = 0; posx < coefs.size(); posx++) {
+        sum += coefs[posx] * tuple[posx];
+    }
     return sum;
 }
 
@@ -44,6 +46,14 @@ void Knapsack::recomputeBounds() {
     }
 }
 
+int computeLimit(int limit, int coeff, bool LE) {
+    int newLimit = limit / coeff;
+    if(LE == false && limit % coeff != 0)
+        newLimit++;
+    return newLimit;
+}
+
+
 bool Knapsack::filter(Variable *dummy) {
     if(basic)
         recomputeBounds();
@@ -63,7 +73,8 @@ bool Knapsack::filter(Variable *dummy) {
             long wmini = wmin - wcoeff * x->minimum();   // we remove the contribution of the variable we consider
             long pmini = pmin - pcoeff * x->minimum();
 
-            dom.removeValues(GT, wlimit - wmini, wcoeff);
+            // solver->delValuesGreaterOrEqualThan(x, computeLimit(wlimit - wmini + 1, wcoeff, false));
+
             if(profits[posx] == 0)
                 continue;
 
@@ -93,7 +104,8 @@ bool Knapsack::filter(Variable *dummy) {
             pmin -= pcoeff * x->minimum();
             long wmaxi = wmax - wcoeff * x->maximum();   // we remove the contribution of the variable we consider
             long pmaxi = pmax - pcoeff * x->maximum();
-            dom.removeValues(LT, plimit - pmaxi, pcoeff);
+
+            // solver->delValuesLowerOrEqualThan(x, computeLimit(plimit - pmaxi - 1, pcoeff, true) - 1);
             if(weights[posx] == 0)
                 continue;
             while(true) {
@@ -148,40 +160,45 @@ bool KnapsackVARWP::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-Knapsack::Knapsack(Problem &p, std::string n, vec<Variable *> &v, vec<int> &ws, vec<int> &ps, int wl, int pl)
-    : GlobalConstraint(p, n, v, "Knapsack") {
-    v.copyTo(vars);
-    ws.copyTo(weights);
-    ps.copyTo(profits);
-    wlimit         = wl;
-    plimit         = pl;
-    basic          = true;
-    this.minWeight = weights.min();
-    this.maxWeight = weights.max();
-    this.minProfit = profits.min();
-    this.maxProfit = profits.max();
+Knapsack::Knapsack(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, int wl, int pl)
+    : GlobalConstraint(p, n, "Knapsack", _vars) {
+    _vars.copyTo(vars);
+    _w.copyTo(weights);
+    _p.copyTo(profits);
+    wlimit        = wl;
+    plimit        = pl;
+    basic         = true;
+    minWeight     = weights.min();
+    maxWeight     = weights.max();
+    minProfit     = profits.min();
+    maxProfit     = profits.max();
+    isPostponable = true;
 }
 
-KnapsackVARW::KnapsackVARW(Problem &p, std::string n, vec<Variable *> &v, vec<int> &ws, vec<int> &ps, Variable *wl, int pl)
-    : Knapsack(p, n, v, ws, ps, 0, pl) {
+KnapsackVARW::KnapsackVARW(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, Variable *wl, int pl)
+    : Knapsack(p, n, _vars, _w, _p, 0, pl) {
     addToScope(wl);
     varWLimit = wl;
     basic     = false;
+    type      = "Knapsack VW";
 }
 
-KnapsackVARP::KnapsackVARP(Problem &p, std::string n, vec<Variable *> &v, vec<int> &ws, vec<int> &ps, int wl, Variable *pl)
-    : Knapsack(p, n, v, ws, ps, wl, 0) {
+KnapsackVARP::KnapsackVARP(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, int wl, Variable *pl)
+    : Knapsack(p, n, _vars, _w, _p, wl, 0) {
     addToScope(pl);
     varPLimit = pl;
     basic     = false;
+    type      = "Knapsack VP";
 }
 
-KnapsackVARWP::KnapsackVARWP(Problem &p, std::string n, vec<Variable *> &v, vec<int> &ws, vec<int> &ps, Variable *wl,
+KnapsackVARWP::KnapsackVARWP(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, Variable *wl,
                              Variable *pl)
-    : Knapsack(p, n, v, ws, ps, 0, 0) {
+    : Knapsack(p, n, _vars, _w, _p, 0, 0) {
     addToScope(wl);
     addToScope(pl);
+    std::cout << scope.size() << std::endl;
     varPLimit = pl;
     varWLimit = wl;
     basic     = false;
+    type      = "KnapsackVWP";
 }

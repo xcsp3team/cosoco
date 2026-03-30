@@ -1808,6 +1808,24 @@ void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &
 
 void CosocoCallbacks::buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
                                               XCondition weightsCondition, XCondition &profitCondition) {
+    if(weightsCondition.op == LT) {
+        weightsCondition.op = LE;
+        weightsCondition.val--;
+    }
+    if(weightsCondition.op == GT) {
+        weightsCondition.op = GE;
+        weightsCondition.val++;
+    }
+
+    toMyVariables(list);
+    vec<int> w, p;
+    vector2vec(weights);
+    vals.copyTo(w);
+    vector2vec(profits);
+    vals.copyTo(p);
+
+    FactoryConstraints::createConstraintKnapsack(problem, id, vars, w, p, weightsCondition, profitCondition);
+
     buildConstraintSum(id, list, weights, weightsCondition);
     buildConstraintSum(id, list, profits, profitCondition);
 }

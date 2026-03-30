@@ -22,7 +22,7 @@ class Knapsack : public GlobalConstraint {
     bool basic;
 
    public:
-    Knapsack(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &w, vec<int> &p, int wl, int pl);
+    Knapsack(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, int wl, int pl);
     bool isCorrectlyDefined() override;
 
 
@@ -38,7 +38,7 @@ class KnapsackVARW : public Knapsack {
     Variable *varWLimit;
 
    public:
-    KnapsackVARW(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &w, vec<int> &p, Variable *wl, int pl);
+    KnapsackVARW(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, Variable *wl, int pl);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
     // Checking
@@ -50,7 +50,7 @@ class KnapsackVARP : public Knapsack {
     Variable *varPLimit;
 
    public:
-    KnapsackVARP(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &w, vec<int> &p, int wl, Variable *pl);
+    KnapsackVARP(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, int wl, Variable *pl);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
     // Checking
@@ -64,7 +64,7 @@ class KnapsackVARWP : public Knapsack {
 
 
    public:
-    KnapsackVARWP(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &w, vec<int> &p, Variable *wl, Variable *pl);
+    KnapsackVARWP(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &_w, vec<int> &_p, Variable *wl, Variable *pl);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
     // Checking

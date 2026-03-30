@@ -26,6 +26,7 @@
 #include "Dist2.h"
 #include "DoubleDiff.h"
 #include "ElementMatrixVariable.h"
+#include "Knapsack.h"
 #include "MaximumArg.h"
 #include "MinimumConstantEQ.h"
 #include "Mult.h"
@@ -1033,6 +1034,20 @@ void FactoryConstraints::createConstraintPrecedence(Problem *p, std::string name
     p->addConstraint(new Precedence(*p, name, vars, values, covered));
 }
 
+void FactoryConstraints::createConstraintKnapsack(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &weights,
+                                                  vec<int> &profits, XCondition &weightsCondition, XCondition &profitCondition) {
+    if(weightsCondition.operandType == INTEGER && profitCondition.operandType == INTEGER)
+        p->addConstraint(new Knapsack(*p, name, vars, weights, profits, weightsCondition.val, profitCondition.val));
+    if(weightsCondition.operandType == VARIABLE && profitCondition.operandType == INTEGER)
+        p->addConstraint(
+            new KnapsackVARW(*p, name, vars, weights, profits, p->mapping[weightsCondition.var], profitCondition.val));
+    if(weightsCondition.operandType == INTEGER && profitCondition.operandType == VARIABLE)
+        p->addConstraint(
+            new KnapsackVARP(*p, name, vars, weights, profits, weightsCondition.val, p->mapping[profitCondition.var]));
+    if(weightsCondition.operandType == VARIABLE && profitCondition.operandType == VARIABLE)
+        p->addConstraint(new KnapsackVARWP(*p, name, vars, weights, profits, p->mapping[weightsCondition.var],
+                                           p->mapping[profitCondition.var]));
+}
 void FactoryConstraints::createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,
                                                     vec<int> &limits) {
     p->addConstraint(new BinPacking(*p, name, vars, sizes, limits));
