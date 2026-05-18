@@ -60,19 +60,19 @@ int Optimizer::solve(vec<RootPropagation> &assumps) {
 
 int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     // Bounds are correctly initialized
-    firstCall = true;
+    bool noFullRestartAfterSolution = options::boolOptions["nr"].value;
+    firstCall                       = true;
     vec<int>             tuple;
-    ObjectiveConstraint *objective = (optimtype == Minimize) ? objectiveUB : objectiveLB;
-    auto                 c         = dynamic_cast<Constraint *>(objective);
+    ObjectiveConstraint *objective           = (optimtype == Minimize) ? objectiveUB : objectiveLB;
+    auto                 objectiveConstraint = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
-    status      = RUNNING;
-    bool hasSol = false;
+    status = RUNNING;
 
     solver->checkSolution = true;
     while(status == RUNNING) {
         if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
             best = bestSolution->originalBound();
-            // verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
+            verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
             if(optimtype == Minimize)
                 upper = best - 1;
             else
@@ -90,7 +90,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
         solver->solve(assumps);
 
-        c->isDisabled = false;   // Enable the objective
+        objectiveConstraint->isDisabled = false;   // Enable the objective
 
         if(threadsGroup != nullptr && solver->stopSearch)
             continue;
@@ -104,7 +104,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 solver->restart->initialize();
 
             if(solver->hasSolution()) {
-                c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
+                objectiveConstraint->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
                 // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
 
@@ -128,14 +128,18 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             else
                 lower = best + 1;
 
-            int bestLevel = -1;
-            for(Variable *x : c->scope) {
-                if(x->domain.lastRemovedLevel() > bestLevel)
-                    bestLevel = x->domain.lastRemovedLevel();
+            if(noFullRestartAfterSolution) {   // Do not completely restart after a solution
+                int bestLevel = -1;
+                for(Variable *x : objectiveConstraint->scope) {
+                    if(x->domain.lastRemovedLevel() > bestLevel)
+                        bestLevel = x->domain.lastRemovedLevel();
+                }
+                // std::cout << "best : " << bestLevel << std::endl;
+                solver->backtrack(bestLevel - 1 >= 0 ? bestLevel - 1 : 0);
+            } else {
+                solver->fullBacktrack();
+                solver->reinitializeConstraints();
             }
-            std::cout << "best : " << bestLevel << std::endl;
-            solver->backtrack(bestLevel - 1 >= 0 ? bestLevel - 1 : 0);
-            
         } else {
             status = OPTIMUM;
             if(firstCall)

@@ -45,7 +45,7 @@ void createOptions() {
     boolOptions["decompose"]       = {"PARSE", "decompose intension using reification.", true};
     intOptions["bound"]            = {"OPTIMIZER", "set the initial bound to the value", INT_MAX, INT_MIN, INT_MAX};
     intOptions["rr"]               = {"OPTIMIZER", "heuristic Var and Val Robin with Bs deactivated during first runs", 0, 0, 2};
-
+    boolOptions["nr"]              = {"OPTIMIZER", "Do not completely restart after a solution", false};
     intConstants["large_bin_extension"] = 1000;
     intConstants["smallNbTuples"]       = 16;   // if tuples.size() < 16 then create STR0 constraint, otherwise STR2/CT
 }
