@@ -2,9 +2,12 @@
 
 #include <assert.h>
 
+#include <utility>
+
 #include "XCSP3Tree.h"
 #include "mtl/Map.h"
 #include "solver/utils/FactoryConstraints.h"
+#include "solver/utils/Options.h"
 #include "utils/Utils.h"
 
 
@@ -13,61 +16,12 @@ using namespace Cosoco;
 
 
 // Constructors and delayed initialisation
+Constraint::Constraint(Problem &p, std::string n)
+    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
 
 Constraint::Constraint(Problem &p, std::string n, vec<Variable *> &vars)
-    : indexesAreValues(true), problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    scopeInitialisation(vars);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, Variable *xx, Variable *yy)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    vec<Variable *> v;
-    v.push(xx);
-    v.push(yy);
-    scopeInitialisation(v);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, Variable *x)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    vec<Variable *> v;
-    v.push(x);
-    scopeInitialisation(v);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, Variable *x, Variable *y, Variable *z)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
-    vec<Variable *> v;
-    v.push(x);
-    v.push(y);
-    v.push(z);
-    scopeInitialisation(v);
-}
-
-
-Constraint::Constraint(Problem &p, std::string n, int sz)
-    : problem(p), solver(nullptr), name(n), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
-
-
-void Constraint::scopeInitialisation(vec<Variable *> &vars) {
-    assert(scope.size() == 0);   // Do it only one
-    vars.copyTo(scope);
-    idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
-    arity            = scope.size();
-    indexesAreValues = true;
-    unassignedVariablesIdx.setCapacity(arity, true);
-    assert(unassignedVariablesIdx.size() == arity);
-    for(int i = 0; i < vars.size(); i++) {
-        // indexesAreValues = indexesAreValues &&
-        //                   (vars[i]->domain[0] == 0 && vars[i]->domain[vars[i]->size() - 1] == vars[i]->size() - 1);
-        idxToScopePosition[vars[i]->idx] = i;
-    }
-    // TODO a bug occurs here
-    indexesAreValues = false;
-    current.growTo(vars.size());
-    wdeg.growTo(vars.size());
+    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
+    addToScope(vars);
 }
 
 
@@ -85,12 +39,41 @@ bool Constraint::scopeIsOk() {
     return true;
 }
 
+void Constraint::addToScope(Variable *x) { scope.push(x); }
+
+
+void Constraint::addToScope(vec<Variable *> &vars) {
+    for(Variable *v : vars) scope.push(v);
+}
+
 
 void Constraint::delayedConstruction(int id) {
-    if(idxToScopePosition.size() < problem.variables.size())
-        idxToScopePosition.growTo(problem.variables.size(), NOTINSCOPE);
-
     assert(scope.size() > 0);   // scopeInitialisation have to be done
+    makeDelayedConstruction(id);
+}
+
+#define MAXVARIABLESFORIDX 2000
+
+void Constraint::makeDelayedConstruction(int id) {
+    assert(scope.size() > 0);   // scopeInitialisation have to be done
+    arity = scope.size();
+
+    if(arity > 1 && problem.variables.size() < MAXVARIABLESFORIDX)
+        idxToScopePositionArray.growTo(problem.variables.size(), NOTINSCOPE);
+
+
+    unassignedVariablesIdx.setCapacity(arity, true);
+    assert(unassignedVariablesIdx.size() == arity);
+    if(arity > 1)
+        for(int i = 0; i < scope.size(); i++) {
+            if(problem.variables.size() < MAXVARIABLESFORIDX)
+                idxToScopePositionArray[scope[i]->idx] = i;
+            else
+                idxToScopePositionMap.insert({scope[i]->idx, i});
+        }
+
+    current.growTo(scope.size());
+    wdeg.growTo(scope.size());
     idc = id;
     for(Variable *v : scope) v->addConstraint(this);
 }
@@ -114,18 +97,22 @@ bool Constraint::filterFrom(Variable *x) {
     return filter(x);
 }
 
+bool Constraint::postpone() {
+    return isPostponable && options::intOptions["postponesize"].value > 0 &&
+           scope.size() > options::intOptions["postponesize"].value;
+}
 
 // Assign and unassign variables
 void Constraint::assignVariable(Variable *x) {
-    int posx = toScopePosition(x);
-    assert(posx < scope.size());
+    int posx = toScopePosition(x->idx);
+    assert(posx >= 0 && posx < scope.size());
     assert(unassignedVariablesIdx.contains(posx));
     unassignedVariablesIdx.del(posx);
 }
 
 
 void Constraint::unassignVariable(Variable *x) {
-    int posInScope = toScopePosition(x);
+    int posInScope = toScopePosition(x->idx);
     assert(posInScope < scope.size());
     assert(!unassignedVariablesIdx.contains(posInScope));
     unassignedVariablesIdx.add(posInScope);
@@ -134,26 +121,22 @@ void Constraint::unassignVariable(Variable *x) {
 
 // idx -> scope position
 int Constraint::toScopePosition(int idx) {
-    switch(scope.size()) {
-        case 2:
-            return scope[0]->idx == idx ? 0 : 1;
-        case 3:
-            if(scope[0]->idx == idx)
-                return 0;
-            if(scope[1]->idx == idx)
-                return 1;
-            return 2;
-    }
-    return idxToScopePosition[idx];
+    if(arity == 1)
+        return scope[0]->idx == idx ? 0 : NOTINSCOPE;
+
+    if(problem.variables.size() < MAXVARIABLESFORIDX)
+        return idxToScopePositionArray[idx];
+    auto it = idxToScopePositionMap.find(idx);
+    if(it == idxToScopePositionMap.end())
+        return NOTINSCOPE;
+    return it->second;
 }
 
 
-int Constraint::toScopePosition(Variable *x) { return toScopePosition(x->idx); }
-
-
 bool Constraint::isSatisfiedByOfIndexes(vec<int> &tupleOfIndex) {
-    if(indexesAreValues)
-        return isSatisfiedBy(tupleOfIndex);
+    // if(indexesAreValues)
+    //    return isSatisfiedBy(tupleOfIndex);
+    // std::cout << tupleOfIndex.size() << " " << scope[2]->_name << "\n";
     for(int i = 0; i < scope.size(); i++) current[i] = scope[i]->domain.toVal(tupleOfIndex[i]);
 
     return isSatisfiedBy(current);
@@ -176,7 +159,6 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
 
     for(int i = 0; i < x->domain.maxSize(); i++) {
         tuple[x->_name] = x->domain.toVal(i);
-
         if(posx == scope.size() - 2 && tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {
             auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
             if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
@@ -186,7 +168,7 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
                 if(scope.last()->containsValue(eval)) {
                     supports.push();
                     tuple[scope.last()->_name] = eval;
-                    assert(tuple.size() == scope.size());
+                    assert(static_cast<int>(tuple.size()) == scope.size());
                     for(auto &x : scope) supports.last().push(tuple[x->_name]);
                 }
                 continue;

@@ -2,8 +2,11 @@
 #define COSOCO_COSOCOCALLBACKS_H
 
 #include <numeric>
+#include <set>
+#include <utility>
 
 #include "FactoryConstraints.h"
+#include "Options.h"
 #include "XCSP3Constants.h"
 #include "XCSP3Constraint.h"
 #include "XCSP3CoreCallbacks.h"
@@ -17,10 +20,78 @@
 
 using namespace Cosoco;
 using namespace std;
-
 namespace XCSP3Core {
+class CosocoCallbacks;
+class BasicNode;
+
+class Primitive {
+   public:
+    Tree                       *canonized, *pattern;
+    std::vector<int>            constants;
+    std::vector<std::string>    variables;
+    std::vector<ExpressionType> operators;
+    XCSP3Core::CosocoCallbacks &callbacks;
+    int                         arity;
+
+    std::string id;
+
+
+    Primitive(XCSP3Core::CosocoCallbacks &m, string expr, int a) : pattern(new Tree(std::move(expr))), callbacks(m), arity(a) { }
+    Primitive(XCSP3Core::CosocoCallbacks &m) : pattern(nullptr), callbacks(m), arity(0) { }
+    virtual ~Primitive() { }
+
+
+    Primitive *setTarget(std::string _id, Tree *c) {
+        id        = _id;
+        canonized = c;
+        return this;
+    }
+
+
+    virtual bool post() = 0;
+
+
+    virtual bool match() {
+        constants.clear();
+        variables.clear();
+        operators.clear();
+        return arity == canonized->arity() && Node::areSimilar(canonized->root, pattern->root, operators, constants, variables) &&
+               post();
+    }
+};
+
+struct InternNode {
+   public:
+    XCSP3Core::Node *parent;
+    int              index;
+    InternNode(XCSP3Core::Node *_parent, int _index) : parent(_parent), index(_index) { }
+};
+
+class ManageIntension {
+   public:
+    vec<Primitive *>          patterns;
+    CosocoCallbacks          &callbacks;
+    map<string, Constraint *> cachedExtensions;
+    explicit ManageIntension(CosocoCallbacks &callbacks);
+    void        createPrimitives();
+    void        intension(std::string id, Tree *tree);
+    bool        recognizePrimitives(std::string id, Tree *tree);
+    bool        toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
+    bool        existInCacheExtension(string &expr, vec<Variable *> &scope);
+    bool        decompose(std::string id, Tree *tree);
+    bool        decompose(Node *node);
+    static void extractVariables(Node *node, vector<string> &listOfVariables);
+
+    bool        replaceSameNodes(Tree *tree);                                     // Replace same internal nodes
+    static void internalNodes(Node *node, vec<InternNode> &list);                 // Get all internal nodes
+    static void extractSameNodes(vec<InternNode> &list, vec<InternNode> &same);   // Extract same internal nodes
+    Node       *simplify(Node *node);
+};
+
 
 class CosocoCallbacks : public XCSP3CoreCallbacks {
+    friend class ManageIntension;
+
    protected:
     vec<int> &vector2vec(vector<int> &src) {
         vals.clear();
@@ -30,14 +101,14 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
 
-    vec<Variable *> &toMyVariables(vector<XVariable *> &src, vec<Variable *> &dest, int coreNumber) {
+    vec<Variable *> &toMyVariables(vector<XVariable *> &src, vec<Variable *> &dest) {
         dest.clear();
-        for(unsigned int i = 0; i < src.size(); i++) dest.push(problems[coreNumber]->mapping[src[i]->id]);
+        for(unsigned int i = 0; i < src.size(); i++) dest.push(problem->mapping[src[i]->id]);
         return dest;
     }
 
 
-    vec<Variable *> &toMyVariables(vector<XVariable *> &src, int coreNumber) { return toMyVariables(src, vars, coreNumber); }
+    vec<Variable *> &toMyVariables(vector<XVariable *> &src) { return toMyVariables(src, vars); }
 
 
     Range possibleValuesForExpressionInRange(Node *node) {
@@ -46,7 +117,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
         if(node->type == OVAR) {
             auto     *nx = dynamic_cast<NodeVariable *>(node);
-            Variable *x  = problems[0]->mapping[nx->var];
+            Variable *x  = problem->mapping[nx->var];
             return {x->minimum(), x->maximum()};
         }
         if(node->type == ODECIMAL) {
@@ -54,6 +125,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             return {nx->val, nx->val};
         }
 
+        assert(node->parameters.size() > 0);   // To be sure
         assert(node->parameters.size() > 0);   // To be sure
         vec<Range> ranges;
 
@@ -74,7 +146,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             return ranges[0].addRange(ranges[1].negRange());
 
         if(node->type == ODIV) {
-            assert(false);
+            return ranges[0];
         }
 
         if(node->type == OMOD) {
@@ -136,7 +208,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
 
         if(node->type == OIF) {
-            assert(false);
+            int    mn = ranges[1].min, mx = ranges[1].max;
+            Range &r = ranges[2];
+            mn       = mn < r.min ? r.min : mn;
+            mx       = mx < r.max ? r.max : mx;
+            return {mn, mx};
         }
 
         assert(false);
@@ -149,7 +225,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
             values.insert(tree->evaluate(tuple));
             return;
         }
-        Variable *x = problems[0]->mapping[tree->listOfVariables[idx]];   // Take core 0 is ok
+        Variable *x = problem->mapping[tree->listOfVariables[idx]];   // Take core 0 is ok
         for(int idv : x->domain) {
             tuple[tree->listOfVariables[idx]] = x->domain.toVal(idv);
             possibleValuesForExpression(tree, tuple, values, idx + 1);
@@ -157,10 +233,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     }
 
 
-    bool                insideGroup;
-    int                 nbIntension;
-    bool                inArray;
-    int                 i2eNumber;
+    bool        insideGroup;
+    int         nbIntension;
+    int         inArray;
+    std::string arrayName;
+
     int                 nbMDD;
     vec<Variable *>     vars;   // Not so beautiful, but efficient...
     vec<int>            vals;   // Avoid std::move and save lines...
@@ -168,20 +245,32 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     int                 auxiliaryIdx;
     map<string, string> expressionsToAuxiliaryVariables;
     vector<XVariable *> previousArgument;
-    int                 nbIntension2Extention, nbSharedIntension2Extension;
+    set<string>         allDisjunctives;
 
    public:
-    int                    nbcores;
-    unsigned long long     intension2extensionLimit;
-    vec<Cosoco::Problem *> problems;
-    bool                   optimizationProblem;
-    bool invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
-    vec<vec<Variable *>> decisionVariables;
-    int                  nbInitialsVariables;
+    int                nbIntension2Extention;
+    unsigned long long intension2extensionLimit;
+    Cosoco::Problem   *problem;
+    bool               optimizationProblem;
+    bool            invertOptimization;   // See Sum objective. If minimize -> Maximize and change sum (only sumGE is supported)
+    vec<Variable *> decisionVariables;
+    int             nbInitialsVariables;
+    std::map<std::string, XVariable *> mappingXV;
+    ManageIntension                   *manageIntension;
+    CosocoCallbacks() : startToParseObjective(false) {
+        recognizeSpecialIntensionCases = false;
+        manageIntension                = new ManageIntension(*this);
+        if(options::stringOptions["removeclasses"].value != "") {
+            std::vector<std::string> classes = split1(std::string(options::stringOptions["removeclasses"].value), ',');
+            for(const std::string &c : classes) addClassToDiscard(c);
+        }
+    }
 
+    bool verbose = true;
 
-    CosocoCallbacks(int ncores, unsigned long long i2e)
-        : startToParseObjective(false), nbcores(ncores), intension2extensionLimit(i2e) { }
+    static bool matchParams(const std::vector<Node *> &parameters);
+
+    void createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes);
 
     void beginInstance(InstanceType type) override;
 
@@ -223,12 +312,12 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
                                   bool hasStar) override;
 
 
+    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
+
     void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples, bool support,
-                                   bool hasStar, int core) const;
+                                   bool hasStar) const;
 
     void buildConstraintExtension(string id, XVariable *variable, vector<int> &tuples, bool support, bool hasStar) override;
-
-    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
 
     void buildConstraintIntension(string id, Tree *tree) override;
 
@@ -246,7 +335,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     // Language  constraints
     //--------------------------------------------------------------------------------------
 
-    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list, int core);
+    Cosoco::MDD *sameMDDAsPrevious(vec<Variable *> &list);
 
     void buildConstraintMDD(string id, vector<XVariable *> &list, vector<XTransition> &transitions) override;
 
@@ -281,6 +370,8 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) override;
 
+    void buildConstraintOrdered(string id, vector<XVariable *> &list, vector<XVariable *> &lengths, OrderType order) override;
+
     void buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) override;
 
     void buildConstraintLexMatrix(string id, vector<vector<XVariable *>> &matrix, OrderType order) override;
@@ -294,7 +385,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) override;
 
-    void buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc, int core);
+    void buildConstraintSum(string id, vec<Variable *> &variables, vector<int> &coeffs, XCondition &xc);
 
     void buildConstraintSum(string id, vector<XVariable *> &list, vector<XVariable *> &coeffs, XCondition &xc) override;
 
@@ -312,11 +403,17 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) override;
 
+    void buildConstraintNValues(string id, vector<Tree *> &trees, XCondition &xc) override;
+
     void buildConstraintCount(string id, vector<XVariable *> &list, vector<XVariable *> &values, XCondition &xc) override;
 
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) override;
 
     void buildConstraintCount(string id, vector<Tree *> &trees, vector<XVariable *> &values, XCondition &xc) override;
+
+    void buildConstraintCount(string id, vector<XVariable *> &list, vector<int> &values, XCondition &xc) override;
+
+    void buildConstraintAmong(string id, vector<XVariable *> &list, vector<int> &values, int k) override;
 
     void buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
                                     bool closed) override;
@@ -337,6 +434,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) override;
 
+    void buildConstraintMaximumArg(string id, vector<Tree *> &list, RankType rank, XCondition &xc) override;
+
+    void buildConstraintMaximumArg(string id, vector<XVariable *> &list, RankType rank, XCondition &xc) override;
+
+
     void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override;
 
     void buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) override;
@@ -352,6 +454,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex, XCondition &xc) override;
 
+    void buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex, XCondition &xc) override;
+
+
     void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex, int startColIndex,
                                 XVariable *colIndex, XVariable *value) override;
 
@@ -359,6 +464,14 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex, XVariable *rowIndex,
                                 int startColIndex, XVariable *colIndex, int value) override;
 
+    void buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex, XVariable *rowIndex,
+                                int startColIndex, XVariable *colIndex, XVariable *value) override;
+
+    void buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
+                                int value) override;
+
+    void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex, int startColIndex,
+                                XVariable *colIndex, XCondition &xc) override;
 
     void buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
                                 int startIndex2) override;
@@ -377,6 +490,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<int>> &lengths,
                                   bool zeroIgnored) override;
+
+    void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<XVariable *> &varLengths,
+                                  vector<int> &intLengths, bool zeroIgnored) override;
 
     void buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths, vector<int> &heights,
                                    XCondition &xc) override;
@@ -431,11 +547,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list) override;
 
-    void buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+    void buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs);
 
     void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
 
-    void buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs, int core);
+    void buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs);
 
     void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<int> &origcoeffs) override;
 
@@ -452,6 +568,10 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildAnnotationDecision(vector<XVariable *> &list) override;
 
     void buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) override;
+
+    void buildObjectiveMinimize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) override;
+
+    void buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) override;
 
     void buildConstraintNoOverlap(string id, vector<XVariable *> &origins, vector<XVariable *> &lengths,
                                   bool zeroIgnored) override;

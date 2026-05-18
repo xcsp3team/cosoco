@@ -14,7 +14,6 @@ HeuristicValOccs::HeuristicValOccs(Solver &s) : HeuristicVal(s) {
         nbOccurrences.push();
         elements.push();
         // Put all elements in Map.
-        bool first = true;
         for(Variable *x : solver.problem.variablesArray[i]) {
             for(int idv : x->domain) {
                 int v = x->domain.toVal(idv);

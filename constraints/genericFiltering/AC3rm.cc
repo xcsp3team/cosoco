@@ -1,5 +1,6 @@
 #include "AC3rm.h"
 
+#include "Options.h"
 #include "solver/Solver.h"
 
 using namespace Cosoco;
@@ -34,7 +35,7 @@ bool AdapterAC3rm::isItTimeToStartFiltering() {
     for(Variable *x : scope) {
         assert(x->size() > 0);
         nb *= x->size();
-        if(nb > 1000)
+        if(nb > maxSize)
             return false;
     }
     assert(nb > 0);
@@ -105,6 +106,11 @@ AdapterAC3rm::AdapterAC3rm(Constraint *c)
 
 bool AdapterAC3rm::isCorrectlyDefined() { return constraint->isCorrectlyDefined(); }
 
+void AdapterAC3rm::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    for(int idx = 0; idx < scope.size(); idx++) constraint->scope[idx] = scope[idx];
+    constraint->current.growTo(scope.size());
+}
 
 State AdapterAC3rm::status() { return constraint->status(); }
 
@@ -116,6 +122,7 @@ void AdapterAC3rm::reinitialize() { constraint->reinitialize(); }
 void AdapterAC3rm::attachSolver(Solver *s) {
     Constraint::attachSolver(s);
     constraint->attachSolver(s);
+    maxSize = options::intOptions["limitac3card"].value;
 }
 
 void AdapterAC3rm::display(bool d) { constraint->display(d); }

@@ -16,30 +16,37 @@ bool Cosoco::Unary::isSatisfiedBy(Cosoco::vec<int> &tuple) { return values.conta
 //----------------------------------------------------------
 
 Unary::Unary(Problem &p, std::string n, Variable *xx, const vec<int> &vals, bool areS)
-    : Constraint(p, n, xx), x(xx), done(false), areSupports(areS) {
+    : Constraint(p, n, createScopeVec(xx)), x(xx), done(false), areSupports(areS) {
     vals.copyTo(values);
     type = "Unary";
 }
 
 
-Cosoco::State Cosoco::Unary::status() { return  done ? CONSISTENT : UNDEF; }
+Cosoco::State Cosoco::Unary::status() { return UNDEF; }
 
 
-void Cosoco::Unary::reinitialize() { done = false; }
+void Cosoco::Unary::reinitialize() { }
 
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
 
 bool Cosoco::Unary::filter(Cosoco::Variable *dummy) {
+    if(done) {
+        // If new call => because restarts and entail is deleted...
+        solver->entail(this);
+        return true;
+    }
     done = true;
 
     if(areSupports) {
-        if(values.size() == 1)
-            return solver->assignToVal(x, values[0]);
+        if(values.size() == 1) {
+            bool ret = solver->assignToVal(x, values[0]);
+            solver->entail(this);
+            return ret;
+        }
 
-
-        for(int idv : reverse(x->domain)) {
+        for(int idv : x->domain) {
             int v = x->domain.toVal(idv);
             if(values.contains(v) == false && solver->delVal(x, v) == false)
                 return false;

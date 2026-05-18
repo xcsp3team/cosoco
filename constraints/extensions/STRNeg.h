@@ -19,8 +19,8 @@ class STRNeg : public Extension, ObserverDeleteDecision {
 
    public:
     // Constructors and construction
-    STRNeg(Problem &p, std::string n, vec<Variable *> &vars);
-    STRNeg(Problem &p, std::string n, vec<Variable *> &vars, vec<vec<int> > &tuplesFromOtherConstraint);
+    STRNeg(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
+    STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
     void delayedConstruction(int id) override;
     bool isCorrectlyDefined() override;
     void attachSolver(Solver *s) override;
@@ -31,11 +31,11 @@ class STRNeg : public Extension, ObserverDeleteDecision {
 
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
-    bool isValidTuple(vec<int> &tuple);
+    bool isValidTuple(int *tuple);
 
 
     // Notifications : restore validTuples when backtrack is performed
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void delTuple(int position, int level);
 };
 }   // namespace Cosoco

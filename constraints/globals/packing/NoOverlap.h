@@ -21,6 +21,9 @@ class NoOverlap : public GlobalConstraint {
     int             half;
     std::set<int>   overlappings;
 
+    vec<vec<int> > residues1;
+    vec<vec<int> > residues2;
+
 
    public:
     NoOverlap(Problem &pb, std::string &n, vec<Variable *> &xs, vec<int> &widths, vec<Variable *> &ys, vec<int> &heights);
@@ -35,7 +38,9 @@ class NoOverlap : public GlobalConstraint {
 
     bool overlap(int a, Variable *x, int b) { return a > x->maximum() && x->minimum() > b; }
 
-    bool filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2);
+   protected:
+    bool filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2, vec<vec<int> > &residues);
+    bool findSupport(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2, int w, int ww);
 };
 }   // namespace Cosoco
 

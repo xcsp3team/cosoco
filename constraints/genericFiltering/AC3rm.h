@@ -14,6 +14,8 @@
 
 namespace Cosoco {
 class AdapterAC3rm : public Constraint, public ObjectiveConstraint {
+    unsigned long long maxSize;
+
    public:
     Constraint *constraint;
     explicit AdapterAC3rm(Constraint *c);
@@ -24,8 +26,8 @@ class AdapterAC3rm : public Constraint, public ObjectiveConstraint {
 
     bool isCorrectlyDefined() override;
     void attachSolver(Solver *s) override;
-
-    // Filtering method, return false if a conflict occurs
+    void delayedConstruction(int id) override;
+    //   Filtering method, return false if a conflict occurs
     bool  filter(Variable *x) override;
     State status() override;
     void  reinitialize() override;

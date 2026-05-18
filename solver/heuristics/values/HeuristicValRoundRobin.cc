@@ -12,7 +12,7 @@
 
 using namespace Cosoco;
 
-HeuristicValRoundRobin::HeuristicValRoundRobin(Solver &s, std::string &sequence) : HeuristicVal(s) {
+HeuristicValRoundRobin::HeuristicValRoundRobin(Solver &s, std::string sequence) : HeuristicVal(s) {
     for(auto c : sequence) {
         if(c == 'F')
             heuristics.push(new HeuristicValFirst(s));

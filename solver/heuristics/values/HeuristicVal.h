@@ -6,6 +6,7 @@ namespace Cosoco {
 class Solver;
 class HeuristicVal {
    public:
+    virtual ~HeuristicVal() = default;
     Solver &solver;
     HeuristicVal(Solver &s) : solver(s) { }
 

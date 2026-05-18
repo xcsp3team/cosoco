@@ -2,6 +2,8 @@
 
 #include <XCSP3Constants.h>
 
+#include "HeuristicValLast.h"
+#include "Options.h"
 #include "core/OptimizationProblem.h"
 #include "utils/System.h"
 
@@ -20,19 +22,32 @@ Optimizer::Optimizer(Problem &p)
 
 
 void Optimizer::setSolver(Solver *s, Solution *solution) {
-    solver                    = s;
-    bestSolution              = solution;
-    solver->nbWishedSolutions = 1;
-    solver->setVerbosity(1);
-    optimtype   = (static_cast<OptimizationProblem &>(solver->problem)).type;
-    objectiveLB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
-    objectiveUB = (static_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
+    solver                       = s;
+    bestSolution                 = solution;
+    solver->optimizationSolution = solution;
+    solver->setVerbosity(options::intOptions["verb"].value);
+    optimtype   = (dynamic_cast<OptimizationProblem &>(solver->problem)).type;
+    objectiveLB = (dynamic_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
+    objectiveUB = (dynamic_cast<OptimizationProblem &>(solver->problem)).objectiveUB;
     assert(objectiveLB != nullptr || objectiveUB != nullptr);
-    lower                    = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
-    upper                    = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();
+    lower = (objectiveLB != nullptr) ? objectiveLB->minLowerBound() : objectiveUB->minLowerBound();
+    upper = (objectiveLB != nullptr) ? objectiveLB->maxUpperBound() : objectiveUB->maxUpperBound();
+
+    if(options::intOptions["bound"].value != INT_MAX) {
+        if(invertBestCost)
+            options::intOptions["bound"].value = -options::intOptions["bound"].value;
+        lower = upper = options::intOptions["bound"].value;
+    }
     best                     = optimtype == Minimize ? LONG_MAX : LONG_MIN;
     solution->invertBestCost = invertBestCost;
     solution->optimType      = optimtype;
+
+    if(optimtype == Maximize && options::stringOptions["val"].value == "max" && invertBestCost == false) {
+        solver->heuristicVal = new HeuristicValLast(*solver);
+    }
+
+    if(options::boolOptions["bs"].value)
+        addProgressSaving();
 }
 
 
@@ -55,6 +70,16 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
     solver->checkSolution = true;
     while(status == RUNNING) {
+        if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
+            best = bestSolution->originalBound();
+            // verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
+            if(optimtype == Minimize)
+                upper = best - 1;
+            else
+                lower = best + 1;
+            solver->stopSearch = true;
+        }
+
         if(optimtype == Minimize)
             objective->updateBound(upper);
         else
@@ -63,11 +88,15 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
         solver->stopSearch = false;
 
 
-        int ret = solver->solve(assumps);
+        solver->solve(assumps);
 
+        c->isDisabled = false;   // Enable the objective
+
+        if(threadsGroup != nullptr && solver->stopSearch)
+            continue;
 
         callToSolver++;
-        if(solver->hasASolution() || (ret == R_UNKNOWN && solver->stopSearch)) {
+        if(solver->hasASolution()) {
             nbSolutions++;
             firstCall = false;
 
@@ -77,12 +106,14 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->hasSolution()) {
                 c->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
                 best = objective->computeScore(tuple);
+                // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
 
-                // Store solution in order to avoid a signal
+
+                //   Store solution in order to avoid a signal
                 bestSolution->begin(best);
                 for(int i = 0; i < solver->lastSolution.size(); i++)
                     bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
-                bestSolution->end(colors);
+                bestSolution->end(options::boolOptions["colors"].value);
 
                 if(progressSaving) {
                     vec<int> idvalues;
@@ -121,12 +152,18 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 }
 
 
-void Optimizer::notifyConflict(Constraint *c, int level) { }
+void Optimizer::notifyConflict(Constraint *c, int level) {
+    if(threadsGroup != nullptr && solver->conflicts % 500 == 0) {
+        if(hasSolution() && isBetterBound(bestSolution->originalBound())) {
+            solver->stopSearch = true;
+        }
+    }
+}
 
 
-void Optimizer::displayCurrentSolution() {
+void Optimizer::displayCurrentSolution(int verbosity) {
     if(bestSolution->exists())
-        bestSolution->display();
+        bestSolution->display(verbosity);
 }
 
 

@@ -7,8 +7,8 @@
 namespace Cosoco {
 class GeometricRestart : public Restart {
     unsigned int numberOfConflicts;
-    unsigned int limit;
-    int          nbC;
+    unsigned int limit {};
+    int          nbC {};
     double       factor;
     bool         init;
 

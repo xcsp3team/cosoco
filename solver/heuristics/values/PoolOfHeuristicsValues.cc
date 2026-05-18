@@ -22,14 +22,6 @@ PoolOfHeuristicsValues::PoolOfHeuristicsValues(Solver &s) : HeuristicVal(s) {
 int PoolOfHeuristicsValues::select(Variable *x) { return heuristicForVariable[x->idx]->select(x); }
 
 void PoolOfHeuristicsValues::selectHeuristics() {
-    for(Variable *x : solver.problem.variables) {
-        if(x->_name.rfind("happiness") == 0) {
-            heuristicForVariable[x->idx] = last;
-        }
-        //    if(x->_name.rfind("t") == 0) {
-        //        heuristicForVariable[x->idx] = asgs;
-    }
-
     OptimizationProblem *op = dynamic_cast<OptimizationProblem *>(&(solver.problem));
     if(op != nullptr) {
         ObjectiveConstraint *objective = (op->type == Minimize) ? op->objectiveUB : op->objectiveLB;
@@ -40,12 +32,12 @@ void PoolOfHeuristicsValues::selectHeuristics() {
                 if(sum->coefficients[i] > 0)
                     heuristicForVariable[c->scope[i]->idx] = last;
         }
-        /*if(c->type == "Sum" && op->type == Minimize) {
+        if(c->type == "Sum" && op->type == Minimize) {
             Sum *sum = dynamic_cast<Sum *>(c);
             for(int i = 0; i < c->scope.size(); i++)
                 if(sum->coefficients[i] < 0)
                     heuristicForVariable[c->scope[i]->idx] = last;
-        }*/
+        }
     }
 
     int nblast = 0, nbfirst = 0, nboccs = 0, nbrandom = 0, nbasgs = 0;

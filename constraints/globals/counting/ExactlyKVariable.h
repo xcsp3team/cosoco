@@ -15,12 +15,10 @@ class ExactlyKVariable : public GlobalConstraint {
     ExactlyKVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *k, int val);
 
     // Filtering method, return false if a conflict occurs
-    virtual bool filter(Variable *dummy) override;
+    bool filter(Variable *dummy) override;
 
     // Checking
-    virtual bool isSatisfiedBy(vec<int> &tuple) override;
-
-    virtual bool isCorrectlyDefined() override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

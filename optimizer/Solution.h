@@ -6,7 +6,6 @@
 #include <utils/System.h>
 
 #include <iostream>
-#include <map>
 #include <mutex>
 
 #include "Termcolor.h"
@@ -22,16 +21,14 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     long              bound;
     bool              invertBestCost;
     std::mutex        mutex;
-    double            realTimeForBestSolution {}, realTimeStart;
+    double            realTimeForBestSolution {};
     OptimisationType  optimType;
     bool              updateBound {};
     Problem          &problem;
+    double            realTimeStart;
 
    public:
-    explicit Solution(Problem &p) : problem(p) {
-        tmp = preserved = nullptr;
-        realTimeStart   = realTime();
-    }
+    explicit Solution(Problem &p, double rt) : problem(p), realTimeStart(rt) { tmp = preserved = nullptr; }
 
 
     /**
@@ -79,6 +76,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
 
     long bestBound() const { return (invertBestCost ? -1 : 1) * bound; }
 
+    long originalBound() const { return bound; }
     /**
      * return true is a solution was recorded
      */
@@ -100,25 +98,51 @@ class Solution {   // This class comes from pseudo boolean competition and was p
     }
 
 
-    void display() {
+    void display(int verbosity) {
         if(exists() == false)
             throw std::runtime_error("The solution does not exist");
+
+        if(verbosity == 1) {
+            printf("v ");
+            for(int i = 0; i < problem.nbVariables(); i++) {
+                if(problem.variables[i]->_name.rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
+                    if((*preserved)[i] == STAR)
+                        std::cout << "* ";
+                    else
+                        std::cout << (*preserved)[i] << " ";
+                }
+            }
+            printf("\n");
+            return;
+        }
         printf("\nv <instantiation type='solution' cost='%ld'>\n", bestBound());
-        printf("v <list>");
-        for(int i = 0; i < problem.nbVariables(); i++)
-            if(problem.variables[i]->_name.rfind("__av", 0) != 0)
-                std::cout << problem.variables[i]->_name << " ";
+        printf("v <list> ");
+        // for(std::string tmp2 : problem.arrayNames) std::cout << tmp2 << " ";
+
+        for(Variable *x : problem.variables)
+            if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1*/)
+                std::cout << x->_name << " ";
 
         printf("</list>\n");
 
-        printf("v <values>");
-        for(int i = 0; i < problem.nbVariables(); i++) {
-            if(problem.variables[i]->_name.rfind("__av", 0) != 0)
+        printf("v <values> ");
+        /*for(int i = 0; i < problem.nbVariables(); i++) {
+            if(problem.variables[i]->array != -1) {
                 if((*preserved)[i] == STAR)
                     std::cout << "* ";
                 else
                     std::cout << (*preserved)[i] << " ";
+            }
+        }*/
+        for(int i = 0; i < problem.nbVariables(); i++) {
+            if(problem.variables[i]->_name.rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
+                if((*preserved)[i] == STAR)
+                    std::cout << "* ";
+                else
+                    std::cout << (*preserved)[i] << " ";
+            }
         }
+
         printf("</values>\n");
 
         printf("v </instantiation>\n\n");

@@ -16,6 +16,8 @@ class Bin {
     int index;
     int capacity;   // the capacity is updated when possible (when an object is guaranteed to be in it)
     int lost;       // only used when reasoning energetically
+    int minSizeObj;
+    int maxSizeObj;
 
     void set(int i, int c) {
         index    = i;
@@ -54,7 +56,7 @@ class BinPacking : public GlobalConstraint, ObserverDeleteDecision {
     bool isCorrectlyDefined() override;
     void delayedConstruction(int id) override;
     void attachSolver(Solver *s) override;
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 
 
     // Filtering method, return false if a conflict occurs

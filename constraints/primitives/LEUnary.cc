@@ -9,7 +9,7 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
-bool LEUnary::isSatisfiedBy(vec<int> &tuple) { return tuple[0] <= k;}
+bool LEUnary::isSatisfiedBy(vec<int> &tuple) { return tuple[0] <= k; }
 
 //----------------------------------------------
 // Filtering
@@ -29,18 +29,17 @@ bool LEUnary::filter(Variable *x) {
 
 void LEUnary::updateBound(long bound) { k = bound; }   // Update the current bound
 
-long LEUnary::maxUpperBound() {
-    return scope[0]->maximum();
-}
+long LEUnary::maxUpperBound() { return scope[0]->maximum(); }
 
-long LEUnary::minLowerBound() {
-    return scope[0]->minimum();
-}
+long LEUnary::minLowerBound() { return scope[0]->minimum(); }
 
 
-long LEUnary::computeScore(vec<int> &solution) { return solution[0];}
+long LEUnary::computeScore(vec<int> &solution) { return solution[0]; }
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
-LEUnary::LEUnary(Problem &p, std::string n, Variable *xx, int kk) : Constraint(p, n, xx), k(kk) { type = "X <= k"; }
+LEUnary::LEUnary(Problem &p, std::string n, Variable *xx, int kk) : Constraint(p, n), k(kk) {
+    addToScope(xx);
+    type = "X <= k";
+}

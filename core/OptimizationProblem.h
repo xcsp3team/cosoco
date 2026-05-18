@@ -8,7 +8,7 @@ namespace Cosoco {
 enum OptimisationType { Minimize, Maximize };
 
 
-class OptimizationProblem : public Problem {   // An optimosation problem is a probem containing at least one
+class OptimizationProblem : public Problem {   // An optimization problem is a problem containing at least one
    public:                                     // objectiveLB or objectiveUB
     explicit OptimizationProblem(const std::string &n);
 

@@ -5,18 +5,27 @@
 #include <solver/heuristics/variables/HeuristicVarCACD.h>
 #include <solver/heuristics/variables/HeuristicVarFirst.h>
 #include <solver/restarts/GeometricRestart.h>
+#include <solver/restarts/InnerOuter.h>
 #include <solver/restarts/LubyRestart.h>
 #include <utils/System.h>
 
+#include <fstream>
 #include <iomanip>
 
+#include "HeuristicValASGS.h"
+#include "HeuristicValOccs.h"
+#include "HeuristicValRoundRobin.h"
+#include "HeuristicVarFRBA.h"
+#include "HeuristicVarRoundRobin.h"
+#include "Options.h"
+#include "PickOnDom.h"
+#include "PoolOfHeuristicsValues.h"
 #include "constraints/Constraint.h"
 #include "core/Variable.h"
 #include "heuristics/values/HeuristicValFirst.h"
 #include "heuristics/values/HeuristicValStickingValue.h"
 #include "heuristics/variables/HeuristicVarDomWdeg.h"
 #include "heuristics/variables/LastConflictReasoning.h"
-//#include "heuristics/variables/PickOnDom.h"
 #include "heuristics/variables/RandomizeFirstDescent.h"
 using namespace Cosoco;
 using namespace std;
@@ -25,18 +34,16 @@ using namespace std;
 //----------------------------------------------
 
 
-Solver::Solver(Problem &p, int nbc)
+Solver::Solver(Problem &p)
     : AbstractSolver(p),
       problem(p),
       unassignedVariables(p.nbVariables(), p.variables, true),
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
       queue(p.nbVariables(), p.variables),
-      pickQueueHistory(p.variables.size()) {
-    heuristicVar = new HeuristicVarDomWdeg(*this);   // new PickOnDom(*this);   // new HeuristicVarDomWdeg(*this);
-    // new HeuristicVarDomWdeg(*this); //new LastConflictReasoning(*this, new HeuristicVarDomWdeg(*this));
-    heuristicVal = new HeuristicValFirst(*this);
-    // new HeuristicValLast(*this);//new HeuristicValFirst(*this);//new HeuristicValRandom(*this);//;new HeuristicValFirst(*this);
+      queue4Nogoods(p.nbVariables(), false) {
+    heuristicVar = nullptr;
+    heuristicVal = nullptr;
     statistics.growTo(NBSTATS, 0);
     localstatistics.growTo(NBLOCALSTATS, 0);
     problem.attachSolver(this);
@@ -44,6 +51,106 @@ Solver::Solver(Problem &p, int nbc)
     nbSolutions         = 0;
     warmStart           = false;
     nogoodsFromRestarts = false;
+    firstPropagations   = false;
+    currentNbValues     = problem.nbValues();
+
+    displaySolution = options::intOptions["model"].value;
+
+    if(options::boolOptions["profile"].value)
+        profiling = new Profiling(this);
+    doProfiling = options::boolOptions["profile"].value;
+
+    if(options::stringOptions["val"].value == "first" || options::stringOptions["val"].value == "max")
+        heuristicVal = new HeuristicValFirst(*this);
+    if(options::stringOptions["val"].value == "rand")
+        heuristicVal = new HeuristicValRandom(*this);
+    if(options::stringOptions["val"].value == "last")
+        heuristicVal = new HeuristicValLast(*this);
+    if(options::stringOptions["val"].value == "robin")
+        heuristicVal = new HeuristicValRoundRobin(*this, options::stringOptions["robin"].value);
+    if(options::stringOptions["val"].value == "occs")
+        heuristicVal = new HeuristicValOccs(*this);
+    if(options::stringOptions["val"].value == "asgs")
+        heuristicVal = new HeuristicValASGS(*this);
+    if(options::stringOptions["val"].value == "pool")
+        heuristicVal = new PoolOfHeuristicsValues(*this);
+    if(heuristicVal == nullptr) {
+        std::cerr << "unknown heuristic value " << options::stringOptions["val"].value << "\n";
+        exit(1);
+    }
+
+
+    if(options::stringOptions["var"].value == "wdeg")
+        heuristicVar = new HeuristicVarDomWdeg(*this);
+    if(options::stringOptions["var"].value == "cacd")
+        heuristicVar = new HeuristicVarCACD(*this);
+    if(options::stringOptions["var"].value == "pick")
+        heuristicVar = new PickOnDom(*this);
+    if(options::stringOptions["var"].value == "frba")
+        heuristicVar = new HeuristicVarFRBA(*this);
+    if(options::stringOptions["var"].value == "robin")
+        heuristicVar = new HeuristicVarRoundRobin(*this, options::intOptions["rr"].value == 1 ? 1 : 10);
+    if(heuristicVar == nullptr) {
+        std::cerr << "unknown heuristic variable " << options::stringOptions["var"].value << "\n";
+        exit(1);
+    }
+
+
+    /*if(options::stringOptions["warmstart" != "") {
+        std::ifstream warmFile(warmStart);
+        vec<int>      values;
+        for(std::string line; std::getline(warmFile, line);) {
+            std::vector<std::string> stringValues = split1(line, ' ');
+            for(const std::string &v : stringValues) {
+                if(v.find("x") != std::string::npos) {
+                    std::vector<std::string> compact = split1(v, 'x');
+                    int                      tmp     = compact[0].find("*") != std::string::npos ? STAR : std::stoi(compact[0]);
+                    for(int i = 0; i < std::stoi(compact[1]); i++) values.push(tmp);
+                } else {
+                    if(v.find("*") != std::string::npos) {
+                        values.push(STAR);
+                    } else {
+                        values.push(std::stoi(v));
+                    }
+                }
+            }
+        }
+        S->warmStart    = true;
+        S->heuristicVal = new ForceIdvs(*S, S->heuristicVal, false, &values);
+    }*/
+
+    if(options::intOptions["lc"].value > 0)
+        addLastConflictReasoning();
+    if(options::boolOptions["stick"].value)
+        addStickingValue();
+    if(options::stringOptions["restarts"].value == "geo")
+        restart = new GeometricRestart(this);
+    if(options::stringOptions["restarts"].value == "luby")
+        restart = new LubyRestart(this);
+    if(options::stringOptions["restarts"].value == "io")
+        restart = new InnerOuterRestart(this);
+    if(restart == nullptr && options::stringOptions["restarts"].value != "no") {
+        std::cerr << "unknown heuristic restart " << options::stringOptions["restart"].value << "\n";
+        exit(1);
+    }
+
+
+    if(options::boolOptions["nogoods"].value)
+        addNoGoodsFromRestarts();
+
+    checkSolution = options::boolOptions["checksolutions"].value;
+    /*if(annotations && cb.decisionVariables[core].size() != 0)
+        S->setDecisionVariables(cb.decisionVariables[core]);
+    else {
+        if(0 && cb.nbInitialsVariables != solvingProblems[0]->nbVariables()) {
+            vec<Variable *> tmp;
+            for(int i = 0; i < cb.nbInitialsVariables; i++) tmp.push(solvingProblems[0]->variables[i]);
+            S->setDecisionVariables(tmp);
+            printf("%d\n", tmp.size());
+            if(core == 0)
+                S->verbose.log(NORMAL, "c Limit decision variables to initial ones (%d vars)\n", cb.nbInitialsVariables);
+        }
+    }*/
 }
 
 void Solver::addNoGoodsFromRestarts() {
@@ -51,21 +158,15 @@ void Solver::addNoGoodsFromRestarts() {
     noGoodsEngine       = new NoGoodsEngine(*this);
 }
 
-void Solver::addLastConflictReasoning(int nVars) { heuristicVar = new LastConflictReasoning(*this, heuristicVar, nVars); }
+void Solver::addLastConflictReasoning() {
+    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options::intOptions["lc"].value);
+}
 
 
 void Solver::addRandomizationFirstDescent() { heuristicVar = new RandomizeFirstDescent(*this, heuristicVar); }
 
 
 void Solver::addStickingValue() { heuristicVal = new HeuristicValStickingValue(*this, heuristicVal); }
-
-
-void Solver::addRestart(bool luby) {
-    if(luby)
-        restart = new LubyRestart(this);
-    else
-        restart = new GeometricRestart(this);
-}
 
 
 void Solver::setDecisionVariables(vec<Variable *> &vars) {
@@ -81,6 +182,10 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
 
 int Solver::solve(vec<RootPropagation> &assumps) {
     bool firstCall = nbSolutions == 0;
+
+    if(doProfiling && firstCall)
+        profiling->initialize();
+
     fullBacktrack();
 
     if(problem.isConstructionDone == false)
@@ -91,9 +196,17 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
     lastSolution.clear();   // Store the last solution
     entailedConstraints.clear();
-    status         = RUNNING;
-    nbSolutions    = 0;
-    Constraint *pc = propagateComplete();
+    status            = RUNNING;
+    nbSolutions       = 0;
+    firstPropagations = true;
+
+    for(Constraint *c : problem.constraints)
+        if(c->scope.size() == 1 && c->filterFrom(c->scope[0]) == false)
+            return R_UNSAT;
+    queue.clear();
+
+    Constraint *pc    = propagateComplete();
+    firstPropagations = false;
     if(pc != nullptr) {
         status = FULL_EXPLORATION;
         return R_UNSAT;
@@ -120,8 +233,29 @@ int Solver::solve(vec<RootPropagation> &assumps) {
 
 
 int Solver::search(vec<RootPropagation> &assumptions) {
+    std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
+    std::vector<std::vector<Lit>> sharedNogoods;
+
     while(status == RUNNING) {
-        if(propagate() != nullptr) {   // A conflict occurs
+        if(threadsGroup != nullptr && threadsGroup->isStopped())
+            return R_UNKNOWN;
+
+
+        if(propagate() != nullptr) {
+            if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value &&
+               currentNbValues > problem.nbValues()) {
+                currentNbValues = problem.nbValues();
+                int nb          = decisionVariables.size();
+                for(int i = decisionVariables.size() - 1; i >= 0; i--) {
+                    if(decisionVariables[i]->size() == 1)
+                        decisionVariables.del(decisionVariables[i]);
+                    if(decisionVariables.size() == 1)
+                        break;
+                }
+                if(nb > decisionVariables.size())
+                    std::cout << decisionVariables.size() << "après " << nb << std::endl;
+            }
+            // A conflict occurs
             if(stopSearch)
                 return R_UNKNOWN;
             conflicts++;
@@ -129,8 +263,35 @@ int Solver::search(vec<RootPropagation> &assumptions) {
             handleFailure(decisionLevel());
             if(status == FULL_EXPLORATION)
                 break;
-            if(restart != nullptr && restart->isItTimeToRestart())   // Manage restart
+            if(restart != nullptr && restart->isItTimeToRestart()) {
+                // Manage rest art
                 doRestart();
+                if(threadsGroup != nullptr) {
+                    rootPropagationsCommunicator->recvAll(sharedPropagations);
+                    // Fact to propagate
+                    if(decisionLevel() > 0 && sharedPropagations.size() > 0)
+                        doRestart();
+                    bool ok = true;
+                    while(!sharedPropagations.empty()) {
+                        RootPropagation rp = sharedPropagations.back();
+                        sharedPropagations.pop_back();
+                        if(rp.equal == false)
+                            ok = delIdv(problem.variables[rp.idx], rp.idv);
+                        else
+                            ok = assignToIdv(problem.variables[rp.idx], rp.idv);
+                    }
+
+                    if(!ok)   // We propagate a false fact at decision level 0 !!
+                        return R_UNSAT;
+
+                    nogoodCommunicator->recvAll(sharedNogoods);
+                    for(auto &tmp : sharedNogoods) {
+                        vec<Lit> tmp2;
+                        for(auto &l : tmp) tmp2.push(l);
+                        noGoodsEngine->addNoGood(tmp2);
+                    }
+                }
+            }
         } else {
             if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
                 break;
@@ -206,10 +367,13 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
-    if(displayModels)
-        displayCurrentSolution();
+    if(displaySolution)
+        displayCurrentSolution(displaySolution);
 
-    if(nbSolutions == nbWishedSolutions) {
+    if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
+        noGoodsEngine->generateNogoodFromSolution();
+
+    if(nbSolutions == options::intOptions["nbsols"].value) {
         status = REACH_GOAL;
         return true;
     }
@@ -223,6 +387,7 @@ bool Solver::manageSolution() {
 
 void Solver::newDecision(Variable *x, int idv) {
     decisions++;
+    nodes++;
     assert(x->size() >= 1);
     unassignedVariables.del(x);   // Now, x is assigned
     decisionVariables.del(x);
@@ -271,7 +436,7 @@ void Solver::backtrack(int lvl) {
 void Solver::fullBacktrack(bool all) {
     queue.clear();
 
-    while(decisionLevel() > 0) backtrack();
+    while(decisionLevel() > 0) backtrack(true);
     if(all) {
         trail.clear();
         queue.clear();   // Useless ?
@@ -279,13 +444,12 @@ void Solver::fullBacktrack(bool all) {
         decisionVariablesId.clear();
         for(Variable *x : problem.variables)   // Reinitialize all domain variables.
             x->domain.reinitialize();
-        reinitializeConstraints();
     }
     notifyFullBactrack();
 }
 
 
-void Solver::backtrack() {
+void Solver::backtrack(bool isFull) {
     assert(decisionLevel() > 0);
     verbose.log(DEBUGVERBOSE, "%s--- BACKTRACK %d ---%s\n", KRED, decisionLevel() - 1, KNRM);
     if(verbose.verbosity == TOTALVERBOSE)
@@ -309,7 +473,7 @@ void Solver::backtrack() {
         c->unassignVariable(assigned);
     if(assigned->size() > 1)
         wrongDecisions++;
-    notifyDeleteDecision(assigned, v);
+    notifyDeleteDecision(assigned, v, isFull);
 }
 
 
@@ -329,6 +493,7 @@ void Solver::handleFailure(Variable *x, int idv) {
         idvtmp = decisionVariablesId.last();
         backtrack();
         delIdv(tmp, idvtmp);
+        nodes++;
     }
 }
 
@@ -347,9 +512,10 @@ void Solver::doRestart() {
     if(nogoodsFromRestarts && noGoodsEngine->generateNogoodsFromRestarts() == false)
         status = FULL_EXPLORATION;
     statistics[restarts]++;
+    fullBacktrack();
     if(verbose.verbosity >= 1)
         displayCurrentSearchSpace();
-    fullBacktrack();
+    reinitializeConstraints();
     if(nogoodsFromRestarts)
         noGoodsEngine->enqueueNoGoodsOfSize1();
 
@@ -361,56 +527,123 @@ void Solver::doRestart() {
 //----------------------------------------------
 
 void Solver::addToQueue(Variable *x) {
+    if(smallest_in_queue > x->size())
+        smallest_in_queue = x->size();
     queue.add(x);
     x->timestamp = ++timestamp;
+    queue4Nogoods.add(x->idx);
 }
 
 
 Variable *Solver::pickInQueue() {   // Select the variable with the smallest domain
     int       minDomain = INT_MAX;
     Variable *x         = nullptr;
+    if(queue.size() > 100) {
+        Variable *x = queue[queue.size() - 1];
+        queue.del(x);
+        return x;
+    }
     for(int i = 0; i < queue.size(); i++) {
         int curSize = queue[i]->size();
+
         if(curSize < minDomain) {
             minDomain = curSize;
             x         = queue[i];
+            if(minDomain <= smallest_in_queue)
+                break;
         }
     }
     assert(x != nullptr);
     queue.del(x);
+    smallest_in_queue = minDomain;
     return x;
 }
 
 
+bool Solver::filterConstraint(Cosoco::Constraint *c, Cosoco::Variable *x) {
+    filterCalls++;
+    nbDeletedValuesByAVariable = 0;
+    currentFilteredConstraint  = c;
+
+    c->timestamp = ++timestamp;
+
+    doProfiling && profiling->beforeConstraintCall(c);
+    bool noConflict = c->filterFrom(x);
+    doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
+
+    if(noConflict == false) {   // Inconsistent
+        pickVariables.push({x, nbDeletedValuesByAVariable == 0 ? 1 : nbDeletedValuesByAVariable});
+
+        notifyConflict(c);
+        currentFilteredConstraint = nullptr;
+        return false;
+    }
+    currentFilteredConstraint = nullptr;
+    if(nbDeletedValuesByAVariable == 0)
+        statistics[uselessFilterCalls]++;
+    else
+        pickVariables.push({x, nbDeletedValuesByAVariable});
+    c->timestamp = ++timestamp;
+
+    return true;
+}
+
 Constraint *Solver::propagate(bool startWithSATEngine) {
     currentFilteredConstraint = nullptr;
-    pickQueueHistory.clear();
-    while(queue.size() > 0) {
-        Variable *x = pickInQueue();
-        pickQueueHistory.add(x->idx);
-        assert(x->size() > 0);
+    postponeFiltering.clear();   // The filtering starts here
+    pickVariables.clear();
+    smallest_in_queue = INT_MAX;
 
-        if(nogoodsFromRestarts && noGoodsEngine->propagate(x) == false)
-            return NoGoodsEngine::fake;
+    while(true) {
+        while(queue.size() > 0) {
+            Variable *x = pickInQueue();
+            assert(x->size() > 0);
 
 
-        for(Constraint *c : x->constraints) {
-            if(x->timestamp > c->timestamp && isEntailed(c) == false) {
-                filterCalls++;
-                filterCallIsUsefull       = false;
-                currentFilteredConstraint = c;
-                if(c->filterFrom(x) == false) {   // Inconsistent
-                    c->timestamp = ++timestamp;
-                    notifyConflict(c);
-                    currentFilteredConstraint = nullptr;
-                    return c;
+            for(Constraint *c : x->constraints) {
+                if(c->isDisabled)
+                    continue;
+                if(x->timestamp > c->timestamp && isEntailed(c) == false) {
+                    if(c->postpone()) {   // Postpone the filtering of these constraints
+                        postponeFiltering.insert(c);
+                        c->postponedBy = x;
+                        continue;
+                    }
+
+
+                    if(filterConstraint(c, x) == false)
+                        return c;
                 }
-                currentFilteredConstraint = nullptr;
-                if(filterCallIsUsefull == false)
-                    statistics[uselessFilterCalls]++;
-                c->timestamp = ++timestamp;
             }
         }
+
+        // Nogood filtering
+        while(queue4Nogoods.isEmpty() == false) {
+            int idx = queue4Nogoods.pop();
+
+            if(nogoodsFromRestarts) {
+                if(doProfiling)
+                    profiling->beforeConstraintCall(nullptr);
+                bool status = noGoodsEngine->propagate(problem.variables[idx]);
+                if(doProfiling)
+                    profiling->afterConstraintCall(nullptr, 0);
+
+                if(status == false)
+                    return NoGoodsEngine::fake;
+            }
+        }
+
+        // Filter postponed constraints
+        for(auto *c : postponeFiltering) {
+            // std::cout << "post" << c->type << std::endl;
+            if(filterConstraint(c, c->postponedBy) == false)
+                return c;
+        }
+        postponeFiltering.clear();
+
+
+        if(queue.size() == 0)
+            break;
     }
     return nullptr;
 }
@@ -440,7 +673,10 @@ bool Solver::delIdv(Variable *x, int idv) {
     if(x->domain.containsIdv(idv) == false)
         return true;
 
-    filterCallIsUsefull = true;
+    if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
+        rootPropagationsCommunicator->send(RootPropagation(x->idx, false, idv));
+
+    nbDeletedValuesByAVariable++;
 
     notifyDomainReduction(x, idv);
     x->delIdv(idv, decisionLevel());
@@ -473,11 +709,14 @@ bool Solver::assignToVal(Variable *x, int v) {
     if(d.size() == 1)
         return true;   // already assigned to v
 
+    if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
+        rootPropagationsCommunicator->send(RootPropagation(x->idx, true, idv));
+
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
 
-    filterCallIsUsefull = true;
+    nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
     x->assignToIdv(idv, decisionLevel());
     if(x->addToTrail)
@@ -493,12 +732,15 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     Domain &d = x->domain;
     if(d.containsIdv(idv) == false)
         return false;
+    if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
+        rootPropagationsCommunicator->send(RootPropagation(x->idx, true, idv));
+
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
 
     // if(d.size()==1) return true;
-    filterCallIsUsefull = true;
+    nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
 
     x->assignToIdv(idv, decisionLevel());
@@ -529,7 +771,7 @@ bool Solver::delValuesGreaterOrEqualThan(Variable *x, int max) {
 bool Solver::delValuesLowerOrEqualThan(Variable *x, int min) {
     if(x->maximum() <= min)
         return false;
-    for(int idv : x->domain) {
+    for(int idv : (x->domain)) {
         if(x->domain.toVal(idv) > min)
             return true;
         if(delIdv(x, idv) == false)
@@ -581,6 +823,83 @@ bool Solver::delValuesInRange(Variable *x, int start, int stop) {
     return true;
 }
 
+bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {   // x + k <= y
+    if(isAssigned(x) == false)
+        if(delValuesGreaterOrEqualThan(x, y->maximum() - k + 1) == false)
+            return false;
+
+    if(isAssigned(y) == false)
+        if(delValuesLowerOrEqualThan(y, x->minimum() + k - 1) == false)
+            return false;
+    return true;
+}
+
+bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variable *z) {
+    return delValuesGreaterOrEqualThan(x, z->maximum() - y->minimum() + 1) &&
+           delValuesGreaterOrEqualThan(y, z->maximum() - x->minimum() + 1) &&
+           delValuesLowerOrEqualThan(z, x->minimum() + y->minimum() - 1);
+}
+
+bool Solver::enforceEQ(Variable *x, Variable *y, int k) {   // X = Y + k
+
+    int minx = x->minimum(), miny = y->minimum() + k;
+    int maxx = x->maximum(), maxy = y->maximum() + k;
+    if(maxx < miny || maxy < minx)
+        return false;
+
+    // if(x->isConnex() && y->isConnex()) {
+    if(delValuesGreaterOrEqualThan(x, maxy + 1) == false)
+        return false;
+    if(delValuesLowerOrEqualThan(y, minx - k - 1) == false)
+        return false;
+    //}
+
+    for(int idv : reverse(y->domain)) {
+        int v = y->domain.toVal(idv) + k;
+        if(x->containsValue(v) == false && delIdv(y, idv) == false) {
+            return false;
+        }
+    }
+
+    if(x->size() == y->size())
+        return true;
+
+    for(int idv : reverse(x->domain)) {
+        int v = x->domain.toVal(idv) - k;
+        if(y->containsValue(v) == false && delIdv(x, idv) == false)
+            return false;
+    }
+    return true;
+}
+
+
+bool Solver::enforceAddEQ(Variable *x, Variable *y, int k) {   // X + Y = k
+    for(int idv : reverse(y->domain)) {
+        int v = k - y->domain.toVal(idv);
+        if(x->containsValue(v) == false && delIdv(y, idv) == false)
+            return false;
+    }
+
+    if(x->size() == y->size())
+        return true;
+
+    for(int idv : reverse(x->domain)) {
+        int v = k - x->domain.toVal(idv);
+        if(y->containsValue(v) == false && delIdv(x, idv) == false)
+            return false;
+    }
+    return true;
+}
+
+
+bool Solver::enforceAddLE(Variable *x, Variable *y, int k) {   // X + Y <= k
+    return delValuesGreaterOrEqualThan(x, k - y->minimum() + 1) && delValuesGreaterOrEqualThan(y, k - x->minimum() + 1);
+}
+
+bool Solver::enforceAddGE(Variable *x, Variable *y, int k) {   // X + Y <= k
+    return delValuesLowerOrEqualThan(x, k - y->maximum() - 1) && delValuesLowerOrEqualThan(y, k - x->maximum() - 1);
+}
+
 
 //----------------------------------------------
 // Observers methods
@@ -606,8 +925,8 @@ void Solver::notifyNewDecision(Variable *x) {
 }
 
 
-void Solver::notifyDeleteDecision(Variable *x, int v) {
-    for(ObserverDeleteDecision *od : observersDeleteDecision) od->notifyDeleteDecision(x, v, *this);
+void Solver::notifyDeleteDecision(Variable *x, int v, bool isFull) {
+    for(ObserverDeleteDecision *od : observersDeleteDecision) od->notifyDeleteDecision(x, v, *this, isFull);
 }
 
 
@@ -646,17 +965,41 @@ void Solver::updateStatisticsWithNewConflict() {
 }
 
 
-void Solver::displayCurrentSolution() {
+void Solver::displayCurrentSolution(int verbosity) {
+    if(verbosity == 1) {
+        printf("v ");
+        for(Variable *x : problem.variables)
+            if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */) {
+                if(x->useless)
+                    printf("* ");
+                else
+                    printf("%d ", lastSolution[x->idx]);
+            }
+        printf("\n");
+        return;
+    }
+
+
     printf("c solution %d\n", nbSolutions);
     printf("\nv <instantiation type='solution'>\n");
-    printf("v <list>");
+    printf("v <list> ");
+    // for(std::string tmp : problem.arrayNames) std::cout << tmp << " ";
+
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0)
+        if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */)
             printf("%s ", x->name());
     printf("</list>\n");
-    printf("v <values>");
+    printf("v <values> ");
+
+    /*for(auto &varArray : problem.variablesArray)
+        for(Variable *x : varArray)
+            if(x->useless)
+                printf("* ");
+            else
+                printf("%d ", lastSolution[x->idx]);
+*/
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0) {
+        if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */) {
             if(x->useless)
                 printf("* ");
             else
@@ -693,25 +1036,32 @@ void Solver::displayHeaderCurrentSearchSpace() {
     if(verbose.verbosity < 1)
         return;
     printf("c ");
+    if(optimizationSolution != nullptr)
+        printElement("best bound");
     printElement("conflicts");
     printElement("decisions");
     printElement("filterCalls");
     printElement("propagations");
-    printElement("Root Prop.");
+    printElement("values");
     printElement("Nogoods");
 
     printElement("min/max/avg depth");
+
     cout << endl;
 }
 
 
 void Solver::displayCurrentSearchSpace() {
     printf("c ");
+
+    if(optimizationSolution != nullptr)
+        printElement(optimizationSolution->exists() ? std::to_string(optimizationSolution->bestBound()) : "-");
+
     printElement(conflicts);
     printElement(decisions);
     printElement(filterCalls);
     printElement(propagations);
-    printElement(trail_lim[0]);
+    printElement(problem.nbValues());
     if(nogoodsFromRestarts)
         printElement(noGoodsEngine->statistics[nbnogoods]);
     else
@@ -731,7 +1081,7 @@ void Solver::interrupt() { }
 
 void Solver::printFinalStats() {
     double cpu_time = cpuTime();
-
+    filterCalls     = filterCalls == 0 ? 1 : filterCalls;
     printf("c restarts              : %lu\n", statistics[restarts]);
     printf("c decisions             : %lu (%.0f /sec)\n", decisions, decisions / cpu_time);
     printf("c wrong decisions       : %lu (%.0f /sec)\n", wrongDecisions, wrongDecisions / cpu_time);
@@ -743,4 +1093,6 @@ void Solver::printFinalStats() {
            statistics[uselessFilterCalls] * 100 / filterCalls);
     if(nogoodsFromRestarts)
         noGoodsEngine->printStats();
+    if(doProfiling)
+        profiling->display();
 }

@@ -14,13 +14,13 @@ class ShortSTR2 : public Extension, ObserverDeleteDecision {
     vec<SparseSet *>    gacIdValues;
     vec<int>            lastSize;
 
-    bool isValidTuple(vec<int> &tuple);
+    bool isValidTuple(int *tuple);
     void delTuple(int position, int lvl);
 
    public:
     // Constructors
-    ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars);
-    ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, vec<vec<int> > &tuplesFromOtherConstraint);
+    ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
+    ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
 
     // filtering
     bool filter(Variable *x) override;
@@ -28,7 +28,8 @@ class ShortSTR2 : public Extension, ObserverDeleteDecision {
     bool isSatisfiedBy(vec<int> &tuple) override;
 
     // Notifications : restore validTuples when backtrack is performed
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
+    void notifyFullBacktrack() override;
 
     void delayedConstruction(int id) override;
     void attachSolver(Solver *s) override;

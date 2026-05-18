@@ -6,7 +6,6 @@
 #include "ObjectiveConstraint.h"
 #include "Solution.h"
 #include "core/OptimizationProblem.h"
-#include "core/Problem.h"
 #include "solver/AbstractSolver.h"
 #include "solver/Solver.h"
 
@@ -15,9 +14,10 @@ namespace Cosoco {
 
 class Optimizer : public AbstractSolver, ObserverConflict {
    protected:
-    long lower, upper;   // The current lower et upper bound
+    pFactory::Communicator<long> *boundCommunicator;
+    long                          lower, upper;   // The current lower et upper bound
 
-    Solution *bestSolution;   // The solution manager (used to avoid problems if the solver is killed during solution storing
+    Solution *bestSolution;   // The solution callbacks (used to avoid problems if the solver is killed during solution storing
     long      best;           // Best value until now
    public:
     bool                 invertBestCost;   // usefull with sum and minimize, we invert the cost due to SumGE implementation only
@@ -29,13 +29,12 @@ class Optimizer : public AbstractSolver, ObserverConflict {
     bool                 useDicothomicMode;   // TODO: class inheritence ?
     bool                 progressSaving;
     bool                 firstCall;
-    bool                 colors;   // Add colors to terminal
 
     explicit Optimizer(Problem &p);
 
     int  solve(vec<RootPropagation> &assumps) override;
     void printFinalStats() override;
-    void displayCurrentSolution() override;
+    void displayCurrentSolution(int verbosity) override;
 
     int solveInOneDirection(vec<RootPropagation> &assumps);
 
@@ -50,6 +49,9 @@ class Optimizer : public AbstractSolver, ObserverConflict {
 
     bool hasSolution() override { return bestSolution->exists(); }
 
+    bool isBetterBound(long newBound) {
+        return (optimtype == Minimize && newBound < best) || (optimtype == Maximize && newBound > best);
+    }
 
     void addProgressSaving() {
         assert(solver != nullptr);

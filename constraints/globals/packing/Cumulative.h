@@ -62,16 +62,16 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
     TimeTableReasoner timetableReasoner;
 
     int limit;
-    int horizon;
 
-    int _horizon(vec<Variable *> &);
+    long taskVolume();
+    long _horizon();
 
 
    public:
     Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int);
 
     // Notifications : restore relevantTasks when backtrack is performed
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void attachSolver(Solver *s) override;
 
     // Filtering method, return false if a conflict occurs
@@ -80,7 +80,7 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
     void filterHeightVariables(vec<Variable *> &_heights);   // Don't want to use multiple inheritance
     void filterWidthVariables(vec<Variable *> &_lenghts);
     void filterLimitVariable(Variable *x);
-    
+
 
     virtual int maxWidth(int posx);
     // Checking

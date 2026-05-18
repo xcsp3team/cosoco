@@ -96,6 +96,12 @@ class Variable {
     inline int maximum() { return domain.maximum(); }
 
     static bool haveSameDomainType(vec<Variable *> &vars);
+
+    bool isBoolean() { return domain.isBoolean(); }
+
+    static int maxDomainSize(vec<Variable *> &list);
+
+    static int sumDomainSize(vec<Variable *> &list);
 };
 
 }   // namespace Cosoco

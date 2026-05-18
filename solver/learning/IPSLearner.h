@@ -9,12 +9,12 @@
 #include "mtl/Vec.h"
 
 namespace Cosoco {
-Constraint *rootJustification = (Constraint *)0x1;
+Constraint *rootJustification = reinterpret_cast<Constraint *>(0x1);
 
 class IPSLearner : public ObserverDomainReduction, ObserverConflict {
    protected:
-    Solver &                solver;
-    Problem &               problem;
+    Solver                 &solver;
+    Problem                &problem;
     vec<vec<Constraint *> > justifications;
     vec<bool>               selectedVariables;
     vec<Variable *>         extracted;

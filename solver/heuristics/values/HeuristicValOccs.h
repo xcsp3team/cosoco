@@ -10,7 +10,7 @@
 
 namespace Cosoco {
 struct IntHash {
-    uint32_t operator()(int v) const { return (uint32_t)v; }
+    uint32_t operator()(int v) const { return static_cast<uint32_t>(v); }
 };
 class HeuristicValOccs : public HeuristicVal {
     vec<Map<int, int, IntHash> > nbOccurrences;   // the occurences for each array of variables

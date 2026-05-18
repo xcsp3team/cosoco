@@ -1,8 +1,11 @@
 #ifndef ABSTRACTSOLVER_H
 #define ABSTRACTSOLVER_H
 
+#include "Communicators.h"
+#include "Groups.h"
 #include "core/Problem.h"
 #include "utils/Verbose.h"
+
 namespace Cosoco {
 
 #define R_UNKNOWN -1
@@ -11,6 +14,7 @@ namespace Cosoco {
 #define R_OPT     3
 
 enum STATE { RUNNING, REACH_GOAL, FULL_EXPLORATION, OPTIMUM };
+typedef long long Lit;
 
 
 class RootPropagation {   // x equal idv ??
@@ -23,15 +27,19 @@ class RootPropagation {   // x equal idv ??
 
 class AbstractSolver {
    public:
-    Problem   &problem;   // The problem to solve
-    int        core;      // The id of the core (used in // track)
-    STATE      status;    // The status of the solver
-    bool       displayModels;
-    int        nbSolutions;   // Number of solutions already found
-    int        lastSolutionRun;
-    Verbose    verbose;       // The level of verbose mode 0..3
-    double     random_seed;   // The seed used by the solver
-    inline int solve() {
+    virtual ~AbstractSolver() = default;
+    Problem                                  &problem;       // The problem to solve
+    int                                       core;          // The id of the core (used in // track)
+    STATE                                     status;        // The status of the solver
+    int                                       nbSolutions;   // Number of solutions already found
+    int                                       lastSolutionRun;
+    Verbose                                   verbose;       // The level of verbose mode 0..3
+    double                                    random_seed;   // The seed used by the solver
+    pFactory::Group                          *threadsGroup;
+    pFactory::Communicator<RootPropagation>  *rootPropagationsCommunicator;
+    pFactory::Communicator<std::vector<Lit>> *nogoodCommunicator;
+    bool                                      firstPropagations;
+    inline int                                solve() {
         vec<RootPropagation> assumps;
         return solve(assumps);
     }
@@ -39,10 +47,10 @@ class AbstractSolver {
     virtual void printFinalStats()                    = 0;   // The final stats to print
     virtual void printIntermediateStats() { }                // The intermediate stats to print
 
-    virtual void displayCurrentSolution() = 0;   // displayCurrentBranch the current solution
+    virtual void displayCurrentSolution(int verbosity) = 0;   // displayCurrentBranch the current solution
 
-    AbstractSolver(Problem &pp)
-        : problem(pp), core(0), status(RUNNING), displayModels(false), nbSolutions(0), random_seed(91648253) { }
+    explicit AbstractSolver(Problem &pp)
+        : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253), threadsGroup(nullptr) { }
 
 
     void setVerbosity(int vv) {
@@ -50,6 +58,13 @@ class AbstractSolver {
         verbose.verbosity = vv;
     }
     virtual bool hasSolution() { return nbSolutions > 0; }
+
+    virtual void setGroup(pFactory::Group *pthreadsGroup, pFactory::Communicator<RootPropagation> *rpc,
+                          pFactory::Communicator<std::vector<Lit>> *ngc) {
+        threadsGroup                 = pthreadsGroup;
+        rootPropagationsCommunicator = rpc;
+        nogoodCommunicator           = ngc;
+    }
 };
 }   // namespace Cosoco
 

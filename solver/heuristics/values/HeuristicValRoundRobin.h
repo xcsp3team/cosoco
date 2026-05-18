@@ -15,7 +15,7 @@ class HeuristicValRoundRobin : public HeuristicVal {
     vec<HeuristicVal *> heuristics;
 
    public:
-    HeuristicValRoundRobin(Solver &s, std::string &sequence);
+    HeuristicValRoundRobin(Solver &s, std::string sequence);
 
 
     int select(Variable *x) override;

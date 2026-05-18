@@ -35,7 +35,7 @@ Variable *LastConflictReasoning::select() {
 }
 
 
-void LastConflictReasoning::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void LastConflictReasoning::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(lcs.size() == 0) {
         if(x != candidate)
             candidate = x;

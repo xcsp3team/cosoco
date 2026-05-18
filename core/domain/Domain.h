@@ -18,6 +18,7 @@ class Domain {
     LinkedSet idvs;   // the set of elements
 
    public:
+    virtual ~Domain() = default;
     vec<int> nAssignments;
     // using const_iterator = LinkedSetIterator;
     using iterator = LinkedSetIterator;
@@ -25,7 +26,7 @@ class Domain {
     using reverse_iterator = LinkedSetIterator;
 
     // Constructors and initialisation
-    explicit Domain(int sz) : idvs(sz, true) { }
+    Domain(int sz) : idvs(sz, true) { }
 
 
     void delayedConstruction(int nbVars) { }
@@ -96,6 +97,10 @@ class Domain {
 
     inline int lastId() { return idvs.last(); }
 
+    inline int lastRemoved() { return idvs.lastRemoved(); }
+
+    inline int prevRemoved(int id) { return idvs.prevRemoved(id); }
+
 
     // return the next valid index in the domain, -1 if none exists (in such a case, idx is equal to the max
     /*inline int nextValidIndex(int currentIdv) {
@@ -152,6 +157,8 @@ class Domain {
     }
 
     virtual size_t hash() = 0;
+
+    virtual bool equals(Domain *d) = 0;
 };
 
 }   // namespace Cosoco

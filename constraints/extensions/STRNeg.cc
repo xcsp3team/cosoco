@@ -11,10 +11,10 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool STRNeg::isSatisfiedBy(vec<int> &tuple) {
-    for(auto &tmp : tuples) {
+    for(unsigned int i = 0; i < tuples->nrows(); i++) {
         int nb = 0;
-        for(int j = 0; j < tmp.size(); j++) {
-            if(tmp[j] != scope[j]->domain.toIdv(tuple[j]))
+        for(int j = 0; j < tuple.size(); j++) {
+            if((*tuples)[i][j] != scope[j]->domain.toIdv(tuple[j]))
                 break;
             nb++;
         }
@@ -25,12 +25,7 @@ bool STRNeg::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
-bool STRNeg::isCorrectlyDefined() {
-    for(vec<int> &v : tuples)
-        if(v.size() != scope.size())
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": STRNeg has a tuple with bad size");
-    return true;
-}
+bool STRNeg::isCorrectlyDefined() { return true; }
 
 //----------------------------------------------------------
 // Filtering
@@ -60,7 +55,7 @@ void STRNeg::initializeStructuresBeforeFiltering() {
 
 
 bool STRNeg::filter(Variable *dummy) {
-    if(tuples.size() == 0)
+    if(tuples->nrows() == 0)
         return true;
 
     for(int posx = 0; posx < scope.size(); posx++)
@@ -68,7 +63,7 @@ bool STRNeg::filter(Variable *dummy) {
 
 
     for(int i = validTuples.size() - 1; i >= 0; i--) {   // Reverse traversal because of deletion
-        vec<int> &currentTuple = tuples[validTuples[i]];
+        int *currentTuple = (*tuples)[validTuples[i]];
         if(isValidTuple(currentTuple)) {
             for(int posx : unassignedVariablesIdx) {
                 int idv = currentTuple[posx];
@@ -122,8 +117,7 @@ bool STRNeg::filter(Variable *dummy) {
 }
 
 
-bool STRNeg::isValidTuple(vec<int> &tuple) {
-    // for(int posx : unassignedVariablesIdx)
+bool STRNeg::isValidTuple(int *tuple) {
     for(int posx = 0; posx < scope.size(); posx++)
         if(scope[posx]->containsIdv(tuple[posx]) == false)
             return false;
@@ -141,23 +135,25 @@ bool STRNeg::isValidTuple(vec<int> &tuple) {
 //----------------------------------------------
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars) : Extension(p, n, vars, false) { type = "Extension"; }
+STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples)
+    : Extension(p, n, vars, max_n_tuples, false) {
+    type = "Extension - Neg";
+}
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, vec<vec<int> > &tuplesFromOtherConstraint)
+STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
     : Extension(p, n, vars, false, tuplesFromOtherConstraint) {
-    type = "Extension";
+    type = "Extension - Neg";
 }
 
 
 void STRNeg::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
-
-    if(tuples.size() == 0) // the constrain is always satisfied. Can occcur: see StillLife-wastage-8-8.xml
+    if(tuples->nrows() == 0)   // the constrain is always satisfied. Can occcur: see StillLife-wastage-8-8.xml
         return;
 
 
-    validTuples.setCapacity(tuples.size(), true);
+    validTuples.setCapacity(tuples->nrows(), true);
 
     nbValidTuples.growTo(scope.size());
     variablesToCheck.setCapacity(scope.size(), false);
@@ -173,7 +169,7 @@ void STRNeg::delayedConstruction(int id) {
 //----------------------------------------------
 
 
-void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
         validTuples.restoreLimit(s.decisionLevel() + 1);
 }

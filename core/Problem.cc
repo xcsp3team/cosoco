@@ -2,6 +2,7 @@
 
 #include "constraints/extensions/Extension.h"
 #include "constraints/genericFiltering/AC3rm.h"
+#include "solver/Solver.h"
 
 using namespace std;
 using namespace Cosoco;
@@ -84,7 +85,8 @@ bool Problem::checkSolution() {
             for(Variable *x : c->scope)
                 std::cout << x->name() << " " << x->value() << " " << x->domain.toVal(x->domain[0]) << endl;
             c->display();
-            fprintf(stderr, "Solution Error : constraint number %d (name %s) is not valid\n", c->idc, c->name.c_str());
+            fprintf(stderr, "Solution Error : (core %d) constraint number %d (name %s) is not valid\n", solver->core, c->idc,
+                    c->name.c_str());
             exit(1);
         }
     }
@@ -101,7 +103,7 @@ int Problem::nbConstraints() const { return constraints.size(); }
 
 
 int Problem::maximumTuplesInExtension() {
-    int tmp = 0;
+    unsigned int tmp = 0;
     for(Constraint *c : constraints) {
         Extension *ext;
         if((ext = dynamic_cast<Extension *>(c)) == nullptr)
@@ -114,7 +116,7 @@ int Problem::maximumTuplesInExtension() {
 
 
 int Problem::minimumTuplesInExtension() {
-    int tmp = INT_MAX;
+    unsigned int tmp = INT_MAX;
     for(Constraint *c : constraints) {
         Extension *ext;
         if((ext = dynamic_cast<Extension *>(c)) == nullptr)
@@ -134,6 +136,11 @@ int Problem::nbConstraintsOfSize(int size) {
     return nb;
 }
 
+long Problem::nbValues() {
+    long tmp = 0;
+    for(Variable *x : variables) tmp += x->size();
+    return tmp;
+}
 
 int Problem::minimumArity() {
     int tmp = constraints[0]->scope.size();

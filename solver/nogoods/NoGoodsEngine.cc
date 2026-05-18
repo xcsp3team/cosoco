@@ -3,31 +3,50 @@
 //
 
 #include "NoGoodsEngine.h"
+
+#include "Solver.h"
+#include "System.h"
 using namespace Cosoco;
 
-Constraint *NoGoodsEngine::fake = (Constraint *)0x1;
+Constraint *NoGoodsEngine::fake = reinterpret_cast<Constraint *>(0x1);
 
 
-NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s) {
+NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0) {
     // std::cout << n1 << " " << n2 << " " << sizeof(long) * 8 << std::endl;
 
     // if(n1 + n2 <= sizeof(long) * 8)
-    auto n1 = (unsigned int)ceil(log2(s.problem.nbVariables()));
-    auto n2 = (unsigned int)ceil(log2(s.problem.maximumDomainSize()));
+    auto n1 = static_cast<unsigned int>(ceil(log2(s.problem.nbVariables())));
+    auto n2 = static_cast<unsigned int>(ceil(log2(s.problem.maximumDomainSize())));
     if(n1 + n2 > 8 * sizeof(Lit) - 1)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
-    OFFSET = (unsigned int)pow(2, n2 + 1);   // +1 because 0 excluded ???
-
+    OFFSET = static_cast<unsigned int>(pow(2, n2 + 1));   // +1 because 0 excluded ???
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
+
+    // Manage space
+    last    = 0;
+    nogoods = static_cast<Lit *>(malloc(sizeof(Lit)));
+    enlargeNogoodStructure(1024 * 1024);
 }
 
 std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
     stream << tuple.x->_name << (tuple.eq ? "=" : "!=") << tuple.idv << " ";
     return stream;
 }
+//-----------------------------------------------------------------------
+// -- Block solution with nogood
+//-----------------------------------------------------------------------
+
+void NoGoodsEngine::generateNogoodFromSolution() {
+    vec<Lit> nogood;
+    for(Variable *x : solver.problem.variables)
+        if(x->useless == false)
+            nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
+    addNoGood(nogood);
+}
+
 //-----------------------------------------------------------------------
 // -- No good generation and recording
 //-----------------------------------------------------------------------
@@ -38,14 +57,43 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
     for(auto &currentDecision : currentBranch) {
         nogood.push(currentDecision);
         if(currentDecision < 0) {
-            if(currentDecision != currentBranch[0])
-                solver.noGoodsEngine->addNoGood(nogood);
+            if(nogood.size() < maxArity && currentDecision != currentBranch[0]) {
+                addNoGood(nogood);
+                if(solver.threadsGroup != nullptr && nogood.size() < solver.problem.nbVariables() / 20) {
+                    std::vector<Lit> tmp;
+                    for(auto &l : nogood) tmp.push_back(l);
+                    solver.nogoodCommunicator->send(tmp);
+                }
+            }
             nogood.pop();   // Remove the negative one
         }
     }
     return true;
 }
 
+void NoGoodsEngine::enlargeNogoodStructure(unsigned int new_capacity) {   // This part is based on Minisat.
+    unsigned int prev_capacity = capacity;
+    while(new_capacity == 0 || capacity < new_capacity) {
+        unsigned int delta = ((capacity >> 1) + (capacity >> 3) + 2) & ~1;
+        capacity += delta;
+        // std::cout << "c realloc " << prev_capacity << " => " << capacity << std::endl;
+        if(capacity <= prev_capacity)
+            throw std::runtime_error("c Out of memory\n");
+        if(new_capacity == 0)
+            break;
+    }
+    nogoods = (Lit *)xrealloc(nogoods, sizeof(Lit) * capacity);
+}
+
+unsigned int NoGoodsEngine::insertNoGood(vec<Lit> &nogood) {
+    if(nogood.size() + 1 + last >= capacity)
+        enlargeNogoodStructure();
+
+    unsigned tmp = last;
+    for(Lit l : nogood) nogoods[last++] = l < 0 ? l : -l;
+    nogoods[last++] = 0;
+    return tmp;
+}
 
 void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
     statistics[nbnogoods]++;
@@ -61,17 +109,13 @@ void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
     if(statistics[maxsize] < nogood.size())
         statistics[maxsize] = nogood.size();
 
-    nogoods.push();
-    for(Lit l : nogood) {
-        nogoods.last().push(l < 0 ? l : -l);
-        // nogoods.last().last().eq = false;   // We want to store (x=2 and y=4) -> z!=3
-        //  All literals are of the form x!=a
-    }
-    addWatcher(nogoods.last()[0], nogoods.size() - 1);
-    addWatcher(nogoods.last()[1], nogoods.size() - 1);
+    unsigned int ng = insertNoGood(nogood);
+
+    addWatcher(nogoods[ng], ng);
+    addWatcher(nogoods[ng + 1], ng);
 }
 
-void NoGoodsEngine::addWatcher(Lit ng, int ngposition) {
+void NoGoodsEngine::addWatcher(Lit ng, unsigned int ngposition) {
     int wp = -1;
     if(watcherPosition.count(ng) == 0) {
         watchers.push();                                     // Add a new watcher for x!=idv
@@ -97,13 +141,12 @@ bool NoGoodsEngine::propagate(Variable *x) {
     Lit ng = getNegativeDecisionFor(x, x->valueId());
     if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
         return true;
-
     int position = watcherPosition[ng];
     int i = 0, j = 0;
     for(; i < watchers[position].size();) {
-        int       ngposition    = watchers[position][i++];
-        vec<Lit> &nogood        = nogoods[ngposition];
-        int       falsePosition = ng == nogood[0] ? 0 : 1;
+        unsigned int ngposition    = watchers[position][i++];
+        Lit         *nogood        = &(nogoods[ngposition]);
+        int          falsePosition = ng == nogood[0] ? 0 : 1;
         assert(ng == nogood[falsePosition]);
 
         Variable *y   = getVariableIn(nogood[1 - falsePosition]);
@@ -113,7 +156,7 @@ bool NoGoodsEngine::propagate(Variable *x) {
             continue;
         }
 
-        for(int k = 2; k < nogood.size(); k++) {
+        for(int k = 2; nogood[k] != 0; k++) {
             Variable *z    = getVariableIn(nogood[k]);
             int       idv2 = getIndexIn(nogood[k]);
             if(z->containsIdv(idv2) == false || z->size() > 1) {
@@ -146,6 +189,10 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
     for(Lit lit : nogoodsOfSize1) {
         Variable *x   = getVariableIn(lit);
         int       idv = getIndexIn(lit);
+        if(idv < 0 || idv >= x->domain.maxSize()) {
+            solver.nogoodsFromRestarts = false;   // :(
+            return;
+        }
         solver.delIdv(x, idv);
     }
 }
@@ -157,9 +204,15 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
 void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.push(getPositiveDecisionFor(x, x->valueId())); }
 
 
-void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    if(solver.nogoodsFromRestarts == false)
+        return;
     Lit current = getPositiveDecisionFor(x, x->domain.toIdv(v));
     int pos     = currentBranch.firstOccurrenceOf(current);
+    if(pos == -1) {
+        solver.nogoodsFromRestarts = false;
+        return;
+    }
     assert(pos >= 0);
     currentBranch.cut(pos + 1);
     assert(currentBranch.last() == current);
@@ -199,14 +252,14 @@ void NoGoodsEngine::displayTuples(vec<Tuple> &ng) {
 void NoGoodsEngine::printStats() {
     printf("\nc nogoods               : %lu\n", statistics[nbnogoods]);
     printf("c nogoods sizes         : #1: %lu   #2: %lu   max size: %lu   avg size: %lu\n", statistics[size1], statistics[size2],
-           statistics[maxsize], statistics[sumsize] / nogoods.size());
+           statistics[maxsize], statistics[nbnogoods] == 0 ? 0 : statistics[sumsize] / statistics[nbnogoods]);
     printf("c ng propagations       : %lu\n", statistics[props]);
     printf("c ng conflicts          : %lu\n", statistics[cfl]);
 }
 
 void NoGoodsEngine::checkWatchers() {
     // Check taht all nogoods are watched by the first 2 tuples
-    for(int i = 0; i < nogoods.size(); i++) {
+    /*for(int i = 0; i < nogoods.size(); i++) {
         assert(watchers[watcherPosition[nogoods[i][0]]].firstOccurrenceOf(i) >= 0);
         assert(watchers[watcherPosition[nogoods[i][1]]].firstOccurrenceOf(i) >= 0);
     }
@@ -226,5 +279,5 @@ void NoGoodsEngine::checkWatchers() {
             assert(appears.count(tmp) == 0);
             appears.insert({tmp, 1});
         }
-    }
+    }*/
 }

@@ -37,9 +37,9 @@ bool Sum::isCorrectlyDefined() {
 bool SumEQ::filter(Variable *dummy) {
     long min = 0, max = 0;
     for(int i = 0; i < scope.size(); i++) {
-        int c    = coefficients[i];
-        int vmin = scope[i]->minimum();
-        int vmax = scope[i]->maximum();
+        long c    = coefficients[i];
+        int  vmin = scope[i]->minimum();
+        int  vmax = scope[i]->maximum();
         if(c >= 0) {
             min += vmin * c;
             max += vmax * c;
@@ -61,7 +61,7 @@ bool SumEQ::filter(Variable *dummy) {
             int       sz = x->size();
             if(sz == 1)
                 continue;
-            int c = coefficients[i];
+            long c = coefficients[i];
             if(c > 0) {
                 min -= x->minimum() * c;
                 max -= x->maximum() * c;

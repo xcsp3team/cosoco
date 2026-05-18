@@ -1,10 +1,6 @@
-//
-// Created by audemard on 20/02/23.
-//
-
 #ifndef COSOCO_TUPLE_H
 #define COSOCO_TUPLE_H
-#include "solver/Solver.h"
+
 namespace Cosoco {
 class Tuple {
    public:

@@ -4,6 +4,7 @@
 
 #include "HeuristicVarCACD.h"
 
+#include "Options.h"
 #include "solver/Solver.h"
 using namespace Cosoco;
 
@@ -15,8 +16,7 @@ HeuristicVarCACD::HeuristicVarCACD(Solver &s) : HeuristicVar(s) {
     vscores.growTo(solver.problem.nbVariables(), 0);
     cscores.growTo(solver.problem.nbConstraints());
     cvscores.growTo(solver.problem.nbConstraints());
-    for(int i = 0; i < cvscores.size(); i++)
-        cvscores[i].growTo(solver.problem.constraints[i]->scope.size());
+    for(int i = 0; i < cvscores.size(); i++) cvscores[i].growTo(solver.problem.constraints[i]->scope.size());
 }
 
 
@@ -29,7 +29,7 @@ void HeuristicVarCACD::reset() {
 Variable *HeuristicVarCACD::select() {
     if(solver.warmStart && solver.conflicts == 0 && solver.nbSolutions == 0) {
         for(int i = 0; i < solver.decisionVariables.size(); i++)
-            if (solver.decisionVariables[i]->_name.rfind("__av", 0) != 0)
+            if(solver.decisionVariables[i]->_name.rfind("__av", 0) != 0)
                 return solver.decisionVariables[i];
     }
 
@@ -40,6 +40,11 @@ Variable *HeuristicVarCACD::select() {
                 return x;
     }
 
+    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
 
     Variable *x = solver.decisionVariables[0];
 
@@ -48,8 +53,12 @@ Variable *HeuristicVarCACD::select() {
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
         if(vscores[y->idx] > bestV) {
-            bestV = vscores[y->idx];
-            x     = y;
+            bestV      = vscores[y->idx];
+            secondBest = x;
+            x          = y;
+        } else {
+            if(vscores[y->idx] > bestV)
+                secondBest = y;
         }
     }
     assert(x != nullptr);
@@ -58,13 +67,15 @@ Variable *HeuristicVarCACD::select() {
 
 
 void HeuristicVarCACD::notifyConflict(Constraint *c, int level) {
-
+    secondBest = nullptr;
+    if(freezed)
+        return;
     double increment = 1;
-    cscores[c->idc] += increment; // just +1 in that case (can be useful for other objects, but not directly for wdeg)
+    cscores[c->idc] += increment;   // just +1 in that case (can be useful for other objects, but not directly for wdeg)
 
     for(int i = 0; i < c->unassignedVariablesIdx.size(); i++) {
         Variable *y = c->scope[c->unassignedVariablesIdx[i]];
-        increment = 1.0 / (c->unassignedVariablesIdx.size() * (y->size() == 0 ? 0.5 : y->size()));
+        increment   = 1.0 / (c->unassignedVariablesIdx.size() * (y->size() == 0 ? 0.5 : y->size()));
 
         vscores[y->idx] += increment;
         cvscores[c->idc][c->unassignedVariablesIdx[i]] += increment;
@@ -73,6 +84,9 @@ void HeuristicVarCACD::notifyConflict(Constraint *c, int level) {
 
 
 void HeuristicVarCACD::notifyNewDecision(Variable *x, Solver &s) {
+    if(freezed)
+        return;
+
     for(Constraint *c : x->constraints)
         if(c->unassignedVariablesIdx.size() == 1) {
             int posy = c->unassignedVariablesIdx[0];   // the other variable whose score must be updated
@@ -81,7 +95,10 @@ void HeuristicVarCACD::notifyNewDecision(Variable *x, Solver &s) {
 }
 
 
-void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    if(freezed)
+        return;
+
     for(Constraint *c : x->constraints)
         if(c->unassignedVariablesIdx.size() == 2) {
             int posy = c->unassignedVariablesIdx[0];   // the other variable whose score must be updated
@@ -91,7 +108,12 @@ void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarCACD::notifyFullBacktrack() {
-    if(solver.statistics[GlobalStats::restarts] > 0
-       && ((solver.statistics[GlobalStats::restarts]+1)  - solver.lastSolutionRun) % 30 == 0)
+    secondBest = nullptr;
+    if(options::boolOptions["rw"].value == false)
+        return;
+    if(freezed)
+        return;
+    if(solver.statistics[GlobalStats::restarts] > 0 &&
+       ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0)
         reset();
 }

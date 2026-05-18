@@ -20,5 +20,21 @@ class CumulativeVariablesH : public Cumulative {
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
+
+class CumulativeVariablesHLimitV : public CumulativeVariablesH {
+   protected:
+    Variable *limitvar;
+
+   public:
+    CumulativeVariablesHLimitV(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, Variable *limit);
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+
 }   // namespace Cosoco
 #endif   // COSOCO_CUMULATIVEVARIABLESH_H

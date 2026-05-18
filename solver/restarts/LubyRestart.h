@@ -6,8 +6,6 @@
 #define COSOCO_LUBYRESTART_HH
 
 
-#include <math.h>
-
 #include "Restart.h"
 
 
@@ -17,8 +15,7 @@ class LubyRestart : public Restart {
         // Find the finite subsequence that contains index 'x', and the
         // size of that subsequence:
         int size, seq;
-        for(size = 1, seq = 0; size < x + 1; seq++, size = 2 * size + 1)
-            ;
+        for(size = 1, seq = 0; size < x + 1; seq++, size = 2 * size + 1);
 
         while(size - 1 != x) {
             size = (size - 1) >> 1;
@@ -36,7 +33,7 @@ class LubyRestart : public Restart {
 
 
    public:
-    LubyRestart(Solver *s) : Restart(s), factor(32), curr_restarts(0) { limit = luby(2, curr_restarts) * factor; }
+    explicit LubyRestart(Solver *s) : Restart(s), factor(32), curr_restarts(0) { limit = luby(2, curr_restarts) * factor; }
 
 
     void initialize() override {

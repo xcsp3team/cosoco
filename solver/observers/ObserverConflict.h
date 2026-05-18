@@ -6,6 +6,7 @@
 namespace Cosoco {
 class ObserverConflict {
    public:
+    virtual ~ObserverConflict()                           = default;
     virtual void notifyConflict(Constraint *c, int level) = 0;
 };
 }   // namespace Cosoco

@@ -4,7 +4,11 @@
 #include <solver/observers/ObserverDomainReduction.h>
 #include <solver/restarts/Restart.h>
 
+#include <set>
+
 #include "AbstractSolver.h"
+#include "Profiling.h"
+#include "Solution.h"
 #include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
@@ -26,19 +30,25 @@ enum OneRunStats { maxDepth, minDepth, sumDepth, nbConflicts };
 
 class Restart;
 class NoGoodsEngine;
+class Profiling;
+
+typedef struct {
+    Variable *x;
+    int       deletedValues;
+} PickVariables;
 
 class Solver : public AbstractSolver {
    public:
-    Problem &problem;                 // The problem to solve
-    int      nbWishedSolutions = 1;   // The number of solutions to find
-    vec<int> lastSolution;            // The last solution found
+    Problem &problem;        // The problem to solve
+    vec<int> lastSolution;   // The last solution found
 #ifdef COMPARESOLUTIONS
     vec<vec<int> > allSolutions;
 #endif
     // -- Main Stats ------------------------------------------------------------------------
-    uint64_t decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0;
-    uint64_t filterCalls = 0;
-
+    uint64_t   decisions = 0, conflicts = 0, propagations = 0, wrongDecisions = 0, nodes = 0;
+    uint64_t   filterCalls = 0;
+    Profiling *profiling;
+    bool       doProfiling;
 
     // -- Minor Stats -----------------------------------------------------------------------
     vec<uint64_t> statistics;                          // global statistics
@@ -47,11 +57,11 @@ class Solver : public AbstractSolver {
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double seed          = 91648253;   // A seed value
-    bool   checkSolution = true;       // Check solution or not
-    bool   filterCallIsUsefull;        // Check if a call to filter call is usefull or not
-    bool   colors;                     // Display colors in terminal
-
+    double    seed = 91648253;   // A seed value
+    bool      displaySolution;
+    bool      checkSolution = true;             // Check solution or not
+    int       nbDeletedValuesByAVariable;       // count the number of deleted values by a filtering on one variable
+    Solution *optimizationSolution = nullptr;   // Used to display best bound during the search.
     // -- Search ----------------------------------------------------------------------------
     vec<Variable *> trail;   // the trail of variables
     // Each level stores the SET variables of variables touched
@@ -62,16 +72,18 @@ class Solver : public AbstractSolver {
     SparseSetMultiLevel  entailedConstraints;
     bool                 stopSearch = false;   // Stop the search usefull, in // with the optimizer
     bool                 warmStart;
+    long                 currentNbValues;
     // -- Heuristics ------------------------------------------------------------------------
-    HeuristicVar *heuristicVar;                         // The heuristic to choose variables
-    HeuristicVal *heuristicVal;                         // The heuristic to choose values
-    Restart      *restart                  = nullptr;   // The restart strategy
-    int           intension2extensionLimit = 100000;    // Transform intension -> extension : limit of the cartesian product
+    HeuristicVar *heuristicVar;        // The heuristic to choose variables
+    HeuristicVal *heuristicVal;        // The heuristic to choose values
+    Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
-    SparseSetOfVariables queue;                       // Propagation queue
-    Constraint          *currentFilteredConstraint;   // The constraint that is filtered
-    SparseSetCounter     pickQueueHistory;            // The set of picking variables history
-
+    SparseSetOfVariables   queue;                       // Propagation queue
+    SparseSet              queue4Nogoods;               // The queue for nogood propagation (postpone nogoods prop)
+    int                    smallest_in_queue;           // Smallest domain size in queue
+    Constraint            *currentFilteredConstraint;   // The constraint that is filtered
+    vec<PickVariables>     pickVariables;               // The set of picking variables history
+    std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict
     vec<ObserverNewDecision *>     observersNewDecision;       // Classes listen for decisions
@@ -89,11 +101,10 @@ class Solver : public AbstractSolver {
     // Construction and initialisation
     // --------------------------------------------------------------------------------------
 
-    Solver(Problem &p, int nbc = 0);
-    void addLastConflictReasoning(int nVars);
+    explicit Solver(Problem &p);
+    void addLastConflictReasoning();
     void addRandomizationFirstDescent();
     void addStickingValue();
-    void addRestart(bool luby = false);
 
 
     // --------------------------------------------------------------------------------------
@@ -118,7 +129,7 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
 
     void doRestart();
-    void backtrack();                           // Backtrack to previous level
+    void backtrack(bool isFull = false);        // Backtrack to previous level
     void backtrack(int level);                  // Backtrack to a given level
     void fullBacktrack(bool all = false);       // Backtrack to the root, if all=true remove everything (including root AC)
     void handleFailure(Variable *x, int idv);   // manage backtrack until fix point
@@ -132,13 +143,15 @@ class Solver : public AbstractSolver {
     void        addToQueue(Variable *x);                      // Add a variable to queue (side effect if used directly))
     Variable   *pickInQueue();                                // Pick a var in the prop queue
     Constraint *propagate(bool startWithSATEngine = false);   // Propagate the Queue
-    Constraint *propagateComplete();                          // fill the queue and propagate everything
-    bool        isGACGuaranted();                             // Return trus if GAC is ensured
+    bool        filterConstraint(Constraint *c, Variable *x);
+    Constraint *propagateComplete();   // fill the queue and propagate everything
+    bool        isGACGuaranted();      // Return true if GAC is ensured
 
-    void entail(Constraint *c) {
+    bool entail(Constraint *c) {
         if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
             entailedConstraints.recordLimit(decisionLevel());
         entailedConstraints.add(c->idc);
+        return true;   //
     }
     bool isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }
     // --------------------------------------------------------------------------------------
@@ -161,9 +174,13 @@ class Solver : public AbstractSolver {
     bool delValuesInDomain(Variable *x, Domain &d);
     bool delValuesNotInDomain(Variable *x, Domain &d);
     bool changeDomain(Variable *x, SparseSet &newIdvalues);
-    bool delValuesInRange(Variable *x, int min, int max);   // del values from min to max excluded
-
-
+    bool delValuesInRange(Variable *x, int min, int max);    // del values from min to max excluded
+    bool enforceLE(Variable *x, Variable *y, int k);         // x + k <= y
+    bool enforceLE(Variable *x, Variable *y, Variable *z);   // x + y <= z
+    bool enforceEQ(Variable *x, Variable *y, int k);         // X = Y + k
+    bool enforceAddEQ(Variable *x, Variable *y, int k);      // X + Y = k
+    bool enforceAddLE(Variable *x, Variable *y, int k);      // X + Y <= k
+    bool enforceAddGE(Variable *x, Variable *y, int k);      // X + Y >= k
     // --------------------------------------------------------------------------------------
     // Observers methods
     // --------------------------------------------------------------------------------------
@@ -174,7 +191,7 @@ class Solver : public AbstractSolver {
     void addObserverNewDecision(ObserverNewDecision *od);         // od wants to know when a decision is added or deleted
     void notifyNewDecision(Variable *x);                          // Notify classes that x is a new decision
     void addObserverDeleteDecision(ObserverDeleteDecision *od);   // od wants to know when a decision is added or deleted
-    void notifyDeleteDecision(Variable *x, int v);                // Notify classes that x=v is not a decision,
+    void notifyDeleteDecision(Variable *x, int v, bool isFull);   // Notify classes that x=v is not a decision,
     void notifyFullBactrack();                                    // Notify classes that we remove all facts
 
     void addObserverDomainReduction(ObserverDomainReduction *odr);
@@ -185,15 +202,16 @@ class Solver : public AbstractSolver {
     // minor methods
     // --------------------------------------------------------------------------------------
 
-    virtual void displayCurrentSolution() override;
+    virtual void displayCurrentSolution(int verbosity) override;
     virtual void printFinalStats() override;   // The final stats to print
 
     void displayHeaderCurrentSearchSpace();
     void displayCurrentSearchSpace();
 
-    void updateStatisticsWithNewConflict();
-    bool hasASolution() { return lastSolution.size() > 0; }
-    void displayTrail();
+    uint64_t globalTimestamps() { return conflicts + decisions + nodes; }
+    void     updateStatisticsWithNewConflict();
+    bool     hasASolution() { return lastSolution.size() > 0; }
+    void     displayTrail();
 
     void interrupt();   // Trigger a (potentially asynchronous) interruption of the solver.
 

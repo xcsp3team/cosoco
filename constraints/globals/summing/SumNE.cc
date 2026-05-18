@@ -45,10 +45,10 @@ int SumNE::findNewWatch() {
 
 
 long SumNE::computeSumExceptPos(int posx) {
-    int sum = 0;
+    long sum = 0;
     for(int posy = 0; posy < scope.size(); posy++)
         if(posy != posx)
-            sum += scope[posy]->value() * coefficients[posy];
+            sum += ((long)scope[posy]->value()) * coefficients[posy];
     return sum;
 }
 

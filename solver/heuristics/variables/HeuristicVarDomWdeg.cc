@@ -1,5 +1,7 @@
 #include "HeuristicVarDomWdeg.h"
 
+#include "Options.h"
+
 using namespace Cosoco;
 
 
@@ -8,6 +10,10 @@ HeuristicVarDomWdeg::HeuristicVarDomWdeg(Solver &s) : HeuristicVar(s) {
     s.addObserverDeleteDecision(this);
     s.addObserverNewDecision(this);
     mode = V2021;
+    constraintsWeights.growTo(s.problem.nbConstraints());
+    for(int i = 0; i < constraintsWeights.size(); i++)
+        constraintsWeights[i].growTo(solver.problem.constraints[i]->scope.size(), 0);
+    variablesWeights.growTo(s.problem.nbVariables(), 0);
 }
 
 
@@ -26,6 +32,13 @@ Variable *HeuristicVarDomWdeg::select() {
     }
 
 
+    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
+
+
     Variable *x = solver.decisionVariables[0];
     if(mode == V2004 || mode == ABSCON) {
         double bestV = ((double)x->size()) / x->wdeg;
@@ -33,8 +46,12 @@ Variable *HeuristicVarDomWdeg::select() {
         for(int i = 1; i < solver.decisionVariables.size(); i++) {
             Variable *y = solver.decisionVariables[i];
             if(((double)y->size()) / y->wdeg < bestV) {
-                bestV = ((double)y->size()) / y->wdeg;
-                x     = y;
+                bestV      = ((double)y->size()) / y->wdeg;
+                secondBest = x;
+                x          = y;
+            } else {
+                if(((double)y->size()) / y->wdeg == bestV)
+                    secondBest = y;
             }
         }
         assert(x != nullptr);
@@ -48,8 +65,12 @@ Variable *HeuristicVarDomWdeg::select() {
         for(int i = 1; i < solver.decisionVariables.size(); i++) {
             Variable *y = solver.decisionVariables[i];
             if(y->wdeg > bestV) {
-                bestV = y->wdeg;
-                x     = y;
+                bestV      = y->wdeg;
+                secondBest = nullptr;
+                x          = y;
+            } else {
+                if(y->wdeg == bestV)
+                    secondBest = y;
             }
         }
         return x;
@@ -61,8 +82,12 @@ Variable *HeuristicVarDomWdeg::select() {
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
         if(y->wdeg > bestV || (y->wdeg == bestV && y->size() < x->size())) {
-            bestV = y->wdeg;
-            x     = y;
+            bestV      = y->wdeg;
+            secondBest = nullptr;
+            x          = y;
+        } else {
+            if(y->wdeg == bestV)
+                secondBest = y;
         }
     }
 
@@ -72,6 +97,9 @@ Variable *HeuristicVarDomWdeg::select() {
 
 
 void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
+    secondBest = nullptr;
+    if(freezed)
+        return;
     int notThisposition = NOTINSCOPE;
     if(c->unassignedVariablesIdx.size() == 1)
         notThisposition = c->unassignedVariablesIdx[0];   // c->toScopePosition(c->unassignedVariablesIdx[0]);
@@ -102,6 +130,8 @@ void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
 
 
 void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
+    if(freezed)
+        return;
     for(Constraint *c : x->constraints) {
         if(c->unassignedVariablesIdx.size() == 1)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg -= c->wdeg[c->unassignedVariablesIdx[0]];
@@ -109,7 +139,9 @@ void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
 }
 
 
-void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    if(freezed)
+        return;
     for(Constraint *c : x->constraints) {
         if(c->unassignedVariablesIdx.size() == 2)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg += c->wdeg[c->unassignedVariablesIdx[0]];
@@ -118,26 +150,31 @@ void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarDomWdeg::notifyFullBacktrack() {
-    /*    printf("erer\n");
-        Variable *y;
-        double    wd = 0;
-        for(Variable *x : solver.problem.variables) {
-            if(x->wdeg > wd) {
-                wd = x->wdeg;
-                y  = x;
-            }
-        }
-        std::cout << y->_name << std::endl;
-        for(Constraint *c : y->constraints) {
-            double v = 0;
-            for(double tmp : c->wdeg) v += tmp;
-            std::cout << c->type << " " << v << std::endl;
-        }
-    */
+    secondBest = nullptr;
+    if(freezed)
+        return;
+    if(options::boolOptions["rw"].value == false)
+        return;
+
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
         for(Constraint *c : solver.problem.constraints) c->wdeg.fill(0);
         for(Variable *x : solver.problem.variables) x->wdeg = 0;
     }
+}
+
+bool HeuristicVarDomWdeg::start() {
+    freezed = false;
+    for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = solver.problem.variables[i]->wdeg;
+    for(int i = 0; i < constraintsWeights.size(); i++) solver.problem.constraints[i]->wdeg.copyTo(constraintsWeights[i]);
+    return false;
+}
+
+
+bool HeuristicVarDomWdeg::stop() {
+    freezed = true;
+    for(int i = 0; i < variablesWeights.size(); i++) solver.problem.variables[i]->wdeg = variablesWeights[i];
+    for(int i = 0; i < constraintsWeights.size(); i++) constraintsWeights[i].copyTo(solver.problem.constraints[i]->wdeg);
+    return false;
 }
