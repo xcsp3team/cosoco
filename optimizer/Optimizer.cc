@@ -65,8 +65,10 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
     ObjectiveConstraint *objective = (optimtype == Minimize) ? objectiveUB : objectiveLB;
     auto                 c         = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
-    status = RUNNING;
-    // c->isDisabled = true;   // Disable the objective
+    status      = RUNNING;
+    bool hasSol = false;
+
+    solver->checkSolution = true;
     while(status == RUNNING) {
         if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
             best = bestSolution->originalBound();
@@ -126,9 +128,14 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             else
                 lower = best + 1;
 
-            solver->fullBacktrack();
-            solver->reinitializeConstraints();
-
+            int bestLevel = -1;
+            for(Variable *x : c->scope) {
+                if(x->domain.lastRemovedLevel() > bestLevel)
+                    bestLevel = x->domain.lastRemovedLevel();
+            }
+            std::cout << "best : " << bestLevel << std::endl;
+            solver->backtrack(bestLevel - 1 >= 0 ? bestLevel - 1 : 0);
+            
         } else {
             status = OPTIMUM;
             if(firstCall)
