@@ -102,7 +102,7 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
 
     explicit Solver(Problem &p);
-    void addLastConflictReasoning();
+    void addLastConflictReasoning(int value = -1);
     void addRandomizationFirstDescent();
     void addStickingValue();
 

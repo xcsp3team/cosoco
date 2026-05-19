@@ -12,7 +12,7 @@
 namespace Cosoco {
 
 
-class Optimizer : public AbstractSolver, ObserverConflict {
+class Optimizer : public AbstractSolver, public ObserverConflict {
    protected:
     pFactory::Communicator<long> *boundCommunicator;
     long                          lower, upper;   // The current lower et upper bound

@@ -158,8 +158,9 @@ void Solver::addNoGoodsFromRestarts() {
     noGoodsEngine       = new NoGoodsEngine(*this);
 }
 
-void Solver::addLastConflictReasoning() {
-    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options::intOptions["lc"].value);
+void Solver::addLastConflictReasoning(int value) {
+    value        = value == -1 ? options::intOptions["lc"].value : value;
+    heuristicVar = new LastConflictReasoning(*this, heuristicVar, value);
 }
 
 
@@ -1052,7 +1053,7 @@ void Solver::displayHeaderCurrentSearchSpace() {
 
 
 void Solver::displayCurrentSearchSpace() {
-    printf("c ");
+    printf("c core %d ", core);
 
     if(optimizationSolution != nullptr)
         printElement(optimizationSolution->exists() ? std::to_string(optimizationSolution->bestBound()) : "-");
