@@ -278,8 +278,10 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                         sharedPropagations.pop_back();
                         if(rp.equal == false)
                             ok = delIdv(problem.variables[rp.idx], rp.idv);
-                        else
-                            ok = assignToIdv(problem.variables[rp.idx], rp.idv);
+                        else {
+                            // Do not use assignToIDv -> problem of share multiple times the same assignments :(
+                            ok = assignToVal(problem.variables[rp.idx], problem.variables[rp.idx]->domain.toVal(rp.idv));
+                        }
                     }
 
                     if(!ok)   // We propagate a false fact at decision level 0 !!
