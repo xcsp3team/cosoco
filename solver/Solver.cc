@@ -270,8 +270,6 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                 if(threadsGroup != nullptr) {
                     rootPropagationsCommunicator->recvAll(sharedPropagations);
                     // Fact to propagate
-                    if(decisionLevel() > 0 && sharedPropagations.size() > 0)
-                        doRestart();
                     bool ok = true;
                     while(!sharedPropagations.empty()) {
                         RootPropagation rp = sharedPropagations.back();
@@ -1055,7 +1053,7 @@ void Solver::displayHeaderCurrentSearchSpace() {
 
 
 void Solver::displayCurrentSearchSpace() {
-    printf("c core %d ", core);
+    printf("c ");
 
     if(optimizationSolution != nullptr)
         printElement(optimizationSolution->exists() ? std::to_string(optimizationSolution->bestBound()) : "-");

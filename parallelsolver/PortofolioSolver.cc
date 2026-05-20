@@ -93,20 +93,11 @@ void PortofolioSolver::diversifySolvers() {
         if(core > 0) {
             solver->addLastConflictReasoning(core % 2 + 1);
             solver->addRandomizationFirstDescent();
-            if(core == 2)
+            if(core == 1)
                 solver->heuristicVal = new HeuristicValLast(*solver);
-
-
-            if(core % 5 == 2)
-                solver->heuristicVar = new HeuristicVarDomWdeg(*solver);
-            if(core % 5 == 3)
-                solver->heuristicVar = new PickOnDom(*solver);
-            if(core % 5 == 4)
-                solver->heuristicVar = new HeuristicVarCACD(*solver);
-
-            if(core == 4)
+            if(core == 3)
                 solver->heuristicVal = new HeuristicValRandom(*solver);
-            if(core == 5)
+            if(core == 4)
                 solver->heuristicVal = new HeuristicValRoundRobin(*solver, "FLR");
             ;
         }

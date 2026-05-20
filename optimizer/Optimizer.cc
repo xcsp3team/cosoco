@@ -162,7 +162,7 @@ void Optimizer::notifyConflict(Constraint *c, int level) {
             solver->stopSearch = true;
         }
     }
-    if(hasSolution() && nbSolutions == 0 && solver->statistics[restarts] % 100 == 199 && progressSaving) {
+    if(hasSolution() && nbSolutions == 0 && solver->statistics[restarts] % 100 == 99 && progressSaving) {
         // No solution found -> get the bound and create progress saving wrt solution
         // Just one time (put nbSolutions to 1)
         solver->stopSearch       = true;
