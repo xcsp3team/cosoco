@@ -158,8 +158,9 @@ void Solver::addNoGoodsFromRestarts() {
     noGoodsEngine       = new NoGoodsEngine(*this);
 }
 
-void Solver::addLastConflictReasoning() {
-    heuristicVar = new LastConflictReasoning(*this, heuristicVar, options::intOptions["lc"].value);
+void Solver::addLastConflictReasoning(int value) {
+    value        = value == -1 ? options::intOptions["lc"].value : value;
+    heuristicVar = new LastConflictReasoning(*this, heuristicVar, value);
 }
 
 
@@ -269,16 +270,16 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                 if(threadsGroup != nullptr) {
                     rootPropagationsCommunicator->recvAll(sharedPropagations);
                     // Fact to propagate
-                    if(decisionLevel() > 0 && sharedPropagations.size() > 0)
-                        doRestart();
                     bool ok = true;
                     while(!sharedPropagations.empty()) {
                         RootPropagation rp = sharedPropagations.back();
                         sharedPropagations.pop_back();
                         if(rp.equal == false)
                             ok = delIdv(problem.variables[rp.idx], rp.idv);
-                        else
-                            ok = assignToIdv(problem.variables[rp.idx], rp.idv);
+                        else {
+                            // Do not use assignToIDv -> problem of share multiple times the same assignments :(
+                            ok = assignToVal(problem.variables[rp.idx], problem.variables[rp.idx]->domain.toVal(rp.idv));
+                        }
                     }
 
                     if(!ok)   // We propagate a false fact at decision level 0 !!

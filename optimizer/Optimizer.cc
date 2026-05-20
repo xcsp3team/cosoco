@@ -25,6 +25,7 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
     solver                       = s;
     bestSolution                 = solution;
     solver->optimizationSolution = solution;
+
     solver->setVerbosity(options::intOptions["verb"].value);
     optimtype   = (dynamic_cast<OptimizationProblem &>(solver->problem)).type;
     objectiveLB = (dynamic_cast<OptimizationProblem &>(solver->problem)).objectiveLB;
@@ -86,8 +87,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             objective->updateBound(lower);
 
         solver->stopSearch = false;
-
-
         solver->solve(assumps);
 
         objectiveConstraint->isDisabled = false;   // Enable the objective
@@ -103,31 +102,30 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             if(solver->restart != nullptr)
                 solver->restart->initialize();
 
-            if(solver->hasSolution()) {
-                objectiveConstraint->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
-                best = objective->computeScore(tuple);
-                // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
+            objectiveConstraint->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
+            best = objective->computeScore(tuple);
+            // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
+            std::cout << "core " << core << " -> new best : " << best << std::endl;
 
+            //   Store solution in order to avoid a signal
+            bestSolution->begin(best);
+            for(int i = 0; i < solver->lastSolution.size(); i++)
+                bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
+            bestSolution->end(options::boolOptions["colors"].value);
 
-                //   Store solution in order to avoid a signal
-                bestSolution->begin(best);
-                for(int i = 0; i < solver->lastSolution.size(); i++)
-                    bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
-                bestSolution->end(options::boolOptions["colors"].value);
-
-                if(progressSaving) {
-                    vec<int> idvalues;
-                    idvalues.growTo(solver->problem.nbVariables());
-                    for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
-                    ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
-                }
+            if(progressSaving) {
+                vec<int> idvalues;
+                idvalues.growTo(solver->problem.nbVariables());
+                for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
+                ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
             }
+
 
             if(optimtype == Minimize)
                 upper = best - 1;
             else
                 lower = best + 1;
-
+            std::cout << "best : " << bestCost() << "- core " << core << std::endl;
             if(noFullRestartAfterSolution) {   // Do not completely restart after a solution
                 int bestLevel = -1;
                 for(Variable *x : objectiveConstraint->scope) {
@@ -157,10 +155,28 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
 
 void Optimizer::notifyConflict(Constraint *c, int level) {
-    if(threadsGroup != nullptr && solver->conflicts % 500 == 0) {
+    // Only called in // mode
+    if(nbSolutions > 0 && solver->conflicts % 500 == 0) {   //
         if(hasSolution() && isBetterBound(bestSolution->originalBound())) {
+            std::cout << "stop core " << core << "because better solution : " << bestCost() << std::endl;
             solver->stopSearch = true;
         }
+    }
+    if(hasSolution() && nbSolutions == 0 && solver->statistics[restarts] % 100 == 99 && progressSaving) {
+        // No solution found -> get the bound and create progress saving wrt solution
+        // Just one time (put nbSolutions to 1)
+        solver->stopSearch       = true;
+        nbSolutions              = 1;   // Fake...
+        std::vector<int> current = bestSolution->get();
+        vec<int>         idvalues;
+        idvalues.growTo(solver->problem.nbVariables());
+        std::cout << core << " do it\n";
+        for(Variable *x : solver->problem.variables) {
+            int idv          = solver->problem.variables[x->idx]->domain.toIdv(current[x->idx]);
+            idv              = idv == -1 ? 0 : idv;
+            idvalues[x->idx] = idv;
+        }
+        ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
     }
 }
 
