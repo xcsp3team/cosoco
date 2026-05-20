@@ -104,8 +104,11 @@ void PortofolioSolver::diversifySolvers() {
             if(core % 5 == 4)
                 solver->heuristicVar = new HeuristicVarCACD(*solver);
 
-            if(core > 2)
+            if(core == 4)
+                solver->heuristicVal = new HeuristicValRandom(*solver);
+            if(core == 5)
                 solver->heuristicVal = new HeuristicValRoundRobin(*solver, "FLR");
+            ;
         }
         if(o == nullptr && core % 2 == 0)   // Stick - no stick
             solver->addStickingValue();

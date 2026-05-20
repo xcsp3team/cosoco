@@ -155,11 +155,28 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
 
 
 void Optimizer::notifyConflict(Constraint *c, int level) {
-    if(nbSolutions > 0 && solver->conflicts % 500 == 0) {
+    // Only called in // mode
+    if(nbSolutions > 0 && solver->conflicts % 500 == 0) {   //
         if(hasSolution() && isBetterBound(bestSolution->originalBound())) {
             std::cout << "stop core " << core << "because better solution : " << bestCost() << std::endl;
             solver->stopSearch = true;
         }
+    }
+    if(hasSolution() && nbSolutions == 0 && solver->statistics[restarts] % 100 == 199 && progressSaving) {
+        // No solution found -> get the bound and create progress saving wrt solution
+        // Just one time (put nbSolutions to 1)
+        solver->stopSearch       = true;
+        nbSolutions              = 1;   // Fake...
+        std::vector<int> current = bestSolution->get();
+        vec<int>         idvalues;
+        idvalues.growTo(solver->problem.nbVariables());
+        std::cout << core << " do it\n";
+        for(Variable *x : solver->problem.variables) {
+            int idv          = solver->problem.variables[x->idx]->domain.toIdv(current[x->idx]);
+            idv              = idv == -1 ? 0 : idv;
+            idvalues[x->idx] = idv;
+        }
+        ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
     }
 }
 
