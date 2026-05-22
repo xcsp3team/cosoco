@@ -4,6 +4,7 @@
 
 #include "NoGoodsEngine.h"
 
+#include "Options.h"
 #include "Solver.h"
 #include "System.h"
 using namespace Cosoco;
@@ -59,7 +60,7 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
         if(currentDecision < 0) {
             if(nogood.size() < maxArity && currentDecision != currentBranch[0]) {
                 addNoGood(nogood);
-                if(solver.threadsGroup != nullptr && nogood.size() < solver.problem.nbVariables() / 20) {
+                if(solver.threadsGroup != nullptr && nogood.size() <= options::intOptions["share"].value) {
                     std::vector<Lit> tmp;
                     for(auto &l : nogood) tmp.push_back(l);
                     solver.nogoodCommunicator->send(tmp);
