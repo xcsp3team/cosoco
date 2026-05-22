@@ -255,11 +255,6 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
                 std::cout << "\n";
             }
-            if(tree->arity() <= 3) {
-                std::cout << "to extension " << tree->root->toString() << "   : ";
-                for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
-                std::cout << "\n";
-            }
             return;
         }
 
