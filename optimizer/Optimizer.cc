@@ -140,7 +140,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             }
         } else {
             status = OPTIMUM;
-            if(firstCall)
+            if(firstCall && hasSolution() == false)
                 return R_UNSAT;
         }
         firstCall = false;

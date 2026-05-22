@@ -79,7 +79,6 @@ link_libraries(
         pFactory
 )
 
-link_libraries(pthread)
 
 add_executable(cosoco main/Main.cc)
 target_link_libraries(cosoco ${LIBRARY_NAME})
