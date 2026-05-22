@@ -41,16 +41,16 @@ Variable *HeuristicVarDomWdeg::select() {
 
     Variable *x = solver.decisionVariables[0];
     if(mode == V2004 || mode == ABSCON) {
-        double bestV = ((double)x->size()) / x->wdeg;
+        double bestV = static_cast<double>(x->size()) / x->wdeg;
 
         for(int i = 1; i < solver.decisionVariables.size(); i++) {
             Variable *y = solver.decisionVariables[i];
-            if(((double)y->size()) / y->wdeg < bestV) {
-                bestV      = ((double)y->size()) / y->wdeg;
+            if(static_cast<double>(y->size()) / y->wdeg < bestV) {
+                bestV      = static_cast<double>(y->size()) / y->wdeg;
                 secondBest = x;
                 x          = y;
             } else {
-                if(((double)y->size()) / y->wdeg == bestV)
+                if(static_cast<double>(y->size()) / y->wdeg == bestV)
                     secondBest = y;
             }
         }

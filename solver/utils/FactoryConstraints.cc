@@ -712,21 +712,23 @@ void FactoryConstraints::createConstraintSumGen(Problem *p, std::string name, ve
                                                 long l, OrderType order) {
     SumBooleanGen *ctr = nullptr;
     switch(order) {
-        case OrderType::LE:
+        case LE:
             ctr = new SumBooleanGenLE(*p, name, nodes, vars, l);
             break;
-        case OrderType::LT:
+        case LT:
             ctr = new SumBooleanGenLE(*p, name, nodes, vars, l - 1);
             break;
-        case OrderType::GE:
+        case GE:
             ctr = new SumBooleanGenGE(*p, name, nodes, vars, l);
             break;
-        case OrderType::GT:
+        case GT:
             ctr = new SumBooleanGenGE(*p, name, nodes, vars, l + 1);
             break;
         case OrderType::EQ:
             ctr = new SumBooleanGenEQ(*p, name, nodes, vars, l);
             break;
+        default:
+            throw runtime_error("Operator not expected in SumBooleanGen");
     }
     assert(ctr != nullptr);
     p->addConstraint(ctr);

@@ -22,4 +22,4 @@ class LastConflictReasoning : public HeuristicVar, ObserverNewDecision, Observer
 
 }   // namespace Cosoco
 
-#endif /* HEURISTICVARDOMWDEG_H */
+#endif /* HEURISTICLASTCONFLICTREASONING_H */

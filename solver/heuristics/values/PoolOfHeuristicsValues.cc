@@ -22,7 +22,7 @@ PoolOfHeuristicsValues::PoolOfHeuristicsValues(Solver &s) : HeuristicVal(s) {
 int PoolOfHeuristicsValues::select(Variable *x) { return heuristicForVariable[x->idx]->select(x); }
 
 void PoolOfHeuristicsValues::selectHeuristics() {
-    OptimizationProblem *op = dynamic_cast<OptimizationProblem *>(&(solver.problem));
+    auto *op = dynamic_cast<OptimizationProblem *>(&(solver.problem));
     if(op != nullptr) {
         ObjectiveConstraint *objective = (op->type == Minimize) ? op->objectiveUB : op->objectiveLB;
         auto                 c         = dynamic_cast<Constraint *>(objective);
@@ -41,16 +41,16 @@ void PoolOfHeuristicsValues::selectHeuristics() {
     }
 
     int nblast = 0, nbfirst = 0, nboccs = 0, nbrandom = 0, nbasgs = 0;
-    for(int i = 0; i < heuristicForVariable.size(); i++) {
-        if(heuristicForVariable[i] == first)
+    for(auto &heuristic : heuristicForVariable) {
+        if(heuristic == first)
             nbfirst++;
-        if(heuristicForVariable[i] == last)
+        if(heuristic == last)
             nblast++;
-        if(heuristicForVariable[i] == occs)
+        if(heuristic == occs)
             nboccs++;
-        if(heuristicForVariable[i] == random)
+        if(heuristic == random)
             nbrandom++;
-        if(heuristicForVariable[i] == asgs)
+        if(heuristic == asgs)
             nbasgs++;
     }
     if(nbfirst != 0)

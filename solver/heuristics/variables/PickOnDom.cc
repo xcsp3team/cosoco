@@ -24,15 +24,15 @@ Variable *PickOnDom::select() {
     }
 
     Variable *x     = solver.decisionVariables[0];
-    double    bestV = ((double)x->size()) / x->wdeg;
+    double    bestV = static_cast<double>(x->size()) / x->wdeg;
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
-        if(y->wdeg / ((double)y->size()) > bestV) {
-            bestV      = y->wdeg / ((double)y->size());
+        if(y->wdeg / static_cast<double>(y->size()) > bestV) {
+            bestV      = y->wdeg / static_cast<double>(y->size());
             secondBest = x;
             x          = y;
         } else {
-            if(y->wdeg / ((double)y->size()) == bestV)
+            if(y->wdeg / static_cast<double>(y->size()) == bestV)
                 secondBest = y;
         }
     }

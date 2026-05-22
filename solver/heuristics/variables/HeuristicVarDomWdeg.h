@@ -11,20 +11,19 @@ enum Mode { V2004, ABSCON, NEWWDEG, V2021 };
 
 namespace Cosoco {
 class HeuristicVarDomWdeg : public HeuristicVar, ObserverConflict, ObserverNewDecision, ObserverDeleteDecision {
-    unsigned long    next;
     vec<vec<double>> constraintsWeights;
     vec<double>      variablesWeights;
 
    public:
     explicit HeuristicVarDomWdeg(Solver &s);
-    Mode              mode;
-    virtual Variable *select() override;
-    virtual void      notifyConflict(Constraint *c, int level) override;
-    virtual void      notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
-    void              notifyFullBacktrack() override;
-    virtual void      notifyNewDecision(Variable *x, Solver &s) override;
-    bool              stop() override;
-    bool              start() override;
+    Mode      mode;
+    Variable *select() override;
+    void      notifyConflict(Constraint *c, int level) override;
+    void      notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
+    void      notifyFullBacktrack() override;
+    void      notifyNewDecision(Variable *x, Solver &s) override;
+    bool      stop() override;
+    bool      start() override;
 };
 
 }   // namespace Cosoco

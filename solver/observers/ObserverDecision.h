@@ -20,4 +20,4 @@ class ObserverDeleteDecision {
 }   // namespace Cosoco
 
 
-#endif /* OBERSERNEWDECISION_H */
+#endif /* OBERSERDECISION_H */

@@ -693,6 +693,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
 void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCondition &cond) {
     if(cond.operandType == INTEGER) {
         vector<Node *> parameters;
+        parameters.reserve(trees.size());
         for(Tree *t : trees) parameters.push_back(t->root);
         if((cond.op == LE || cond.op == GE || cond.op == LT || cond.op == GT || cond.op == EQ) && matchParams(parameters)) {
             vec<Cosoco::BasicNode *> nodes;
@@ -1927,7 +1928,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
             }
         if(sumboolean) {
             auto *po = static_cast<OptimizationProblem *>(problem);
-            po->type = OptimisationType::Maximize;
+            po->type = Maximize;
             FactoryConstraints::createConstraintSumBooleanGE(problem, "objective", vars, INT_MIN);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveLB(oc, true);
@@ -1943,7 +1944,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
     auto *po = static_cast<OptimizationProblem *>(problem);
-    po->type = OptimisationType::Minimize;
+    po->type = Minimize;
 
     switch(type) {
         case EXPRESSION_O:
