@@ -105,7 +105,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             objectiveConstraint->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
             best = objective->computeScore(tuple);
             // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
-            std::cout << "core " << core << " -> new best : " << best << std::endl;
 
             //   Store solution in order to avoid a signal
             bestSolution->begin(best);
@@ -125,7 +124,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 upper = best - 1;
             else
                 lower = best + 1;
-            std::cout << "best : " << bestCost() << "- core " << core << std::endl;
             if(noFullRestartAfterSolution) {   // Do not completely restart after a solution
                 int bestLevel = -1;
                 for(Variable *x : objectiveConstraint->scope) {

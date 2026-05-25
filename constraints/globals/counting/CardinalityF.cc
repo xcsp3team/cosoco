@@ -58,6 +58,8 @@ void CardinalityF::init() {
 //----------------------------------------------
 
 bool CardinalityF::filter(Variable *dummy) {
+    init();
+
     while(true) {
         int status = doFiltering();
         if(status == -1)
@@ -66,10 +68,10 @@ bool CardinalityF::filter(Variable *dummy) {
             break;
         for(int v : valueToCompute) {
             for(int posx : reverse(possibles[v])) {
-                if(vars[posx]->containsValue(v) == false) {
+                if(vars[posx]->containsValue(values[v]) == false) {
                     possibles[v].del(posx);
 
-                } else if(vars[posx]->isAssigned()) {
+                } else if(vars[posx]->size() == 1) {
                     possibles[v].del(posx);
                     mandatories[v].add(posx);
                 }
@@ -80,7 +82,6 @@ bool CardinalityF::filter(Variable *dummy) {
 }
 
 int CardinalityF::doFiltering() {
-    init();
     bool again = false;
     for(int i : reverse(valueToCompute)) {
         int szBefore = occurs[i]->size();

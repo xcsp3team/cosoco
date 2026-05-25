@@ -266,7 +266,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         }
     }
 
-    bool verbose = true;
+    bool verbose = false;
 
     static bool matchParams(const std::vector<Node *> &parameters);
 

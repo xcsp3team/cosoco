@@ -839,34 +839,113 @@ bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variabl
            delValuesLowerOrEqualThan(z, x->minimum() + y->minimum() - 1);
 }
 
-bool Solver::enforceEQ(Variable *x, Variable *y, int k) {   // X = Y + k
 
-    int minx = x->minimum(), miny = y->minimum() + k;
-    int maxx = x->maximum(), maxy = y->maximum() + k;
-    if(maxx < miny || maxy < minx)
-        return false;
+static int smallestIntegerPresentAdd(Variable *x, Variable *y,
+                                     int k) {   // (index in dx of the) smallest integer v such that v in dx and v-k in dy
 
-    // if(x->isConnex() && y->isConnex()) {
-    if(delValuesGreaterOrEqualThan(x, maxy + 1) == false)
-        return false;
-    if(delValuesLowerOrEqualThan(y, minx - k - 1) == false)
-        return false;
-    //}
-
-    for(int idv : reverse(y->domain)) {
-        int v = y->domain.toVal(idv) + k;
-        if(x->containsValue(v) == false && delIdv(y, idv) == false) {
-            return false;
+    if(x->domain.isConnex() && y->domain.isConnex()) {
+        int minx = x->minimum(), miny = y->minimum() + k;
+        int maxx = x->maximum(), maxy = y->maximum() + k;
+        if(maxx < miny || maxy < minx)
+            return -1;
+        if(minx <= miny && miny <= maxx)
+            return x->domain.toIdv(miny);
+        if(miny <= minx && minx <= maxy)
+            return x->domain.toIdv(minx);
+        return -1;
+    }
+    int idvx = x->domain.firstId(), idvy = y->domain.firstId();
+    int vx = x->domain.toVal(idvx), vy = y->domain.toVal(idvy) + k;
+    while(vx != vy) {
+        if(vx < vy) {
+            idvx = x->domain.nextIdv(idvx);
+            if(idvx == -1)
+                return -1;
+            vx = x->domain.toVal(idvx);
+        } else {
+            idvy = y->domain.nextIdv(idvy);
+            if(idvy == -1)
+                return -1;
+            vy = y->domain.toVal(idvy) + k;
         }
     }
+    return idvx;
+}
 
-    if(x->size() == y->size())
-        return true;
 
-    for(int idv : reverse(x->domain)) {
-        int v = x->domain.toVal(idv) - k;
-        if(y->containsValue(v) == false && delIdv(x, idv) == false)
-            return false;
+static int greatestIntegerPresentAdd(Variable *x, Variable *y,
+                                     int k) {   // (index in dx of the) greatest integer v such that v in dx and v-k in dy
+
+    if(x->domain.isConnex() && y->domain.isConnex()) {
+        int minx = x->minimum(), miny = y->minimum() + k;
+        int maxx = x->maximum(), maxy = y->maximum() + k;
+        if(maxx < miny || maxy < minx)
+            return -1;
+        if(minx <= maxy && maxy <= maxx)
+            return x->domain.toIdv(maxy);
+        if(miny <= maxx && maxx <= maxy)
+            return x->domain.toIdv(maxx);
+        return -1;
+    }
+    int idvx = x->domain.lastId(), idvy = y->domain.lastId();
+    int vx = x->domain.toVal(idvx), vy = y->domain.toVal(idvy) + k;
+    while(vx != vy) {
+        if(vx > vy) {
+            idvx = x->domain.prevIdv(idvx);
+            if(idvx == -1)
+                return -1;
+            vx = x->domain.toVal(idvx);
+        } else {
+            idvy = y->domain.prevIdv(idvy);
+            if(idvy == -1)
+                return -1;
+            vy = y->domain.toVal(idvy) + k;
+        }
+    }
+    return idvx;
+}
+
+bool Solver::enforceEQ(Variable *x, Variable *y, int k) {   // X = Y + k
+    int ax = smallestIntegerPresentAdd(x, y, k);
+    if(ax == -1)
+        return false;
+    delValuesLowerOrEqualThan(x, x->domain.toVal(ax) - 1);
+    delValuesLowerOrEqualThan(y, x->domain.toVal(ax) - k - 1);
+    ax = greatestIntegerPresentAdd(x, y, k);
+    assert(ax != -1);
+    delValuesGreaterOrEqualThan(x, x->domain.toVal(ax) + 1);
+    delValuesGreaterOrEqualThan(y, x->domain.toVal(ax) - k + 1);
+
+
+    if(y->domain.isConnex() == false) {   // in dx we can remove some values
+        if(x->domain.isConnex()) {
+            int nToBeRemoved = x->size() - y->size();
+            for(int idx : x->domain)
+                if(y->containsValue(x->domain.toVal(idx) - k) == false) {
+                    delIdv(x, idx);
+                    nToBeRemoved--;
+                    if(nToBeRemoved == 0)
+                        break;
+                }
+        } else
+            for(int idx : x->domain)
+                if(y->containsValue(x->domain.toVal(idx) - k) == false)
+                    delIdv(x, idx);
+    }
+    if(x->domain.isConnex() == false) {   // in dy we can remove some values
+        if(x->domain.isConnex()) {
+            int nToBeRemoved = y->size() - x->size();
+            for(int idv : y->domain)
+                if(x->containsValue(y->domain.toVal(idv) + k) == false) {
+                    delIdv(y, idv);
+                    nToBeRemoved--;
+                    if(nToBeRemoved == 0)
+                        break;
+                }
+        } else
+            for(int idv : y->domain)
+                if(x->containsValue(y->domain.toVal(idv) + k) == false)
+                    delIdv(y, idv);
     }
     return true;
 }

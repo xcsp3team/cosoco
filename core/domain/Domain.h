@@ -55,6 +55,8 @@ class Domain {
         return true;
     }
 
+    bool isConnex() { return maximum() - minimum() + 1 == size(); }
+
     void reinitialize() { idvs.fill(); }
 
 
@@ -115,6 +117,7 @@ class Domain {
     }*/
 
     int nextIdv(int currentIdv) { return idvs.next(currentIdv); }
+    int prevIdv(int currentIdv) { return idvs.prev(currentIdv); }
 
 
     // Methods related to size

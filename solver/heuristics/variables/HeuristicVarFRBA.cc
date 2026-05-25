@@ -18,7 +18,8 @@ HeuristicVarFRBA::HeuristicVarFRBA(Solver &s) : HeuristicVar(s) {
 
 
 Variable *HeuristicVarFRBA::select() {
-    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+    // Competition 2026: FRBA is very slow :(
+    if(/*options::boolOptions["lazyvar"].value && */ secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
         Variable *tmp = secondBest;
         secondBest    = nullptr;
         return tmp;

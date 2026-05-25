@@ -38,8 +38,9 @@ bool ShortSTR2::filter(Variable *dummy) {
     Ssup.clear();
     Sval.clear();
     int posLast = NOTINSCOPE;
-    if(solver->decisionLevel() > 0) {
-        Variable *last = solver->decisionVariableAtLevel(solver->decisionLevel());
+    int level   = solver->decisionLevel();
+    if(level > 0) {
+        Variable *last = solver->decisionVariableAtLevel(level);
         posLast        = toScopePosition(last->idx);
         if(posLast != NOTINSCOPE)
             Sval.add(posLast);
@@ -71,7 +72,7 @@ bool ShortSTR2::filter(Variable *dummy) {
                 }
             }
         } else
-            delTuple(tupidx, solver->decisionLevel());
+            delTuple(tupidx, level);
     }
     if(validTuples.size() == 0)
         return false;
