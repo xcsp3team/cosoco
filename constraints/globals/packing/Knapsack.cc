@@ -168,9 +168,9 @@ Knapsack::Knapsack(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &
     wlimit        = wl;
     plimit        = pl;
     basic         = true;
-    minWeight     = weights.min();
+    minWeight     = weights.min([](int x) { return x > 0; });
     maxWeight     = weights.max();
-    minProfit     = profits.min();
+    minProfit     = profits.min([](int x) { return x > 0; });
     maxProfit     = profits.max();
     isPostponable = true;
 }

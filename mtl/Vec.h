@@ -25,6 +25,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <string.h>
 
 #include <iterator>
+#include <limits>
 #include <new>
 
 #include "IntTypes.h"
@@ -220,15 +221,27 @@ class vec {
         return nb;
     }
 
-    int min() {
-        int tmp = data[0];
+    template <typename Predicate>
+    int min(Predicate pred) const {
+        int  tmp   = std::numeric_limits<int>::max();
+        bool found = false;
 
-        for(int i = 1; i < size(); i++) {
-            if(data[i] < tmp)
-                tmp = data[i];
+        for(int i = 0; i < size(); i++) {
+            if(pred(data[i]) && (!found || data[i] < tmp)) {
+                tmp   = data[i];
+                found = true;
+            }
         }
+
+        if(!found)
+            throw std::runtime_error("No elements match the predicate");
         return tmp;
     }
+
+    int min() const {
+        return min([](int) { return true; });
+    }
+
 
     int max() {
         int tmp = data[0];
