@@ -1160,14 +1160,14 @@ void Solver::interrupt() { }
 void Solver::printFinalStats() {
     double cpu_time = cpuTime();
     filterCalls     = filterCalls == 0 ? 1 : filterCalls;
-    printf("c restarts              : %llu\n", statistics[restarts]);
-    printf("c decisions             : %llu (%.0f /sec)\n", decisions, decisions / cpu_time);
-    printf("c wrong decisions       : %llu (%.0f /sec)\n", wrongDecisions, wrongDecisions / cpu_time);
-    printf("c conflicts             : %llu (%.0f /sec)\n", conflicts, conflicts / cpu_time);
-    printf("c propagations          : %llu (%.0f /sec)\n", propagations, propagations / cpu_time);
-    printf("c root propagations     : %llu\n", statistics[rootPropagations]);
-    printf("c filter calls          : %llu   (%.0f /sec)\n", filterCalls, filterCalls / cpu_time);
-    printf("c useless filter calls  : %llu   (%llu %%)\n", statistics[uselessFilterCalls],
+    printf("c restarts              : %lu\n", statistics[restarts]);
+    printf("c decisions             : %lu (%.0f /sec)\n", decisions, decisions / cpu_time);
+    printf("c wrong decisions       : %lu (%.0f /sec)\n", wrongDecisions, wrongDecisions / cpu_time);
+    printf("c conflicts             : %lu (%.0f /sec)\n", conflicts, conflicts / cpu_time);
+    printf("c propagations          : %lu (%.0f /sec)\n", propagations, propagations / cpu_time);
+    printf("c root propagations     : %lu\n", statistics[rootPropagations]);
+    printf("c filter calls          : %lu   (%.0f /sec)\n", filterCalls, filterCalls / cpu_time);
+    printf("c useless filter calls  : %lu   (%lu %%)\n", statistics[uselessFilterCalls],
            statistics[uselessFilterCalls] * 100 / filterCalls);
     if(nogoodsFromRestarts)
         noGoodsEngine->printStats();

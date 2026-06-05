@@ -409,7 +409,7 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
         set<int> values;
         for(Variable *x : vars)
             for(int idv : x->domain) values.insert(x->domain.toVal(idv));
-        if(vars.size() == values.size()) {
+        if((unsigned int)vars.size() == values.size()) {
             vector<int>   permutations(values.begin(), values.end());
             vec<vec<int>> tuples;
             do {
