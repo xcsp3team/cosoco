@@ -1085,7 +1085,7 @@ void Solver::displayCurrentSolution(int verbosity) {
         }
     printf("</values>\n");
 
-    printf("v </instantiation>\n\n");
+    printf("v </instantiation>\n");
     std::cout << std::flush;
 }
 

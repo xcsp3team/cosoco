@@ -251,7 +251,7 @@ void NoGoodsEngine::displayTuples(vec<Tuple> &ng) {
 }
 
 void NoGoodsEngine::printStats() {
-    printf("\nc nogoods               : %lu\n", statistics[nbnogoods]);
+    printf("c\nc nogoods               : %lu\n", statistics[nbnogoods]);
     printf("c nogoods sizes         : #1: %lu   #2: %lu   max size: %lu   avg size: %lu\n", statistics[size1], statistics[size2],
            statistics[maxsize], statistics[nbnogoods] == 0 ? 0 : statistics[sumsize] / statistics[nbnogoods]);
     printf("c ng propagations       : %lu\n", statistics[props]);

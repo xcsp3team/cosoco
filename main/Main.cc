@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
                : returnCode == R_SAT   ? "s SATISFIABLE\n"
                                        : "s UNKNOWN\n");
         if(nbcores == 1 && options::intOptions["model"].value == false && solver->nbSolutions >= 1)
-            printf("d N_SOLUTIONS %d\n\n", solvers[0]->nbSolutions);
+            printf("d N_SOLUTIONS %d\nc\n", solvers[0]->nbSolutions);
         resetcolors();
         printStats(solvers[0]);
         printf("\n");
@@ -299,7 +299,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
 
     if(optimize) {
         ObjectiveConstraint *objective;
-        printf("\n");
+        printf("c\n");
         printf("c |               ");
         colorize(termcolor::blue, options::boolOptions["colors"].value);
         printf("Objective: ");
@@ -311,7 +311,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
                c->type.c_str());
     }
 
-    printf("\n");
+    printf("c\n");
     printf("c =========================================================================================================\n");
 }
 
@@ -372,13 +372,13 @@ void limitRessourcesUsage(int cpu_lim, int mem_lim) {
 // destructors and may cause deadlocks if a malloc/free function happens to be running (these
 // functions are guarded by locks for multithreaded use).
 static void SIGINT_exit(int signum) {
-    printf("\n");
+    printf("c \n");
     printf("c *** INTERRUPTED ***\n");
 
     if(true) {
         if(options::intOptions["verb"].value >= 0) {
             printStats(solvers[0]);
-            printf("\n");
+            printf("c\n");
             colorize(termcolor::bright_green, options::boolOptions["colors"].value);
             if(solvers[0]->nbSolutions >= 1)
                 printf("d N_SOLUTIONS %d\n", solvers[0]->nbSolutions);
@@ -387,11 +387,11 @@ static void SIGINT_exit(int signum) {
             if(optimize) {
                 if(solvers[0]->hasSolution()) {
                     printf("s SATISFIABLE\n");
-                    printf("c Best value found: %ld\n\n", ((Optimizer *)solvers[0])->bestCost());
+                    printf("c Best value found: %ld\nc\n", ((Optimizer *)solvers[0])->bestCost());
                     if(options::intOptions["model"].value)
                         solvers[0]->displayCurrentSolution(options::intOptions["model"].value);
                 } else
-                    printf("c No Bound found!\n\ns UNKNOWN\n");
+                    printf("c No Bound found!\ns UNKNOWN\nc\n");
             } else {
                 if(solvers[0]->nbSolutions > 0)
                     printf("s SATISFIABLE\n");

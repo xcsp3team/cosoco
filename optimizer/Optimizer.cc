@@ -186,6 +186,6 @@ void Optimizer::displayCurrentSolution(int verbosity) {
 
 
 void Optimizer::printFinalStats() {
-    printf("c best bound            : %ld\n\n", bestCost());
+    printf("c best bound            : %ld\nc\n", bestCost());
     solver->printFinalStats();
 }
