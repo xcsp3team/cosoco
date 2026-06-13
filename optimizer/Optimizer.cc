@@ -155,7 +155,6 @@ void Optimizer::notifyConflict(Constraint *c, int level) {
     // Only called in // mode
     if(nbSolutions > 0 && solver->conflicts % 500 == 0) {   //
         if(hasSolution() && isBetterBound(bestSolution->originalBound())) {
-            std::cout << "stop core " << core << "because better solution : " << bestCost() << std::endl;
             solver->stopSearch = true;
         }
     }
