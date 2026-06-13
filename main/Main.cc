@@ -186,7 +186,6 @@ int main(int argc, char **argv) {
         // --------------------------- SOLVE ----------------------------------------
 
         int returnCode = solver->solve();
-        std::cout << returnCode << std::endl;
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
@@ -299,7 +298,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
 
     if(optimize) {
         ObjectiveConstraint *objective;
-        printf("c\n");
+        printf("\n");
         printf("c |               ");
         colorize(termcolor::blue, options::boolOptions["colors"].value);
         printf("Objective: ");
@@ -311,7 +310,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
                c->type.c_str());
     }
 
-    printf("c\n");
+    printf("c |\n");
     printf("c =========================================================================================================\n");
 }
 

@@ -94,10 +94,8 @@ void CosocoCallbacks::beginInstance(InstanceType type) {
 }
 
 void CosocoCallbacks::endInstance() {
-    if(auxiliaryIdx > 0)
-        std::cout << "c " << auxiliaryIdx << " auxiliary variables\n";
     problem->delayedConstruction();
-    printf("c nb Intensions -> Extensions : %d\n", nbIntension2Extention);
+    printf("c\nc nb Intensions -> Extensions : %d\nc\n", nbIntension2Extention);
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {

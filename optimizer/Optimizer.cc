@@ -143,7 +143,6 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
         }
         firstCall = false;
     }
-
     if(nbSolutions > 0)
         return R_OPT;
 

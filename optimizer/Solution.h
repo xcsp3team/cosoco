@@ -112,7 +112,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
                         std::cout << (*preserved)[i] << " ";
                 }
             }
-            printf("c\n");
+            printf("\n");
             return;
         }
         printf("c\nv <instantiation type='solution' cost='%ld'>\n", bestBound());
@@ -145,7 +145,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
 
         printf("</values>\n");
 
-        printf("v </instantiation>\nc\n");
+        printf("v </instantiation>\n\n");
         std::cout << std::flush;
     }
 };

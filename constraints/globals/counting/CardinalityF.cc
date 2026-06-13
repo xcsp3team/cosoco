@@ -146,7 +146,6 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
         if(x->minimum() < min)
             min = x->minimum();
     }
-    std::cout << min << " " << max << std::endl;
     values2indexes.growTo(max - min + 1, -1);
     offset  = min;
     int idx = 0;
