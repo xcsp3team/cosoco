@@ -14,7 +14,7 @@ class SparseSetMultiLevel : public SparseSet {
     const int NOT_STORED = -1;
 
    public:
-    SparseSetMultiLevel(int size, bool full = false) : SparseSet(size, full) { }
+    explicit SparseSetMultiLevel(int size, bool full = false) : SparseSet(size, full) { }
 
 
     SparseSetMultiLevel(SparseSetMultiLevel const &copy) : SparseSet(copy) { }
