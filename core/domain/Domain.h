@@ -3,7 +3,6 @@
 
 
 #include "mtl/LinkedSet.h"
-#include "mtl/LinkedSetIterator.h"
 #include "mtl/Vec.h"
 #include "utils/Verbose.h"
 
@@ -27,9 +26,9 @@ class AbstractDomain {
 
 
     // Virtual Method conversion id to value
-    virtual int toIdv(int v) = 0;
+    virtual int toIdv(int v) const = 0;
 
-    virtual int toVal(int idv) = 0;
+    virtual int toVal(int idv) const = 0;
 
     virtual void delIdv(int idv, int level) = 0;
 
@@ -38,15 +37,15 @@ class AbstractDomain {
 
     virtual void reduceTo(int idv, int level) = 0;
 
-    virtual bool isIdentical(AbstractDomain &d) = 0;
+    virtual bool isIdentical(AbstractDomain& d) = 0;
 
     bool isConnex() { return maximum() - minimum() + 1 == size(); }
 
     virtual void reinitialize() = 0;
 
 
-    virtual int valueAtPosition(int pos) = 0;
-
+    virtual int valueAtPosition(int pos) const = 0;
+    virtual int indexAtPosition(int pos) const = 0;
 
     virtual bool isBoolean() = 0;
     // inline const int getPosition(int idx) { return idvs.getPosition(idx); }
@@ -71,7 +70,7 @@ class AbstractDomain {
 
     virtual int firstId() = 0;
 
-    virtual int operator[](const int i) = 0;
+    int operator[](const int i) { return indexAtPosition(i); }
 
 
     virtual int lastId() = 0;
@@ -108,7 +107,82 @@ class AbstractDomain {
 
     virtual size_t hash() = 0;
 
-    virtual bool equals(AbstractDomain *d) = 0;
+    virtual bool equals(AbstractDomain* d) = 0;
+
+    class iterator {
+       public:
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type        = int;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void;
+        using reference         = int;   // par valeur : le type réel de stockage diffère selon la fille
+
+        iterator() = default;
+        iterator(AbstractDomain* dom, int pos) : domain(dom), pos_(pos) { }
+
+        int operator*() { return domain->indexAtPosition(pos_); }
+        int operator[](difference_type n) { return domain->indexAtPosition(pos_ + static_cast<int>(n)); }
+
+        iterator& operator++() {
+            ++pos_;
+            return *this;
+        }
+        iterator operator++(int) {
+            iterator tmp(*this);
+            ++pos_;
+            return tmp;
+        }
+        iterator& operator--() {
+            --pos_;
+            return *this;
+        }
+        iterator operator--(int) {
+            iterator tmp(*this);
+            --pos_;
+            return tmp;
+        }
+
+        iterator& operator+=(difference_type n) {
+            pos_ += static_cast<int>(n);
+            return *this;
+        }
+        iterator& operator-=(difference_type n) {
+            pos_ -= static_cast<int>(n);
+            return *this;
+        }
+        friend iterator operator+(iterator it, difference_type n) {
+            it += n;
+            return it;
+        }
+        friend iterator operator+(difference_type n, iterator it) {
+            it += n;
+            return it;
+        }
+        friend iterator operator-(iterator it, difference_type n) {
+            it -= n;
+            return it;
+        }
+        friend difference_type operator-(const iterator& a, const iterator& b) {
+            return static_cast<difference_type>(a.pos_) - static_cast<difference_type>(b.pos_);
+        }
+
+        friend bool operator==(const iterator& a, const iterator& b) { return a.pos_ == b.pos_; }
+        friend bool operator!=(const iterator& a, const iterator& b) { return a.pos_ != b.pos_; }
+        friend bool operator<(const iterator& a, const iterator& b) { return a.pos_ < b.pos_; }
+        friend bool operator>(const iterator& a, const iterator& b) { return a.pos_ > b.pos_; }
+        friend bool operator<=(const iterator& a, const iterator& b) { return a.pos_ <= b.pos_; }
+        friend bool operator>=(const iterator& a, const iterator& b) { return a.pos_ >= b.pos_; }
+
+       private:
+        AbstractDomain* domain = nullptr;
+        int             pos_   = 0;
+    };
+
+    iterator begin() const { return iterator(this, 0); }
+    iterator end() { return iterator(this, size()); }
+
+    iterator rbegin() { return iterator(this, size()); }
+    iterator rend() const { return iterator(this, 0); }
 };
 
 
@@ -117,11 +191,6 @@ class Domain : public AbstractDomain {
     LinkedSet idvs;   // the set of elements
 
    public:
-    // using const_iterator = LinkedSetIterator;
-    using iterator = LinkedSetIterator;
-    // using const_reverse_iterator = LinkedSetIterator;
-    using reverse_iterator = LinkedSetIterator;
-
     explicit Domain(int sz) : AbstractDomain(sz), idvs(sz, true) { }
     // Methods related to deletion of values
     void delIdv(int idv, int level) override { idvs.del(idv, level); }
@@ -134,9 +203,12 @@ class Domain : public AbstractDomain {
 
     int valueAtPosition(int pos) override { return toVal(idvs[pos]); }
 
+    int indexAtPosition(int pos) override { return idvs[pos]; }
+
+
     bool isBoolean() override { return maxSize() == 2 && minimum() == 0 && maximum() == 1; }
 
-    bool isIdentical(AbstractDomain &d) override {
+    bool isIdentical(AbstractDomain& d) override {
         if(maxSize() != d.maxSize())
             return false;
         for(int i = 0; i < maxSize(); i++)
@@ -186,22 +258,6 @@ class Domain : public AbstractDomain {
 
     int maxSize() override { return idvs.maxSize(); }
 
-
-    int operator[](const int i) { return idvs[i]; }
-
-    // begin/end functions to use for each aka c++
-    iterator begin() { return idvs.begin(); }
-
-    // const_iterator cbegin() const { return idvs.cbegin(); }
-    iterator end() { return idvs.end(); }
-    // const_iterator cend() const { return idvs.cend(); }
-
-    // rbegin/rend functions to reverse traversal
-    reverse_iterator rbegin() { return idvs.rbegin(); }
-
-    // const_reverse_iterator rbegin() const { return idvs.crbegin(); }
-    reverse_iterator rend() { return idvs.rend(); }
-    // const_reverse_iterator rend() const { return idvs.crend(); }
 
     void restoreLimit(int level) override { idvs.restoreLimit(level); }
 

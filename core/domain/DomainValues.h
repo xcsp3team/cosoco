@@ -26,10 +26,10 @@ class DomainValue : public Domain {
 
 
     // Virtual Method conversion id to value
-    int toIdv(int v) override { return map.find(v) == map.end() ? -1 : map[v]; }
+    int toIdv(int v) const override { return map.find(v) == map.end() ? -1 : map[v]; }
 
 
-    int toVal(int idv) override { return values[idv]; }
+    int toVal(int idv) const override { return values[idv]; }
 
     bool isIndexesAreValues() override { return minimum() == 0 && maximum() == maxSize(); }
 

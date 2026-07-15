@@ -37,13 +37,13 @@ class DomainRange : public Domain {
 
     // Virtual Method conversion id to value
 
-    int toIdv(int v) override {
+    int toIdv(int v) const override {
         if(v < min || v > max)
             return -1;
         return v - min;
     }
 
-    int toVal(int idv) override {
+    int toVal(int idv) const override {
         assert(idv >= 0 && idv < idvs.maxSize());
         return min + idv;
     }

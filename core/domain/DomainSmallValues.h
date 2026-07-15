@@ -34,14 +34,14 @@ class DomainSmallValue : public Domain {
 
 
     // Virtual Method conversion id to value
-    int toIdv(int v) override {
+    int toIdv(int v) const override {
         if(v - offset < 0 || v - offset >= toIndex.size())
             return -1;
         return toIndex[v - offset];
     }
 
 
-    int toVal(int idv) override { return values[idv]; }
+    int toVal(int idv) const override { return values[idv]; }
 
     bool isIndexesAreValues() override { return minimum() == 0 && maximum() == maxSize(); }
 

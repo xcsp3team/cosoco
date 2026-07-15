@@ -23,12 +23,6 @@ class DomainBinary : public AbstractDomain {
     using iterator       = Iterator<false>;
     using const_iterator = Iterator<true>;
 
-    iterator       begin();
-    iterator       end();
-    const_iterator begin() const;
-    const_iterator end() const;
-    const_iterator cbegin() const;
-    const_iterator cend() const;
 
     DomainBinary(int v1, int v2) : AbstractDomain(2) {
         value0  = v1;
@@ -37,21 +31,22 @@ class DomainBinary : public AbstractDomain {
         level1  = -1;
         sz      = 2;
     }
-    int toIdv(int v) { return v == value0 ? 0 : 1; }
+    int toIdv(int v) const override { return v == value0 ? 0 : 1; }
 
-    int toVal(int idv) { return idv == 0 ? value0 : value1; }
+    int toVal(int idv) const override { return idv == 0 ? value0 : value1; }
 
     void delIdv(int idv, int l) {
         sz--;
+        assert(sz >= 0);
         if(sz == 0)
             return;
         removed = idv;
         level1  = l;
     }
 
-    void delVal(int v, int l) { delIdv(toIdv(v), l); }
+    void delVal(int v, int l) override { delIdv(toIdv(v), l); }
 
-    void reduceTo(int idv, int l) { delIdv(toIdv(idv), l); }
+    void reduceTo(int idv, int l) override { delIdv(toIdv(idv), l); }
 
     bool isIdentical(AbstractDomain& d) {
         DomainBinary* db = dynamic_cast<DomainBinary*>(&d);
@@ -60,53 +55,55 @@ class DomainBinary : public AbstractDomain {
         return db->value0 == value0 && db->value1 == value1;
     }
 
-    void reinitialize() {
+    void reinitialize() override {
         level1  = -1;
         sz      = 2;
         removed = -1;
     }
-    int valueAtPosition(int pos) { return pos == 0 ? value0 : value1; }
+    int valueAtPosition(int pos) const override { return sz == 2 || removed == 1 ? toVal(pos) : value1; }
 
-    bool isBoolean() { return value0 == 0 && value1 == 1; }
+    int indexAtPosition(int pos) const override { return sz == 2 || removed == 1 ? pos : 1; }
 
-    bool containsValue(int v) { return containsIdv(toIdv(v)); }
+    bool isBoolean() override { return value0 == 0 && value1 == 1; }
 
-    bool containsIdv(int idv) { return sz == 2 || (removed != idv && sz == 1); }
+    bool containsValue(int v) override { return containsIdv(toIdv(v)); }
 
-    int minimum() { return sz == 2 || removed == 1 ? toVal(0) : toVal(1); }
-    int maximum() { return sz == 2 || removed == 0 ? toVal(1) : toVal(0); }
+    bool containsIdv(int idv) override { return sz == 2 || (removed != idv && sz == 1); }
 
-    int firstId() {
+    int minimum() override { return sz == 2 || removed == 1 ? toVal(0) : toVal(1); }
+    int maximum() override { return sz == 2 || removed == 0 ? toVal(1) : toVal(0); }
+
+    int firstId() override {
         assert(sz > 0);
         return toIdv(minimum());
     }
-    int lastId() {
+    int lastId() override {
         assert(sz > 0);
         return toIdv(maximum());
     }
-    int lastRemoved() { }
+    int lastRemoved() override { assert(false); }
 
-    int prevRemoved(int id) { }
+    int prevRemoved(int id) override { assert(false); }
 
-    int nextIdv(int currentIdv) {
+    int nextIdv(int currentIdv) override {
         if(currentIdv == 0 && sz == 2)
             return 1;
         return -1;
     }
 
-    int prevIdv(int currentIdv) {
+    int prevIdv(int currentIdv) override {
         if(currentIdv == 1 && sz == 2)
             return 0;
         return -1;
     }
 
-    bool isEmpty() { return sz == 0; }
+    bool isEmpty() override { return sz == 0; }
 
-    int size() { return sz; }
+    int size() override { return sz; }
 
-    int maxSize() { return 2; }
+    int maxSize() override { return 2; }
 
-    void restoreLimit(int level) {
+    void restoreLimit(int level) override {
         if(level1 == level) {
             level1  = -1;
             sz      = 2;
@@ -114,124 +111,26 @@ class DomainBinary : public AbstractDomain {
         }
     }
 
-    int lastRemovedLevel() { return level1; }
+    int lastRemovedLevel() override { return level1; }
 
-    bool isLimitRecordedAtLevel(int level) { return level1 == level; }
+    bool isLimitRecordedAtLevel(int level) override { return level1 == level; }
 
-    void recordLimit(int level) { level1 = level; }
+    void recordLimit(int level) override { level1 = level; }
 
-    void display() { }
+    void display() override { }
 
-    size_t hash() {
+    size_t hash() override {
         std::hash<std::string> h;
         return h(std::to_string(value0) + " " + std::to_string(value1));
     }
 
-    bool equals(AbstractDomain* d) {
+    bool equals(AbstractDomain* d) override {
         auto* dr = dynamic_cast<DomainBinary*>(d);
         if(dr == nullptr)
             return false;
         return value0 == dr->value0 && value1 == dr->value1;
     }
-
-    int operator[](const int i) {
-        if(sz == 2)
-            return i;
-        return 1 - removed;
-    }
 };
-
-template <bool IsConst>
-class DomainBinary::Iterator {
-   public:
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type        = int;
-    using difference_type   = std::ptrdiff_t;
-    using DomPtr            = std::conditional_t<IsConst, const DomainBinary*, DomainBinary*>;
-    using reference         = std::conditional_t<IsConst, const int&, int&>;
-    using pointer           = std::conditional_t<IsConst, const int*, int*>;
-
-    Iterator() = default;
-    Iterator(DomPtr dom, int pos) : domain(dom), pos_(pos) { }
-
-    // Déréférencement : traduit la position logique (0..sz-1) en value0/value1
-    reference operator*() const { return deref(pos_); }
-    pointer   operator->() const { return &deref(pos_); }
-    reference operator[](difference_type n) const { return deref(pos_ + static_cast<int>(n)); }
-
-    // Incrémentation / décrémentation
-    Iterator& operator++() {
-        ++pos_;
-        return *this;
-    }
-    Iterator operator++(int) {
-        Iterator tmp(*this);
-        ++pos_;
-        return tmp;
-    }
-    Iterator& operator--() {
-        --pos_;
-        return *this;
-    }
-    Iterator operator--(int) {
-        Iterator tmp(*this);
-        --pos_;
-        return tmp;
-    }
-
-    // Arithmétique
-    Iterator& operator+=(difference_type n) {
-        pos_ += static_cast<int>(n);
-        return *this;
-    }
-    Iterator& operator-=(difference_type n) {
-        pos_ -= static_cast<int>(n);
-        return *this;
-    }
-    friend Iterator operator+(Iterator it, difference_type n) {
-        it += n;
-        return it;
-    }
-    friend Iterator operator+(difference_type n, Iterator it) {
-        it += n;
-        return it;
-    }
-    friend Iterator operator-(Iterator it, difference_type n) {
-        it -= n;
-        return it;
-    }
-    friend difference_type operator-(const Iterator& a, const Iterator& b) {
-        return static_cast<difference_type>(a.pos_) - static_cast<difference_type>(b.pos_);
-    }
-
-    // Comparaisons
-    friend bool operator==(const Iterator& a, const Iterator& b) { return a.pos_ == b.pos_; }
-    friend bool operator!=(const Iterator& a, const Iterator& b) { return a.pos_ != b.pos_; }
-    friend bool operator<(const Iterator& a, const Iterator& b) { return a.pos_ < b.pos_; }
-    friend bool operator>(const Iterator& a, const Iterator& b) { return a.pos_ > b.pos_; }
-    friend bool operator<=(const Iterator& a, const Iterator& b) { return a.pos_ <= b.pos_; }
-    friend bool operator>=(const Iterator& a, const Iterator& b) { return a.pos_ >= b.pos_; }
-
-   private:
-    // Logical member
-    reference deref(int pos) const {
-        if(domain->sz == -1)
-            return pos;
-
-        return (domain->removed == domain->value0) ? 1 : 0;
-    }
-
-    DomPtr domain = nullptr;
-    int    pos_   = 0;
-};
-
-inline DomainBinary::iterator       DomainBinary::begin() { return iterator(this, 0); }
-inline DomainBinary::iterator       DomainBinary::end() { return iterator(this, sz); }
-inline DomainBinary::const_iterator DomainBinary::begin() const { return const_iterator(this, 0); }
-inline DomainBinary::const_iterator DomainBinary::end() const { return const_iterator(this, sz); }
-inline DomainBinary::const_iterator DomainBinary::cbegin() const { return const_iterator(this, 0); }
-inline DomainBinary::const_iterator DomainBinary::cend() const { return const_iterator(this, sz); }
-
 }   // namespace Cosoco
 // namespace Cosoco
 #endif   // COSOCO_DOMAINBINARY_H
