@@ -9,24 +9,18 @@
 
 namespace Cosoco {
 
-class Domain {
+class AbstractDomain {
     friend class Variable;
 
     friend class Solver;
 
-   protected:
-    LinkedSet idvs;   // the set of elements
 
    public:
-    virtual ~Domain() = default;
+    virtual ~AbstractDomain() = default;
     vec<int> nAssignments;
-    // using const_iterator = LinkedSetIterator;
-    using iterator = LinkedSetIterator;
-    // using const_reverse_iterator = LinkedSetIterator;
-    using reverse_iterator = LinkedSetIterator;
 
     // Constructors and initialisation
-    Domain(int sz) : idvs(sz, true) { }
+    explicit AbstractDomain(int sz) { }
 
 
     void delayedConstruction(int nbVars) { }
@@ -37,16 +31,112 @@ class Domain {
 
     virtual int toVal(int idv) = 0;
 
+    virtual void delIdv(int idv, int level) = 0;
+
+    virtual void delVal(int v, int level) = 0;
+
+
+    virtual void reduceTo(int idv, int level) = 0;
+
+    virtual bool isIdentical(AbstractDomain &d) = 0;
+
+    bool isConnex() { return maximum() - minimum() + 1 == size(); }
+
+    virtual void reinitialize() = 0;
+
+
+    virtual int valueAtPosition(int pos) = 0;
+
+
+    virtual bool isBoolean() = 0;
+    // inline const int getPosition(int idx) { return idvs.getPosition(idx); }
+
+    virtual inline bool isIndexesAreValues() { return false; }
+
+
+    // Method related to presence of value
+    virtual bool containsValue(int v) = 0;
+
+
+    virtual bool containsIdv(int idv) = 0;
+
+
+    inline bool isUniqueValue(int v) { return size() == 1 && containsValue(v); }
+
+
+    virtual int minimum() = 0;
+
+    virtual int maximum() = 0;
+
+
+    virtual int firstId() = 0;
+
+    virtual int operator[](const int i) = 0;
+
+
+    virtual int lastId() = 0;
+
+    virtual int lastRemoved() = 0;
+
+    virtual int prevRemoved(int id) = 0;
+
+
+    virtual int nextIdv(int currentIdv) = 0;
+
+    virtual int prevIdv(int currentIdv) = 0;
+
+
+    // Methods related to size
+    virtual bool isEmpty() = 0;
+
+    virtual int size() = 0;
+
+    virtual int maxSize() = 0;
+
+
+    // Access method
+
+
+    virtual void restoreLimit(int level) = 0;
+
+    virtual int  lastRemovedLevel()                = 0;
+    virtual bool isLimitRecordedAtLevel(int level) = 0;
+    virtual void recordLimit(int level)            = 0;
+
+    // Display
+    virtual void display() = 0;
+
+    virtual size_t hash() = 0;
+
+    virtual bool equals(AbstractDomain *d) = 0;
+};
+
+
+class Domain : public AbstractDomain {
+   protected:
+    LinkedSet idvs;   // the set of elements
+
+   public:
+    // using const_iterator = LinkedSetIterator;
+    using iterator = LinkedSetIterator;
+    // using const_reverse_iterator = LinkedSetIterator;
+    using reverse_iterator = LinkedSetIterator;
+
+    explicit Domain(int sz) : AbstractDomain(sz), idvs(sz, true) { }
     // Methods related to deletion of values
-    inline void delIdv(int idv, int level) { idvs.del(idv, level); }
+    void delIdv(int idv, int level) override { idvs.del(idv, level); }
 
+    void delVal(int v, int level) override { idvs.del(toIdv(v), level); }   // TODO Check range !!!!!!
 
-    inline void delVal(int v, int level) { idvs.del(toIdv(v), level); }   // TODO Check range !!!!!!
+    void reduceTo(int idv, int level) override { idvs.reduceTo(idv, level); }
 
+    void reinitialize() override { idvs.fill(); }
 
-    inline void reduceTo(int idv, int level) { idvs.reduceTo(idv, level); }
+    int valueAtPosition(int pos) override { return toVal(idvs[pos]); }
 
-    bool isIdentical(Domain &d) {
+    bool isBoolean() override { return maxSize() == 2 && minimum() == 0 && maximum() == 1; }
+
+    bool isIdentical(AbstractDomain &d) override {
         if(maxSize() != d.maxSize())
             return false;
         for(int i = 0; i < maxSize(); i++)
@@ -55,84 +145,49 @@ class Domain {
         return true;
     }
 
-    bool isConnex() { return maximum() - minimum() + 1 == size(); }
-
-    void reinitialize() { idvs.fill(); }
-
-
-    inline int valueAtPosition(int pos) { return toVal(idvs[pos]); }
-
-
-    inline bool isBoolean() { return maxSize() == 2 && minimum() == 0 && maximum() == 1; }
-    // inline const int getPosition(int idx) { return idvs.getPosition(idx); }
-
-    virtual inline bool isIndexesAreValues() { return false; }
-
-
-    // Method related to presence of value
-    inline bool containsValue(int v) {
+    bool containsValue(int v) override {
         int idv = toIdv(v);
         return idv == -1 ? false : idvs.contains(idv);
     }
 
+    bool containsIdv(int idv) override { return idvs.contains(idv); }
 
-    inline bool containsIdv(int idv) { return idvs.contains(idv); }
-
-
-    inline bool isUniqueValue(int v) { return size() == 1 && containsValue(v); }
-
-
-    inline int minimum() {
+    int minimum() override {
         assert(size() > 0);
         return toVal(idvs.first());
     }
 
 
-    inline int maximum() {
+    int maximum() override {
         assert(size() > 0);
         return toVal(idvs.last());
     }
 
-
-    inline int firstId() { return idvs.first(); }
-
-
-    inline int lastId() { return idvs.last(); }
-
-    inline int lastRemoved() { return idvs.lastRemoved(); }
-
-    inline int prevRemoved(int id) { return idvs.prevRemoved(id); }
+    int firstId() override { return idvs.first(); }
 
 
-    // return the next valid index in the domain, -1 if none exists (in such a case, idx is equal to the max
-    /*inline int nextValidIndex(int currentIdv) {
-        assert(size() > 0);
-        int nSlots = maximum();
-        if(toIdv(nSlots) == currentIdv) return -1;
-        for(int idv = currentIdv + 1; idv < maxSize(); idv++) {
-            if(containsIdv(idv))
-                return idv;
-        }
-        return -1;
-    }*/
+    int lastId() override { return idvs.last(); }
 
-    int nextIdv(int currentIdv) { return idvs.next(currentIdv); }
-    int prevIdv(int currentIdv) { return idvs.prev(currentIdv); }
+    int lastRemoved() override { return idvs.lastRemoved(); }
+
+    int prevRemoved(int id) override { return idvs.prevRemoved(id); }
 
 
-    // Methods related to size
-    inline bool isEmpty() { return idvs.isEmpty(); }
+    int nextIdv(int currentIdv) override { return idvs.next(currentIdv); }
+
+    int prevIdv(int currentIdv) override { return idvs.prev(currentIdv); }
 
 
-    inline int size() { return idvs.size(); }
+    bool isEmpty() override { return idvs.isEmpty(); }
 
 
-    inline int maxSize() { return idvs.maxSize(); }
+    int size() override { return idvs.size(); }
 
 
-    // Access method
-    inline int operator[](const int i) { return idvs[i]; }
+    int maxSize() override { return idvs.maxSize(); }
 
+
+    int operator[](const int i) { return idvs[i]; }
 
     // begin/end functions to use for each aka c++
     iterator begin() { return idvs.begin(); }
@@ -148,22 +203,20 @@ class Domain {
     reverse_iterator rend() { return idvs.rend(); }
     // const_reverse_iterator rend() const { return idvs.crend(); }
 
+    void restoreLimit(int level) override { idvs.restoreLimit(level); }
 
-    inline void restoreLimit(int level) { idvs.restoreLimit(level); }
+    int lastRemovedLevel() override { return idvs.lastRemovedLevel(); }
 
-    inline int lastRemovedLevel() { return idvs.lastRemovedLevel(); }
+    bool isLimitRecordedAtLevel(int level) override { return idvs.isLimitRecordedAtLevel(level); }
 
-    // Display
-    virtual void display() {
+    void recordLimit(int level) override { idvs.recordLimit(level); }
+
+
+    void display() override {
         printf("{");
         for(int idv = idvs.first(); idv != -1; idv = idvs.next(idv)) printf("%d ", toVal(idv));
     }
-
-    virtual size_t hash() = 0;
-
-    virtual bool equals(Domain *d) = 0;
 };
-
 }   // namespace Cosoco
 
 #endif

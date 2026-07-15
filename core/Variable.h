@@ -25,7 +25,7 @@ class Variable {
     const int         idx;           // The position in problem.variables
     const int         array;         // the array in which the variable appear (-1 if none)
     const std::string _name;         // I do not like _ but... useful for name() function
-    Domain           &domain;        // The domain
+    AbstractDomain   &domain;        // The domain
     vec<Constraint *> constraints;   // Set of constraints where it occurs
 
     // Datas used for some algorithms (some heuristics and so on...)
@@ -42,7 +42,8 @@ class Variable {
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem
     void addConstraint(Constraint *c);              // This constraint contains the variable
 
-    Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
+    Variable(Problem &p, std::string n, AbstractDomain &d, int id,
+             int a);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods
     bool delVal(int v, int lvl);     // Do not use directly, use solver's one

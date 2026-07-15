@@ -1,5 +1,6 @@
 #include "CosocoCallbacks.h"
 
+#include "DomainBinary.h"
 #include "DomainSmallValues.h"
 #include "constraints/primitives/BasicNodes.h"
 
@@ -99,8 +100,13 @@ void CosocoCallbacks::endInstance() {
 }
 
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
-    Variable *x =
-        problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
+    Variable *x = nullptr;
+    if(maxValue - minValue + 1 == 2)
+        x = problem->createVariable(id, *(new DomainBinary(minValue, maxValue)),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
+    else
+        x = problem->createVariable(id, *(new DomainRange(minValue, maxValue)),
+                                    inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName.append("[]");
@@ -139,6 +145,7 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
                                     inArray ? problem->variablesArray.size() - 1 : -1);
 
     }*/
+
     if(max - min < 1000)
         x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
                                     inArray ? problem->variablesArray.size() - 1 : -1);

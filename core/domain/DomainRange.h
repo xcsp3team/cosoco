@@ -54,7 +54,7 @@ class DomainRange : public Domain {
         return h(s);
     }
 
-    bool equals(Domain *d) override {
+    bool equals(AbstractDomain *d) override {
         auto *dr = dynamic_cast<DomainRange *>(d);
         if(dr == nullptr)
             return false;

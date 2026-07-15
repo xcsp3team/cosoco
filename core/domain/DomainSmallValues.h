@@ -52,7 +52,7 @@ class DomainSmallValue : public Domain {
         return h(s);
     }
 
-    bool equals(Domain *d) override {
+    bool equals(AbstractDomain *d) override {
         auto *dv = dynamic_cast<DomainSmallValue *>(d);
         if(dv == nullptr || values.size() != dv->values.size())
             return false;
