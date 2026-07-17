@@ -52,10 +52,8 @@ Matcher::Matcher(Constraint* cc)
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
-    if(unfixed.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        unfixed.restoreLimit(s.decisionLevel() + 1);
-    if(fixedVars.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        fixedVars.restoreLimit(s.decisionLevel() + 1);
+    unfixed.restoreLimit(s.decisionLevel() + 1);
+    fixedVars.restoreLimit(s.decisionLevel() + 1);
 }
 
 
@@ -110,11 +108,8 @@ bool Matcher::findMaximumMatching() {
                 var2val[idx] = val2var[nv] = -1;
                 unmatched.push(idx);
             }
-            if(constraint->scope[idx]->size() == 1 && unfixed.contains(idx)) {
-                if(unfixed.isLimitRecordedAtLevel(level) == false)
-                    unfixed.recordLimit(level);
-                unfixed.del(idx);
-            }
+            if(constraint->scope[idx]->size() == 1 && unfixed.contains(idx))
+                unfixed.del(idx, level);
         }
     }
 
@@ -171,9 +166,7 @@ void Matcher::computeNeighbors() {
                     }
                 }
             }
-            if(fixedVars.isLimitRecordedAtLevel(level) == false)
-                fixedVars.recordLimit(level);
-            fixedVars.add(idx);
+            fixedVars.add(idx, level);
             continue;
         }
         for(int idv : x->domain) {

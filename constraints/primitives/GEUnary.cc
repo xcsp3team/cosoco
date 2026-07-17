@@ -17,7 +17,7 @@ bool GEUnary::isSatisfiedBy(vec<int> &tuple) { return tuple[0] >= k; }
 //----------------------------------------------
 
 bool GEUnary::filter(Variable *x) {
-    if(solver->delValuesLowerOrEqualThan(x, k - 1) == false)
+    if(solver->delValuesLE(x, k - 1) == false)
         return false;
     solver->entail(this);
     return true;

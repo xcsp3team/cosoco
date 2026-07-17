@@ -16,7 +16,7 @@ bool LEUnary::isSatisfiedBy(vec<int> &tuple) { return tuple[0] <= k; }
 //----------------------------------------------
 
 bool LEUnary::filter(Variable *x) {
-    if(solver->delValuesGreaterOrEqualThan(x, k + 1) == false)
+    if(solver->delValuesGE(x, k + 1) == false)
         return false;
     solver->entail(this);
     return true;

@@ -25,7 +25,7 @@ bool SumScalarLEVar::isCorrectlyDefined() {
 
 bool SumScalarLEVar::filter(Variable *x) {
     recomputeBounds();
-    if(solver->delValuesLowerOrEqualThan(limit, min - 1) == false)
+    if(solver->delValuesLE(limit, min - 1) == false)
         return false;
 
     if(max <= limit->maximum())

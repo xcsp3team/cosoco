@@ -34,7 +34,7 @@ bool MaximumConstantLE::isSatisfiedBy(vec<int> &tuple) {
 
 bool MaximumConstantLE::filter(Variable *dummy) {
     for(auto & x : scope)
-        if(solver->delValuesGreaterOrEqualThan(x, k + 1) == false)
+        if(solver->delValuesGE(x, k + 1) == false)
             return false;
     solver->entail(this);
     return true;

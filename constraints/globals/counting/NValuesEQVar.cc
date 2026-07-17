@@ -68,9 +68,9 @@ void NValuesEQVar::initializeSets() {
 bool NValuesEQVar::filter(Variable *x) {
     if(x->size() == 1) {
         initializeSets();
-        if(solver->delValuesLowerOrEqualThan(k, fixedValues.size() - 1) == false)
+        if(solver->delValuesLE(k, fixedValues.size() - 1) == false)
             return false;
-        if(solver->delValuesGreaterOrEqualThan(k, fixedValues.size() + unfixedVariables.size() + 1) == false)
+        if(solver->delValuesGE(k, fixedValues.size() + unfixedVariables.size() + 1) == false)
             return false;
 
         //        if(k.dom.removeValues(LT, fixedVals.size()) == false || k.dom.removeValues(GT, fixedVals.size() +

@@ -115,16 +115,16 @@ bool xTimesyEQz::filter(Variable *dummy) {
 
     // Update z bounds
     if(xmin >= 0 && ymin >= 0) {   // z>=0
-        solver->delValuesLowerOrEqualThan(z, xmin * ymin - 1);
-        solver->delValuesGreaterOrEqualThan(z, xmax * ymax + 1);
+        solver->delValuesLE(z, xmin * ymin - 1);
+        solver->delValuesGE(z, xmax * ymax + 1);
     } else if(xmax < 0 && ymax < 0) {   // Z>=0
-        solver->delValuesLowerOrEqualThan(z, xmax * ymax - 1);
-        solver->delValuesGreaterOrEqualThan(z, xmin * ymin + 1);
+        solver->delValuesLE(z, xmax * ymax - 1);
+        solver->delValuesGE(z, xmin * ymin + 1);
     } else if((xmin > 0 && ymax < 0) || (xmax < 0 && ymin > 0)) {   // Z<0
         int a = xmin * ymax;
         int b = xmax * ymin;
-        solver->delValuesLowerOrEqualThan(z, std::min(a, b) - 1);
-        solver->delValuesGreaterOrEqualThan(z, std::max(a, b) + 1);
+        solver->delValuesLE(z, std::min(a, b) - 1);
+        solver->delValuesGE(z, std::max(a, b) + 1);
     }
     if(z->size() == 0)   // Here to avoid to if()....)
         return false;
@@ -152,9 +152,9 @@ bool xTimesyEQz::instantiated(Variable *w, Variable *t) {
     }
     int v1 = vw * t->minimum();
     int v2 = vw * t->maximum();
-    if(solver->delValuesLowerOrEqualThan(z, std::min(v1, v2) - 1) == false)
+    if(solver->delValuesLE(z, std::min(v1, v2) - 1) == false)
         return false;
-    return solver->delValuesGreaterOrEqualThan(z, std::max(v1, v2) + 1);
+    return solver->delValuesGE(z, std::max(v1, v2) + 1);
 }
 
 //----------------------------------------------

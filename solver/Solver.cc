@@ -754,7 +754,7 @@ bool Solver::assignToIdv(Variable *x, int idv) {
 // Multiple values removal (helpers)
 //----------------------------------------------
 
-bool Solver::delValuesGreaterOrEqualThan(Variable *x, int max) {
+bool Solver::delValuesGE(Variable *x, int max) {
     if(x->minimum() >= max)
         return false;
     for(int idv : reverse(x->domain)) {   // Reverse traversal because of deletion
@@ -767,7 +767,7 @@ bool Solver::delValuesGreaterOrEqualThan(Variable *x, int max) {
 }
 
 
-bool Solver::delValuesLowerOrEqualThan(Variable *x, int min) {
+bool Solver::delValuesLE(Variable *x, int min) {
     if(x->maximum() <= min)
         return false;
     for(int idv : (x->domain)) {
@@ -824,19 +824,19 @@ bool Solver::delValuesInRange(Variable *x, int start, int stop) {
 
 bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {   // x + k <= y
     if(isAssigned(x) == false)
-        if(delValuesGreaterOrEqualThan(x, y->maximum() - k + 1) == false)
+        if(delValuesGE(x, y->maximum() - k + 1) == false)
             return false;
 
     if(isAssigned(y) == false)
-        if(delValuesLowerOrEqualThan(y, x->minimum() + k - 1) == false)
+        if(delValuesLE(y, x->minimum() + k - 1) == false)
             return false;
     return true;
 }
 
 bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variable *z) {
-    return delValuesGreaterOrEqualThan(x, z->maximum() - y->minimum() + 1) &&
-           delValuesGreaterOrEqualThan(y, z->maximum() - x->minimum() + 1) &&
-           delValuesLowerOrEqualThan(z, x->minimum() + y->minimum() - 1);
+    return delValuesGE(x, z->maximum() - y->minimum() + 1) &&
+           delValuesGE(y, z->maximum() - x->minimum() + 1) &&
+           delValuesLE(z, x->minimum() + y->minimum() - 1);
 }
 
 
@@ -909,12 +909,12 @@ bool Solver::enforceEQ(Variable *x, Variable *y, int k) {   // X = Y + k
     int ax = smallestIntegerPresentAdd(x, y, k);
     if(ax == -1)
         return false;
-    delValuesLowerOrEqualThan(x, x->domain.toVal(ax) - 1);
-    delValuesLowerOrEqualThan(y, x->domain.toVal(ax) - k - 1);
+    delValuesLE(x, x->domain.toVal(ax) - 1);
+    delValuesLE(y, x->domain.toVal(ax) - k - 1);
     ax = greatestIntegerPresentAdd(x, y, k);
     assert(ax != -1);
-    delValuesGreaterOrEqualThan(x, x->domain.toVal(ax) + 1);
-    delValuesGreaterOrEqualThan(y, x->domain.toVal(ax) - k + 1);
+    delValuesGE(x, x->domain.toVal(ax) + 1);
+    delValuesGE(y, x->domain.toVal(ax) - k + 1);
 
 
     if(y->domain.isConnex() == false) {   // in dx we can remove some values
@@ -971,11 +971,11 @@ bool Solver::enforceAddEQ(Variable *x, Variable *y, int k) {   // X + Y = k
 
 
 bool Solver::enforceAddLE(Variable *x, Variable *y, int k) {   // X + Y <= k
-    return delValuesGreaterOrEqualThan(x, k - y->minimum() + 1) && delValuesGreaterOrEqualThan(y, k - x->minimum() + 1);
+    return delValuesGE(x, k - y->minimum() + 1) && delValuesGE(y, k - x->minimum() + 1);
 }
 
 bool Solver::enforceAddGE(Variable *x, Variable *y, int k) {   // X + Y <= k
-    return delValuesLowerOrEqualThan(x, k - y->maximum() - 1) && delValuesLowerOrEqualThan(y, k - x->maximum() - 1);
+    return delValuesLE(x, k - y->maximum() - 1) && delValuesLE(y, k - x->maximum() - 1);
 }
 
 

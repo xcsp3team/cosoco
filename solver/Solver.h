@@ -148,9 +148,7 @@ class Solver : public AbstractSolver {
     bool        isGACGuaranted();      // Return true if GAC is ensured
 
     bool entail(Constraint *c) {
-        if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
-            entailedConstraints.recordLimit(decisionLevel());
-        entailedConstraints.add(c->idc);
+        entailedConstraints.add(c->idc, decisionLevel());
         return true;   //
     }
     bool isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }
@@ -169,8 +167,8 @@ class Solver : public AbstractSolver {
     // Multiple values removal
     // --------------------------------------------------------------------------------------
 
-    bool delValuesGreaterOrEqualThan(Variable *x, int v);
-    bool delValuesLowerOrEqualThan(Variable *x, int v);
+    bool delValuesGE(Variable *x, int v);
+    bool delValuesLE(Variable *x, int v);
     bool delValuesInDomain(Variable *x, Domain &d);
     bool delValuesNotInDomain(Variable *x, Domain &d);
     bool changeDomain(Variable *x, SparseSet &newIdvalues);

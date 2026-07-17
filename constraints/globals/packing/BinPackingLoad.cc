@@ -80,7 +80,7 @@ bool BinPackingLoad::filter(Variable *x) {
             } else if(currentFill + possibleExtent - minSize < load)
                 return false;
         } else {
-            if(solver->delValuesLowerOrEqualThan(loads[i], currentFill - 1) == false)
+            if(solver->delValuesLE(loads[i], currentFill - 1) == false)
                 return false;
             int loadMin        = loads[i]->minimum();
             int loadMax        = loads[i]->maximum();

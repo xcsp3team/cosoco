@@ -79,11 +79,11 @@ bool Lexicographic::filter(Variable *dummy) {
 
 bool Lexicographic::establishAC(Variable *x, Variable *y) {
     int maxY = y->maximum();
-    if(x->maximum() > maxY && solver->delValuesGreaterOrEqualThan(x, maxY + 1) == false)
+    if(x->maximum() > maxY && solver->delValuesGE(x, maxY + 1) == false)
         return false;
 
     int minX = x->minimum();
-    if(y->minimum() < minX && solver->delValuesLowerOrEqualThan(y, minX - 1) == false)
+    if(y->minimum() < minX && solver->delValuesLE(y, minX - 1) == false)
         return false;
 
     return true;

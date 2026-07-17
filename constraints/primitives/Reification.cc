@@ -47,21 +47,21 @@ bool XeqMinSubkYY::isSatisfiedBy(vec<int> &tuple) {
 bool ReifLE::filter(Variable *dummy) {
     if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesLowerOrEqualThan(y, z->minimum()) == false)
+            if(solver->delValuesLE(y, z->minimum()) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesGreaterOrEqualThan(z, y->maximum()) == false)
+            if(solver->delValuesGE(z, y->maximum()) == false)
                 return false;
         return true;
     }
     if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesGreaterOrEqualThan(y, z->maximum() + 1) == false)
+            if(solver->delValuesGE(y, z->maximum() + 1) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesLowerOrEqualThan(z, y->minimum() - 1) == false)
+            if(solver->delValuesLE(z, y->minimum() - 1) == false)
                 return false;
         return true;
     }
@@ -77,21 +77,21 @@ bool ReifLE::filter(Variable *dummy) {
 bool ReifLT::filter(Variable *dummy) {
     if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesLowerOrEqualThan(y, z->minimum() - 1) == false)
+            if(solver->delValuesLE(y, z->minimum() - 1) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesGreaterOrEqualThan(z, y->maximum() + 1) == false)
+            if(solver->delValuesGE(z, y->maximum() + 1) == false)
                 return false;
         return true;
     }
     if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesGreaterOrEqualThan(y, z->maximum()) == false)
+            if(solver->delValuesGE(y, z->maximum()) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesLowerOrEqualThan(z, y->minimum()) == false)
+            if(solver->delValuesLE(z, y->minimum()) == false)
                 return false;
         return true;
     }
@@ -239,14 +239,14 @@ bool XeqYneK::filter(Variable *dummy) {
 bool XeqKleY::filter(Variable *dummy) {
     if(x->size() == 1) {
         if(x->value() == 0) {   // y < k
-            if(solver->delValuesGreaterOrEqualThan(y, k) == false)
+            if(solver->delValuesGE(y, k) == false)
                 return false;
             solver->entail(this);
             return true;
         }
         // y >= k
 
-        if(solver->delValuesLowerOrEqualThan(y, k - 1) == false)
+        if(solver->delValuesLE(y, k - 1) == false)
             return false;
         solver->entail(this);
         return true;
@@ -270,13 +270,13 @@ bool XeqKleY::filter(Variable *dummy) {
 bool XeqYleK::filter(Variable *dummy) {
     if(x->size() == 1) {
         if(x->value() == 0) {   // y > k
-            if(solver->delValuesLowerOrEqualThan(y, k) == false)
+            if(solver->delValuesLE(y, k) == false)
                 return false;
             solver->entail(this);
             return true;
         }
         // y <= k
-        if(solver->delValuesGreaterOrEqualThan(y, k + 1) == false)
+        if(solver->delValuesGE(y, k + 1) == false)
             return false;
         solver->entail(this);
         return true;

@@ -104,9 +104,7 @@ void TimeTableReasoner::updateRelevantTasks() {
         int i = relevantTasks[j];
         if(cumulative.starts[i]->size() == 1 &&
            (cumulative.starts[i]->maximum() + cumulative.maxWidth(i) <= smin || emax <= cumulative.starts[i]->minimum())) {
-            if(relevantTasks.isLimitRecordedAtLevel(level) == false)
-                relevantTasks.recordLimit(level);
-            relevantTasks.del(j);
+            relevantTasks.del(j, level);
         }
     }
 }
@@ -163,8 +161,7 @@ bool Cumulative::filter(Variable *dummy) {
 
 
 void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
-    if(timetableReasoner.relevantTasks.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
+    timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
 }
 
 
@@ -233,7 +230,7 @@ void Cumulative::filterHeightVariables(vec<Variable *> &heightVariables) {
                 if(surplus <= 0)
                     break;
                 if(!(me <= slot.start || slot.end <= ms))   // if overlapping
-                    solver->delValuesGreaterOrEqualThan(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
+                    solver->delValuesGE(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
             }
         }
     }
@@ -257,7 +254,7 @@ void Cumulative::filterWidthVariables(vec<Variable *> &widthVariables) {
                     break;                                    // because we can no more find a conflict
                 if(!(me2 <= slot.start || slot.end <= ms2))   // if overlapping
                     // widths[i].dom.removeValue(widths[i].dom.lastValue());
-                    solver->delValuesGreaterOrEqualThan(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
+                    solver->delValuesGE(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
                 // no possible conflict
             }
         }

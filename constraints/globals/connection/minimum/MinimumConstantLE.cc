@@ -26,7 +26,7 @@ bool MinimumConstantLE::filter(Variable* dummy) {
         else {
             if(scope[sentinel2]->minimum() > k)
                 return false;
-            solver->delValuesGreaterOrEqualThan(scope[sentinel2], k + 1);   // necessarily true returned
+            solver->delValuesGE(scope[sentinel2], k + 1);   // necessarily true returned
             solver->entail(this);
             return true;
         }
@@ -40,7 +40,7 @@ bool MinimumConstantLE::filter(Variable* dummy) {
             sentinel2 = i;
         else {
             assert(scope[sentinel1]->minimum() <= k);
-            solver->delValuesGreaterOrEqualThan(scope[sentinel1], k + 1);   // necessarily true returned
+            solver->delValuesGE(scope[sentinel1], k + 1);   // necessarily true returned
             solver->entail(this);
             return true;
         }
