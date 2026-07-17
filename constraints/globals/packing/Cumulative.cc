@@ -104,9 +104,7 @@ void TimeTableReasoner::updateRelevantTasks() {
         int i = relevantTasks[j];
         if(cumulative.starts[i]->size() == 1 &&
            (cumulative.starts[i]->maximum() + cumulative.maxWidth(i) <= smin || emax <= cumulative.starts[i]->minimum())) {
-            if(relevantTasks.isLimitRecordedAtLevel(level) == false)
-                relevantTasks.recordLimit(level);
-            relevantTasks.del(j);
+            relevantTasks.del(j, level);
         }
     }
 }
@@ -163,8 +161,7 @@ bool Cumulative::filter(Variable *dummy) {
 
 
 void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
-    if(timetableReasoner.relevantTasks.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
+    timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
 }
 
 

@@ -146,11 +146,8 @@ void CompactTable::intersectWithMask() {
         if(current[id] != l) {
             wordModified(id, current[id]);
             current[id] = l;
-            if(l == BIT_ZERO) {
-                if(nonZeros.isLimitRecordedAtLevel(level) == false)
-                    nonZeros.recordLimit(level);
-                nonZeros.del(id);
-            }
+            if(l == BIT_ZERO)
+                nonZeros.del(id, level);
         }
     }
 }
@@ -169,8 +166,7 @@ void CompactTable::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFu
         stackStructure.pop();
     }
 
-    if(nonZeros.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        nonZeros.restoreLimit(s.decisionLevel() + 1);
+    nonZeros.restoreLimit(s.decisionLevel() + 1);
     lastTimestamps = 0;
     if(isFull == false)
         for(int i = 0; i < scope.size(); i++) lastSizes[i] = scope[i]->size();
@@ -274,11 +270,8 @@ bool CompactTable::onFirstCall() {
         BITSET l = current[j] & tmp[j];
         if(current[j] != l) {
             current[j] = l;
-            if(l == 0uLL) {
-                if(nonZeros.isLimitRecordedAtLevel(0) == false)
-                    nonZeros.recordLimit(0);
-                nonZeros.del(j);
-            }
+            if(l == 0uLL)
+                nonZeros.del(j, 0);
         }
     }
 

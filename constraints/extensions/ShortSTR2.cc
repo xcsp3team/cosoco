@@ -101,11 +101,7 @@ bool ShortSTR2::isValidTuple(int *tupleIdvs) {
 }
 
 
-void ShortSTR2::delTuple(int position, int level) {
-    if(validTuples.isLimitRecordedAtLevel(level) == false)
-        validTuples.recordLimit(level);
-    validTuples.del(position);
-}
+void ShortSTR2::delTuple(int position, int level) { validTuples.del(position, level); }
 
 //----------------------------------------------
 // Observers methods
@@ -113,8 +109,7 @@ void ShortSTR2::delTuple(int position, int level) {
 
 
 void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
-    if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        validTuples.restoreLimit(s.decisionLevel() + 1);
+    validTuples.restoreLimit(s.decisionLevel() + 1);
     if(isFull == false)
         for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
 }

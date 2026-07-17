@@ -169,17 +169,10 @@ void STRNeg::delayedConstruction(int id) {
 //----------------------------------------------
 
 
-void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
-    if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        validTuples.restoreLimit(s.decisionLevel() + 1);
-}
+void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { validTuples.restoreLimit(s.decisionLevel() + 1); }
 
 
-void STRNeg::delTuple(int position, int level) {
-    if(validTuples.isLimitRecordedAtLevel(level) == false)
-        validTuples.recordLimit(level);
-    validTuples.del(position);
-}
+void STRNeg::delTuple(int position, int level) { validTuples.del(position, level); }
 
 
 void STRNeg::attachSolver(Solver *s) {

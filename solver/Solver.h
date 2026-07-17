@@ -148,9 +148,7 @@ class Solver : public AbstractSolver {
     bool        isGACGuaranted();      // Return true if GAC is ensured
 
     bool entail(Constraint *c) {
-        if(entailedConstraints.isLimitRecordedAtLevel(decisionLevel()) == false)
-            entailedConstraints.recordLimit(decisionLevel());
-        entailedConstraints.add(c->idc);
+        entailedConstraints.add(c->idc, decisionLevel());
         return true;   //
     }
     bool isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }

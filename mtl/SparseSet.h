@@ -58,18 +58,18 @@ class SparseSet {
 
 
     // Fill and clear methods
-    inline void clear() { limit = 0; }
-    inline void fill() { limit = capacity; }
+    void clear() { limit = 0; }
+    void fill() { limit = capacity; }
 
 
     // Questions about size methods
-    inline bool      isEmpty() const { return (limit == 0); }
-    inline int       size() const { return limit; }
-    const inline int maxSize() const { return capacity; }
+    bool      isEmpty() const { return (limit == 0); }
+    int       size() const { return limit; }
+    const int maxSize() const { return capacity; }
 
 
     // Insert and delete methods
-    inline void add(const int k) {
+    void add(const int k) {
         assert(k < maxSize());   // verify that we are bound safe
         if(contains(k))          // already there
             return;
@@ -84,18 +84,18 @@ class SparseSet {
         limit++;
     }
 
-    inline void reduceTo(const int k) {
+    void reduceTo(const int k) {
         clear();
         add(k);
     }
 
-    inline void resetTo(SparseSet& set) {
+    void resetTo(SparseSet& set) {
         assert(capacity >= set.size());
         clear();
         for(int v : set) add(v);
     }
 
-    inline int getPosition(const int k) {
+    int getPosition(const int k) {
         assert(k < size());
         return positions[k];
     }
@@ -108,7 +108,7 @@ class SparseSet {
     }
 
 
-    inline void del(const int k) {
+    void del(const int k) {
         assert(k < maxSize());
         if(!contains(k))
             return;
@@ -128,23 +128,23 @@ class SparseSet {
     }
 
     // Access and contains method
-    inline bool contains(const int k) const {
+    bool contains(const int k) const {
         assert(k <= maxSize());
         return positions[k] < limit;
     }
-    inline int operator[](const int i) { return elements[i]; }
+    int operator[](const int i) { return elements[i]; }
 
     // begin/end functions to use for each aka c++
-    inline const_iterator cbegin() const { return const_iterator(elements.data); }
-    inline const_iterator cend() const { return const_iterator(elements.data + limit); }
-    inline iterator       begin() { return iterator(elements.data); }
-    inline iterator       end() { return iterator(elements.data + limit); }
+    const_iterator cbegin() const { return const_iterator(elements.data); }
+    const_iterator cend() const { return const_iterator(elements.data + limit); }
+    iterator       begin() { return iterator(elements.data); }
+    iterator       end() { return iterator(elements.data + limit); }
 
 
-    inline const_reverse_iterator crbegin() const { return const_iterator(elements.data + limit - 1, -1); }
-    inline const_reverse_iterator crend() const { return const_iterator(elements.data - 1, -1); }
-    inline reverse_iterator       rbegin() { return iterator(elements.data + limit - 1, -1); }
-    inline reverse_iterator       rend() { return iterator(elements.data - 1, -1); }
+    const_reverse_iterator crbegin() const { return const_iterator(elements.data + limit - 1, -1); }
+    const_reverse_iterator crend() const { return const_iterator(elements.data - 1, -1); }
+    reverse_iterator       rbegin() { return iterator(elements.data + limit - 1, -1); }
+    reverse_iterator       rend() { return iterator(elements.data - 1, -1); }
 
 
     // Display method
