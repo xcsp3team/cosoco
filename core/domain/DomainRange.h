@@ -33,17 +33,17 @@ class DomainRange : public Domain {
 
    public:
     // Constructors
-    DomainRange(int mn, int mx) : Domain(mx - mn + 1), min(mn), max(mx) { nAssignments.growTo(mx - mn + 1, 0); }
+    DomainRange(int mn, int mx) : Domain(mx - mn + 1), min(mn), max(mx) { }
 
     // Virtual Method conversion id to value
 
-    int toIdv(int v) const override {
+    int toIdv(int v) override {
         if(v < min || v > max)
             return -1;
         return v - min;
     }
 
-    int toVal(int idv) const override {
+    int toVal(int idv) override {
         assert(idv >= 0 && idv < idvs.maxSize());
         return min + idv;
     }

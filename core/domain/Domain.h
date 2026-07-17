@@ -19,16 +19,16 @@ class AbstractDomain {
     vec<int> nAssignments;
 
     // Constructors and initialisation
-    explicit AbstractDomain(int sz) { }
+    explicit AbstractDomain(int sz) { nAssignments.growTo(sz, 0); }
 
 
     void delayedConstruction(int nbVars) { }
 
 
     // Virtual Method conversion id to value
-    virtual int toIdv(int v) const = 0;
+    virtual int toIdv(int v) = 0;
 
-    virtual int toVal(int idv) const = 0;
+    virtual int toVal(int idv) = 0;
 
     virtual void delIdv(int idv, int level) = 0;
 
@@ -44,8 +44,8 @@ class AbstractDomain {
     virtual void reinitialize() = 0;
 
 
-    virtual int valueAtPosition(int pos) const = 0;
-    virtual int indexAtPosition(int pos) const = 0;
+    virtual int valueAtPosition(int pos) = 0;
+    virtual int indexAtPosition(int pos) = 0;
 
     virtual bool isBoolean() = 0;
     // inline const int getPosition(int idx) { return idvs.getPosition(idx); }
@@ -110,6 +110,9 @@ class AbstractDomain {
     virtual bool equals(AbstractDomain* d) = 0;
 
     class iterator {
+        AbstractDomain* domain = nullptr;
+        int             pos_   = 0;
+
        public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type        = int;
@@ -119,6 +122,7 @@ class AbstractDomain {
 
         iterator() = default;
         iterator(AbstractDomain* dom, int pos) : domain(dom), pos_(pos) { }
+
 
         int operator*() { return domain->indexAtPosition(pos_); }
         int operator[](difference_type n) { return domain->indexAtPosition(pos_ + static_cast<int>(n)); }
@@ -172,17 +176,14 @@ class AbstractDomain {
         friend bool operator>(const iterator& a, const iterator& b) { return a.pos_ > b.pos_; }
         friend bool operator<=(const iterator& a, const iterator& b) { return a.pos_ <= b.pos_; }
         friend bool operator>=(const iterator& a, const iterator& b) { return a.pos_ >= b.pos_; }
-
-       private:
-        AbstractDomain* domain = nullptr;
-        int             pos_   = 0;
     };
 
-    iterator begin() const { return iterator(this, 0); }
+    iterator begin() { return iterator(this, 0); }
     iterator end() { return iterator(this, size()); }
+    using reverse_iterator = std::reverse_iterator<iterator>;
 
-    iterator rbegin() { return iterator(this, size()); }
-    iterator rend() const { return iterator(this, 0); }
+    reverse_iterator rbegin() { return reverse_iterator(iterator(this, size())); }
+    reverse_iterator rend() { return reverse_iterator(iterator(this, 0)); }
 };
 
 

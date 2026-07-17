@@ -701,8 +701,8 @@ bool Solver::delVal(Variable *x, int v) {
 
 bool Solver::assignToVal(Variable *x, int v) {
     // return assignToIdv(x,x->domain.toIdv(v));
-    Domain &d   = x->domain;
-    int     idv = x->domain.toIdv(v);
+    AbstractDomain &d   = x->domain;
+    int             idv = x->domain.toIdv(v);
     if(d.containsIdv(idv) == false)
         return false;
     if(d.size() == 1)
@@ -728,7 +728,7 @@ bool Solver::assignToVal(Variable *x, int v) {
 
 
 bool Solver::assignToIdv(Variable *x, int idv) {
-    Domain &d = x->domain;
+    AbstractDomain &d = x->domain;
     if(d.containsIdv(idv) == false)
         return false;
     if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
@@ -780,7 +780,7 @@ bool Solver::delValuesLowerOrEqualThan(Variable *x, int min) {
 }
 
 
-bool Solver::delValuesInDomain(Variable *x, Domain &d) {
+bool Solver::delValuesInDomain(Variable *x, AbstractDomain &d) {
     for(int idv : d)
         if(delVal(x, d.toVal(idv)) == false)
             return false;
@@ -788,7 +788,7 @@ bool Solver::delValuesInDomain(Variable *x, Domain &d) {
 }
 
 
-bool Solver::delValuesNotInDomain(Variable *x, Domain &d) {
+bool Solver::delValuesNotInDomain(Variable *x, AbstractDomain &d) {
     for(int idv : reverse(x->domain)) {
         int v = x->domain.toVal(idv);
         if(d.containsValue(v) == false && delIdv(x, idv) == false)

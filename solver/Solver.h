@@ -171,8 +171,8 @@ class Solver : public AbstractSolver {
 
     bool delValuesGreaterOrEqualThan(Variable *x, int v);
     bool delValuesLowerOrEqualThan(Variable *x, int v);
-    bool delValuesInDomain(Variable *x, Domain &d);
-    bool delValuesNotInDomain(Variable *x, Domain &d);
+    bool delValuesInDomain(Variable *x, AbstractDomain &d);
+    bool delValuesNotInDomain(Variable *x, AbstractDomain &d);
     bool changeDomain(Variable *x, SparseSet &newIdvalues);
     bool delValuesInRange(Variable *x, int min, int max);    // del values from min to max excluded
     bool enforceLE(Variable *x, Variable *y, int k);         // x + k <= y

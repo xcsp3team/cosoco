@@ -1,6 +1,9 @@
 #ifndef COSOCO_LINKEDSET_H
 #define COSOCO_LINKEDSET_H
 
+#include <iostream>
+#include <ostream>
+
 #include "Vec.h"
 
 namespace Cosoco {

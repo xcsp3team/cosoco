@@ -101,12 +101,11 @@ void CosocoCallbacks::endInstance() {
 
 void CosocoCallbacks::buildVariableInteger(string id, int minValue, int maxValue) {
     Variable *x = nullptr;
-    if(maxValue - minValue + 1 == 2)
-        x = problem->createVariable(id, *(new DomainBinary(minValue, maxValue)),
-                                    inArray ? problem->variablesArray.size() - 1 : -1);
-    else
-        x = problem->createVariable(id, *(new DomainRange(minValue, maxValue)),
-                                    inArray ? problem->variablesArray.size() - 1 : -1);
+    // if(maxValue - minValue + 1 == 2)
+    //     x = problem->createVariable(id, *(new DomainBinary(minValue, maxValue)),
+    //                                inArray ? problem->variablesArray.size() - 1 : -1);
+    // else
+    x = problem->createVariable(id, *(new DomainRange(minValue, maxValue)), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName.append("[]");

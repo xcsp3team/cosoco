@@ -31,9 +31,9 @@ class DomainBinary : public AbstractDomain {
         level1  = -1;
         sz      = 2;
     }
-    int toIdv(int v) const override { return v == value0 ? 0 : 1; }
+    int toIdv(int v) override { return v == value0 ? 0 : 1; }
 
-    int toVal(int idv) const override { return idv == 0 ? value0 : value1; }
+    int toVal(int idv) override { return idv == 0 ? value0 : value1; }
 
     void delIdv(int idv, int l) {
         sz--;
@@ -60,9 +60,9 @@ class DomainBinary : public AbstractDomain {
         sz      = 2;
         removed = -1;
     }
-    int valueAtPosition(int pos) const override { return sz == 2 || removed == 1 ? toVal(pos) : value1; }
+    int valueAtPosition(int pos) override { return sz == 2 || removed == 1 ? toVal(pos) : value1; }
 
-    int indexAtPosition(int pos) const override { return sz == 2 || removed == 1 ? pos : 1; }
+    int indexAtPosition(int pos) override { return sz == 2 || removed == 1 ? pos : 1; }
 
     bool isBoolean() override { return value0 == 0 && value1 == 1; }
 
@@ -71,6 +71,7 @@ class DomainBinary : public AbstractDomain {
     bool containsIdv(int idv) override { return sz == 2 || (removed != idv && sz == 1); }
 
     int minimum() override { return sz == 2 || removed == 1 ? toVal(0) : toVal(1); }
+
     int maximum() override { return sz == 2 || removed == 0 ? toVal(1) : toVal(0); }
 
     int firstId() override {
