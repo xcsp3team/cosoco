@@ -25,11 +25,11 @@ bool DisjunctiveVars::filter(Variable *xx) {
     if(!b1 && !b2)
         return false;
     if(!b2)   // we enforce the first part
-        return solver->delValuesLowerOrEqualThan(x2, min1 - 1) && solver->delValuesGreaterOrEqualThan(x1, max1 + 1) &&
-               solver->delValuesGreaterOrEqualThan(w1, x2->maximum() - x1->minimum() + 1);
+        return solver->delValuesLE(x2, min1 - 1) && solver->delValuesGE(x1, max1 + 1) &&
+               solver->delValuesGE(w1, x2->maximum() - x1->minimum() + 1);
     if(!b1)   // we enforce the second part
-        return solver->delValuesLowerOrEqualThan(x1, min2 - 1) && solver->delValuesGreaterOrEqualThan(x2, max2 + 1) &&
-               solver->delValuesGreaterOrEqualThan(w2, x1->maximum() - x2->minimum() + 1);
+        return solver->delValuesLE(x1, min2 - 1) && solver->delValuesGE(x2, max2 + 1) &&
+               solver->delValuesGE(w2, x1->maximum() - x2->minimum() + 1);
 
     return solver->delValuesInRange(x1, max1 + 1, min2 - 1) && solver->delValuesInRange(x2, max2 + 1, min1 - 1);
 }

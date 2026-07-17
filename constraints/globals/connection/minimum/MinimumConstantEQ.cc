@@ -34,7 +34,7 @@ Variable *MinimumConstantEQ::findNewSentinel() {
 bool MinimumConstantEQ::filter(Variable *dummy) {
     if(solver->decisionLevel() == 0) {
         for(Variable *x : scope)
-            if(solver->delValuesLowerOrEqualThan(x, k - 1) == false)
+            if(solver->delValuesLE(x, k - 1) == false)
                 return false;
     }
     if(sentinel1->containsValue(k) == false) {

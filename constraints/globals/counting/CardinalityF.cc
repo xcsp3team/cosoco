@@ -85,12 +85,12 @@ int CardinalityF::doFiltering() {
     bool again = false;
     for(int i : reverse(valueToCompute)) {
         int szBefore = occurs[i]->size();
-        if(solver->delValuesLowerOrEqualThan(occurs[i], mandatories[i].size() - 1) == false)
+        if(solver->delValuesLE(occurs[i], mandatories[i].size() - 1) == false)
             return -1;
         again |= (occurs[i]->size() < szBefore);
 
         szBefore = occurs[i]->size();
-        if(solver->delValuesGreaterOrEqualThan(occurs[i], mandatories[i].size() + possibles[i].size() + 1) == false)
+        if(solver->delValuesGE(occurs[i], mandatories[i].size() + possibles[i].size() + 1) == false)
             return -1;
         again |= (occurs[i]->size() < szBefore);
 

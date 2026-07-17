@@ -169,8 +169,8 @@ class Solver : public AbstractSolver {
     // Multiple values removal
     // --------------------------------------------------------------------------------------
 
-    bool delValuesGreaterOrEqualThan(Variable *x, int v);
-    bool delValuesLowerOrEqualThan(Variable *x, int v);
+    bool delValuesGE(Variable *x, int v);
+    bool delValuesLE(Variable *x, int v);
     bool delValuesInDomain(Variable *x, Domain &d);
     bool delValuesNotInDomain(Variable *x, Domain &d);
     bool changeDomain(Variable *x, SparseSet &newIdvalues);

@@ -147,7 +147,7 @@ bool AllDifferentBC::filterLower(bool &again) {
             int       w      = pathmax(h, h[x]);
             Variable *cur    = maxsorted[i]->x;
             int       before = cur->size();
-            if(solver->delValuesLowerOrEqualThan(cur, bounds[w] - 1) == false)
+            if(solver->delValuesLE(cur, bounds[w] - 1) == false)
                 return false;
             if(before > cur->size()) {
                 again            = true;
@@ -190,7 +190,7 @@ bool AllDifferentBC::filterUpper(bool &again) {
             int       w      = pathmin(h, h[x]);
             Variable *cur    = minsorted[i]->x;
             int       before = cur->size();
-            if(solver->delValuesGreaterOrEqualThan(cur, bounds[w]) == false)
+            if(solver->delValuesGE(cur, bounds[w]) == false)
                 return false;
             if(before > cur->size()) {
                 minsorted[i]->ub = cur->domain.maximum();

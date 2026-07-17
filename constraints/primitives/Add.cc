@@ -18,11 +18,11 @@ bool Add3::isSatisfiedBy(vec<int> &tuple) { return tuple[0] + tuple[1] == tuple[
 
 bool Lt::filter(Variable *dummy) {
     if(solver->isAssigned(x) == false)
-        if(solver->delValuesGreaterOrEqualThan(x, y->maximum() - k) == false)
+        if(solver->delValuesGE(x, y->maximum() - k) == false)
             return false;
 
     if(solver->isAssigned(y) == false)
-        if(solver->delValuesLowerOrEqualThan(y, x->minimum() + k) == false)
+        if(solver->delValuesLE(y, x->minimum() + k) == false)
             return false;
     return true;
 }
@@ -36,9 +36,9 @@ bool Add3::filter(Variable *dummy) {
         return solver->enforceAddEQ(x, y, z->value());
 
     if(tooLarge(x->size(), y->size())) {
-        if(solver->delValuesLowerOrEqualThan(z, x->minimum() + y->minimum() - 1) == false)
+        if(solver->delValuesLE(z, x->minimum() + y->minimum() - 1) == false)
             return false;
-        if(solver->delValuesGreaterOrEqualThan(z, x->maximum() + y->maximum() + 1) == false)
+        if(solver->delValuesGE(z, x->maximum() + y->maximum() + 1) == false)
             return false;
         if(solver->enforceAddGE(x, y, z->minimum()) == false)
             return false;

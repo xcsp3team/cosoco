@@ -60,12 +60,12 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
                 if(deleted)
                     nbPossibleOccurrences--;
             } else {
-                if(solver->delValuesLowerOrEqualThan(k, nbGuaranteedOccurrences - 1) == false ||
-                   solver->delValuesGreaterOrEqualThan(k, nbPossibleOccurrences + 1) == false)
+                if(solver->delValuesLE(k, nbGuaranteedOccurrences - 1) == false ||
+                   solver->delValuesGE(k, nbPossibleOccurrences + 1) == false)
                     return false;
             }
-        } else if(solver->delValuesLowerOrEqualThan(k, nbGuaranteedOccurrences - 1) == false ||
-                  solver->delValuesGreaterOrEqualThan(k, nbPossibleOccurrences + 1) == false)
+        } else if(solver->delValuesLE(k, nbGuaranteedOccurrences - 1) == false ||
+                  solver->delValuesGE(k, nbPossibleOccurrences + 1) == false)
             return false;
     }
 

@@ -52,8 +52,8 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
     }
 
     // filtering the domain of the Min variable
-    if(solver->delValuesGreaterOrEqualThan(value, maxLast + 1) == false ||
-       solver->delValuesLowerOrEqualThan(value, maxFirst - 1) == false)
+    if(solver->delValuesGE(value, maxLast + 1) == false ||
+       solver->delValuesLE(value, maxFirst - 1) == false)
         return false;
 
 
@@ -71,7 +71,7 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
     // Filtering the domains of variables in the vector
     int max = value->maximum();
     for(Variable *x : list) {
-        if(solver->delValuesGreaterOrEqualThan(x, max + 1) == false)
+        if(solver->delValuesGE(x, max + 1) == false)
             return false;
     }
 

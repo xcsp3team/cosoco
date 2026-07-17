@@ -42,7 +42,7 @@ bool MaximumArg::filter(Variable *dummy) {
     // we remove too large values in other variables (those that cannot be anymore used to be indexed)
     int maxMind = INT_MIN, maxMaxd = INT_MIN;   // d for deleted indexes
     for(int a = index->domain.lastRemoved(); a != -1; a = index->domain.prevRemoved(a)) {
-        if(solver->delValuesGreaterOrEqualThan(list[a], maxMax + 1) == false)
+        if(solver->delValuesGE(list[a], maxMax + 1) == false)
             return false;
         maxMind = std::max(maxMind, list[a]->minimum());
         maxMaxd = std::max(maxMaxd, list[a]->maximum());
@@ -96,7 +96,7 @@ bool MaximumArg::filter(Variable *dummy) {
 
     if(index->size() == 1) {
         int a = index->value();
-        if(maxMind != INT_MIN && solver->delValuesLowerOrEqualThan(list[a], maxMind - 1) == false)
+        if(maxMind != INT_MIN && solver->delValuesLE(list[a], maxMind - 1) == false)
             return false;
 
         if(rank == XCSP3Core::ANY && list[a]->minimum() >= maxMaxd)

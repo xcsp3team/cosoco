@@ -52,8 +52,8 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
     }
 
     // filtering the domain of the Min variable
-    if(solver->delValuesGreaterOrEqualThan(value, minLast + 1) == false ||
-       solver->delValuesLowerOrEqualThan(value, minFirst - 1) == false)
+    if(solver->delValuesGE(value, minLast + 1) == false ||
+       solver->delValuesLE(value, minFirst - 1) == false)
         return false;
 
 
@@ -71,7 +71,7 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
     // Filtering the domains of variables in the vector
     int min = value->minimum();
     for(Variable *x : list) {
-        if(solver->delValuesLowerOrEqualThan(x, min - 1) == false)
+        if(solver->delValuesLE(x, min - 1) == false)
             return false;
     }
 

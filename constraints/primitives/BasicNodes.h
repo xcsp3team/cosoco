@@ -70,8 +70,8 @@ class BasicNodeLe : public BasicNode {   // le(x,10)
     int  value(int k) override { return k <= v; }
     int  minimum() override { return x->maximum() <= v; }
     int  maximum() override { return x->minimum() > v ? 0 : 1; }
-    bool setTrue(Solver *solver) override { return solver->delValuesGreaterOrEqualThan(x, v + 1); }
-    bool setFalse(Solver *solver) override { return solver->delValuesLowerOrEqualThan(x, v); }
+    bool setTrue(Solver *solver) override { return solver->delValuesGE(x, v + 1); }
+    bool setFalse(Solver *solver) override { return solver->delValuesLE(x, v); }
 };
 
 class BasicNodeGe : public BasicNode {   // ge(x,10)
@@ -81,8 +81,8 @@ class BasicNodeGe : public BasicNode {   // ge(x,10)
     int  value(int k) override { return k >= v; }
     int  minimum() override { return x->minimum() >= v; }
     int  maximum() override { return x->maximum() < v ? 0 : 1; }
-    bool setTrue(Solver *solver) override { return solver->delValuesLowerOrEqualThan(x, v - 1); }
-    bool setFalse(Solver *solver) override { return solver->delValuesGreaterOrEqualThan(x, v); }
+    bool setTrue(Solver *solver) override { return solver->delValuesLE(x, v - 1); }
+    bool setFalse(Solver *solver) override { return solver->delValuesGE(x, v); }
 };
 
 class BasicNodeIn : public BasicNode {   // le(x,10)

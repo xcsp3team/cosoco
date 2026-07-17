@@ -233,7 +233,7 @@ void Cumulative::filterHeightVariables(vec<Variable *> &heightVariables) {
                 if(surplus <= 0)
                     break;
                 if(!(me <= slot.start || slot.end <= ms))   // if overlapping
-                    solver->delValuesGreaterOrEqualThan(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
+                    solver->delValuesGE(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
             }
         }
     }
@@ -257,7 +257,7 @@ void Cumulative::filterWidthVariables(vec<Variable *> &widthVariables) {
                     break;                                    // because we can no more find a conflict
                 if(!(me2 <= slot.start || slot.end <= ms2))   // if overlapping
                     // widths[i].dom.removeValue(widths[i].dom.lastValue());
-                    solver->delValuesGreaterOrEqualThan(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
+                    solver->delValuesGE(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
                 // no possible conflict
             }
         }

@@ -52,13 +52,13 @@ bool Mult3EQ::reviseGE(Variable *x1, Variable *x2, int k) {
     if(x2->minimum() > 0) {
         // all values in d2 are positive
         int b = k < 0 ? smallestIntegerGE(x2->minimum(), k) : smallestIntegerGE(x2->maximum(), k);
-        return solver->delValuesLowerOrEqualThan(x1, b - 1);
+        return solver->delValuesLE(x1, b - 1);
     }
 
     if(x2->maximum() < 0) {
         // all values in d2 are negative
         int b = k > 0 ? greatestIntegerLE(-x2->minimum(), -k) : greatestIntegerLE(-x2->maximum(), -k);
-        return solver->delValuesGreaterOrEqualThan(x1, b + 1);
+        return solver->delValuesGE(x1, b + 1);
     }
 
     return solver->delValuesInRange(x1, greatestIntegerLE(-x2->minimum(), -k) + 1, smallestIntegerGE(x2->maximum(), k));
@@ -76,13 +76,13 @@ bool Mult3EQ::reviseLE(Variable *x1, Variable *x2, int k) {
     if(x2->minimum() > 0) {
         // all values in d2 are positive
         int b = k > 0 ? greatestIntegerLE(x2->minimum(), k) : greatestIntegerLE(x2->maximum(), k);
-        return solver->delValuesGreaterOrEqualThan(x1, b + 1);
+        return solver->delValuesGE(x1, b + 1);
     }
 
     if(x2->maximum() < 0) {
         // all values in d2 are negative
         int b = k < 0 ? smallestIntegerGE(-x2->minimum(), -k) : smallestIntegerGE(-x2->maximum(), -k);
-        return solver->delValuesLowerOrEqualThan(x1, b - 1);
+        return solver->delValuesLE(x1, b - 1);
     }
 
     return solver->delValuesInRange(x1, greatestIntegerLE(x2->maximum(), k) + 1, smallestIntegerGE(-x2->minimum(), -k));
@@ -99,8 +99,8 @@ bool Mult3EQ::filter(Variable *dummy) {
         int v3 = x->maximum() * y->minimum(), v4 = x->maximum() * y->maximum();
         int min1 = std::min(v1, v2), max1 = std::max(v1, v2);
         int min2 = std::min(v3, v4), max2 = std::max(v3, v4);
-        if(solver->delValuesLowerOrEqualThan(z, std::min(min1, min2) - 1) == false ||
-           solver->delValuesGreaterOrEqualThan(z, std::max(max1, max2) + 1) == false)
+        if(solver->delValuesLE(z, std::min(min1, min2) - 1) == false ||
+           solver->delValuesGE(z, std::max(max1, max2) + 1) == false)
             return false;
 
         if(enforceMulGE(x, y, z->minimum()) && enforceMulLE(x, y, z->maximum()) == false)
