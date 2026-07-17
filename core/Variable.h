@@ -13,8 +13,7 @@ class Constraint;
 
 class Variable {
    protected:
-    bool          addToTrail;   // Need to add in the trail
-    unsigned long timestamp;    // Last time the variable was put in queue
+    unsigned long timestamp;   // Last time the variable was put in queue
 
    public:
     friend class Solver;
@@ -45,55 +44,60 @@ class Variable {
     Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods
-    bool delVal(int v, int lvl);     // Do not use directly, use solver's one
-    bool delIdv(int idv, int lvl);   // Do not use directly, use solver's one
+    bool delIdv(int idv, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+    // bool delValuesGE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the
+    // trail bool delValuesLE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to
+    // the trail
+
 
     // Assign method
-    void assignToIdv(int idv, int lvl);   // Do not use directly, use solver's one
-    void assignToVal(int v, int lvl);     // Do not use directly, use solver's one
+    bool assignToIdv(int idv, int lvl);   // Don't use directly, use solver's one. Returns true if it has to be added to the trail
+    bool assignToVal(int v, int lvl);     // Don't use directly, use solver's one. Returns true if it has to be added to the trail
 
-   public:
+    // Restore State of the variable after backtrack
+    void restore(int level) const { domain.restoreLimit(level); }
+
     // Minor methods
     void display(bool allDetails = false);   // displayCurrentBranch
 
 
-    inline const char *name() { return _name.c_str(); }   // The name
+    const char *name() { return _name.c_str(); }   // The name
 
 
     // ----------  shortcut methods
-    inline int size() { return domain.size(); }   // The current number of elements in the domain
+    int size() { return domain.size(); }   // The current number of elements in the domain
 
 
-    inline bool isAssigned() { return domain.size() == 1; }   // is it assign to a value
+    bool isAssigned() { return domain.size() == 1; }   // is it assign to a value
 
 
     // The value of the variable
-    inline int value() {
+    int value() {
         assert(domain.size() == 1);
         return domain.valueAtPosition(0);
     }
 
 
     // The id of the value of the variable
-    inline int valueId() {
+    int valueId() {
         assert(domain.size() == 1);
         return domain[0];
     }
 
 
-    inline bool containsValue(int v) { return domain.containsValue(v); }
+    bool containsValue(int v) { return domain.containsValue(v); }
 
 
-    inline bool containsIdv(int idv) { return domain.containsIdv(idv); }
+    bool containsIdv(int idv) { return domain.containsIdv(idv); }
 
 
-    inline bool isUniqueValue(int v) { return domain.isUniqueValue(v); }
+    bool isUniqueValue(int v) { return domain.isUniqueValue(v); }
 
 
-    inline int minimum() { return domain.minimum(); }
+    int minimum() { return domain.minimum(); }
 
 
-    inline int maximum() { return domain.maximum(); }
+    int maximum() { return domain.maximum(); }
 
     static bool haveSameDomainType(vec<Variable *> &vars);
 

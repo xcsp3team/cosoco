@@ -157,7 +157,7 @@ class Solver : public AbstractSolver {
     // --------------------------------------------------------------------------------------
 
     bool delVal(Variable *x, int v);     // Use it to delete variable values
-    bool delIdv(Variable *x, int idv);   // Use it to delete variable values
+    bool delIdv(Variable *x, int idv);   // Use it to delete variable values.
 
     bool assignToVal(Variable *x, int v);     // Use it to assign variable value
     bool assignToIdv(Variable *x, int idv);   // Use it to assign variable value

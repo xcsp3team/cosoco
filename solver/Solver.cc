@@ -459,7 +459,7 @@ void Solver::backtrack(bool isFull) {
     int       lvl      = decisionLevel();
     int       v        = assigned->domain.toVal(decisionVariablesId.last());
 
-    for(int idx = trail.size() - 1; idx >= trail_lim[lvl - 1]; idx--) trail[idx]->domain.restoreLimit(lvl);
+    for(int idx = trail.size() - 1; idx >= trail_lim[lvl - 1]; idx--) trail[idx]->restore(lvl);
 
     trail.shrink(trail.size() - trail_lim[lvl - 1]);   // Remove bad choices and props
     trail_lim.shrink(1);                               // One level less
@@ -678,11 +678,11 @@ bool Solver::delIdv(Variable *x, int idv) {
     nbDeletedValuesByAVariable++;
 
     notifyDomainReduction(x, idv);
-    x->delIdv(idv, decisionLevel());
 
-    if(x->addToTrail)
+    bool addToTrail = x->delIdv(idv, decisionLevel());
+    if(addToTrail)
         trail.push(x);
-    x->addToTrail = false;
+
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
@@ -717,10 +717,9 @@ bool Solver::assignToVal(Variable *x, int v) {
 
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
-    x->assignToIdv(idv, decisionLevel());
-    if(x->addToTrail)
+    bool addToTrail = x->assignToIdv(idv, decisionLevel());
+    if(addToTrail)
         trail.push(x);
-    x->addToTrail = false;
     addToQueue(x);
     verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), v);
     return true;
@@ -742,10 +741,10 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
 
-    x->assignToIdv(idv, decisionLevel());
-    if(x->addToTrail)
+    bool addToTrail = x->assignToIdv(idv, decisionLevel());
+    if(addToTrail)
         trail.push(x);
-    x->addToTrail = false;
+
     addToQueue(x);
     verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), x->domain.toVal(idv));
     return true;
@@ -834,8 +833,7 @@ bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, int k) {   // x
 }
 
 bool Solver::enforceLE(Cosoco::Variable *x, Cosoco::Variable *y, Cosoco::Variable *z) {
-    return delValuesGE(x, z->maximum() - y->minimum() + 1) &&
-           delValuesGE(y, z->maximum() - x->minimum() + 1) &&
+    return delValuesGE(x, z->maximum() - y->minimum() + 1) && delValuesGE(y, z->maximum() - x->minimum() + 1) &&
            delValuesLE(z, x->minimum() + y->minimum() - 1);
 }
 

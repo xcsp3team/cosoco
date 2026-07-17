@@ -8,7 +8,7 @@ using namespace Cosoco;
 
 // Construction and Initialisation
 Variable::Variable(Problem &p, std::string n, Domain &d, int id, int a)
-    : addToTrail(false), timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), wdeg(1), useless(false) { }
+    : timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), wdeg(1), useless(false) { }
 
 
 void Variable::delayedConstruction(int id, int nbVars) {
@@ -22,42 +22,42 @@ void Variable::addConstraint(Constraint *c) { constraints.push(c); }
 
 
 // Delete Methods
-bool Variable::delVal(int v, int level) {   // Do not use directly, use solver's one
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.delVal(v, level);
-    return size() == 0;
-}
-
-
 bool Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
+    bool tmp = false;
     if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
+        tmp = true;
         domain.idvs.recordLimit(level);
     }
     domain.delIdv(idv, level);
-    return size() == 0;
+    return tmp;
 }
+
+/*ol Variable::delValuesGE(int v, int lvl) {
+    bool tmp = false;
+
+}*/
 
 
 // Assign methods
-void Variable::assignToIdv(int idv, int level) {
+bool Variable::assignToIdv(int idv, int level) {
+    bool tmp = false;
     if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
+        tmp = true;
         domain.idvs.recordLimit(level);
     }
     domain.reduceTo(idv, level);
+    return tmp;
 }
 
 
-void Variable::assignToVal(int v, int level) {
+bool Variable::assignToVal(int v, int level) {
+    bool tmp = false;
     if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
+        tmp = true;
         domain.idvs.recordLimit(level);
     }
     domain.reduceTo(domain.toIdv(v), level);
+    return tmp;
 }
 
 
