@@ -54,7 +54,7 @@ class LinkedSet {
     int nbLevels;
 
 
-    inline void del(const int a) {
+    void del(const int a) {
         assert(a < maxSize());
         // if(!contains(a))
         //    return;
@@ -74,7 +74,7 @@ class LinkedSet {
         _lastRemoved    = a;
     }
 
-    inline void add(const int a) {
+    void add(const int a) {
         assert(_lastRemoved == a);
         // add to the list of present elements (works only if elements are managed as in a stack)
         int prev = prevs[a], next = nexts[a];
@@ -91,12 +91,11 @@ class LinkedSet {
     }
 
    public:
-    // Constructors
+    // ---------- Create, initialize and fill
     LinkedSet(int sz, bool full) {
         assert(full);
         setCapacity(sz);
     }
-
 
     void setCapacity(int cap) {
         _size  = cap;
@@ -109,10 +108,7 @@ class LinkedSet {
         fill();
     }
 
-
-    // Fill and clear methods
-    // inline void clear() { limit = 0;}
-    inline void fill() {
+    void fill() {
         _first = 0;
         _last  = maxSize() - 1;
         for(int i = 0; i < prevs.size(); i++) prevs[i] = i - 1;
@@ -124,76 +120,65 @@ class LinkedSet {
     }
 
 
-    // Questions about size methods
-    inline bool isEmpty() const { return _size == 0; }
+    // ----------  Questions about size methods
 
+    bool isEmpty() const { return _size == 0; }
+    int  size() const { return _size; }
+    int  maxSize() const { return prevs.size(); }
 
-    inline int size() const { return _size; }
-
-
-    inline int maxSize() const { return prevs.size(); }
-
-
-    void del(int a, int level) {
+    // ---------- Del methods
+    bool del(int a, int level) {   // Return true if level is now recorded
+        bool tmp = false;
+        if(isLimitRecordedAtLevel(level) == false) {
+            tmp = true;
+            recordLimit(level);
+        }
         removedLevels[a] = level;
         _size--;
         del(a);
+        return tmp;
     }
 
 
-    int reduceTo(int a, int level) {
-        int sizeBefore = _size;
+    bool reduceTo(int a, int level) {
+        bool tmp = false;
+        if(isLimitRecordedAtLevel(level) == false) {
+            tmp = true;
+            recordLimit(level);
+        }
         for(int b = _first; b != -1; b = next(b))
             if(b != a)
                 del(b, level);
-        return sizeBefore - _size;
+        return tmp;
     }
 
-
-    // Access and contains method
-    inline bool contains(const int k) const {
+    // ---------- Access and contains method and iterators
+    bool contains(const int k) const {
         assert(k < maxSize());
         return removedLevels[k] == -1;
     }
 
-
-    inline int operator[](const int i) {
+    int operator[](const int i) {
         assert(0 <= i && i < size());
         int e = first();
         for(int cnt = 0; cnt < i; cnt++) e = next(e);
         return e;
     }
 
-
-    // using const_iterator = LinkedSetIterator;
-    using iterator = LinkedSetIterator;
-    // using const_reverse_iterator = LinkedSetIterator;
+    using iterator         = LinkedSetIterator;
     using reverse_iterator = LinkedSetIterator;
 
-
-    // begin/end functions to use for each aka c++
-    // const_iterator cbegin() const;
-    // const_iterator cend() const;
-    iterator begin();
-    iterator end();
-
-
-    // const_reverse_iterator crbegin() const;
-    // const_reverse_iterator crend() const;
+    iterator         begin();
+    iterator         end();
     reverse_iterator rbegin();
     reverse_iterator rend();
 
+    int lastRemoved() const { return _lastRemoved; }
+    int prevRemoved(int id) { return _prevRemoved[id]; }
 
-    // iterate over elements
 
     int first() { return _first; }
-
-
     int last() { return _last; }
-
-    int lastRemoved() const { return _lastRemoved; }
-
-    int prevRemoved(int id) { return _prevRemoved[id]; }
 
     int next(int a) {
         assert(a >= 0 && a < maxSize());
@@ -226,23 +211,12 @@ class LinkedSet {
 
     int lastRemovedLevel() { return _lastRemoved == -1 ? -1 : removedLevels[_lastRemoved]; }
 
-    bool isLimitRecordedAtLevel(int level) { return level < limits.size() && limits[level] != NOT_STORED; }
-
-
-    void recordLimit(int level) {
-        if(level >= limits.size())
-            limits.growTo(level + 1, NOT_STORED);
-        assert(limits[level] == NOT_STORED);
-        limits[level] = _size;
-    }
-
     void restoreLastDropped() {
         assert(_lastRemoved != -1 && !contains(_lastRemoved));
         removedLevels[_lastRemoved] = -1;
         _size++;
         add(_lastRemoved);
     }
-
 
     void restoreLimit(int level) {
         assert(_lastRemoved == -1 || removedLevels[_lastRemoved] <= level);
@@ -269,6 +243,17 @@ class LinkedSet {
         printf("\nremoved");
         for(int i = 0; i < removedLevels.size(); i++) printf("%d ", removedLevels[i]);
         printf("\n");
+    }
+
+   protected:
+    // Related to levels.
+    bool isLimitRecordedAtLevel(int level) { return level < limits.size() && limits[level] != NOT_STORED; }
+
+    void recordLimit(int level) {
+        if(level >= limits.size())
+            limits.growTo(level + 1, NOT_STORED);
+        assert(limits[level] == NOT_STORED);
+        limits[level] = _size;
     }
 };
 }   // namespace Cosoco

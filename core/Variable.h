@@ -44,10 +44,9 @@ class Variable {
     Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods
-    bool delIdv(int idv, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
-    // bool delValuesGE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the
-    // trail bool delValuesLE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to
-    // the trail
+    bool delIdv(int idv, int lvl);      // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+    bool delValuesGE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+    bool delValuesLE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
 
 
     // Assign method
@@ -55,7 +54,7 @@ class Variable {
     bool assignToVal(int v, int lvl);     // Don't use directly, use solver's one. Returns true if it has to be added to the trail
 
     // Restore State of the variable after backtrack
-    void restore(int level) const { domain.restoreLimit(level); }
+    void restore(int level) const { domain.restore(level); }
 
     // Minor methods
     void display(bool allDetails = false);   // displayCurrentBranch

@@ -23,42 +23,19 @@ void Variable::addConstraint(Constraint *c) { constraints.push(c); }
 
 // Delete Methods
 bool Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
-    bool tmp = false;
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        tmp = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.delIdv(idv, level);
-    return tmp;
+    return domain.delIdv(idv, level);
 }
 
-/*ol Variable::delValuesGE(int v, int lvl) {
-    bool tmp = false;
+bool Variable::delValuesGE(int v, int lvl) { return false; }
 
-}*/
+bool Variable::delValuesLE(int v, int lvl) { return false; }
 
 
 // Assign methods
-bool Variable::assignToIdv(int idv, int level) {
-    bool tmp = false;
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        tmp = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.reduceTo(idv, level);
-    return tmp;
-}
+bool Variable::assignToIdv(int idv, int level) { return domain.reduceTo(idv, level); }
 
 
-bool Variable::assignToVal(int v, int level) {
-    bool tmp = false;
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        tmp = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.reduceTo(domain.toIdv(v), level);
-    return tmp;
-}
+bool Variable::assignToVal(int v, int level) { return domain.reduceTo(domain.toIdv(v), level); }
 
 
 // Display
