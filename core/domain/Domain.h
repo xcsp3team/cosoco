@@ -33,9 +33,9 @@ class Domain {
     virtual int toVal(int idv) = 0;
 
     // ---------- Methods related to deletion of values
-    bool delIdv(int idv, int level) { return idvs.del(idv, level); }
-    bool delVal(int v, int level) { return idvs.del(toIdv(v), level); }
-    bool reduceTo(int idv, int level) { return idvs.reduceTo(idv, level); }
+    void delIdv(int idv, int level) { idvs.del(idv, level); }
+    void delVal(int v, int level) { idvs.del(toIdv(v), level); }
+    void reduceTo(int idv, int level) { idvs.reduceTo(idv, level); }
 
     // ---------- Questions related to domain
     bool isIdentical(Domain &d) {
@@ -103,8 +103,7 @@ class Domain {
 
 
     void restore(int level) { idvs.restoreLimit(level); }
-
-    int lastRemovedLevel() { return idvs.lastRemovedLevel(); }
+    int  lastRemovedLevel() { return idvs.lastRemovedLevel(); }
 
     // Display
     virtual void display() {

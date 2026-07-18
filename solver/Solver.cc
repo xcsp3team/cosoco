@@ -679,8 +679,9 @@ bool Solver::delIdv(Variable *x, int idv) {
 
     notifyDomainReduction(x, idv);
 
-    bool addToTrail = x->delIdv(idv, decisionLevel());
-    if(addToTrail)
+    bool recordedBefore = x->isRecorded(decisionLevel());
+    x->delIdv(idv, decisionLevel());
+    if(recordedBefore == false)
         trail.push(x);
 
     propagations++;
@@ -717,8 +718,10 @@ bool Solver::assignToVal(Variable *x, int v) {
 
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
-    bool addToTrail = x->assignToIdv(idv, decisionLevel());
-    if(addToTrail)
+
+    bool recordedBefore = x->isRecorded(decisionLevel());
+    x->assignToIdv(idv, decisionLevel());
+    if(recordedBefore == false)
         trail.push(x);
     addToQueue(x);
     verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), v);
@@ -737,12 +740,13 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
 
-    // if(d.size()==1) return true;
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
 
-    bool addToTrail = x->assignToIdv(idv, decisionLevel());
-    if(addToTrail)
+    bool recordedBefore = x->isRecorded(decisionLevel());
+    x->assignToIdv(idv, decisionLevel());
+
+    if(recordedBefore == false)
         trail.push(x);
 
     addToQueue(x);

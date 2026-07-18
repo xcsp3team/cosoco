@@ -22,20 +22,20 @@ void Variable::addConstraint(Constraint *c) { constraints.push(c); }
 
 
 // Delete Methods
-bool Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
-    return domain.delIdv(idv, level);
+void Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
+    domain.delIdv(idv, level);
 }
 
-bool Variable::delValuesGE(int v, int lvl) { return false; }
+void Variable::delValuesGE(int v, int lvl) { }
 
-bool Variable::delValuesLE(int v, int lvl) { return false; }
+void Variable::delValuesLE(int v, int lvl) { }
 
 
 // Assign methods
-bool Variable::assignToIdv(int idv, int level) { return domain.reduceTo(idv, level); }
+void Variable::assignToIdv(int idv, int level) { domain.reduceTo(idv, level); }
 
 
-bool Variable::assignToVal(int v, int level) { return domain.reduceTo(domain.toIdv(v), level); }
+void Variable::assignToVal(int v, int level) { domain.reduceTo(domain.toIdv(v), level); }
 
 
 // Display

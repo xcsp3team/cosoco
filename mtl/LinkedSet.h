@@ -127,29 +127,22 @@ class LinkedSet {
     int  maxSize() const { return prevs.size(); }
 
     // ---------- Del methods
-    bool del(int a, int level) {   // Return true if level is now recorded
-        bool tmp = false;
-        if(isLimitRecordedAtLevel(level) == false) {
-            tmp = true;
+    void del(int a, int level) {   // Return true if level is now recorded
+        if(isLimitRecordedAtLevel(level) == false)
             recordLimit(level);
-        }
+
         removedLevels[a] = level;
         _size--;
         del(a);
-        return tmp;
     }
 
 
-    bool reduceTo(int a, int level) {
-        bool tmp = false;
-        if(isLimitRecordedAtLevel(level) == false) {
-            tmp = true;
+    void reduceTo(int a, int level) {
+        if(isLimitRecordedAtLevel(level) == false)
             recordLimit(level);
-        }
         for(int b = _first; b != -1; b = next(b))
             if(b != a)
                 del(b, level);
-        return tmp;
     }
 
     // ---------- Access and contains method and iterators
