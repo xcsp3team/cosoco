@@ -145,6 +145,21 @@ class LinkedSet {
                 del(b, level);
     }
 
+    void delValuesGE(int maxId, int level) {
+        for(int idv = last(); idv != -1; idv = prev(idv)) {   // Reverse traversal because of deletion
+            if(idv < maxId)
+                return;
+            del(idv, level);
+        }
+    }
+
+    void delValuesLE(int minId, int level) {
+        for(int idv = first(); idv != -1; idv = next(idv)) {
+            if(idv > minId)
+                return;
+            del(idv, level);
+        }
+    }
     // ---------- Access and contains method and iterators
     bool contains(const int k) const {
         assert(k < maxSize());

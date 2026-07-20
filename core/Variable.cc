@@ -26,9 +26,9 @@ void Variable::delIdv(int idv, int level) {   // Do not use directly, use solver
     domain.delIdv(idv, level);
 }
 
-void Variable::delValuesGE(int v, int lvl) { }
+void Variable::delValuesGE(int max, int lvl) { domain.idvs.delValuesGE(domain.toIdv(max), lvl); }
 
-void Variable::delValuesLE(int v, int lvl) { }
+void Variable::delValuesLE(int min, int lvl) { domain.idvs.delValuesLE(domain.toIdv(min), lvl); }
 
 
 // Assign methods

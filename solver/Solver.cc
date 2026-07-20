@@ -679,10 +679,10 @@ bool Solver::delIdv(Variable *x, int idv) {
 
     notifyDomainReduction(x, idv);
 
-    bool recordedBefore = x->isRecorded(decisionLevel());
-    x->delIdv(idv, decisionLevel());
-    if(recordedBefore == false)
+    if(x->isRecorded(decisionLevel()) == false)
         trail.push(x);
+    x->delIdv(idv, decisionLevel());
+
 
     propagations++;
     if(decisionLevel() == 0)
@@ -719,10 +719,10 @@ bool Solver::assignToVal(Variable *x, int v) {
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
 
-    bool recordedBefore = x->isRecorded(decisionLevel());
-    x->assignToIdv(idv, decisionLevel());
-    if(recordedBefore == false)
+    if(x->isRecorded(decisionLevel()) == false)
         trail.push(x);
+
+    x->assignToIdv(idv, decisionLevel());
     addToQueue(x);
     verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), v);
     return true;
@@ -733,6 +733,7 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     Domain &d = x->domain;
     if(d.containsIdv(idv) == false)
         return false;
+
     if(threadsGroup != nullptr && firstPropagations == false && decisionLevel() == 0)
         rootPropagationsCommunicator->send(RootPropagation(x->idx, true, idv));
 
@@ -743,11 +744,10 @@ bool Solver::assignToIdv(Variable *x, int idv) {
     nbDeletedValuesByAVariable += x->size() - 1;
     notifyDomainAssignment(x, idv);
 
-    bool recordedBefore = x->isRecorded(decisionLevel());
+    if(x->isRecorded(decisionLevel()) == false)
+        trail.push(x);
     x->assignToIdv(idv, decisionLevel());
 
-    if(recordedBefore == false)
-        trail.push(x);
 
     addToQueue(x);
     verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), x->domain.toVal(idv));
@@ -760,12 +760,15 @@ bool Solver::assignToIdv(Variable *x, int idv) {
 bool Solver::delValuesGE(Variable *x, int max) {
     if(x->minimum() >= max)
         return false;
-    for(int idv : reverse(x->domain)) {   // Reverse traversal because of deletion
-        if(x->domain.toVal(idv) < max)
-            return true;
-        if(delIdv(x, idv) == false)
-            return false;
-    }
+    if(x->maximum() < max)
+        return true;
+
+    int szBefore = x->size();
+    if(x->isRecorded(decisionLevel()) == false)
+        trail.push(x);
+    x->delValuesGE(max, decisionLevel());
+    nbDeletedValuesByAVariable += szBefore - x->size();
+    addToQueue(x);
     return true;
 }
 
@@ -773,12 +776,15 @@ bool Solver::delValuesGE(Variable *x, int max) {
 bool Solver::delValuesLE(Variable *x, int min) {
     if(x->maximum() <= min)
         return false;
-    for(int idv : (x->domain)) {
-        if(x->domain.toVal(idv) > min)
-            return true;
-        if(delIdv(x, idv) == false)
-            return false;
-    }
+    if(x->minimum() > min)
+        return true;
+
+    if(x->isRecorded(decisionLevel()) == false)
+        trail.push(x);
+    int szBefore = x->size();
+    x->delValuesLE(min, decisionLevel());
+    nbDeletedValuesByAVariable += szBefore - x->size();
+    addToQueue(x);
     return true;
 }
 
