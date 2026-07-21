@@ -4,7 +4,7 @@
 #include "Sum.h"
 namespace Cosoco {
 
-class SumEQ : public Sum {
+class SumEQ : public WeightedSum {
    public:
     SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
     bool filter(Variable *x) override;

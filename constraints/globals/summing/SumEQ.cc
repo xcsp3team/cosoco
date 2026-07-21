@@ -14,7 +14,7 @@ using namespace Cosoco;
 bool SumEQ::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) == limit; }
 
 
-bool Sum::isCorrectlyDefined() {
+bool WeightedSum::isCorrectlyDefined() {
     if(scope.size() != coefficients.size())
         throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum, list and coefficients mus have same size");
 
@@ -98,4 +98,4 @@ bool SumEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-SumEQ::SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, n, vars, coefs, l) { }
+SumEQ::SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : WeightedSum(p, n, vars, coefs, l) { }

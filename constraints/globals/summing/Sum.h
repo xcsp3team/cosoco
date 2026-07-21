@@ -6,22 +6,36 @@
 namespace Cosoco {
 
 class Sum : public GlobalConstraint {
+   protected:
+    long         min, max;
+    virtual void computeBounds() = 0;
+
    public:
-    long      limit;
+    long limit;
+    Sum(Problem &p, std::string n, vec<Variable *> &vars, long l) : GlobalConstraint(p, n, "Sum", vars), limit(l) { }
+};
+
+class SimpleSum : public Sum {
+   public:
+    SimpleSum(Problem &p, std::string n, vec<Variable *> &vars, long l) : Sum(p, std::move(n), vars, l) { }
+    void computeBounds();
+
+    static long sum(vec<int> &tuple);
+};
+
+
+class WeightedSum : public Sum {
+   public:
     vec<long> coefficients;
 
-    Sum(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l)
-        : GlobalConstraint(p, n, "Sum", vars), limit(l) {
+    WeightedSum(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, std::move(n), vars, l) {
         for(int c : coefs) coefficients.push(c);
         isPostponable = true;
     }
     bool isCorrectlyDefined() override;   // Implementation inside SumEQ
 
-    long weightedSum(vec<int> &tuple) {
-        long sum = 0;
-        for(int i = 0; i < tuple.size(); i++) sum += coefficients[i] * ((long)tuple[i]);
-        return sum;
-    }
+    long weightedSum(vec<int> &tuple);
+    void computeBounds() override;
 };
 }   // namespace Cosoco
 

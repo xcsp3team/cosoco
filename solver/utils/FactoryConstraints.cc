@@ -614,7 +614,7 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
 
 void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &coeffs, long l,
                                              OrderType order) {
-    Sum *ctr = nullptr;
+    WeightedSum *ctr = nullptr;
 
     if(vars.size() == 3 && l == 0 && order == OrderType::EQ) {
         if(coeffs[0] == 1 && coeffs[1] == 1 && coeffs[2] == -1) {
@@ -681,16 +681,16 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
 
     switch(order) {
         case OrderType::LE:
-            ctr = new SumGE(*p, name, vars, coeffs, l);
+            ctr = new WeightedSumGE(*p, name, vars, coeffs, l);
             break;
         case OrderType::LT:
-            ctr = new SumGE(*p, name, vars, coeffs, l + 1);
+            ctr = new WeightedSumGE(*p, name, vars, coeffs, l + 1);
             break;
         case OrderType::GE:
-            ctr = new SumGE(*p, name, vars, coeffs, l);
+            ctr = new WeightedSumGE(*p, name, vars, coeffs, l);
             break;
         case OrderType::GT:
-            ctr = new SumGE(*p, name, vars, coeffs, l + 1);   // TODO
+            ctr = new WeightedSumGE(*p, name, vars, coeffs, l + 1);   // TODO
             break;
         case OrderType::IN:
             throw runtime_error("This is forbidden to construct a sum with IN operator");

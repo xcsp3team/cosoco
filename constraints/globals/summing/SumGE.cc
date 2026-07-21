@@ -1,6 +1,5 @@
-#include "SumGE.h"
-
 #include "Sum.h"
+#include "SumGE.h"
 #include "constraints/Constraint.h"
 #include "solver/Solver.h"
 
@@ -11,13 +10,14 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
-bool SumGE::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) >= limit; }
+bool WeightedSumGE::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) >= limit; }
 
+bool SumGE::isSatisfiedBy(vec<int> &tuple) { return sum(tuple) >= limit; }
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
 
-bool SumGE::filter(Variable *dummy) {
+bool WeightedSumGE::filter(Variable *dummy) {
     computeBounds();
     if(min >= limit) {
         solver->entail(this);
@@ -71,24 +71,18 @@ bool SumGE::filter(Variable *dummy) {
 }
 
 
-void SumGE::computeBounds() {
-    min = max = 0;
-    for(int i = 0; i < scope.size(); i++) {
-        Variable *x     = scope[i];
-        long      xmin  = x->minimum();
-        long      xmax  = x->maximum();
-        long      coeff = coefficients[i];
-        min += coeff * (coeff >= 0 ? xmin : xmax);
-        max += coeff * (coeff >= 0 ? xmax : xmin);
-    }
-}
-
-
 //----------------------------------------------
 // Objective constraint
 //----------------------------------------------
 
+void WeightedSumGE::updateBound(long bound) { limit = bound; }   // Update the current bound
+
 void SumGE::updateBound(long bound) { limit = bound; }   // Update the current bound
+
+long WeightedSumGE::maxUpperBound() {
+    computeBounds();
+    return max;
+}
 
 long SumGE::maxUpperBound() {
     computeBounds();
@@ -100,15 +94,22 @@ long SumGE::minLowerBound() {
     return min;
 }
 
+long WeightedSumGE::minLowerBound() {
+    computeBounds();
+    return min;
+}
 
-long SumGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
+long WeightedSumGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
+
+long SumGE::computeScore(vec<int> &solution) { return sum(solution); }
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
 
-SumGE::SumGE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, n, vars, coefs, l) {
+WeightedSumGE::WeightedSumGE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l)
+    : WeightedSum(p, n, vars, coefs, l) {
     leftmostPositiveCoefficientPosition = coefficients.size();
     for(int i = coefficients.size() - 1; i >= 0; i--) {
         if(coefficients[i] < 0)

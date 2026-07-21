@@ -27,13 +27,13 @@ void PoolOfHeuristicsValues::selectHeuristics() {
         ObjectiveConstraint *objective = (op->type == Minimize) ? op->objectiveUB : op->objectiveLB;
         auto                 c         = dynamic_cast<Constraint *>(objective);
         if(c->type == "Sum" && op->type == Maximize) {
-            Sum *sum = dynamic_cast<Sum *>(c);
+            WeightedSum *sum = dynamic_cast<WeightedSum *>(c);
             for(int i = 0; i < c->scope.size(); i++)
                 if(sum->coefficients[i] > 0)
                     heuristicForVariable[c->scope[i]->idx] = last;
         }
         if(c->type == "Sum" && op->type == Minimize) {
-            Sum *sum = dynamic_cast<Sum *>(c);
+            WeightedSum *sum = dynamic_cast<WeightedSum *>(c);
             for(int i = 0; i < c->scope.size(); i++)
                 if(sum->coefficients[i] < 0)
                     heuristicForVariable[c->scope[i]->idx] = last;
