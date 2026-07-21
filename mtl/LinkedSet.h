@@ -1,6 +1,9 @@
 #ifndef COSOCO_LINKEDSET_H
 #define COSOCO_LINKEDSET_H
 
+#include <iostream>
+#include <ostream>
+
 #include "Vec.h"
 
 namespace Cosoco {
@@ -146,11 +149,14 @@ class LinkedSet {
     }
 
     void delValuesGE(int maxId, int level) {
+        display();
+        std::cout << maxId << std::endl;
         for(int idv = last(); idv != -1; idv = prev(idv)) {   // Reverse traversal because of deletion
             if(idv < maxId)
                 return;
             del(idv, level);
         }
+        display();
     }
 
     void delValuesLE(int minId, int level) {
