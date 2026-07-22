@@ -67,8 +67,8 @@ bool AtLeastK::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------
 
-AtLeastK::AtLeastK(Problem &p, std::string n, vec<Variable *> &vars, int kk, int val)
-    : GlobalConstraint(p, n, "At least", vars), k(kk), value(val), sentinels(vars.size(), false) {
+AtLeastK::AtLeastK(Problem &p, vec<Variable *> &vars, int kk, int val)
+    : GlobalConstraint(p, "At least", vars), k(kk), value(val), sentinels(vars.size(), false) {
     // Need k+1 sentinels
     for(int i = 0; i < k + 1; i++) sentinels.add(i);
 }

@@ -68,5 +68,5 @@ bool SumNE::filterUniqueNonSingletonVariable(int posx) {
 // Construction and initialisation
 //----------------------------------------------
 
-SumNE::SumNE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l)
-    : Sum(p, n, vars, coefs, l), watchedPosition1(-1), watchedPosition2(-1) { }
+SumNE::SumNE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l)
+    : Sum(p, vars, coefs, l), watchedPosition1(-1), watchedPosition2(-1) { }

@@ -387,44 +387,36 @@ bool XeqMinSubkYY::filter(Cosoco::Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-ReifLE::ReifLE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifLE::ReifLE(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y <= Z)";
 }
 
-ReifLT::ReifLT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifLT::ReifLT(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y < Z)";
 }
 
-ReifEQ::ReifEQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifEQ::ReifEQ(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     residue = INT_MAX;
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y = Z)";
 }
 
-ReifNE::ReifNE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifNE::ReifNE(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     residue = INT_MAX;
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y != Z)";
 }
 
-XeqYeqK::XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (Y = k)";
-}
+XeqYeqK::XeqYeqK(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (Y = k)"; }
 
-XeqYneK::XeqYneK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (Y != k)";
-}
+XeqYneK::XeqYneK(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (Y != k)"; }
 
-XeqKleY::XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (k <= Y)";
-}
-XeqYleK::XeqYleK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (Y <= k)";
-}
+XeqKleY::XeqKleY(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (k <= Y)"; }
+XeqYleK::XeqYleK(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (Y <= k)"; }
 
-XeqAndY::XeqAndY(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &vars) : Constraint(p, n, vars) {
+XeqAndY::XeqAndY(Cosoco::Problem &p, vec<Cosoco::Variable *> &vars) : Constraint(p, vars) {
     type = "X = AND(Y_i)";
     x    = vars.last();
     vars.copyTo(list);
@@ -433,8 +425,6 @@ XeqAndY::XeqAndY(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &var
     s2 = list[1];
 }
 
-XeqMinSubkYY::XeqMinSubkYY(Problem &p, std::string n, Variable *xx, Variable *yy, int kk) : Binary(p, n, xx, yy), k(kk) {
-    type = "X = MIN(k-Y,Y)";
-}
+XeqMinSubkYY::XeqMinSubkYY(Problem &p, Variable *xx, Variable *yy, int kk) : Binary(p, xx, yy), k(kk) { type = "X = MIN(k-Y,Y)"; }
 
 bool XeqMinSubkYY::isCorrectlyDefined() { return k > 0; }

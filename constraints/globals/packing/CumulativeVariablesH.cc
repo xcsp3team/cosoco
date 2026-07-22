@@ -50,15 +50,14 @@ bool CumulativeVariablesHLimitV::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeVariablesH::CumulativeVariablesH(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l, vec<Variable *> &h,
-                                           int _limit)
-    : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &h), l, l, _limit) {
+CumulativeVariablesH::CumulativeVariablesH(Problem &p, vec<Variable *> &vars, vec<int> &l, vec<Variable *> &h, int _limit)
+    : Cumulative(p, vars, Constraint::createScopeVec(&vars, &h), l, l, _limit) {
     h.copyTo(heightVariables);
     wheights.growTo(h.size(), 0);
 }
 
-CumulativeVariablesHLimitV::CumulativeVariablesHLimitV(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l,
-                                                       vec<Variable *> &h, Variable *_limit)
-    : CumulativeVariablesH(p, n, vars, l, h, _limit->maximum()), limitvar(_limit) {
+CumulativeVariablesHLimitV::CumulativeVariablesHLimitV(Problem &p, vec<Variable *> &vars, vec<int> &l, vec<Variable *> &h,
+                                                       Variable *_limit)
+    : CumulativeVariablesH(p, vars, l, h, _limit->maximum()), limitvar(_limit) {
     addToScope(_limit);
 }

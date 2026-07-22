@@ -9,7 +9,7 @@ class MinimumConstantLE : public MinimumConstant {
     int sentinel1, sentinel2;
 
    public:
-    MinimumConstantLE(Problem &p, std::string n, vec<Variable *> &vars, int kk) : MinimumConstant(p, n, vars, kk) {
+    MinimumConstantLE(Problem &p, vec<Variable *> &vars, int kk) : MinimumConstant(p, vars, kk) {
         sentinel1 = 0;
         sentinel2 = vars.size() - 1;
     }

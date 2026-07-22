@@ -135,14 +135,13 @@ bool STRNeg::isValidTuple(int *tuple) {
 //----------------------------------------------
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples)
-    : Extension(p, n, vars, max_n_tuples, false) {
+STRNeg::STRNeg(Problem &p, vec<Variable *> &vars, size_t max_n_tuples) : Extension(p, vars, max_n_tuples, false) {
     type = "Extension - Neg";
 }
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
-    : Extension(p, n, vars, false, tuplesFromOtherConstraint) {
+STRNeg::STRNeg(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
+    : Extension(p, vars, false, tuplesFromOtherConstraint) {
     type = "Extension - Neg";
 }
 

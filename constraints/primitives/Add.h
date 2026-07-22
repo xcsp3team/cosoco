@@ -11,7 +11,7 @@ class Lt : public Binary {
    public:
     int k;
     // Constructors
-    Lt(Problem &p, std::string n, Variable *xx, Variable *yy, int k = 0);
+    Lt(Problem &p, Variable *xx, Variable *yy, int k = 0);
 
     // filtering
     bool filter(Variable *x) override;
@@ -28,7 +28,7 @@ class Add3 : public Ternary {
     vec<int> rzx;
 
    public:
-    Add3(Problem &p, std::string n, Variable *x, Variable *y, Variable *z);
+    Add3(Problem &p, Variable *x, Variable *y, Variable *z);
     // filtering
     bool filter(Variable *x) override;
 

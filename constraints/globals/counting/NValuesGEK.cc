@@ -113,5 +113,4 @@ long NValuesGEK::computeScore(vec<int> &solution) { return countDistinct(solutio
 //----------------------------------------------
 
 
-NValuesGEK::NValuesGEK(Problem &p, std::string n, vec<Variable *> &vars, int kk)
-    : GlobalConstraint(p, n, "NValues >= k", vars), k(kk) { }
+NValuesGEK::NValuesGEK(Problem &p, vec<Variable *> &vars, int kk) : GlobalConstraint(p, "NValues >= k", vars), k(kk) { }

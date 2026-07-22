@@ -181,14 +181,14 @@ void CompactTable::notifyFullBacktrack() {
 // Constructors and initialisation
 //----------------------------------------------
 
-CompactTable::CompactTable(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &vars, size_t max_n_tuples)
-    : Extension(p, n, vars, max_n_tuples, true), nonZeros() {
+CompactTable::CompactTable(Cosoco::Problem &p, vec<Cosoco::Variable *> &vars, size_t max_n_tuples)
+    : Extension(p, vars, max_n_tuples, true), nonZeros() {
     type = "Extension - CT";
 }
 
 
-CompactTable::CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
-    : Extension(p, n, vars, true, tuplesFromOtherConstraint), nonZeros() {
+CompactTable::CompactTable(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
+    : Extension(p, vars, true, tuplesFromOtherConstraint), nonZeros() {
     type = "Extension - CT";
 }
 

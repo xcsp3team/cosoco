@@ -7,7 +7,7 @@ namespace Cosoco {
 class MaximumConstantLE : public MaximumConstant {
     bool done;   // TODO transform and use entail...
    public:
-    MaximumConstantLE(Problem &p, std::string n, vec<Variable *> &vars, int kk) : MaximumConstant(p, n, vars, kk), done(false) {
+    MaximumConstantLE(Problem &p, vec<Variable *> &vars, int kk) : MaximumConstant(p, vars, kk), done(false) {
         type = "Maximum Constant LE";
     }
 

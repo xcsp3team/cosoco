@@ -139,13 +139,13 @@ bool XeqXor::filter(Variable *dummy) {
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
-Xor::Xor(Problem &p, std::string n, vec<Variable *> &vars) : GlobalConstraint(p, n, "XOR", vars) {
+Xor::Xor(Problem &p, vec<Variable *> &vars) : GlobalConstraint(p, "XOR", vars) {
     sentinel1 = vars[0];
     sentinel2 = vars[1];
 }
 
-XeqXor::XeqXor(Problem &p, std::string n, vec<Variable *> &_vars, Variable *xx)
-    : GlobalConstraint(p, n, "X = Xor", createScopeVec(&_vars, xx)), x(xx) {
+XeqXor::XeqXor(Problem &p, vec<Variable *> &_vars, Variable *xx)
+    : GlobalConstraint(p, "X = Xor", createScopeVec(&_vars, xx)), x(xx) {
     _vars.copyTo(vars);
     sentinel1 = vars[0];
     sentinel2 = vars[1];

@@ -16,11 +16,10 @@ using namespace Cosoco;
 
 
 // Constructors and delayed initialisation
-Constraint::Constraint(Problem &p, std::string n)
-    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
+Constraint::Constraint(Problem &p) : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
 
-Constraint::Constraint(Problem &p, std::string n, vec<Variable *> &vars)
-    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
+Constraint::Constraint(Problem &p, vec<Variable *> &vars)
+    : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
     addToScope(vars);
 }
 
@@ -207,7 +206,7 @@ void Constraint::toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &s
 
 // Display
 void Constraint::display(bool allDetails) {
-    printf("Constraint {%s} %s : [", (typeid(*this).name()) + 9, name.c_str());   // 9 to remove namespace...
+    printf("Constraint %d (%s) : [", idc, (typeid(*this).name()) + 9);   // 9 to remove namespace...
     for(int i = 0; i < scope.size(); i++) printf(" %s ", scope[i]->name());
     printf("]\n");
 }

@@ -21,7 +21,7 @@ class CardinalityF : public GlobalConstraint {
 
    public:
     // A weak cardinality filtering used when list is too big
-    CardinalityF(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<Variable *> &o);
+    CardinalityF(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<Variable *> &o);
 
 
     // Filtering method, return false if a conflict occurs

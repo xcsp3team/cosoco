@@ -40,7 +40,7 @@ long GEUnary::computeScore(vec<int> &solution) { return solution[0]; }
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
-GEUnary::GEUnary(Problem &p, std::string n, Variable *xx, int kk) : Constraint(p, n), k(kk) {
+GEUnary::GEUnary(Problem &p, Variable *xx, int kk) : Constraint(p), k(kk) {
     addToScope(xx);
     type = "X >= k";
 }

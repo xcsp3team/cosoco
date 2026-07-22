@@ -10,8 +10,7 @@ class Sum : public GlobalConstraint {
     long      limit;
     vec<long> coefficients;
 
-    Sum(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l)
-        : GlobalConstraint(p, n, "Sum", vars), limit(l) {
+    Sum(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : GlobalConstraint(p, "Sum", vars), limit(l) {
         for(int c : coefs) coefficients.push(c);
         isPostponable = true;
     }

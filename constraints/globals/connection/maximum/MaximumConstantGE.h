@@ -10,10 +10,10 @@ class MaximumConstantGE : public MaximumConstant {
     int sentinel1, sentinel2;
 
    public:
-    MaximumConstantGE(Problem &p, std::string n, vec<Variable *> &vars, int kk) : MaximumConstant(p, n, vars, kk) {
+    MaximumConstantGE(Problem &p, vec<Variable *> &vars, int kk) : MaximumConstant(p, vars, kk) {
         sentinel1 = 0;
         sentinel2 = vars.size() - 1;
-        type = "Maximum Constant GE";
+        type      = "Maximum Constant GE";
     }
 
 

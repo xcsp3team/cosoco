@@ -196,7 +196,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 callbacks.buildConstraintFalse("false");
                 return;
             }
-            FactoryConstraints::createConstraintUnary(callbacks.problem, id, x, values, true);
+            FactoryConstraints::createConstraintUnary(callbacks.problem, x, values, true);
             return;
         }
 
@@ -274,7 +274,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
         std::cout << " arity: " << tree->arity() << "\n";
     }
     // This is the end... nothing else than an intension constraint
-    FactoryConstraints::createConstraintIntension(callbacks.problem, id, tree, scope);
+    FactoryConstraints::createConstraintIntension(callbacks.problem, tree, scope);
 }
 
 /********************************************************************************************************************/
@@ -457,7 +457,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
 
     callbacks.nbIntension2Extention++;
     if(existInCacheExtension(expr, scope)) {   // expression is in cache
-        FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope, cachedExtensions[expr]);
+        FactoryConstraints::createConstraintExtensionAs(callbacks.problem, scope, cachedExtensions[expr]);
         return true;
     }
 
@@ -501,17 +501,17 @@ static bool createXopYk(Problem *problem, ExpressionType ope, std::string x, std
 
     if(k == 0 && (op == XCSP3Core::EQ || op == NE)) {
         if(op == XCSP3Core::EQ)
-            FactoryConstraints::createConstraintAllEqual(problem, "", vars);
+            FactoryConstraints::createConstraintAllEqual(problem, vars);
         else
-            FactoryConstraints::createConstraintAllDiff(problem, "", vars);
+            FactoryConstraints::createConstraintAllDiff(problem, vars);
         return true;
     }
     if(op == LE || op == LT) {
-        FactoryConstraints::createConstraintLessThan(problem, "", vars[0], k, vars[1], op == LT);
+        FactoryConstraints::createConstraintLessThan(problem, vars[0], k, vars[1], op == LT);
         return true;
     }
     if(op == XCSP3Core::EQ) {
-        FactoryConstraints::createConstraintXeqYplusk(problem, "", vars[0], vars[1], k);
+        FactoryConstraints::createConstraintXeqYplusk(problem, vars[0], vars[1], k);
         return true;
     }
     return false;
@@ -528,19 +528,19 @@ class PUnary1 : public Primitive {   // x <op> k
         if(operators[0] == OEQ || operators[0] == ONE) {
             vec<int> values;
             values.push(constants[0]);
-            FactoryConstraints::createConstraintUnary(callbacks.problem, id, callbacks.problem->mapping[variables[0]], values,
+            FactoryConstraints::createConstraintUnary(callbacks.problem, callbacks.problem->mapping[variables[0]], values,
                                                       operators[0] == OEQ);
             return true;
         }
 
 
         if(operators[0] == OLE) {
-            FactoryConstraints::createConstraintUnaryLE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintUnaryLE(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                         constants[0]);
             return true;
         }
         if(operators[0] == OGE) {
-            FactoryConstraints::createConstraintUnaryGE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintUnaryGE(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                         constants[0]);
             return true;
         }
@@ -557,20 +557,20 @@ class PUnary2 : public Primitive {   // x <op> k
         if(operators[0] == OEQ || operators[0] == ONE) {
             vec<int> values;
             values.push(constants[0]);
-            FactoryConstraints::createConstraintUnary(callbacks.problem, id, callbacks.problem->mapping[variables[0]], values,
+            FactoryConstraints::createConstraintUnary(callbacks.problem, callbacks.problem->mapping[variables[0]], values,
                                                       operators[0] == OEQ);
             return true;
         }
 
 
         if(operators[0] == OGE) {
-            FactoryConstraints::createConstraintUnaryLE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintUnaryLE(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                         constants[0]);
             return true;
         }
 
         if(operators[0] == OLE) {
-            FactoryConstraints::createConstraintUnaryGE(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintUnaryGE(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                         constants[0]);
             return true;
         }
@@ -677,12 +677,12 @@ class PBinary6 : public Primitive {   // x=  (y = 3)
 
     bool post() override {
         if(operators[0] == XCSP3Core::OEQ) {
-            FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+            FactoryConstraints::createConstraintXeqYeqK(callbacks.problem, callbacks.problem->mapping[variables[1]],
                                                         callbacks.problem->mapping[variables[0]], constants[0]);
             return true;
         }
         if(operators[0] == XCSP3Core::ONE) {
-            FactoryConstraints::createConstraintXeqYneK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+            FactoryConstraints::createConstraintXeqYneK(callbacks.problem, callbacks.problem->mapping[variables[1]],
                                                         callbacks.problem->mapping[variables[0]], constants[0]);
             return true;
         }
@@ -708,7 +708,7 @@ class PBinary7 : public Primitive {   // x=  mul(y,y)
         string expr = "eq(mul(a,a),b)";
 
         if(callbacks.manageIntension->existInCacheExtension(expr, scope)) {   // expression is in cache
-            FactoryConstraints::createConstraintExtensionAs(callbacks.problem, id, scope,
+            FactoryConstraints::createConstraintExtensionAs(callbacks.problem, scope,
                                                             callbacks.manageIntension->cachedExtensions[expr]);
 
             callbacks.nbIntension2Extention++;
@@ -731,7 +731,7 @@ class PBinary8 : public Primitive {   // x=  (y <= 3)
 
 
     bool post() override {
-        FactoryConstraints::createConstraintXeqKleY(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+        FactoryConstraints::createConstraintXeqKleY(callbacks.problem, callbacks.problem->mapping[variables[1]],
                                                     callbacks.problem->mapping[variables[0]], constants[0]);
         return true;
     }
@@ -743,7 +743,7 @@ class PBinary9 : public Primitive {   // x=  (3 <= z)
 
 
     bool post() override {
-        FactoryConstraints::createConstraintXeqYleK(callbacks.problem, id, callbacks.problem->mapping[variables[1]],
+        FactoryConstraints::createConstraintXeqYleK(callbacks.problem, callbacks.problem->mapping[variables[1]],
                                                     callbacks.problem->mapping[variables[0]], constants[0]);
         return true;
     }
@@ -757,7 +757,7 @@ class PBinary10 : public Primitive {   // x=  (3 <= z)
     bool post() override {
         if(variables.size() != 3 || variables[0] != variables[1])
             return false;
-        FactoryConstraints::createConstraintXeqMinSubY(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+        FactoryConstraints::createConstraintXeqMinSubY(callbacks.problem, callbacks.problem->mapping[variables[2]],
                                                        callbacks.problem->mapping[variables[0]], constants[0]);
         return true;
     }
@@ -772,12 +772,12 @@ class PBinary11 : public Primitive {   // x=  (3 <= z)
 
     bool post() override {
         if(operators[0] == OEQ) {
-            FactoryConstraints::createConstraintDistXYeqK(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintDistXYeqK(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                           callbacks.problem->mapping[variables[1]], constants[0]);
             return true;
         }
         if(operators[0] == ONE) {
-            FactoryConstraints::createConstraintDistXYneK(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintDistXYneK(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                           callbacks.problem->mapping[variables[1]], constants[0]);
             return true;
         }
@@ -818,7 +818,7 @@ class PTernary1 : public Primitive {   // x = y <op> 3
             return false;
 
         if(operators[1] == ODIST) {
-            FactoryConstraints::createConstraintDistXYeqZ(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+            FactoryConstraints::createConstraintDistXYeqZ(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                           callbacks.problem->mapping[variables[1]],
                                                           callbacks.problem->mapping[variables[2]]);
             return true;
@@ -829,25 +829,25 @@ class PTernary1 : public Primitive {   // x = y <op> 3
             return true;
         }
         if(operators[1] == OLE) {
-            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+            FactoryConstraints::createReification(callbacks.problem, callbacks.problem->mapping[variables[2]],
                                                   callbacks.problem->mapping[variables[0]],
                                                   callbacks.problem->mapping[variables[1]], operators[1]);
             return true;
         }
         if(operators[1] == OLT) {
-            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+            FactoryConstraints::createReification(callbacks.problem, callbacks.problem->mapping[variables[2]],
                                                   callbacks.problem->mapping[variables[0]],
                                                   callbacks.problem->mapping[variables[1]], operators[1]);
             return true;
         }
         if(operators[1] == OEQ) {
-            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+            FactoryConstraints::createReification(callbacks.problem, callbacks.problem->mapping[variables[2]],
                                                   callbacks.problem->mapping[variables[0]],
                                                   callbacks.problem->mapping[variables[1]], operators[1]);
             return true;
         }
         if(operators[1] == ONE) {
-            FactoryConstraints::createReification(callbacks.problem, id, callbacks.problem->mapping[variables[2]],
+            FactoryConstraints::createReification(callbacks.problem, callbacks.problem->mapping[variables[2]],
                                                   callbacks.problem->mapping[variables[0]],
                                                   callbacks.problem->mapping[variables[1]], operators[1]);
             return true;
@@ -901,7 +901,7 @@ class PTernary4 : public Primitive {   // x * y = z
 
 
     bool post() override {
-        FactoryConstraints::createConstraintMulEQ(callbacks.problem, id, callbacks.problem->mapping[variables[0]],
+        FactoryConstraints::createConstraintMulEQ(callbacks.problem, callbacks.problem->mapping[variables[0]],
                                                   callbacks.problem->mapping[variables[1]],
                                                   callbacks.problem->mapping[variables[2]]);
         return true;
@@ -935,7 +935,7 @@ class PQuater1 : public Primitive {
                 tuples.last().push(vars[3]->domain.toIdv(val));
             }
         }
-        FactoryConstraints::createConstraintExtension(callbacks.problem, "", vars, tuples, true, true);
+        FactoryConstraints::createConstraintExtension(callbacks.problem, vars, tuples, true, true);
         return true;
     }
 };
@@ -947,7 +947,7 @@ class PQuater2 : public Primitive {
     bool post() override {
         vec<Variable *> vars;
         for(const auto &v : variables) vars.push(callbacks.problem->mapping[v]);
-        FactoryConstraints::createConstraintDoubleDiff(callbacks.problem, id, vars[0], vars[1], vars[2], vars[3]);
+        FactoryConstraints::createConstraintDoubleDiff(callbacks.problem, vars[0], vars[1], vars[2], vars[3]);
         return true;
     }
 };
@@ -958,7 +958,7 @@ class PQuater3 : public Primitive {
     bool post() override {
         vec<Variable *> vars;
         for(const auto &v : variables) vars.push(callbacks.problem->mapping[v]);
-        FactoryConstraints::createConstraintDoubleDiff(callbacks.problem, id, vars[0], vars[1], vars[2], vars[3]);
+        FactoryConstraints::createConstraintDoubleDiff(callbacks.problem, vars[0], vars[1], vars[2], vars[3]);
         return true;
     }
 };
@@ -976,7 +976,7 @@ class PQuater4 : public Primitive {   // See FoxCorn Mzn.. To be
         coeffs.push(-1);
         coeffs.push(-1);
 
-        FactoryConstraints::createConstraintSum(callbacks.problem, id, vars, coeffs, 0, LE);
+        FactoryConstraints::createConstraintSum(callbacks.problem, vars, coeffs, 0, LE);
         return true;
     }
 };
@@ -999,7 +999,7 @@ class PNary1 : public FakePrimitive {
             vec<Cosoco::BasicNode *> nodes;
             vec<Variable *>          vars;
             callbacks.createArrays(canonized->root->parameters, vars, nodes);
-            FactoryConstraints::createConstraintGenOr(callbacks.problem, id, vars, nodes);
+            FactoryConstraints::createConstraintGenOr(callbacks.problem, vars, nodes);
             return true;
         }
 
@@ -1016,9 +1016,9 @@ class PNary1 : public FakePrimitive {
             auto     *nv = dynamic_cast<NodeVariable *>(canonized->root->parameters[1]);
             Variable *r  = callbacks.problem->mapping[nv->var];
             if(canonized->root->parameters[0]->type == OOR)
-                FactoryConstraints::createConstraintXeqGenOr(callbacks.problem, id, r, vars, nodes);
+                FactoryConstraints::createConstraintXeqGenOr(callbacks.problem, r, vars, nodes);
             if(canonized->root->parameters[0]->type == OAND)
-                FactoryConstraints::createConstraintXeqGenAnd(callbacks.problem, id, r, vars, nodes);
+                FactoryConstraints::createConstraintXeqGenAnd(callbacks.problem, r, vars, nodes);
             return true;
         }
         return false;
@@ -1040,9 +1040,9 @@ class PNary2 : public FakePrimitive {   // or(x1,x2,x3..)
                 cl.push(callbacks.problem->mapping[nv->var]);
             }
             if(canonized->root->type == OOR)
-                FactoryConstraints::createConstraintAtLeast(callbacks.problem, id, cl, 1, 1);
+                FactoryConstraints::createConstraintAtLeast(callbacks.problem, cl, 1, 1);
             if(canonized->root->type == OXOR)
-                FactoryConstraints::createConstraintXor(callbacks.problem, id, cl);
+                FactoryConstraints::createConstraintXor(callbacks.problem, cl);
             return true;
         }
         return false;
@@ -1068,9 +1068,9 @@ class PNary3 : public FakePrimitive {   // x = min(x1,x2,x3..)
         }
         Variable *value = callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var];
         if(canonized->root->parameters[0]->type == OMIN)
-            FactoryConstraints::createConstraintMinimumVariableEQ(callbacks.problem, id, vars, value);
+            FactoryConstraints::createConstraintMinimumVariableEQ(callbacks.problem, vars, value);
         if(canonized->root->parameters[0]->type == OMAX)
-            FactoryConstraints::createConstraintMaximumVariableEQ(callbacks.problem, id, vars, value);
+            FactoryConstraints::createConstraintMaximumVariableEQ(callbacks.problem, vars, value);
         return true;
     }
 };
@@ -1101,13 +1101,13 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
                 sumBoolean = false;
         if(sumBoolean && canonized->root->type == OEQ && canonized->root->parameters[1]->type == ODECIMAL) {
             int k = (dynamic_cast<NodeConstant *>(canonized->root->parameters[1]))->val;
-            FactoryConstraints::createConstraintSumBooleanEQ(callbacks.problem, id, vars, -sum + k);
+            FactoryConstraints::createConstraintSumBooleanEQ(callbacks.problem, vars, -sum + k);
             return true;
         }
 
         if(sumBoolean && canonized->root->type == OLE && canonized->root->parameters[1]->type == ODECIMAL) {
             int k = (dynamic_cast<NodeConstant *>(canonized->root->parameters[1]))->val;
-            FactoryConstraints::createConstraintSumBooleanLE(callbacks.problem, id, vars, -sum + k);
+            FactoryConstraints::createConstraintSumBooleanLE(callbacks.problem, vars, -sum + k);
             return true;
         }
         coefs.growTo(vars.size(), 1);
@@ -1118,7 +1118,7 @@ class PNary4 : public FakePrimitive {   // eq(add(__av1__,x[0],110),__av0__)
         } else {
             k = (dynamic_cast<NodeConstant *>(canonized->root->parameters[1]))->val;
         }
-        FactoryConstraints::createConstraintSum(callbacks.problem, id, vars, coefs, -sum + k,
+        FactoryConstraints::createConstraintSum(callbacks.problem, vars, coefs, -sum + k,
                                                 expressionTypeToOrderType(canonized->root->type));
         return true;
     }
@@ -1143,11 +1143,11 @@ class PNary5 : public FakePrimitive {   // eq(and(__av1__,x[0],110),__av0__)
         }
         if(canonized->root->parameters[0]->type == OAND)
             FactoryConstraints::createConstraintXeqAndY(
-                callbacks.problem, id,
+                callbacks.problem,
                 callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var], vars);
         if(canonized->root->parameters[0]->type == OXOR)
             FactoryConstraints::createConstraintXeqXor(
-                callbacks.problem, id,
+                callbacks.problem,
                 callbacks.problem->mapping[(dynamic_cast<NodeVariable *>(canonized->root->parameters[1]))->var], vars);
         return true;
     }

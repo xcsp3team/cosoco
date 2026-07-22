@@ -99,8 +99,7 @@ bool Mult3EQ::filter(Variable *dummy) {
         int v3 = x->maximum() * y->minimum(), v4 = x->maximum() * y->maximum();
         int min1 = std::min(v1, v2), max1 = std::max(v1, v2);
         int min2 = std::min(v3, v4), max2 = std::max(v3, v4);
-        if(solver->delValuesLE(z, std::min(min1, min2) - 1) == false ||
-           solver->delValuesGE(z, std::max(max1, max2) + 1) == false)
+        if(solver->delValuesLE(z, std::min(min1, min2) - 1) == false || solver->delValuesGE(z, std::max(max1, max2) + 1) == false)
             return false;
 
         if(enforceMulGE(x, y, z->minimum()) && enforceMulLE(x, y, z->maximum()) == false)
@@ -217,7 +216,7 @@ bool Mult3EQ::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-Mult3EQ::Mult3EQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+Mult3EQ::Mult3EQ(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     type = "X * Y = Z";
     std::cout << xx->_name << " " << yy->_name << " " << zz->_name << "\n";
     rx.growTo(x->domain.maxSize(), 0);

@@ -11,7 +11,7 @@ class SumGE : public Sum, public ObjectiveConstraint {
     void computeBounds();
 
    public:
-    SumGE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
+    SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
     bool filter(Variable *x) override;
 
 

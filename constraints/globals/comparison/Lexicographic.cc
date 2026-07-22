@@ -127,8 +127,8 @@ void Lexicographic::setTime(int posx, int v) {
 //----------------------------------------------
 
 
-Lexicographic::Lexicographic(Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY, bool st)
-    : GlobalConstraint(p, n, "Lex", Constraint::createScopeVec(&XX, &YY)), strict(st), time(0) {
+Lexicographic::Lexicographic(Problem &p, vec<Variable *> &XX, vec<Variable *> &YY, bool st)
+    : GlobalConstraint(p, "Lex", Constraint::createScopeVec(&XX, &YY)), strict(st), time(0) {
     XX.copyTo(X);
     YY.copyTo(Y);
     times.growTo(scope.size(), 0);

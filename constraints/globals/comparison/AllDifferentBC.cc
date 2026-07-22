@@ -30,7 +30,7 @@ bool AllDifferentBC::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-AllDifferentBC::AllDifferentBC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
+AllDifferentBC::AllDifferentBC(Problem &p, vec<Variable *> &vars) : AllDifferent(p, vars) {
     type   = "AllDifferentBC";
     int sz = scope.size();
     t.growTo(2 * sz + 2, 0);

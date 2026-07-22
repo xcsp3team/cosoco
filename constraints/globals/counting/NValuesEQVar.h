@@ -16,7 +16,7 @@ class NValuesEQVar : public GlobalConstraint {
     std::set<int> fixedValues;
     std::set<int> unfixedVariables;
 
-    NValuesEQVar(Problem &p, std::string n, vec<Variable *> &vars, Variable *x);
+    NValuesEQVar(Problem &p, vec<Variable *> &vars, Variable *x);
 
     bool filter(Variable *x) override;
     void initializeSets();

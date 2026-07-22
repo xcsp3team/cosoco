@@ -21,7 +21,7 @@ class DistinctVectors : public GlobalConstraint {
     void handlePossibleInferenceFor(int sentinel);
 
    public:
-    DistinctVectors(Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY);
+    DistinctVectors(Problem &p, vec<Variable *> &XX, vec<Variable *> &YY);
 
     bool isCorrectlyDefined() override;
 

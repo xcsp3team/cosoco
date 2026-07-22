@@ -186,8 +186,8 @@ long Cumulative::taskVolume() {
 }
 
 
-Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int lm)
-    : GlobalConstraint(p, n, "Cumulative", scope), timetableReasoner(*this) {
+Cumulative::Cumulative(Problem &p, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int lm)
+    : GlobalConstraint(p, "Cumulative", scope), timetableReasoner(*this) {
     limit         = lm;
     isPostponable = true;
     vars.copyTo(starts);

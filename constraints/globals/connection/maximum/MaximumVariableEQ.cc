@@ -52,8 +52,7 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
     }
 
     // filtering the domain of the Min variable
-    if(solver->delValuesGE(value, maxLast + 1) == false ||
-       solver->delValuesLE(value, maxFirst - 1) == false)
+    if(solver->delValuesGE(value, maxLast + 1) == false || solver->delValuesLE(value, maxFirst - 1) == false)
         return false;
 
 
@@ -97,8 +96,7 @@ bool MaximumVariableEQ::filter(Variable *dummy) {
 // Constructor and initialisation methods
 //----------------------------------------------
 
-MaximumVariableEQ::MaximumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *v)
-    : MaximumVariable(p, n, vars, v) {
+MaximumVariableEQ::MaximumVariableEQ(Problem &p, vec<Variable *> &vars, Variable *v) : MaximumVariable(p, vars, v) {
     value = v;
     vars.copyTo(list);
     sentinels.growTo(value->domain.maxSize());

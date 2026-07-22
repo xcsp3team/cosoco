@@ -130,8 +130,8 @@ bool NoOverlap::findSupport(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &
 // Construction and initialisation
 //----------------------------------------------
 
-NoOverlap::NoOverlap(Problem &pb, std::string &n, vec<Variable *> &X, vec<int> &w, vec<Variable *> &Y, vec<int> &h)
-    : GlobalConstraint(pb, n, "NoOverlap", Constraint::createScopeVec(&X, &Y)) {
+NoOverlap::NoOverlap(Problem &pb, vec<Variable *> &X, vec<int> &w, vec<Variable *> &Y, vec<int> &h)
+    : GlobalConstraint(pb, "NoOverlap", Constraint::createScopeVec(&X, &Y)) {
     X.copyTo(xs);
     Y.copyTo(ys);
     w.copyTo(widths);

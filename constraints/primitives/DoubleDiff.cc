@@ -77,8 +77,8 @@ bool DoubleDiff::filter(Variable *dummy) {
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
-DoubleDiff::DoubleDiff(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2)
-    : Constraint(p, n, createScopeVec(xx1, xx2, yy1, yy2)) {
+DoubleDiff::DoubleDiff(Problem &p, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2)
+    : Constraint(p, createScopeVec(xx1, xx2, yy1, yy2)) {
     type      = "DoubleDiff";
     sentinel1 = 0;
     sentinel2 = 1;

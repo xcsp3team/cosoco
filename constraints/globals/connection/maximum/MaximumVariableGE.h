@@ -5,7 +5,7 @@
 
 namespace Cosoco {
 class MaximumVariableGE : public MaximumVariable {
-    MaximumVariableGE(Problem &p, std::string n, vec<Variable *> &vars, Variable *v) : MaximumVariable(p, n, vars, v) { }
+    MaximumVariableGE(Problem &p, vec<Variable *> &vars, Variable *v) : MaximumVariable(p, vars, v) { }
 
 
     // Filtering method, return false if a conflict occurs

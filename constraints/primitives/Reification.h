@@ -12,7 +12,7 @@
 namespace Cosoco {
 class ReifLE : public Ternary {
    public:
-    ReifLE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    ReifLE(Problem &p, Variable *xx, Variable *yy, Variable *zz);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -20,7 +20,7 @@ class ReifLE : public Ternary {
 
 class ReifLT : public Ternary {
    public:
-    ReifLT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    ReifLT(Problem &p, Variable *xx, Variable *yy, Variable *zz);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -28,7 +28,7 @@ class ReifLT : public Ternary {
 class ReifEQ : public Ternary {
    public:
     int residue;
-    ReifEQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    ReifEQ(Problem &p, Variable *xx, Variable *yy, Variable *zz);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -36,7 +36,7 @@ class ReifEQ : public Ternary {
 class ReifNE : public Ternary {
    public:
     int residue;
-    ReifNE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    ReifNE(Problem &p, Variable *xx, Variable *yy, Variable *zz);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -44,7 +44,7 @@ class ReifNE : public Ternary {
 class XeqYeqK : public Binary {
    public:
     int k;
-    XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    XeqYeqK(Problem &p, Variable *xx, Variable *yy, int k);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -52,7 +52,7 @@ class XeqYeqK : public Binary {
 class XeqYneK : public Binary {
    public:
     int k;
-    XeqYneK(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    XeqYneK(Problem &p, Variable *xx, Variable *yy, int k);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -61,7 +61,7 @@ class XeqYneK : public Binary {
 class XeqKleY : public Binary {
    public:
     int k;
-    XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    XeqKleY(Problem &p, Variable *xx, Variable *yy, int k);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -69,7 +69,7 @@ class XeqKleY : public Binary {
 class XeqYleK : public Binary {
    public:
     int k;
-    XeqYleK(Problem &p, std::string n, Variable *xx, Variable *yy, int k);
+    XeqYleK(Problem &p, Variable *xx, Variable *yy, int k);
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
@@ -81,7 +81,7 @@ class XeqAndY : public Constraint {
    public:
     Variable       *x;
     vec<Variable *> list;
-    XeqAndY(Problem &p, std::string n, vec<Variable *> &vars);
+    XeqAndY(Problem &p, vec<Variable *> &vars);
     bool      filter(Variable *x) override;
     bool      isSatisfiedBy(vec<int> &tuple) override;
     Variable *findSentinel(Variable *other);
@@ -91,7 +91,7 @@ class XeqAndY : public Constraint {
 class XeqMinSubkYY : public Binary {
    public:
     int k;
-    XeqMinSubkYY(Problem &p, std::string n, Variable *xx, Variable *yy, int kk);
+    XeqMinSubkYY(Problem &p, Variable *xx, Variable *yy, int kk);
     bool isCorrectlyDefined() override;
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;

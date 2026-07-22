@@ -15,7 +15,7 @@ class SumBoolean : public GlobalConstraint, public ObjectiveConstraint {
    public:
     long limit;
 
-    SumBoolean(Problem &p, std::string n, vec<Variable *> &vars, long l);
+    SumBoolean(Problem &p, vec<Variable *> &vars, long l);
     bool        isCorrectlyDefined() override;
     static long sum(vec<int> &tuple);
 
@@ -29,21 +29,21 @@ class SumBoolean : public GlobalConstraint, public ObjectiveConstraint {
 
 class SumBooleanEQ : public SumBoolean {
    public:
-    SumBooleanEQ(Problem &p, std::string n, vec<Variable *> &vars, long l);
+    SumBooleanEQ(Problem &p, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 };
 
 class SumBooleanLE : public SumBoolean {
    public:
-    SumBooleanLE(Problem &p, std::string n, vec<Variable *> &vars, long l);
+    SumBooleanLE(Problem &p, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 };
 
 class SumBooleanGE : public SumBoolean {
    public:
-    SumBooleanGE(Problem &p, std::string n, vec<Variable *> &vars, long l);
+    SumBooleanGE(Problem &p, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 };
@@ -53,7 +53,7 @@ class SumBooleanGen : public GlobalConstraint, public ObjectiveConstraint {
     long             limit;
     vec<BasicNode *> nodes;
 
-    SumBooleanGen(Problem &p, std::string n, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
+    SumBooleanGen(Problem &p, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
     bool isCorrectlyDefined() override;
 
     // Functions related to Objective constraint
@@ -65,21 +65,21 @@ class SumBooleanGen : public GlobalConstraint, public ObjectiveConstraint {
 
 class SumBooleanGenLE : public SumBooleanGen {
    public:
-    SumBooleanGenLE(Problem &p, std::string n, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
+    SumBooleanGenLE(Problem &p, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 };
 
 class SumBooleanGenGE : public SumBooleanGen {
    public:
-    SumBooleanGenGE(Problem &p, std::string n, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
+    SumBooleanGenGE(Problem &p, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 };
 
 class SumBooleanGenEQ : public SumBooleanGen {
    public:
-    SumBooleanGenEQ(Problem &p, std::string n, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
+    SumBooleanGenEQ(Problem &p, vec<BasicNode *> &nodes, vec<Variable *> &vars, long l);
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
 };

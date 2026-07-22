@@ -50,8 +50,8 @@ bool ElementConstant::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-ElementConstant::ElementConstant(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, int kk, bool one)
-    : Element(p, n, "Element Constant", Constraint::createScopeVec(&vars, i), i, one), result(kk) {
+ElementConstant::ElementConstant(Problem &p, vec<Variable *> &vars, Variable *i, int kk, bool one)
+    : Element(p, "Element Constant", Constraint::createScopeVec(&vars, i), i, one), result(kk) {
     szVector    = vars.size();
     indexInList = vars.firstOccurrenceOf(i);
 }

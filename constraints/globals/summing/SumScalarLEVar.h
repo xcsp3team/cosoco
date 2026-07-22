@@ -10,7 +10,7 @@ namespace Cosoco {
 class SumScalarLEVar : public SumScalar {
    public:
     Variable *limit;
-    SumScalarLEVar(Problem &p, std::string n, vec<Variable *> &variables, vec<Variable *> &coefs, Variable *z);
+    SumScalarLEVar(Problem &p, vec<Variable *> &variables, vec<Variable *> &coefs, Variable *z);
 
     bool isCorrectlyDefined() override;
 

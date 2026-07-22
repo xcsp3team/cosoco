@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <regex>
+#include <utility>
 
 #include "Among.h"
 #include "BinPacking.h"
@@ -93,39 +94,39 @@ Verbose verbose;
 // Basic constraints
 //--------------------------------------------------------------------------------------
 
-Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
-                                                       bool isSupport, bool hasStar) {
+Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, vec<Variable *> &vars, vec<vec<int>> &tuples, bool isSupport,
+                                                       bool hasStar) {
     Extension *ctr = nullptr;
 
     if(tuples.size() == 1 && isSupport == false) {
-        p->addConstraint(new NoGood(*p, name, vars, tuples[0]));
+        p->addConstraint(new NoGood(*p, vars, tuples[0]));
         return nullptr;
     }
     if(vars.size() == 2) {
         int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
 
         if(isSupport && max_size > options::intConstants["large_bin_extension"])
-            ctr = new BinaryExtensionSupport(*p, name, isSupport, vars[0], vars[1]);
+            ctr = new BinaryExtensionSupport(*p, isSupport, vars[0], vars[1]);
         else {
-            ctr = new BinaryExtension(*p, name, isSupport, vars[0], vars[1]);
+            ctr = new BinaryExtension(*p, isSupport, vars[0], vars[1]);
         }
 
     } else {
         if(isSupport) {
-            // ctr = new CompactTable(*p, name, vars, tuples.size());
+            // ctr = new CompactTable(*p, vars, tuples.size());
             // std::cout << "WARNING!!!!!! remove false\n";
             if(tuples.size() < options::intConstants["smallNbTuples"])
-                ctr = new STR0(*p, name, vars, tuples.size());
+                ctr = new STR0(*p, vars, tuples.size());
             else {
                 if(hasStar == false && Variable::sumDomainSize(vars) < options::intOptions["ct"].value)
-                    ctr = new CompactTable(*p, name, vars, tuples.size());
+                    ctr = new CompactTable(*p, vars, tuples.size());
                 else {
-                    ctr = new ShortSTR2(*p, name, vars, tuples.size());
+                    ctr = new ShortSTR2(*p, vars, tuples.size());
                 }
             }
         } else {
             assert(hasStar == false);   // TODO
-            ctr = new STRNeg(*p, name, vars, tuples.size());
+            ctr = new STRNeg(*p, vars, tuples.size());
         }
     }
     for(auto &tuple : tuples) ctr->addTuple(tuple);
@@ -134,165 +135,159 @@ Constraint *FactoryConstraints::newExtensionConstraint(Problem *p, std::string n
 }
 
 
-void FactoryConstraints::createConstraintExtensionAs(Problem *p, std::string name, vec<Variable *> &vars, Constraint *c) {
+void FactoryConstraints::createConstraintExtensionAs(Problem *p, vec<Variable *> &vars, Constraint *c) {
     Extension *ctr            = nullptr;
     auto      *sameConstraint = (Extension *)c;
     assert(sameConstraint->scope.size() == vars.size());
     p->nbExtensionsSharded++;
     if(vars.size() == 1) {
-        p->addConstraint(new Unary(*p, name, vars[0], ((Unary *)p->constraints.last())->values,
-                                   ((Unary *)p->constraints.last())->areSupports));
+        p->addConstraint(
+            new Unary(*p, vars[0], ((Unary *)p->constraints.last())->values, ((Unary *)p->constraints.last())->areSupports));
         return;
     }
     auto *noGood = dynamic_cast<NoGood *>(c);
     if(noGood != nullptr) {
-        p->addConstraint(new NoGood(*p, name, vars, noGood->tuple));
+        p->addConstraint(new NoGood(*p, vars, noGood->tuple));
         return;
     }
     if(vars.size() == 2) {
         int max_size = vars[0]->size() > vars[1]->size() ? vars[0]->size() : vars[1]->size();
         if(sameConstraint->isSupport && max_size > options::intConstants["large_bin_extension"])
-            ctr = new BinaryExtensionSupport(*p, name, sameConstraint->isSupport, vars[0], vars[1],
+            ctr = new BinaryExtensionSupport(*p, sameConstraint->isSupport, vars[0], vars[1],
                                              dynamic_cast<BinaryExtensionSupport *>(sameConstraint));
         else {
-            ctr = new BinaryExtension(*p, name, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
+            ctr = new BinaryExtension(*p, sameConstraint->isSupport, vars[0], vars[1], (BinaryExtension *)sameConstraint);
         }
     }
     if(vars.size() > 2) {
         if(sameConstraint->isSupport) {
             if(static_cast<int>(sameConstraint->nbTuples()) < options::intConstants["smallNbTuples"])
-                ctr = new STR0(*p, name, vars, sameConstraint->tuples);
+                ctr = new STR0(*p, vars, sameConstraint->tuples);
             else {
                 if(sameConstraint->hasStar == false && Variable::maxDomainSize(vars) < options::intOptions["ct"].value)
-                    ctr = new CompactTable(*p, name, vars, sameConstraint->tuples);
+                    ctr = new CompactTable(*p, vars, sameConstraint->tuples);
                 else
-                    ctr = new ShortSTR2(*p, name, vars, sameConstraint->tuples);
+                    ctr = new ShortSTR2(*p, vars, sameConstraint->tuples);
             }
         } else
-            ctr = new STRNeg(*p, name, vars, sameConstraint->tuples);
+            ctr = new STRNeg(*p, vars, sameConstraint->tuples);
     }
     ctr->hasStar = sameConstraint->hasStar;
     p->addConstraint(ctr);
 }
 
-void FactoryConstraints::createConstraintExtension(Problem *p, std::string name, vec<Variable *> &vars, vec<vec<int>> &tuples,
-                                                   bool isSupport, bool hasStar) {
-    Constraint *c = newExtensionConstraint(p, name, vars, tuples, isSupport, hasStar);
+void FactoryConstraints::createConstraintExtension(Problem *p, vec<Variable *> &vars, vec<vec<int>> &tuples, bool isSupport,
+                                                   bool hasStar) {
+    Constraint *c = newExtensionConstraint(p, vars, tuples, isSupport, hasStar);
     if(c == nullptr)
         return;
     p->addConstraint(c);
 }
 
 
-void FactoryConstraints::createConstraintXeqAndY(Problem *p, std::string name, Variable *x, vec<Variable *> &l) {
+void FactoryConstraints::createConstraintXeqAndY(Problem *p, Variable *x, vec<Variable *> &l) {
     l.push(x);
-    p->addConstraint(new XeqAndY(*p, name, l));
+    p->addConstraint(new XeqAndY(*p, l));
 }
 
-void FactoryConstraints::createConstraintXeqXor(Problem *p, std::string name, Variable *x, vec<Variable *> &l) {
-    p->addConstraint(new XeqXor(*p, name, l, x));
+void FactoryConstraints::createConstraintXeqXor(Problem *p, Variable *x, vec<Variable *> &l) {
+    p->addConstraint(new XeqXor(*p, l, x));
 }
 
-void FactoryConstraints::createConstraintXeqGenOr(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
-                                                  vec<BasicNode *> &nodes) {
-    p->addConstraint(new xEqGenOr(*p, name, res, vars, nodes));
+void FactoryConstraints::createConstraintXeqGenOr(Problem *p, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    p->addConstraint(new xEqGenOr(*p, res, vars, nodes));
 }
 
-void FactoryConstraints::createConstraintXeqGenAnd(Problem *p, std::string name, Variable *res, vec<Variable *> &vars,
-                                                   vec<BasicNode *> &nodes) {
-    p->addConstraint(new xEqGenAnd(*p, name, res, vars, nodes));
+void FactoryConstraints::createConstraintXeqGenAnd(Problem *p, Variable *res, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    p->addConstraint(new xEqGenAnd(*p, res, vars, nodes));
 }
 
-void FactoryConstraints::createConstraintGenOr(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
-    p->addConstraint(new GenOr(*p, name, vars, nodes));
+void FactoryConstraints::createConstraintGenOr(Problem *p, vec<Variable *> &vars, vec<BasicNode *> &nodes) {
+    p->addConstraint(new GenOr(*p, vars, nodes));
 }
 
-void FactoryConstraints::createConstraintIntension(Problem *p, std::string name, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
-    p->addConstraint(new AdapterAC3rm(new Intension(*p, name, tree, scope)));
+void FactoryConstraints::createConstraintIntension(Problem *p, XCSP3Core::Tree *tree, vec<Variable *> &scope) {
+    p->addConstraint(new AdapterAC3rm(new Intension(*p, tree, scope)));
 }
 
 
-void FactoryConstraints::createConstraintLessThan(Problem *p, std::string name, Variable *x, int k, Variable *y, bool strict) {
+void FactoryConstraints::createConstraintLessThan(Problem *p, Variable *x, int k, Variable *y, bool strict) {
     if(strict)
-        p->addConstraint(new Lt(*p, name, x, y, k));
+        p->addConstraint(new Lt(*p, x, y, k));
     else
-        p->addConstraint(new Le(*p, name, x, y, k));
+        p->addConstraint(new Le(*p, x, y, k));
 }
 
 
-void FactoryConstraints::createConstraintXeqYplusk(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new Cosoco::EQ(*p, name, x, y, k));
+void FactoryConstraints::createConstraintXeqYplusk(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new Cosoco::EQ(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintMulEQ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
-    p->addConstraint(new Mult3EQ(*p, name, x, y, z));
+void FactoryConstraints::createConstraintMulEQ(Problem *p, Variable *x, Variable *y, Variable *z) {
+    p->addConstraint(new Mult3EQ(*p, x, y, z));
 }
 
-void FactoryConstraints::createConstraintDistXYeqZ(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
-    p->addConstraint(new DistXYeqZ(*p, name, x, y, z));
+void FactoryConstraints::createConstraintDistXYeqZ(Problem *p, Variable *x, Variable *y, Variable *z) {
+    p->addConstraint(new DistXYeqZ(*p, x, y, z));
 }
 
-void FactoryConstraints::createConstraintDistXYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new DistEQ(*p, name, x, y, k));
+void FactoryConstraints::createConstraintDistXYeqK(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new DistEQ(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintDistXYneK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new DistNE(*p, name, x, y, k));
+void FactoryConstraints::createConstraintDistXYneK(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new DistNE(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintXeqYeqK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new XeqYeqK(*p, name, x, y, k));
+void FactoryConstraints::createConstraintXeqYeqK(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new XeqYeqK(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintXeqYneK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new XeqYneK(*p, name, x, y, k));
+void FactoryConstraints::createConstraintXeqYneK(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new XeqYneK(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintXeqKleY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new XeqKleY(*p, name, x, y, k));
+void FactoryConstraints::createConstraintXeqKleY(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new XeqKleY(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintXeqYleK(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new XeqYleK(*p, name, x, y, k));
+void FactoryConstraints::createConstraintXeqYleK(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new XeqYleK(*p, x, y, k));
 }
 
-void FactoryConstraints::createConstraintXeqMinSubY(Problem *p, std::string name, Variable *x, Variable *y, int k) {
-    p->addConstraint(new XeqMinSubkYY(*p, name, x, y, k));
+void FactoryConstraints::createConstraintXeqMinSubY(Problem *p, Variable *x, Variable *y, int k) {
+    p->addConstraint(new XeqMinSubkYY(*p, x, y, k));
 }
 
-void FactoryConstraints::createReification(Problem *p, std::string name, Variable *x, Variable *y, Variable *z,
-                                           ExpressionType op) {
+void FactoryConstraints::createReification(Problem *p, Variable *x, Variable *y, Variable *z, ExpressionType op) {
     assert(x != y && x != z && y != z);
     if(op == OLE) {
-        p->addConstraint(new ReifLE(*p, name, x, y, z));
+        p->addConstraint(new ReifLE(*p, x, y, z));
         return;
     }
     if(op == OLT) {
-        p->addConstraint(new ReifLT(*p, name, x, y, z));
+        p->addConstraint(new ReifLT(*p, x, y, z));
         return;
     }
     if(op == OEQ) {
-        p->addConstraint(new ReifEQ(*p, name, x, y, z));
+        p->addConstraint(new ReifEQ(*p, x, y, z));
         return;
     }
     if(op == ONE) {
-        p->addConstraint(new ReifNE(*p, name, x, y, z));
+        p->addConstraint(new ReifNE(*p, x, y, z));
         return;
     }
     assert(false);
 }
 
-void FactoryConstraints::createConstraintXor(Problem *p, std::string name, vec<Variable *> &vars) {
-    p->addConstraint(new Xor(*p, name, vars));
-}
+void FactoryConstraints::createConstraintXor(Problem *p, vec<Variable *> &vars) { p->addConstraint(new Xor(*p, vars)); }
 
-void FactoryConstraints::createConstraintDoubleDiff(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
-                                                    Variable *y2) {
-    p->addConstraint(new DoubleDiff(*p, name, x1, x2, y1, y2));
+void FactoryConstraints::createConstraintDoubleDiff(Problem *p, Variable *x1, Variable *x2, Variable *y1, Variable *y2) {
+    p->addConstraint(new DoubleDiff(*p, x1, x2, y1, y2));
 }
 
 
-void FactoryConstraints::createConstraintMult(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
+void FactoryConstraints::createConstraintMult(Problem *p, Variable *x, Variable *y, Variable *z) {
     if(1 || x == y || x == z || y == z) {
         vec<Variable *> scp;
         if(x == y) {
@@ -307,7 +302,7 @@ void FactoryConstraints::createConstraintMult(Problem *p, std::string name, Vari
                     tuples.last().push(z->domain.toIdv(v * v));
                 }
             }
-            FactoryConstraints::createConstraintExtension(p, name, scp, tuples, true);
+            createConstraintExtension(p, scp, tuples, true);
             return;
         }
         if(x == z) {
@@ -336,7 +331,7 @@ void FactoryConstraints::createConstraintMult(Problem *p, std::string name, Vari
                 }
             }
         }
-        FactoryConstraints::createConstraintExtension(p, name, scp, tuples, true);
+        createConstraintExtension(p, scp, tuples, true);
 
 
         return;
@@ -346,62 +341,54 @@ void FactoryConstraints::createConstraintMult(Problem *p, std::string name, Vari
             scp.push(y);
         if(x != z && y != z)
             scp.push(z);
-        FactoryConstraints::createConstraintIntension(
-            p, name, new Tree("eq(" + z->_name + ",mul(" + x->_name + "," + y->_name + "))"), scp);
+        createConstraintIntension(p, new Tree("eq(" + z->_name + ",mul(" + x->_name + "," + y->_name + "))"), scp);
     } else
-        p->addConstraint(new xTimesyEQz(*p, name, x, y, z));
+        p->addConstraint(new xTimesyEQz(*p, x, y, z));
 }
 
 
-void FactoryConstraints::createConstraintUnary(Problem *p, std::string name, Variable *x, vec<int> &values, bool isSupport) {
-    p->addConstraint(new Unary(*p, name, x, values, isSupport));
+void FactoryConstraints::createConstraintUnary(Problem *p, Variable *x, vec<int> &values, bool isSupport) {
+    p->addConstraint(new Unary(*p, x, values, isSupport));
 }
 
 
-void FactoryConstraints::createConstraintUnaryGE(Problem *p, std::string name, Variable *x, int k) {
-    p->addConstraint(new GEUnary(*p, name, x, k));
-}
+void FactoryConstraints::createConstraintUnaryGE(Problem *p, Variable *x, int k) { p->addConstraint(new GEUnary(*p, x, k)); }
 
 
-void FactoryConstraints::createConstraintUnaryLE(Problem *p, std::string name, Variable *x, int k) {
-    p->addConstraint(new LEUnary(*p, name, x, k));
-}
+void FactoryConstraints::createConstraintUnaryLE(Problem *p, Variable *x, int k) { p->addConstraint(new LEUnary(*p, x, k)); }
 //--------------------------------------------------------------------------------------
 // Language constraints
 //--------------------------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintMDD(Problem *p, std::string name, vec<Variable *> &vars,
-                                             vec<XTransition *> &transitions) {
-    p->addConstraint(new MDDExtension(*p, name, vars, transitions));
+void FactoryConstraints::createConstraintMDD(Problem *p, vec<Variable *> &vars, vec<XTransition *> &transitions) {
+    p->addConstraint(new MDDExtension(*p, vars, transitions));
 }
 
 
-void FactoryConstraints::createConstraintMDD(Problem *p, std::string name, vec<Variable *> &vars, Cosoco::MDD *mdd) {
-    p->addConstraint(new MDDExtension(*p, name, vars, mdd));
+void FactoryConstraints::createConstraintMDD(Problem *p, vec<Variable *> &vars, Cosoco::MDD *mdd) {
+    p->addConstraint(new MDDExtension(*p, vars, mdd));
 }
 
 
-void FactoryConstraints::createConstraintRegular(Problem *p, std::string name, vec<Variable *> &vars, string start,
-                                                 std::vector<string> &final, vec<XTransition *> &transitions) {
-    p->addConstraint(new MDDExtension(*p, name, vars, MDD::buildFromAutomata(name, vars, start, final, transitions)));
+void FactoryConstraints::createConstraintRegular(Problem *p, vec<Variable *> &vars, string start, std::vector<string> &final,
+                                                 vec<XTransition *> &transitions) {
+    p->addConstraint(new MDDExtension(*p, vars, MDD::buildFromAutomata(vars, std::move(start), final, transitions)));
 }
 
 //--------------------------------------------------------------------------------------
 // Circuit constraints
 //--------------------------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintCircuit(Problem *p, std::string name, vec<Variable *> &vars) {
-    p->addConstraint(new Circuit(*p, name, vars));
-}
+void FactoryConstraints::createConstraintCircuit(Problem *p, vec<Variable *> &vars) { p->addConstraint(new Circuit(*p, vars)); }
 
 
 //--------------------------------------------------------------------------------------
 // Comparison constraints
 //--------------------------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, vec<Variable *> &vars) {
+void FactoryConstraints::createConstraintAllDiff(Problem *p, vec<Variable *> &vars) {
     if(vars.size() == 2) {
-        p->addConstraint(new DiffXY(*p, name, vars[0], vars[1]));
+        p->addConstraint(new DiffXY(*p, vars[0], vars[1]));
         return;
     }
 
@@ -416,7 +403,7 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
                 tuples.push();
                 for(int i : permutations) tuples.last().push(i);
             } while(std::next_permutation(permutations.begin(), permutations.end()));
-            p->addConstraint(newExtensionConstraint(p, name, vars, tuples, true));
+            p->addConstraint(newExtensionConstraint(p, vars, tuples, true));
             return;
         }
     }
@@ -427,15 +414,15 @@ void FactoryConstraints::createConstraintAllDiff(Problem *p, std::string name, v
             nb++;
 
     if(nb * 4 > 3 * vars.size()) {   // if 75% of the domains are larger than two times the arity. See ACE
-        p->addConstraint(new AllDifferentWeak(*p, name, vars));
+        p->addConstraint(new AllDifferentWeak(*p, vars));
         return;
     }
 
-    p->addConstraint(new AllDifferentAC(*p, name, vars));
+    p->addConstraint(new AllDifferentAC(*p, vars));
 }
 
 
-void FactoryConstraints::createConstraintAllDiffExcept(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &except) {
+void FactoryConstraints::createConstraintAllDiffExcept(Problem *p, vec<Variable *> &vars, vector<int> &except) {
     /*std::set<int> set;
     for(Variable *x : vars) {
         for(int idv : x->domain) set.insert(x->domain.toVal(idv));
@@ -477,7 +464,7 @@ void FactoryConstraints::createConstraintAllDiffExcept(Problem *p, std::string n
             vec<Variable *> varsInConstraint;
             varsInConstraint.push(x1);
             varsInConstraint.push(x2);
-            FactoryConstraints::createConstraintExtension(p, name, varsInConstraint, tuples, false, false);
+            FactoryConstraints::createConstraintExtension(p, varsInConstraint, tuples, false, false);
         }
     }
 }
@@ -485,8 +472,7 @@ void FactoryConstraints::createConstraintAllDiffExcept(Problem *p, std::string n
 //----------------------------------------------------------------------
 
 
-void FactoryConstraints::createExtenstionDistinctVector(Problem *p, std::string name, vec<Variable *> &list1,
-                                                        vec<Variable *> &list2) {
+void FactoryConstraints::createExtenstionDistinctVector(Problem *p, vec<Variable *> &list1, vec<Variable *> &list2) {
     vec<Variable *> scope;
     vec<int>        position;
     position.growTo(p->nbVariables(), -1);
@@ -523,22 +509,21 @@ void FactoryConstraints::createExtenstionDistinctVector(Problem *p, std::string 
             }
         }
     }
-    FactoryConstraints::createConstraintExtension(p, name, scope, tuples, true, true);
+    createConstraintExtension(p, scope, tuples, true, true);
 }
 
 
-void FactoryConstraints::createConstraintAllDiffList(Problem *p, std::string name, vec<vec<Variable *>> &lists) {
+void FactoryConstraints::createConstraintAllDiffList(Problem *p, vec<vec<Variable *>> &lists) {
     if(0) {
         verbose.log(NORMAL, "c AllDiff List constraint using %d DistinctVectors constraints \n",
                     lists.size() * (lists.size() - 1) / 2);
 
         for(int i = 0; i < lists.size(); i++)
-            for(int j = i + 1; j < lists.size(); j++) p->addConstraint(new DistinctVectors(*p, name, lists[i], lists[j]));
+            for(int j = i + 1; j < lists.size(); j++) p->addConstraint(new DistinctVectors(*p, lists[i], lists[j]));
     } else {
         verbose.log(NORMAL, "c AllDiff List constraint using extension constraint\n", lists.size() * (lists.size() - 1) / 2);
         for(int i = 0; i < lists.size(); i++)
-            for(int j = i + 1; j < lists.size(); j++)
-                FactoryConstraints::createExtenstionDistinctVector(p, name, lists[i], lists[j]);
+            for(int j = i + 1; j < lists.size(); j++) FactoryConstraints::createExtenstionDistinctVector(p, lists[i], lists[j]);
     }
 }
 
@@ -546,13 +531,13 @@ void FactoryConstraints::createConstraintAllDiffList(Problem *p, std::string nam
 //----------------------------------------------------------------------
 
 
-void FactoryConstraints::createConstraintAllEqual(Problem *p, std::string name, vec<Variable *> &vars) {
-    for(int i = 0; i < vars.size() - 1; i++) p->addConstraint(new Cosoco::EQ(*p, name, vars[i], vars[i + 1]));
+void FactoryConstraints::createConstraintAllEqual(Problem *p, vec<Variable *> &vars) {
+    for(int i = 0; i < vars.size() - 1; i++) p->addConstraint(new Cosoco::EQ(*p, vars[i], vars[i + 1]));
 }
 
 
-void FactoryConstraints::createConstraintNotAllEqual(Problem *p, std::string name, vec<Variable *> &vars) {
-    p->addConstraint(new NotAllEqual(*p, name, vars));
+void FactoryConstraints::createConstraintNotAllEqual(Problem *p, vec<Variable *> &vars) {
+    p->addConstraint(new NotAllEqual(*p, vars));
 }
 
 
@@ -560,7 +545,7 @@ void FactoryConstraints::createConstraintNotAllEqual(Problem *p, std::string nam
 // Summing and counting constraints
 //--------------------------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintDiff(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {
+void FactoryConstraints::createConstraintDiff(Problem *p, Variable *x, Variable *y, Variable *z) {
     // w = y - z
     vec<Variable *> vars;
     vec<int>        coeffs;
@@ -570,63 +555,62 @@ void FactoryConstraints::createConstraintDiff(Problem *p, std::string name, Vari
     coeffs.push(-1);
     coeffs.push(1);
     coeffs.push(1);
-    p->addConstraint(new SumEQ(*p, name, vars, coeffs, 0));
+    p->addConstraint(new SumEQ(*p, vars, coeffs, 0));
 }
 
 
-void FactoryConstraints::createConstraintSumBooleanEQ(Problem *p, std::string name, vec<Variable *> &vars, long value) {
-    p->addConstraint(new SumBooleanEQ(*p, name, vars, value));
+void FactoryConstraints::createConstraintSumBooleanEQ(Problem *p, vec<Variable *> &vars, long value) {
+    p->addConstraint(new SumBooleanEQ(*p, vars, value));
 }
 
 
-void FactoryConstraints::createConstraintSumBooleanLE(Problem *p, std::string name, vec<Variable *> &vars, long value) {
-    p->addConstraint(new SumBooleanLE(*p, name, vars, value));
+void FactoryConstraints::createConstraintSumBooleanLE(Problem *p, vec<Variable *> &vars, long value) {
+    p->addConstraint(new SumBooleanLE(*p, vars, value));
 }
 
 
-void FactoryConstraints::createConstraintSumBooleanGE(Problem *p, std::string name, vec<Variable *> &vars, long value) {
-    p->addConstraint(new SumBooleanGE(*p, name, vars, value));
+void FactoryConstraints::createConstraintSumBooleanGE(Problem *p, vec<Variable *> &vars, long value) {
+    p->addConstraint(new SumBooleanGE(*p, vars, value));
 }
 
-void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {   // x+y=z
+void FactoryConstraints::createConstraintSum(Problem *p, Variable *x, Variable *y, Variable *z) {   // x+y=z
     vec<Variable *> vars;
-    p->addConstraint(new Add3(*p, name, x, y, z));
+    p->addConstraint(new Add3(*p, x, y, z));
 }
 
 
-void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &coeffs, long l,
+void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, vec<Variable *> &coeffs, long l,
                                              OrderType order) {
     if(order == LE) {
-        p->addConstraint(new SumScalarLEK(*p, name, vars, coeffs, l));
+        p->addConstraint(new SumScalarLEK(*p, vars, coeffs, l));
         return;
     }
     throw runtime_error("Not yet implemented scalar");
 }
 
-void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &coeffs,
-                                             Variable *z, OrderType order) {
+void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, vec<Variable *> &coeffs, Variable *z,
+                                             OrderType order) {
     if(order == LE) {
-        p->addConstraint(new SumScalarLEVar(*p, name, vars, coeffs, z));
+        p->addConstraint(new SumScalarLEVar(*p, vars, coeffs, z));
         return;
     }
     throw runtime_error("Not yet implemented scalar");
 }
 
-void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &coeffs, long l,
-                                             OrderType order) {
+void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, vec<int> &coeffs, long l, OrderType order) {
     Sum *ctr = nullptr;
 
     if(vars.size() == 3 && l == 0 && order == OrderType::EQ) {
         if(coeffs[0] == 1 && coeffs[1] == 1 && coeffs[2] == -1) {
-            p->addConstraint(new Add3(*p, name, vars[0], vars[1], vars[2]));
+            p->addConstraint(new Add3(*p, vars[0], vars[1], vars[2]));
             return;
         }
         if(coeffs[0] == 1 && coeffs[1] == -1 && coeffs[2] == 1) {
-            p->addConstraint(new Add3(*p, name, vars[0], vars[2], vars[1]));
+            p->addConstraint(new Add3(*p, vars[0], vars[2], vars[1]));
             return;
         }
         if(coeffs[0] == -1 && coeffs[1] == 1 && coeffs[2] == 1) {
-            p->addConstraint(new Add3(*p, name, vars[2], vars[1], vars[0]));
+            p->addConstraint(new Add3(*p, vars[2], vars[1], vars[0]));
             return;
         }
     }
@@ -681,25 +665,25 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
 
     switch(order) {
         case OrderType::LE:
-            ctr = new SumGE(*p, name, vars, coeffs, l);
+            ctr = new SumGE(*p, vars, coeffs, l);
             break;
         case OrderType::LT:
-            ctr = new SumGE(*p, name, vars, coeffs, l + 1);
+            ctr = new SumGE(*p, vars, coeffs, l + 1);
             break;
         case OrderType::GE:
-            ctr = new SumGE(*p, name, vars, coeffs, l);
+            ctr = new SumGE(*p, vars, coeffs, l);
             break;
         case OrderType::GT:
-            ctr = new SumGE(*p, name, vars, coeffs, l + 1);   // TODO
+            ctr = new SumGE(*p, vars, coeffs, l + 1);   // TODO
             break;
         case OrderType::IN:
             throw runtime_error("This is forbidden to construct a sum with IN operator");
             break;
         case OrderType::EQ:
-            ctr = new SumEQ(*p, name, vars, coeffs, l);
+            ctr = new SumEQ(*p, vars, coeffs, l);
             break;
         case OrderType::NE:
-            ctr = new SumNE(*p, name, vars, coeffs, l);
+            ctr = new SumNE(*p, vars, coeffs, l);
             break;
         case NOTIN:   // Avoid warning
             break;
@@ -708,24 +692,24 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
     p->addConstraint(ctr);
 }
 
-void FactoryConstraints::createConstraintSumGen(Problem *p, std::string name, vec<Variable *> &vars, vec<BasicNode *> &nodes,
-                                                long l, OrderType order) {
+void FactoryConstraints::createConstraintSumGen(Problem *p, vec<Variable *> &vars, vec<BasicNode *> &nodes, long l,
+                                                OrderType order) {
     SumBooleanGen *ctr = nullptr;
     switch(order) {
         case LE:
-            ctr = new SumBooleanGenLE(*p, name, nodes, vars, l);
+            ctr = new SumBooleanGenLE(*p, nodes, vars, l);
             break;
         case LT:
-            ctr = new SumBooleanGenLE(*p, name, nodes, vars, l - 1);
+            ctr = new SumBooleanGenLE(*p, nodes, vars, l - 1);
             break;
         case GE:
-            ctr = new SumBooleanGenGE(*p, name, nodes, vars, l);
+            ctr = new SumBooleanGenGE(*p, nodes, vars, l);
             break;
         case GT:
-            ctr = new SumBooleanGenGE(*p, name, nodes, vars, l + 1);
+            ctr = new SumBooleanGenGE(*p, nodes, vars, l + 1);
             break;
         case OrderType::EQ:
-            ctr = new SumBooleanGenEQ(*p, name, nodes, vars, l);
+            ctr = new SumBooleanGenEQ(*p, nodes, vars, l);
             break;
         default:
             throw runtime_error("Operator not expected in SumBooleanGen");
@@ -734,82 +718,80 @@ void FactoryConstraints::createConstraintSumGen(Problem *p, std::string name, ve
     p->addConstraint(ctr);
 }
 
-void FactoryConstraints::createConstraintAtLeast(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
+void FactoryConstraints::createConstraintAtLeast(Problem *p, vec<Variable *> &vars, int value, int k) {
     if(k == 0)
         return;
 
-    p->addConstraint(new AtLeastK(*p, name, vars, k, value));
+    p->addConstraint(new AtLeastK(*p, vars, k, value));
 }
 
 
-void FactoryConstraints::createConstraintAtMost(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
-    p->addConstraint(new AtMostK(*p, name, vars, k, value));
+void FactoryConstraints::createConstraintAtMost(Problem *p, vec<Variable *> &vars, int value, int k) {
+    p->addConstraint(new AtMostK(*p, vars, k, value));
 }
 
-void FactoryConstraints::createConstraintAmong(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, int k) {
-    p->addConstraint(new Among(*p, name, vars, values, k));
-}
-
-
-void FactoryConstraints::createConstraintExactly(Problem *p, std::string name, vec<Variable *> &vars, int value, int k) {
-    p->addConstraint(new ExactlyK(*p, name, vars, k, value));
+void FactoryConstraints::createConstraintAmong(Problem *p, vec<Variable *> &vars, vec<int> &values, int k) {
+    p->addConstraint(new Among(*p, vars, values, k));
 }
 
 
-void FactoryConstraints::createConstraintExactlyVariable(Problem *p, std::string name, vec<Variable *> &vars, int value,
-                                                         Variable *k) {
-    p->addConstraint(new ExactlyKVariable(*p, name, vars, k, value));
+void FactoryConstraints::createConstraintExactly(Problem *p, vec<Variable *> &vars, int value, int k) {
+    p->addConstraint(new ExactlyK(*p, vars, k, value));
 }
 
 
-void FactoryConstraints::createConstraintNValuesLE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new NValuesLEK(*p, name, vars, k));
+void FactoryConstraints::createConstraintExactlyVariable(Problem *p, vec<Variable *> &vars, int value, Variable *k) {
+    p->addConstraint(new ExactlyKVariable(*p, vars, k, value));
 }
 
-void FactoryConstraints::createConstraintNValuesGE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new NValuesGEK(*p, name, vars, k));
+
+void FactoryConstraints::createConstraintNValuesLE(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new NValuesLEK(*p, vars, k));
 }
 
-void FactoryConstraints::createConstraintNValuesEQV(Problem *p, std::string name, vec<Variable *> &vars, Variable *k) {
-    p->addConstraint(new NValuesEQVar(*p, name, vars, k));
+void FactoryConstraints::createConstraintNValuesGE(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new NValuesGEK(*p, vars, k));
+}
+
+void FactoryConstraints::createConstraintNValuesEQV(Problem *p, vec<Variable *> &vars, Variable *k) {
+    p->addConstraint(new NValuesEQVar(*p, vars, k));
 }
 
 
 //--------------------------------------------------------------------------------------
 // Connection constraints
 //--------------------------------------------------------------------------------------
-void FactoryConstraints::createConstraintElementConstant(Problem *p, std::string name, vec<Variable *> &vars, Variable *index,
-                                                         int startIndex, int v) {
-    p->addConstraint(new ElementConstant(*p, name, vars, index, v, startIndex == 1));
+void FactoryConstraints::createConstraintElementConstant(Problem *p, vec<Variable *> &vars, Variable *index, int startIndex,
+                                                         int v) {
+    p->addConstraint(new ElementConstant(*p, vars, index, v, startIndex == 1));
 }
 
 
-void FactoryConstraints::createConstraintElementVariable(Problem *p, std::string name, vec<Variable *> &vars, Variable *index,
-                                                         int startIndex, Variable *v) {
-    p->addConstraint(new ElementVariable(*p, name, vars, index, v, startIndex == 1));
+void FactoryConstraints::createConstraintElementVariable(Problem *p, vec<Variable *> &vars, Variable *index, int startIndex,
+                                                         Variable *v) {
+    p->addConstraint(new ElementVariable(*p, vars, index, v, startIndex == 1));
 }
 
 
-void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix,
-                                                       Variable *rindex, Variable *cindex, int value) {
-    p->addConstraint(new ElementMatrixConstant(*p, name, matrix, rindex, cindex, value));
+void FactoryConstraints::createConstraintElementMatrix(Problem *p, vec<vec<Variable *>> &matrix, Variable *rindex,
+                                                       Variable *cindex, int value) {
+    p->addConstraint(new ElementMatrixConstant(*p, matrix, rindex, cindex, value));
 }
 
 
-void FactoryConstraints::createConstraintElementMatrix(Problem *p, std::string name, vec<vec<Variable *>> &matrix,
-                                                       Variable *rindex, Variable *cindex, Variable *value) {
-    p->addConstraint(new ElementMatrixVariable(*p, name, matrix, rindex, cindex, value));
+void FactoryConstraints::createConstraintElementMatrix(Problem *p, vec<vec<Variable *>> &matrix, Variable *rindex,
+                                                       Variable *cindex, Variable *value) {
+    p->addConstraint(new ElementMatrixVariable(*p, matrix, rindex, cindex, value));
 }
 
 
-void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, std::string name, vec<Cosoco::Variable *> &vars,
-                                                     vec<int> &values, vec<Variable *> &occurs) {
-    p->addConstraint(new CardinalityF(*p, name, vars, values, occurs));
+void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, vec<Cosoco::Variable *> &vars, vec<int> &values,
+                                                     vec<Variable *> &occurs) {
+    p->addConstraint(new CardinalityF(*p, vars, values, occurs));
 }
 
 
-void FactoryConstraints::createConstraintCardinality(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
-                                                     vec<Occurs> &occurs) {
+void FactoryConstraints::createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<Occurs> &occurs) {
     verbose.log(DEBUGVERBOSE, "c Create Cardinality(vars,values,occurs) constraint using %d Exactly/AtMost.. constraint \nc\n",
                 vars.size());
     if(occurs.size() != values.size())
@@ -818,42 +800,40 @@ void FactoryConstraints::createConstraintCardinality(Problem *p, std::string nam
     if(occurs[0].type == OCCURS_INTEGER && vars.size() > 1000) {
         vec<int> occs;
         for(Occurs &o : occurs) occs.push(o.value);
-        p->addConstraint(new CardinalityWeak(*p, name, vars, values, occs));
+        p->addConstraint(new CardinalityWeak(*p, vars, values, occs));
         return;
     }
 
     for(int i = 0; i < occurs.size(); i++) {
         if(occurs[i].type == OCCURS_INTEGER)
-            FactoryConstraints::createConstraintExactly(p, name + "card as exactly", vars, values[i], occurs[i].value);
+            FactoryConstraints::createConstraintExactly(p, vars, values[i], occurs[i].value);
         if(occurs[i].type == OCCURS_INTERVAL) {
-            FactoryConstraints::createConstraintAtLeast(p, name + "card as atleast", vars, values[i], occurs[i].min);
-            FactoryConstraints::createConstraintAtMost(p, name + "card as atleast", vars, values[i], occurs[i].max);
+            FactoryConstraints::createConstraintAtLeast(p, vars, values[i], occurs[i].min);
+            FactoryConstraints::createConstraintAtMost(p, vars, values[i], occurs[i].max);
         }
         if(occurs[i].type == OCCURS_VARIABLE) {
-            FactoryConstraints::createConstraintExactlyVariable(p, name + "card as exactly", vars, values[i], occurs[i].x);
+            FactoryConstraints::createConstraintExactlyVariable(p, vars, values[i], occurs[i].x);
         }
     }
 }
 
 
-void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vector<int> &lengths,
-                                                 OrderType op) {
+void FactoryConstraints::createConstraintOrdered(Problem *p, vec<Variable *> &vars, vector<int> &lengths, OrderType op) {
     for(int i = 0; i < vars.size() - 1; i++) {
         int k = lengths.size() == 0 ? 0 : lengths[i];
         if(op == OrderType::LE)
-            p->addConstraint(new Le(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i], vars[i + 1], k));
+            p->addConstraint(new Le(*p, vars[i], vars[i + 1], k));
         if(op == OrderType::LT)
-            p->addConstraint(new Lt(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i], vars[i + 1], k));
+            p->addConstraint(new Lt(*p, vars[i], vars[i + 1], k));
 
         if(op == OrderType::GE)
-            p->addConstraint(new Le(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i + 1], vars[i], -k));
+            p->addConstraint(new Le(*p, vars[i + 1], vars[i], -k));
         if(op == OrderType::GT)
-            p->addConstraint(new Lt(*p, name + vars[i]->name() + " op " + name + vars[i + 1]->name(), vars[i + 1], vars[i], -k));
+            p->addConstraint(new Lt(*p, vars[i + 1], vars[i], -k));
     }
 }
 
-void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &lengths,
-                                                 OrderType op) {
+void FactoryConstraints::createConstraintOrdered(Problem *p, vec<Variable *> &vars, vec<Variable *> &lengths, OrderType op) {
     for(int i = 0; i < vars.size() - 1; i++) {
         vec<int> coeffs;
         coeffs.push(1);
@@ -866,181 +846,173 @@ void FactoryConstraints::createConstraintOrdered(Problem *p, std::string name, v
         tmp[0] = vars[i];
         tmp[1] = lengths[i];
         tmp[2] = vars[i + 1];
-        createConstraintSum(p, name, tmp, coeffs, 0, op);
+        createConstraintSum(p, tmp, coeffs, 0, op);
     }
 }
 
 
-void FactoryConstraints::createConstraintLex(Problem *p, const std::string &name, vec<Variable *> &vars1, vec<Variable *> &vars2,
-                                             OrderType op) {
+void FactoryConstraints::createConstraintLex(Problem *p, vec<Variable *> &vars1, vec<Variable *> &vars2, OrderType op) {
     if(op == OrderType::LE)
-        p->addConstraint(new Lexicographic(*p, name, vars1, vars2, false));
+        p->addConstraint(new Lexicographic(*p, vars1, vars2, false));
     if(op == OrderType::LT)
-        p->addConstraint(new Lexicographic(*p, name, vars1, vars2, true));
+        p->addConstraint(new Lexicographic(*p, vars1, vars2, true));
 
     if(op == OrderType::GE)
-        p->addConstraint(new Lexicographic(*p, name, vars2, vars1, false));
+        p->addConstraint(new Lexicographic(*p, vars2, vars1, false));
     if(op == OrderType::GT)
-        p->addConstraint(new Lexicographic(*p, name, vars2, vars1, true));
+        p->addConstraint(new Lexicographic(*p, vars2, vars1, true));
 }
 
 
-void FactoryConstraints::createContraintChannelXY(Problem *p, std::string name, vec<Variable *> &X, vec<Variable *> &Y,
-                                                  int startX, int startY) {
+void FactoryConstraints::createContraintChannelXY(Problem *p, vec<Variable *> &X, vec<Variable *> &Y, int startX, int startY) {
     verbose.log(NORMAL, "c Create channel(X,Y) constraint using %d element constraint \n", X.size());
-    for(int i = 0; i < X.size(); i++) FactoryConstraints::createConstraintElementConstant(p, name, Y, X[i], startY, i);
+    for(int i = 0; i < X.size(); i++) FactoryConstraints::createConstraintElementConstant(p, Y, X[i], startY, i);
 }
 
-void FactoryConstraints::createConstraintChannel(Problem *p, string name, vec<Variable *> &vars, int index) {
+void FactoryConstraints::createConstraintChannel(Problem *p, vec<Variable *> &vars, int index) {
     assert(index == 0);
-    FactoryConstraints::createConstraintAllDiff(p, name, vars);
+    FactoryConstraints::createConstraintAllDiff(p, vars);
     for(int i = 0; i < vars.size(); i++) {
-        FactoryConstraints::createConstraintElementConstant(p, name, vars, vars[i], 0, i);
+        FactoryConstraints::createConstraintElementConstant(p, vars, vars[i], 0, i);
     }
 }
 
 //-----------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintDisjunctive(Problem *p, std::string name, Variable *x1, Variable *x2, int w1, int w2,
-                                                     Variable *aux) {
-    p->addConstraint(new Disjunctive(*p, name, x1, x2, w1, w2, aux));
+void FactoryConstraints::createConstraintDisjunctive(Problem *p, Variable *x1, Variable *x2, int w1, int w2, Variable *aux) {
+    p->addConstraint(new Disjunctive(*p, x1, x2, w1, w2, aux));
     // string tmp = "or(le(add(" + x1->_name + "," + to_string(w1) + ")," + x2->_name + "),le(add(" + x2->_name + "," +
     // to_string(w2) + ")," + x1->_name + "))"; createConstraintIntension(p, "no overlap", tmp);
 }
 
-void FactoryConstraints::createConstraintDisjunctiveVars(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *w1,
-                                                         Variable *w2) {
-    p->addConstraint(new DisjunctiveVars(*p, name, x1, x2, w1, w2));
+void FactoryConstraints::createConstraintDisjunctiveVars(Problem *p, Variable *x1, Variable *x2, Variable *w1, Variable *w2) {
+    p->addConstraint(new DisjunctiveVars(*p, x1, x2, w1, w2));
 }
 
-void FactoryConstraints::createConstraintDisjunctive2D(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
-                                                       Variable *y2, int w1, int w2, int h1, int h2, Variable *z) {
-    p->addConstraint(new Disjunctive2D(*p, name, x1, x2, y1, y2, w1, w2, h1, h2, z));
+void FactoryConstraints::createConstraintDisjunctive2D(Problem *p, Variable *x1, Variable *x2, Variable *y1, Variable *y2, int w1,
+                                                       int w2, int h1, int h2, Variable *z) {
+    p->addConstraint(new Disjunctive2D(*p, x1, x2, y1, y2, w1, w2, h1, h2, z));
 }
 
-void FactoryConstraints::createConstraintDisjunctive2DVar(Problem *p, std::string name, Variable *x1, Variable *x2, Variable *y1,
-                                                          Variable *y2, Variable *w1, Variable *w2, Variable *h1, Variable *h2,
-                                                          Variable *z) {
-    p->addConstraint(new Disjunctive2DVar(*p, name, x1, x2, y1, y2, w1, w2, h1, h2, z));
+void FactoryConstraints::createConstraintDisjunctive2DVar(Problem *p, Variable *x1, Variable *x2, Variable *y1, Variable *y2,
+                                                          Variable *w1, Variable *w2, Variable *h1, Variable *h2, Variable *z) {
+    p->addConstraint(new Disjunctive2DVar(*p, x1, x2, y1, y2, w1, w2, h1, h2, z));
 }
 //
 //-----------------------------------------------------------------------
 
-void FactoryConstraints::createConstraintMaximumLE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new MaximumConstantLE(*p, name, vars, k));
+void FactoryConstraints::createConstraintMaximumLE(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new MaximumConstantLE(*p, vars, k));
 }
 
 
-void FactoryConstraints::createConstraintMaximumGE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new MaximumConstantGE(*p, name, vars, k));
+void FactoryConstraints::createConstraintMaximumGE(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new MaximumConstantGE(*p, vars, k));
 }
 
 
-void FactoryConstraints::createConstraintMinimumLE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new MinimumConstantLE(*p, name, vars, k));
+void FactoryConstraints::createConstraintMinimumLE(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new MinimumConstantLE(*p, vars, k));
 }
 
 
-void FactoryConstraints::createConstraintMinimumGE(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new MinimumConstantGE(*p, name, vars, k));
+void FactoryConstraints::createConstraintMinimumGE(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new MinimumConstantGE(*p, vars, k));
 }
 
-void FactoryConstraints::createConstraintMinimumEQ(Problem *p, std::string name, vec<Variable *> &vars, int k) {
-    p->addConstraint(new MinimumConstantEQ(*p, name, vars, k));
+void FactoryConstraints::createConstraintMinimumEQ(Problem *p, vec<Variable *> &vars, int k) {
+    p->addConstraint(new MinimumConstantEQ(*p, vars, k));
 }
 
 
-void FactoryConstraints::createConstraintMinimumVariableEQ(Problem *p, std::string name, vec<Variable *> &vars, Variable *value) {
+void FactoryConstraints::createConstraintMinimumVariableEQ(Problem *p, vec<Variable *> &vars, Variable *value) {
     if(vars.contains(value)) {
         verbose.log(NORMAL, "c min(x...)=x -> use inequalities\n");
         for(Variable *x : vars) {
             if(x != value)
-                p->addConstraint(new Le(*p, name, value, x, 0));
+                p->addConstraint(new Le(*p, value, x, 0));
         }
     } else
-        p->addConstraint(new MinimumVariableEQ(*p, name, vars, value));
+        p->addConstraint(new MinimumVariableEQ(*p, vars, value));
 }
 
 
-void FactoryConstraints::createConstraintMaximumVariableEQ(Problem *p, std::string name, vec<Variable *> &vars, Variable *value) {
+void FactoryConstraints::createConstraintMaximumVariableEQ(Problem *p, vec<Variable *> &vars, Variable *value) {
     if(vars.contains(value)) {
         verbose.log(NORMAL, "c max(x...)=x -> use inequalities\n");
         for(Variable *x : vars) {
             if(x != value)
-                p->addConstraint(new Le(*p, name, x, value, 0));
+                p->addConstraint(new Le(*p, x, value, 0));
         }
     } else
-        p->addConstraint(new MaximumVariableEQ(*p, name, vars, value));
+        p->addConstraint(new MaximumVariableEQ(*p, vars, value));
 }
 
-void FactoryConstraints::createConstraintMaximumArg(Problem *p, std::string name, vec<Variable *> &vars, Variable *index,
-                                                    RankType rank) {
-    p->addConstraint(new MaximumArg(*p, name, vars, index, rank));
+void FactoryConstraints::createConstraintMaximumArg(Problem *p, vec<Variable *> &vars, Variable *index, RankType rank) {
+    p->addConstraint(new MaximumArg(*p, vars, index, rank));
 }
 
 //--------------------------------------------------------------------------------------
 // Packing constraints
 //--------------------------------------------------------------------------------------
-void FactoryConstraints::createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
-                                                    vec<int> &heights, Variable *limit) {
-    p->addConstraint(new CumulativeVariablesC(*p, name, vars, lengths, heights, limit));
+void FactoryConstraints::createConstraintCumulative(Problem *p, vec<Variable *> &vars, vec<int> &lengths, vec<int> &heights,
+                                                    Variable *limit) {
+    p->addConstraint(new CumulativeVariablesC(*p, vars, lengths, heights, limit));
 }
 
-void FactoryConstraints::createConstraintCumulative(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &lengths,
-                                                    vec<int> &heights, int limit) {
+void FactoryConstraints::createConstraintCumulative(Problem *p, vec<Variable *> &vars, vec<int> &lengths, vec<int> &heights,
+                                                    int limit) {
     /*long sum = 0;
     for(int h : heights) sum += h;
     if(sum <= limit)
         return;
     */
-    p->addConstraint(new Cumulative(*p, name, vars, vars, lengths, heights, limit));
+    p->addConstraint(new Cumulative(*p, vars, vars, lengths, heights, limit));
 }
 
 
-void FactoryConstraints::createConstraintCumulativeHeightVariable(Problem *p, std::string name, vec<Variable *> &vars,
-                                                                  vec<int> &lengths, vec<Variable *> &heights, int limit) {
-    p->addConstraint(new CumulativeVariablesH(*p, name, vars, lengths, heights, limit));
+void FactoryConstraints::createConstraintCumulativeHeightVariable(Problem *p, vec<Variable *> &vars, vec<int> &lengths,
+                                                                  vec<Variable *> &heights, int limit) {
+    p->addConstraint(new CumulativeVariablesH(*p, vars, lengths, heights, limit));
 }
 
-void FactoryConstraints::createConstraintCumulativeHeightVariableLV(Problem *p, std::string name, vec<Variable *> &vars,
-                                                                    vec<int> &lengths, vec<Variable *> &heights,
-                                                                    Variable *limit) {
-    p->addConstraint(new CumulativeVariablesHLimitV(*p, name, vars, lengths, heights, limit));
+void FactoryConstraints::createConstraintCumulativeHeightVariableLV(Problem *p, vec<Variable *> &vars, vec<int> &lengths,
+                                                                    vec<Variable *> &heights, Variable *limit) {
+    p->addConstraint(new CumulativeVariablesHLimitV(*p, vars, lengths, heights, limit));
 }
 
-void FactoryConstraints::createConstraintCumulativeWidthVariables(Problem *p, std::string name, vec<Variable *> &vars,
-                                                                  vec<Variable *> &lengths, vec<int> &heights, int limit) {
-    p->addConstraint(new CumulativeVariablesW(*p, name, vars, lengths, heights, limit));
+void FactoryConstraints::createConstraintCumulativeWidthVariables(Problem *p, vec<Variable *> &vars, vec<Variable *> &lengths,
+                                                                  vec<int> &heights, int limit) {
+    p->addConstraint(new CumulativeVariablesW(*p, vars, lengths, heights, limit));
 }
 
-void FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(Problem *p, std::string name, vec<Variable *> &vars,
+void FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(Problem *p, vec<Variable *> &vars,
                                                                            vec<Variable *> &widths, vec<Variable *> &heights,
                                                                            int limit) {
-    p->addConstraint(new CumulativeVariablesHW(*p, name, vars, widths, heights, limit));
+    p->addConstraint(new CumulativeVariablesHW(*p, vars, widths, heights, limit));
 }
 
-void FactoryConstraints::createConstraintCumulativeHeightAndWidthAndConditionVariables(
-    Problem *p, std::string name, vec<Variable *> &vars, vec<Variable *> &widths, vec<Variable *> &heights, Variable *limit) {
-    p->addConstraint(new CumulativeVariablesHWC(*p, name, vars, widths, heights, limit));
+void FactoryConstraints::createConstraintCumulativeHeightAndWidthAndConditionVariables(Problem *p, vec<Variable *> &vars,
+                                                                                       vec<Variable *> &widths,
+                                                                                       vec<Variable *> &heights,
+                                                                                       Variable        *limit) {
+    p->addConstraint(new CumulativeVariablesHWC(*p, vars, widths, heights, limit));
 }
 
-void FactoryConstraints::createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<int> &width,
-                                                   vec<Variable *> &Y, vec<int> &heights) {
-    p->addConstraint(new NoOverlap(*p, name, X, width, Y, heights));
+void FactoryConstraints::createConstraintNoOverlap(Problem *p, vec<Variable *> &X, vec<int> &width, vec<Variable *> &Y,
+                                                   vec<int> &heights) {
+    p->addConstraint(new NoOverlap(*p, X, width, Y, heights));
 }
 
 
-void FactoryConstraints::createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values,
-                                                    bool covered) {
-    p->addConstraint(new Precedence(*p, name, vars, values, covered));
+void FactoryConstraints::createConstraintPrecedence(Problem *p, vec<Variable *> &vars, vec<int> &values, bool covered) {
+    p->addConstraint(new Precedence(*p, vars, values, covered));
 }
 
-void FactoryConstraints::createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,
-                                                    vec<int> &limits) {
-    p->addConstraint(new BinPacking(*p, name, vars, sizes, limits));
+void FactoryConstraints::createConstraintBinPacking(Problem *p, vec<Variable *> &vars, vec<int> &sizes, vec<int> &limits) {
+    p->addConstraint(new BinPacking(*p, vars, sizes, limits));
 }
 
-void FactoryConstraints::createConstraintBinPacking(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &sizes,
-                                                    vec<Variable *> &loads) {
-    p->addConstraint(new BinPackingLoad(*p, name, vars, sizes, loads));
+void FactoryConstraints::createConstraintBinPacking(Problem *p, vec<Variable *> &vars, vec<int> &sizes, vec<Variable *> &loads) {
+    p->addConstraint(new BinPackingLoad(*p, vars, sizes, loads));
 }

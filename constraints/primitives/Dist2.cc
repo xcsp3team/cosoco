@@ -51,10 +51,6 @@ bool DistNE::isASupportFor(int vy, Variable *z) {
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
-DistNE::DistNE(Problem &p, std::string n, Variable *xx, Variable *yy, int kk) : Binary(p, n, xx, yy), k(kk) {
-    type = "|X - Y| != k";
-}
+DistNE::DistNE(Problem &p, Variable *xx, Variable *yy, int kk) : Binary(p, xx, yy), k(kk) { type = "|X - Y| != k"; }
 
-DistEQ::DistEQ(Problem &p, std::string n, Variable *xx, Variable *yy, int kk) : Binary(p, n, xx, yy), k(kk) {
-    type = "|X - Y| = k";
-}
+DistEQ::DistEQ(Problem &p, Variable *xx, Variable *yy, int kk) : Binary(p, xx, yy), k(kk) { type = "|X - Y| = k"; }

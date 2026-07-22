@@ -9,7 +9,7 @@ class Lexicographic : public GlobalConstraint {
    public:
     vec<Variable *> X, Y;
     bool            strict;
-    Lexicographic(Problem &p, std::string n, vec<Variable *> &X, vec<Variable *> &Y, bool st);
+    Lexicographic(Problem &p, vec<Variable *> &X, vec<Variable *> &Y, bool st);
 
     bool isCorrectlyDefined() override;
 
@@ -33,12 +33,12 @@ class Lexicographic : public GlobalConstraint {
 
 class LexicographicLT : public Lexicographic {
    public:
-    LexicographicLT(Problem &p, std::string n, vec<Variable *> &X, vec<Variable *> &Y) : Lexicographic(p, n, X, Y, true) { }
+    LexicographicLT(Problem &p, vec<Variable *> &X, vec<Variable *> &Y) : Lexicographic(p, X, Y, true) { }
 };
 
 class LexicographicLE : public Lexicographic {
    public:
-    LexicographicLE(Problem &p, std::string n, vec<Variable *> &X, vec<Variable *> &Y) : Lexicographic(p, n, X, Y, false) { }
+    LexicographicLE(Problem &p, vec<Variable *> &X, vec<Variable *> &Y) : Lexicographic(p, X, Y, false) { }
 };
 }   // namespace Cosoco
 

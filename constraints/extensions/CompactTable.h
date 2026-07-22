@@ -106,8 +106,8 @@ class CompactTable : public Extension, ObserverDeleteDecision {
 
    public:
     // Constructors
-    CompactTable(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
-    CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
+    CompactTable(Problem &p, vec<Variable *> &vars, size_t max_n_tuples);
+    CompactTable(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
     void delayedConstruction(int id) override;
     bool onFirstCall();
 

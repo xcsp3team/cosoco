@@ -169,8 +169,8 @@ bool BinaryExtension::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variable *xx, Variable *yy)
-    : Extension(p, n, createScopeVec(xx, yy), 0, support),
+BinaryExtension::BinaryExtension(Problem &p, bool support, Variable *xx, Variable *yy)
+    : Extension(p, createScopeVec(xx, yy), 0, support),
       x(xx),
       y(yy),
       existingX(new vec<int>()),
@@ -184,9 +184,8 @@ BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variab
 }
 
 
-BinaryExtension::BinaryExtension(Problem &p, std::string n, bool support, Variable *xx, Variable *yy,
-                                 BinaryExtension *hasSameTuples)
-    : Extension(p, n, createScopeVec(xx, yy), 0, support),
+BinaryExtension::BinaryExtension(Problem &p, bool support, Variable *xx, Variable *yy, BinaryExtension *hasSameTuples)
+    : Extension(p, createScopeVec(xx, yy), 0, support),
       x(xx),
       y(yy),
       existingX(hasSameTuples->existingX),

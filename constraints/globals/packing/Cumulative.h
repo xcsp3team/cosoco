@@ -68,7 +68,7 @@ class Cumulative : public GlobalConstraint, ObserverDeleteDecision {
 
 
    public:
-    Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int);
+    Cumulative(Problem &p, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int);
 
     // Notifications : restore relevantTasks when backtrack is performed
     void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;

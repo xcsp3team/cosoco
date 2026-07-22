@@ -39,8 +39,8 @@ bool DisjunctiveVars::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-DisjunctiveVars::DisjunctiveVars(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *ww1, Variable *ww2)
-    : GlobalConstraint(p, n, "DisjunctiveVars", Constraint::createScopeVec(xx1, xx2, ww1, ww2)) {
+DisjunctiveVars::DisjunctiveVars(Problem &p, Variable *xx1, Variable *xx2, Variable *ww1, Variable *ww2)
+    : GlobalConstraint(p, "DisjunctiveVars", Constraint::createScopeVec(xx1, xx2, ww1, ww2)) {
     x1 = xx1;
     x2 = xx2;
     w1 = ww1;

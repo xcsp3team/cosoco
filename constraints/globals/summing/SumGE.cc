@@ -108,7 +108,7 @@ long SumGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
 //----------------------------------------------
 
 
-SumGE::SumGE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, n, vars, coefs, l) {
+SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, vars, coefs, l) {
     leftmostPositiveCoefficientPosition = coefficients.size();
     for(int i = coefficients.size() - 1; i >= 0; i--) {
         if(coefficients[i] < 0)

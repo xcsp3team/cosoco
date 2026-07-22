@@ -86,7 +86,7 @@ bool Problem::checkSolution() {
                 std::cout << x->name() << " " << x->value() << " " << x->domain.toVal(x->domain[0]) << endl;
             c->display();
             fprintf(stderr, "Solution Error : (core %d) constraint number %d (name %s) is not valid\n", solver->core, c->idc,
-                    c->name.c_str());
+                    c->type.c_str());
             exit(1);
         }
     }
