@@ -27,47 +27,26 @@ bool WeightedSumGE::filter(Variable *dummy) {
     if(max < limit)
         return false;
 
-    for(int posx : unassignedVariablesIdx) {
-        Variable *x     = scope[posx];
-        long      coeff = coefficients[posx];
+    bool useless = limit <= max - maxGap;
+    if(useless == false)
+        for(const int idx : unassignedVariablesIdx) {
+            Variable *x = scope[idx];
 
-        int sizeBefore = x->size();
-        if(sizeBefore == 1)
-            continue;
-        if(coeff > 0) {
-            long maxBase       = max - x->maximum() * coeff;
-            long minimumBefore = x->minimum();
-
-            if(maxBase + x->maximum() * coeff < limit)
-                return false;
-            for(int idv : x->domain) {
-                long v = x->domain.toVal(idv);
-                if(maxBase + v * coeff >= limit)
-                    break;
-                if(solver->delIdv(x, idv) == false)
-                    return false;
+            if(x->size() == 1)
+                continue;
+            long coeff = coefficients[idx];
+            if(coeff >= 0) {
+                min -= x->minimum() * coeff;
+                delWRTOrder(x, limit - (max - x->maximum() * coeff), static_cast<int>(coeff), XCSP3Core::LT);
+                min += x->minimum() * coeff;
+            } else {
+                min -= x->maximum() * coeff;
+                delWRTOrder(x, limit - (max - x->minimum() * coeff), static_cast<int>(coeff), XCSP3Core::LT);
+                min += x->maximum() * coeff;
             }
-            if((min += (((long)x->minimum()) - ((long)minimumBefore)) * coeff) >= limit)
-                return true;
-        } else {
-            long maxBase   = max - ((long)x->minimum()) * coeff;
-            long maxBefore = x->maximum();
-            if(maxBase + x->minimum() * coeff < limit)
-                return false;
-
-            for(int idv : reverse(x->domain)) {
-                long v = x->domain.toVal(idv);
-                if(maxBase + v * coeff >= limit)
-                    break;
-                if(maxBase + v * coeff < limit && solver->delIdv(x, idv) == false)
-                    return false;
-            }
-            if(sizeBefore - x->size() > 0) {
-                if((min += (((long)x->maximum()) - maxBefore) * coeff) >= limit)
-                    return true;
-            }
+            if(min >= limit)
+                return solver->entail(this);
         }
-    }
     return true;
 }
 

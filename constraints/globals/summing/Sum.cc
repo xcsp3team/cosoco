@@ -36,3 +36,24 @@ void WeightedSum::computeBounds() {
         max += coeff * (coeff >= 0 ? xmax : xmin);
     }
 }
+
+bool WeightedSum::delWRTOrder(Variable* x, long l, int coeff, XCSP3Core::OrderType order) {
+    if(order == XCSP3Core::LT) {
+        order = XCSP3Core::LE;
+        l--;
+    } else if(order == XCSP3Core::GT) {
+        type = XCSP3Core::GE;
+        l++;
+    }
+    if(coeff < 0) {
+        coeff = -coeff;
+        order = order == XCSP3Core::LE ? XCSP3Core::GE : XCSP3Core::LE;
+        l     = -l;
+    }
+    long newLimit = (std::abs(l) / coeff) * (l < 0 ? -1 : 1);
+    if(l > 0 && order == XCSP3Core::GE && l % coeff != 0)
+        newLimit++;
+    if(l < 0 && order == XCSP3Core::LE && -l % coeff != 0)
+        newLimit--;
+    return order == XCSP3Core::LE ? solver->delValuesLE(x, newLimit) : solver->delValuesGE(x, newLimit);
+}
