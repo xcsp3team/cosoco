@@ -16,9 +16,19 @@ class Sum : public GlobalConstraint {
 };
 
 class SimpleSum : public Sum {
+   protected:
+    void computeBounds() override;
+    int  maxGap;
+
    public:
-    SimpleSum(Problem &p, std::string n, vec<Variable *> &vars, long l) : Sum(p, std::move(n), vars, l) { }
-    void computeBounds();
+    SimpleSum(Problem &p, std::string n, vec<Variable *> &vars, long l) : Sum(p, std::move(n), vars, l) {
+        maxGap = -1;
+        for(Variable *x : vars) {
+            int tmp = x->maximum() - x->minimum();
+            if(tmp > maxGap)
+                maxGap = tmp;
+        }
+    }
 
     static long sum(vec<int> &tuple);
 };

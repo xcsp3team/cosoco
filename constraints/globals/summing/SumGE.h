@@ -10,7 +10,7 @@ class SumGE : public SimpleSum, public ObjectiveConstraint {
     bool filter(Variable *x) override;
 
    public:
-    SumGE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : SimpleSum(p, std::move(n), vars, l) { }
+    SumGE(Problem &p, std::string n, vec<Variable *> &vars, long l) : SimpleSum(p, std::move(n), vars, l) { type = "SumGE"; }
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
     // Functions related to Objective constraint

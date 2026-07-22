@@ -569,8 +569,9 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
             }
         }
     }
-
-
+    toMyVariables(list);
+    FactoryConstraints::createConstraintSum(problem, id, vars, xc.val, xc.op);
+    return;
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
     buildConstraintSum(id, list, coeffs, xc);

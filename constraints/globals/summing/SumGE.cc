@@ -1,5 +1,6 @@
-#include "Sum.h"
 #include "SumGE.h"
+
+#include "Sum.h"
 #include "constraints/Constraint.h"
 #include "solver/Solver.h"
 
@@ -70,6 +71,27 @@ bool WeightedSumGE::filter(Variable *dummy) {
     return true;
 }
 
+bool SumGE::filter(Variable *dummy) {
+    computeBounds();
+    if(min >= limit)
+        return solver->entail(this);
+
+    if(max < limit)
+        return false;
+    bool useless = limit <= max - maxGap;
+    if(useless == false)
+        for(const int idx : unassignedVariablesIdx) {
+            Variable *x = scope[idx];
+            if(x->size() == 1)
+                continue;
+            min -= x->minimum();
+            solver->delValuesLE(x, limit - (max - x->maximum()) - 1);
+            min += x->minimum();
+            if(min >= limit)
+                return solver->entail(this);
+        }
+    return true;
+}
 
 //----------------------------------------------
 // Objective constraint

@@ -588,7 +588,19 @@ void FactoryConstraints::createConstraintSumBooleanGE(Problem *p, std::string na
     p->addConstraint(new SumBooleanGE(*p, name, vars, value));
 }
 
-void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y, Variable *z) {   // x+y=z
+void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<Variable *> &vars, long l, OrderType order) {
+    Constraint *ctr = nullptr;
+    switch(order) {
+        case GE:
+            ctr = new SumGE(*p, name, vars, l);
+            break;
+    }
+    p->addConstraint(ctr);
+}
+
+
+void FactoryConstraints::createConstraintSum(Problem *p, std::string name, Variable *x, Variable *y,
+                                             Variable *z) {   // x+y=z
     vec<Variable *> vars;
     p->addConstraint(new Add3(*p, name, x, y, z));
 }
