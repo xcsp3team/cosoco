@@ -34,6 +34,7 @@
 #include "Precedence.h"
 #include "Reification.h"
 #include "SumBoolean.h"
+#include "SumLE.h"
 #include "XCSP3Constants.h"
 #include "Xor.h"
 #include "constraints/globals/connection/element/ElementMatrixConstant.h"
@@ -594,7 +595,17 @@ void FactoryConstraints::createConstraintSum(Problem *p, std::string name, vec<V
         case GE:
             ctr = new SumGE(*p, name, vars, l);
             break;
+        case GT:
+            ctr = new SumGE(*p, name, vars, l + 1);
+            break;
+        case LE:
+            ctr = new SumLE(*p, name, vars, l);
+            break;
+        case LT:
+            ctr = new SumLE(*p, name, vars, l - 1);
+            break;
     }
+    assert(ctr != nullptr);
     p->addConstraint(ctr);
 }
 

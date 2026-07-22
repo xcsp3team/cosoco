@@ -13,6 +13,7 @@ class SumGE : public SimpleSum, public ObjectiveConstraint {
     SumGE(Problem &p, std::string n, vec<Variable *> &vars, long l) : SimpleSum(p, std::move(n), vars, l) { type = "SumGE"; }
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
+
     // Functions related to Objective constraint
     void updateBound(long bound) override;            // Update the current bound
     long maxUpperBound() override;                    // Bounds are included
