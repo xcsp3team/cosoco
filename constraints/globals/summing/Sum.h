@@ -49,7 +49,7 @@ class WeightedSum : public Sum {
         maxGap = -1;
         for(int posx = 0; posx < scope.size(); posx++) {
             Variable *x   = scope[posx];
-            int       tmp = std::abs(x->maximum() - x->minimum() * coefficients[posx]);
+            int       tmp = std::abs((x->maximum() - x->minimum()) * coefficients[posx]);
             if(tmp > maxGap)
                 maxGap = tmp;
         }
