@@ -93,8 +93,7 @@ void AdapterAC3rm::storeResidues(vec<int> &tmp) {
 //----------------------------------------------
 
 
-AdapterAC3rm::AdapterAC3rm(Constraint *c)
-    : Constraint(c->problem, "AC3rm on " + c->name, c->scope), constraint(c), tupleIterator(c->scope) {
+AdapterAC3rm::AdapterAC3rm(Constraint *c) : Constraint(c->problem, c->scope), constraint(c), tupleIterator(c->scope) {
     type   = c->type;
     int ar = scope.size();
     _residues.growTo(ar);

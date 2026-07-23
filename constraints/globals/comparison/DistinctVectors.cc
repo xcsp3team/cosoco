@@ -107,8 +107,8 @@ void DistinctVectors::handlePossibleInferenceFor(int sentinel) {
 //----------------------------------------------------------
 
 
-DistinctVectors::DistinctVectors(Cosoco::Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY)
-    : GlobalConstraint(p, n, "Distinct Vectors", Constraint::createScopeVec(&XX, &YY)) {
+DistinctVectors::DistinctVectors(Cosoco::Problem &p, vec<Variable *> &XX, vec<Variable *> &YY)
+    : GlobalConstraint(p, "Distinct Vectors", Constraint::createScopeVec(&XX, &YY)) {
     XX.copyTo(X);
     YY.copyTo(Y);
     size      = X.size();

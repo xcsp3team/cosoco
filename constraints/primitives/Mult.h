@@ -22,7 +22,7 @@ class Mult3EQ : public Ternary {
     bool enforceMulLE(Variable *x, Variable *y, int k);
 
    public:
-    Mult3EQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    Mult3EQ(Problem &p, Variable *xx, Variable *yy, Variable *zz);
 
     // filtering
     bool filter(Variable *x) override;

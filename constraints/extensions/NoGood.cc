@@ -67,7 +67,7 @@ bool NoGood::filter(Variable *x) {
 // Constructors and initialisation
 //----------------------------------------------
 
-NoGood::NoGood(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &t) : Constraint(p, n, vars) {
+NoGood::NoGood(Problem &p, vec<Variable *> &vars, vec<int> &t) : Constraint(p, vars) {
     type = "NoGood";
     t.copyTo(tuple);
 }

@@ -20,9 +20,8 @@ class BinaryExtensionSupport : public Extension {
 
    public:
     // Constructors and initialisation
-    BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *x, Variable *y);
-    BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *x, Variable *y,
-                           BinaryExtensionSupport *hasSameTuples);
+    BinaryExtensionSupport(Problem &p, bool support, Variable *x, Variable *y);
+    BinaryExtensionSupport(Problem &p, bool support, Variable *x, Variable *y, BinaryExtensionSupport *hasSameTuples);
 
     // filtering
     bool filter(Variable *x) override;

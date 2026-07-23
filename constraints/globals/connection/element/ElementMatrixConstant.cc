@@ -91,10 +91,10 @@ bool ElementMatrixConstant::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-ElementMatrix::ElementMatrix(Problem &p, std::string n) : GlobalConstraint(p, n, "", 0) { }
+ElementMatrix::ElementMatrix(Problem &p) : GlobalConstraint(p, "", 0) { }
 
-ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci)
-    : GlobalConstraint(p, n, "ElementMatrix", 0) {
+ElementMatrix::ElementMatrix(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci)
+    : GlobalConstraint(p, "ElementMatrix", 0) {
     matrix.growTo(m.size());
     vec<Variable *> vars;
     for(int i = 0; i < m.size(); i++) {
@@ -121,9 +121,8 @@ ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m
     addToScope(vars);
 }
 
-ElementMatrixConstant::ElementMatrixConstant(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci,
-                                             int v)
-    : ElementMatrix(p, n, m, ri, ci) {
+ElementMatrixConstant::ElementMatrixConstant(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, int v)
+    : ElementMatrix(p, m, ri, ci) {
     type  = "Element Matrix Constant";
     value = v;
 

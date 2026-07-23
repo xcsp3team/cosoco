@@ -43,8 +43,8 @@ bool SumScalarLEVar::filter(Variable *x) {
 //----------------------------------------------
 
 
-SumScalarLEVar::SumScalarLEVar(Problem &p, std::string n, vec<Variable *> &variables, vec<Variable *> &coefs, Variable *_z)
-    : SumScalar(p, n, Constraint::createScopeVec(&variables, &coefs, _z)), limit(_z) {
+SumScalarLEVar::SumScalarLEVar(Problem &p, vec<Variable *> &variables, vec<Variable *> &coefs, Variable *_z)
+    : SumScalar(p, Constraint::createScopeVec(&variables, &coefs, _z)), limit(_z) {
     half = variables.size();
     type = "SumScalarBooleanLEVar";
 }

@@ -10,7 +10,7 @@ class DistNE : public Binary {
    public:
     int k;
     // Constructors
-    DistNE(Problem &p, std::string n, Variable *xx, Variable *yy, int kk);
+    DistNE(Problem &p, Variable *xx, Variable *yy, int kk);
 
     // filtering
     bool filter(Variable *x) override;
@@ -26,7 +26,7 @@ class DistEQ : public Binary {
    public:
     int k;
     // Constructors
-    DistEQ(Problem &p, std::string n, Variable *xx, Variable *yy, int kk);
+    DistEQ(Problem &p, Variable *xx, Variable *yy, int kk);
 
     // filtering
     bool filter(Variable *x) override;

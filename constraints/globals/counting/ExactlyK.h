@@ -10,12 +10,13 @@
 namespace Cosoco {
 
 class ExactlyK : public GlobalConstraint {
-    int  k;
-    int  value;
-    bool done;
-    vec<int>valueToidv;
+    int      k;
+    int      value;
+    bool     done;
+    vec<int> valueToidv;
+
    public:
-    ExactlyK(Problem &p, std::string n, vec<Variable *> &vars, int k, int val);
+    ExactlyK(Problem &p, vec<Variable *> &vars, int k, int val);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -19,8 +19,8 @@ class ShortSTR2 : public Extension, ObserverDeleteDecision {
 
    public:
     // Constructors
-    ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
-    ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
+    ShortSTR2(Problem &p, vec<Variable *> &vars, size_t max_n_tuples);
+    ShortSTR2(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
 
     // filtering
     bool filter(Variable *x) override;

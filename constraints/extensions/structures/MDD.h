@@ -42,7 +42,7 @@ class MDD {
     MDD(vec<XCSP3Core::XTransition *> &transitions, vec<Variable *> &scope);
     virtual ~MDD();
 
-    static MDD *buildFromAutomata(std::string name, vec<Variable *> &scope, string start, std::vector<string> &finals,
+    static MDD *buildFromAutomata(vec<Variable *> &scope, string start, std::vector<string> &finals,
                                   vec<XCSP3Core::XTransition *> &transitions);
 };
 }   // namespace Cosoco

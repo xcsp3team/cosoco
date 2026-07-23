@@ -9,8 +9,7 @@ class MinimumConstant : public GlobalConstraint, public ObjectiveConstraint {
    public:
     int k;
 
-    MinimumConstant(Problem &p, std::string n, vec<Variable *> &vars, int kk)
-        : GlobalConstraint(p, n, "Min constant", vars), k(kk) { }
+    MinimumConstant(Problem &p, vec<Variable *> &vars, int kk) : GlobalConstraint(p, "Min constant", vars), k(kk) { }
 
     // Function related to optimisation (see ObjectiveConstraint class)
     void updateBound(long bound) override;

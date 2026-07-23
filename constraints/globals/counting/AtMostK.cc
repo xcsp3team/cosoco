@@ -57,5 +57,4 @@ bool AtMostK::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------
 
-AtMostK::AtMostK(Problem &p, std::string n, vec<Variable *> &vars, int kk, int val)
-    : GlobalConstraint(p, n, "At most", vars), k(kk), value(val) { }
+AtMostK::AtMostK(Problem &p, vec<Variable *> &vars, int kk, int val) : GlobalConstraint(p, "At most", vars), k(kk), value(val) { }

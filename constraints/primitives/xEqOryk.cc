@@ -253,25 +253,25 @@ bool Or::filter(Variable *x) {
 // Constructor and initialisation methods
 //----------------------------------------------
 
-xEqGenOr::xEqGenOr(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
-    : GlobalConstraint(p, n, "X = Generalized OR", Constraint::createScopeVec(&vars, r)), result(r) {
+xEqGenOr::xEqGenOr(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, "X = Generalized OR", Constraint::createScopeVec(&vars, r)), result(r) {
     nnodes.copyTo(nodes);
 }
 
 
-xEqGenAnd::xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
-    : GlobalConstraint(p, n, "X = Generalized AND", Constraint::createScopeVec(&vars, r)), result(r) {
+xEqGenAnd::xEqGenAnd(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, "X = Generalized AND", Constraint::createScopeVec(&vars, r)), result(r) {
     nnodes.copyTo(nodes);
 }
 
-GenOr::GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
-    : GlobalConstraint(p, n, "Generalized OR", Constraint::createScopeVec(&vars)) {
+GenOr::GenOr(Problem &p, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, "Generalized OR", Constraint::createScopeVec(&vars)) {
     nnodes.copyTo(nodes);
     s1 = 0;
     s2 = 1;
 }
 
-Or::Or(Problem &p, std::string n, vec<Variable *> &vars) : GlobalConstraint(p, n, "OR", vars) {
+Or::Or(Problem &p, vec<Variable *> &vars) : GlobalConstraint(p, "OR", vars) {
     s1 = 0;
     s2 = 1;
 }

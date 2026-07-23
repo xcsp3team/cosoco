@@ -10,8 +10,8 @@ namespace Cosoco {
 class MDDExtension : public Extension, ObserverDeleteDecision {
    public:
     void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
-    MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, vec<XCSP3Core::XTransition *> &transitions);
-    MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m);
+    MDDExtension(Problem &p, vec<Variable *> &vars, vec<XCSP3Core::XTransition *> &transitions);
+    MDDExtension(Problem &p, vec<Variable *> &vars, MDD *m);
 
     bool filter(Variable *x) override;
     bool isSatisfiedBy(vec<int> &tuple) override;

@@ -19,7 +19,7 @@ class Xor : public GlobalConstraint {
 
    public:
     // Constructors
-    Xor(Problem &p, std::string n, vec<Variable *> &vars);
+    Xor(Problem &p, vec<Variable *> &vars);
 
     // filtering
     bool filter(Variable *x) override;
@@ -39,7 +39,7 @@ class XeqXor : public GlobalConstraint {
 
    public:
     // Constructors
-    XeqXor(Problem &p, std::string n, vec<Variable *> &vars, Variable *xx);
+    XeqXor(Problem &p, vec<Variable *> &vars, Variable *xx);
     Variable *findAnotherSentinel(Variable *other);
 
     // filtering

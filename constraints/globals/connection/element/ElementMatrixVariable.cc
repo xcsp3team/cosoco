@@ -133,9 +133,8 @@ bool ElementMatrixVariable::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-ElementMatrixVariable::ElementMatrixVariable(Problem &p, std::string nn, vec<vec<Variable *> > &mm, Variable *ri, Variable *ci,
-                                             Variable *v)
-    : ElementMatrix(p, nn) {
+ElementMatrixVariable::ElementMatrixVariable(Problem &p, vec<vec<Variable *> > &mm, Variable *ri, Variable *ci, Variable *v)
+    : ElementMatrix(p) {
     type  = "Element Matrix Variable";
     value = v;
 

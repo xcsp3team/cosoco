@@ -34,4 +34,4 @@ bool EQ::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-EQ::EQ(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) { type = "X = Y + k"; }
+EQ::EQ(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = Y + k"; }

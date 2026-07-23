@@ -14,7 +14,7 @@ class MaximumArg : public GlobalConstraint {
     Variable           *index;
     vec<Variable *>     list;
     XCSP3Core::RankType rank;
-    MaximumArg(Problem &p, std::string n, vec<Variable *> &vars, Variable *idx, XCSP3Core::RankType r);
+    MaximumArg(Problem &p, vec<Variable *> &vars, Variable *idx, XCSP3Core::RankType r);
     bool filter(Variable *dummy) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };

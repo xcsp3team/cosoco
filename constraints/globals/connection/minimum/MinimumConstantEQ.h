@@ -11,7 +11,7 @@ class MinimumConstantEQ : public MinimumConstant {
     Variable *sentinel1, *sentinel2;
 
    public:
-    MinimumConstantEQ(Problem &p, std::string n, vec<Variable *> &vars, int kk) : MinimumConstant(p, n, vars, kk) {
+    MinimumConstantEQ(Problem &p, vec<Variable *> &vars, int kk) : MinimumConstant(p, vars, kk) {
         sentinel1 = scope[0];
         sentinel2 = scope[1];
         type      = "Minimum Constant EQ";

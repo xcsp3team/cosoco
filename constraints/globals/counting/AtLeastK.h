@@ -11,7 +11,7 @@ class AtLeastK : public GlobalConstraint {
     SparseSet sentinels;   // The sentinels saying t
 
 
-    AtLeastK(Problem &p, std::string n, vec<Variable *> &vars, int k, int val);
+    AtLeastK(Problem &p, vec<Variable *> &vars, int k, int val);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 

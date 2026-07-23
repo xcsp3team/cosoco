@@ -11,8 +11,8 @@ class MaximumVariable : public GlobalConstraint {
     Variable *maxVar;
 
 
-    MaximumVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *v)
-        : GlobalConstraint(p, n, "Max variable", Constraint::createScopeVec(&vars, v)), maxVar(v) { }
+    MaximumVariable(Problem &p, vec<Variable *> &vars, Variable *v)
+        : GlobalConstraint(p, "Max variable", Constraint::createScopeVec(&vars, v)), maxVar(v) { }
 };
 }   // namespace Cosoco
 

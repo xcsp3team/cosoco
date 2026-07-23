@@ -14,7 +14,7 @@ class SumNE : public Sum {
     bool filterUniqueNonSingletonVariable(int posx);
 
    public:
-    SumNE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
+    SumNE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
 
     bool filter(Variable *x) override;
 

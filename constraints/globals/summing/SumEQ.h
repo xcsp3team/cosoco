@@ -6,7 +6,7 @@ namespace Cosoco {
 
 class SumEQ : public Sum {
    public:
-    SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
+    SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
     bool filter(Variable *x) override;
 
 

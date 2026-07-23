@@ -36,7 +36,6 @@ class Constraint {
     vec<int>        current;                  // to avoid creation during search
     Problem        &problem;                  // The linked problem
     Solver         *solver;                   // The linked solver
-    std::string     name;                     // Name in the problem description
     std::string     type;                     // The type : ext, int, alldiff.... (useful for displaying)
     int             idc;                      // The id in problem.constraints
     vec<Variable *> scope;                    // The scope of the constraint
@@ -50,10 +49,10 @@ class Constraint {
 
 
     // Constructors and delayed initialisation
-    Constraint(Problem &p, std::string n, vec<Variable *> &vars);
-    Constraint(Problem &p, std::string n);   // For global constraints, the scope is managed by themselves
-    bool         scopeIsOk();                // is the scope is correctly defined?
-    virtual bool isCorrectlyDefined();       // is the constraint is correctly defined?
+    Constraint(Problem &p, vec<Variable *> &vars);
+    Constraint(Problem &p);              // For global constraints, the scope is managed by themselves
+    bool         scopeIsOk();            // is the scope is correctly defined?
+    virtual bool isCorrectlyDefined();   // is the constraint is correctly defined?
     void         addToScope(vec<Variable *> &vars);
     void         addToScope(Variable *x);
 

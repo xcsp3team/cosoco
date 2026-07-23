@@ -165,9 +165,9 @@ bool Add3::filter(Variable *dummy) {
 // Construction and initalisation
 //----------------------------------------------
 
-Lt::Lt(Problem &p, std::string n, Variable *xx, Variable *yy, int kk) : Binary(p, n, xx, yy), k(kk) { type = "(X - Y < k)"; }
+Lt::Lt(Problem &p, Variable *xx, Variable *yy, int kk) : Binary(p, xx, yy), k(kk) { type = "(X - Y < k)"; }
 
-Add3::Add3(Problem &p, std::string n, Variable *x, Variable *y, Variable *z) : Ternary(p, n, x, y, z) {
+Add3::Add3(Problem &p, Variable *x, Variable *y, Variable *z) : Ternary(p, x, y, z) {
     type = "X + Y = Z";
     rx.growTo(x->domain.maxSize(), 0);
     ry.growTo(y->domain.maxSize(), 0);

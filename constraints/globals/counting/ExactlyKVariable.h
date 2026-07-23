@@ -12,7 +12,7 @@ class ExactlyKVariable : public GlobalConstraint {
     int             positionOfKInList;   // -1 if not present
 
    public:
-    ExactlyKVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *k, int val);
+    ExactlyKVariable(Problem &p, vec<Variable *> &vars, Variable *k, int val);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *dummy) override;

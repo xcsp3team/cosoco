@@ -6,9 +6,9 @@ namespace Cosoco {
 
 class GlobalConstraint : public Constraint {
    public:
-    GlobalConstraint(Problem &p, std::string n, std::string t, vec<Variable *> &vars) : Constraint(p, n, vars) { type = t; }
-    GlobalConstraint(Problem &p, std::string n, std::string t, int sz) : Constraint(p, n) {
-        type = t;
+    GlobalConstraint(Problem &p, std::string t, vec<Variable *> &vars) : Constraint(p, vars) { type = t; }
+    GlobalConstraint(Problem &p, std::string t, int sz) : Constraint(p) {
+        type = std::move(t);
     }   // Scope initialisation is postponed
 };
 }   // namespace Cosoco

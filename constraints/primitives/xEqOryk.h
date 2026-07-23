@@ -18,7 +18,7 @@ class xEqGenOr : public GlobalConstraint {
     vec<BasicNode *> nodes;
 
    public:
-    xEqGenOr(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
+    xEqGenOr(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -32,7 +32,7 @@ class xEqGenAnd : public GlobalConstraint {
     vec<BasicNode *> nodes;
 
    public:
-    xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
+    xEqGenAnd(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -48,7 +48,7 @@ class GenOr : public GlobalConstraint {
     int findSentinel(int other);
 
    public:
-    GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nn);
+    GenOr(Problem &p, vec<Variable *> &vars, vec<BasicNode *> &nn);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -64,7 +64,7 @@ class Or : public GlobalConstraint {
     int findSentinel(int other);
 
    public:
-    Or(Problem &p, std::string n, vec<Variable *> &vars);
+    Or(Problem &p, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

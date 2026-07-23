@@ -129,8 +129,8 @@ bool ElementVariable::filterValue() {
 // Constructor and initialisation methods
 //----------------------------------------------
 
-ElementVariable::ElementVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, Variable *r, bool one)
-    : Element(p, n, "Element Variable", Constraint::createScopeVec(&vars, i, r), i, one), value(r) {
+ElementVariable::ElementVariable(Problem &p, vec<Variable *> &vars, Variable *i, Variable *r, bool one)
+    : Element(p, "Element Variable", Constraint::createScopeVec(&vars, i, r), i, one), value(r) {
     szVector = vars.size();
     posIndex = vars.firstOccurrenceOf(i);
     vars.copyTo(list);

@@ -132,7 +132,7 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
         std::cout << "ici \n";
         buildVariableInteger(id, min, max);
         Variable *x = problem->variables.last();
-        FactoryConstraints::createConstraintUnary(problem, id, x, vector2vec(values), true);
+        FactoryConstraints::createConstraintUnary(problem, x, vector2vec(values), true);
         x->domain.fakeSize = values.size();
         return;
         x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
@@ -218,7 +218,7 @@ void CosocoCallbacks::buildConstraintExtension(string id, vector<XVariable *> li
 }
 
 void CosocoCallbacks::buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) {
-    FactoryConstraints::createConstraintExtensionAs(problem, id, toMyVariables(list), problem->constraints.last());
+    FactoryConstraints::createConstraintExtensionAs(problem, toMyVariables(list), problem->constraints.last());
 }
 
 void CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples,
@@ -232,7 +232,7 @@ void CosocoCallbacks::buildConstraintExtension2(const string &id, vec<Variable *
             tuples[i][j] = origTuples[i][j] == STAR ? STAR : scope[j]->domain.toIdv(origTuples[i][j]);
         }
     }
-    FactoryConstraints::createConstraintExtension(problem, id, scope, tuples, support, hasStar);
+    FactoryConstraints::createConstraintExtension(problem, scope, tuples, support, hasStar);
 }
 
 
@@ -240,7 +240,7 @@ void CosocoCallbacks::buildConstraintExtension(string id, XVariable *variable, v
     if(hasStar)
         throw runtime_error("Extension constraint with star is not yet supported");
 
-    FactoryConstraints::createConstraintUnary(problem, id, problem->mapping[variable->id], vector2vec(tuples), support);
+    FactoryConstraints::createConstraintUnary(problem, problem->mapping[variable->id], vector2vec(tuples), support);
 }
 
 
@@ -256,16 +256,16 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariabl
         vars.push(problem->mapping[x->id]);
         vars.push(problem->mapping[y->id]);
         if(op == EQ)
-            FactoryConstraints::createConstraintAllEqual(problem, id, vars);
+            FactoryConstraints::createConstraintAllEqual(problem, vars);
         else
-            FactoryConstraints::createConstraintAllDiff(problem, id, vars);
+            FactoryConstraints::createConstraintAllDiff(problem, vars);
         return;
     }
     if(op == LE || op == LT) {
         vars.clear();
         vars.push(problem->mapping[x->id]);
         vars.push(problem->mapping[y->id]);
-        FactoryConstraints::createConstraintLessThan(problem, id, vars[0], k, vars[1], op == LT);
+        FactoryConstraints::createConstraintLessThan(problem, vars[0], k, vars[1], op == LT);
         return;
     }
     string t = k == 0 ? x->id : "add(" + x->id + "," + std::to_string(k) + ")";
@@ -288,7 +288,7 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, OrderType op, XVariabl
         if((op == LE && v <= k) || (op == GE && v >= k))
             values.push(v);
     }
-    FactoryConstraints::createConstraintUnary(problem, id, x, values, true);
+    FactoryConstraints::createConstraintUnary(problem, x, values, true);
 }
 
 void CosocoCallbacks::buildConstraintPrimitive(string id, XVariable *xx, bool in, int min,
@@ -300,7 +300,7 @@ void CosocoCallbacks::buildConstraintPrimitive(string id, XVariable *xx, bool in
         if(min <= v && v <= max)
             values.push(v);
     }
-    FactoryConstraints::createConstraintUnary(problem, id, x, values, in);
+    FactoryConstraints::createConstraintUnary(problem, x, values, in);
 }
 
 
@@ -313,7 +313,7 @@ void CosocoCallbacks::buildConstraintMult(string id, XVariable *x, XVariable *y,
     Variable *xx = problem->mapping[x->id];
     Variable *yy = problem->mapping[y->id];
     Variable *zz = problem->mapping[z->id];
-    FactoryConstraints::createConstraintMult(problem, id, xx, yy, zz);
+    FactoryConstraints::createConstraintMult(problem, xx, yy, zz);
 }
 
 //--------------------------------------------------------------------------------------
@@ -343,11 +343,11 @@ void CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, v
     toMyVariables(list, vars);
     Cosoco::MDD *mdd = nullptr;
     if((mdd = sameMDDAsPrevious(vars)) != nullptr)
-        FactoryConstraints::createConstraintMDD(problem, id, vars, mdd);
+        FactoryConstraints::createConstraintMDD(problem, vars, mdd);
     else {
         vec<XTransition *> trans;
         for(auto &transition : transitions) trans.push(&transition);
-        FactoryConstraints::createConstraintMDD(problem, id, vars, trans);
+        FactoryConstraints::createConstraintMDD(problem, vars, trans);
     }
     nbMDD++;
 }
@@ -375,7 +375,7 @@ void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &lis
             vec<Variable *> tmp;
             tmp.push(vars[i]);
             tmp.push(problem->variables.last());
-            FactoryConstraints::createConstraintAllEqual(problem, id, tmp);
+            FactoryConstraints::createConstraintAllEqual(problem, tmp);
             vars[i] = problem->variables.last();
         }
         vars[i]->fake = 1;
@@ -383,11 +383,11 @@ void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &lis
 
     Cosoco::MDD *mdd = nullptr;
     if((mdd = sameMDDAsPrevious(vars)) != nullptr)
-        FactoryConstraints::createConstraintMDD(problem, id, vars, mdd);
+        FactoryConstraints::createConstraintMDD(problem, vars, mdd);
     else {
         vec<XTransition *> trans;
         for(auto &transition : transitions) trans.push(&transition);
-        FactoryConstraints::createConstraintRegular(problem, id, vars, start, final, trans);
+        FactoryConstraints::createConstraintRegular(problem, vars, start, final, trans);
     }
 }
 
@@ -400,7 +400,7 @@ void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &lis
         throw runtime_error("Circuit with startIndex != 0 is not yet supported");
 
     toMyVariables(list, vars);
-    FactoryConstraints::createConstraintCircuit(problem, id, vars);
+    FactoryConstraints::createConstraintCircuit(problem, vars);
 }
 
 
@@ -409,12 +409,12 @@ void CosocoCallbacks::buildConstraintCircuit(string id, vector<XVariable *> &lis
 //--------------------------------------------------------------------------------------
 
 void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<XVariable *> &list) {
-    FactoryConstraints::createConstraintAllDiff(problem, id, toMyVariables(list));
+    FactoryConstraints::createConstraintAllDiff(problem, toMyVariables(list));
 }
 
 
 void CosocoCallbacks::buildConstraintAlldifferentExcept(string id, vector<XVariable *> &list, vector<int> &except) {
-    FactoryConstraints::createConstraintAllDiffExcept(problem, id, toMyVariables(list), except);
+    FactoryConstraints::createConstraintAllDiffExcept(problem, toMyVariables(list), except);
 }
 
 void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &trees) {
@@ -425,7 +425,7 @@ void CosocoCallbacks::buildConstraintAlldifferent(string id, vector<Tree *> &tre
     // core duplication is here
     vars.clear();
     for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problem->mapping[auxiliaryVariable]);
-    FactoryConstraints::createConstraintAllDiff(problem, id, vars);
+    FactoryConstraints::createConstraintAllDiff(problem, vars);
     /*
     for(unsigned int i = 0; i < trees.size(); i++) {
         for(unsigned int j = i + 1; j < trees.size(); j++) {
@@ -451,7 +451,7 @@ void CosocoCallbacks::buildConstraintAlldifferentList(string id, vector<vector<X
         lists.push();
         toMyVariables(origlist, lists.last());
     }
-    FactoryConstraints::createConstraintAllDiffList(problem, id, lists);
+    FactoryConstraints::createConstraintAllDiffList(problem, lists);
 }
 
 
@@ -469,23 +469,23 @@ void CosocoCallbacks::buildConstraintAlldifferentMatrix(string id, vector<vector
 
 
 void CosocoCallbacks::buildConstraintAllEqual(string id, vector<XVariable *> &list) {
-    FactoryConstraints::createConstraintAllEqual(problem, id, toMyVariables(list));
+    FactoryConstraints::createConstraintAllEqual(problem, toMyVariables(list));
 }
 
 
 void CosocoCallbacks::buildConstraintNotAllEqual(string id, vector<XVariable *> &list) {
-    FactoryConstraints::createConstraintNotAllEqual(problem, id, toMyVariables(list));
+    FactoryConstraints::createConstraintNotAllEqual(problem, toMyVariables(list));
 }
 
 
 void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, OrderType order) {
     vector<int> lengths;
-    FactoryConstraints::createConstraintOrdered(problem, id, toMyVariables(list), lengths, order);
+    FactoryConstraints::createConstraintOrdered(problem, toMyVariables(list), lengths, order);
 }
 
 
 void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, vector<int> &lengths, OrderType order) {
-    FactoryConstraints::createConstraintOrdered(problem, id, toMyVariables(list), lengths, order);
+    FactoryConstraints::createConstraintOrdered(problem, toMyVariables(list), lengths, order);
 }
 
 void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &list, vector<XVariable *> &lengths,
@@ -493,7 +493,7 @@ void CosocoCallbacks::buildConstraintOrdered(string id, vector<XVariable *> &lis
     vec<Variable *> vars, _lengths;
     toMyVariables(list, vars);
     toMyVariables(lengths, _lengths);
-    FactoryConstraints::createConstraintOrdered(problem, id, vars, _lengths, order);
+    FactoryConstraints::createConstraintOrdered(problem, vars, _lengths, order);
 }
 
 void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> &lists, OrderType order) {
@@ -520,7 +520,7 @@ void CosocoCallbacks::buildConstraintLex(string id, vector<vector<XVariable *>> 
         } else
             toMyVariables(lists[i + 1], list2);
 
-        FactoryConstraints::createConstraintLex(problem, id, list1, list2, order);
+        FactoryConstraints::createConstraintLex(problem, list1, list2, order);
     }
 }
 
@@ -556,15 +556,15 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
 
         if(sumboolean) {
             if(xc.op == EQ) {
-                FactoryConstraints::createConstraintSumBooleanEQ(problem, id, vars, xc.val);
+                FactoryConstraints::createConstraintSumBooleanEQ(problem, vars, xc.val);
                 return;
             }
             if(xc.op == LE) {
-                FactoryConstraints::createConstraintSumBooleanLE(problem, id, vars, xc.val);
+                FactoryConstraints::createConstraintSumBooleanLE(problem, vars, xc.val);
                 return;
             }
             if(xc.op == GE) {
-                FactoryConstraints::createConstraintSumBooleanGE(problem, id, vars, xc.val);
+                FactoryConstraints::createConstraintSumBooleanGE(problem, vars, xc.val);
                 return;
             }
         }
@@ -600,15 +600,15 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
 
         if(sumboolean) {
             if(xc.op == EQ) {
-                FactoryConstraints::createConstraintSumBooleanEQ(problem, id, variables, xc.val);
+                FactoryConstraints::createConstraintSumBooleanEQ(problem, variables, xc.val);
                 return;
             }
             if(xc.op == LE || xc.op == LT) {
-                FactoryConstraints::createConstraintSumBooleanLE(problem, id, variables, xc.op == LE ? xc.val : xc.val - 1);
+                FactoryConstraints::createConstraintSumBooleanLE(problem, variables, xc.op == LE ? xc.val : xc.val - 1);
                 return;
             }
             if(xc.op == GE || xc.op == GT) {
-                FactoryConstraints::createConstraintSumBooleanGE(problem, id, variables, xc.op == GE ? xc.val : xc.val + 1);
+                FactoryConstraints::createConstraintSumBooleanGE(problem, variables, xc.op == GE ? xc.val : xc.val + 1);
                 return;
             }
         }
@@ -621,13 +621,13 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
         vals.push(-1);
     }
     if(xc.op != IN && xc.op != NOTIN) {
-        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.val, xc.op);
+        FactoryConstraints::createConstraintSum(problem, tmpVars, vals, xc.val, xc.op);
         return;
     }
 
     if(xc.op == IN && xc.operandType == INTERVAL) {
-        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.min, GE);
-        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, xc.max, LE);
+        FactoryConstraints::createConstraintSum(problem, tmpVars, vals, xc.min, GE);
+        FactoryConstraints::createConstraintSum(problem, tmpVars, vals, xc.max, LE);
         return;
     }
 
@@ -637,7 +637,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
         vector2vec(coeffs);   // Be careful we change the vector vals :(
         vals.push(-1);
         tmpVars.push(problem->mapping[auxVar]);
-        FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, 0, EQ);
+        FactoryConstraints::createConstraintSum(problem, tmpVars, vals, 0, EQ);
         return;
     }
     std::vector<int> tmp;
@@ -646,7 +646,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vec<Variable *> &variables, 
     } else
         tmp.assign(xc.set.begin(), xc.set.end());
 
-    for(int i : tmp) FactoryConstraints::createConstraintSum(problem, id, tmpVars, vals, i, NE);
+    for(int i : tmp) FactoryConstraints::createConstraintSum(problem, tmpVars, vals, i, NE);
 }
 
 
@@ -667,7 +667,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
         vec<Variable *> c;
         toMyVariables(list, vars);
         toMyVariables(coeffs, c);
-        FactoryConstraints::createConstraintSum(problem, id, vars, c, xc.val, LE);
+        FactoryConstraints::createConstraintSum(problem, vars, c, xc.val, LE);
         return;
     }
 
@@ -677,7 +677,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, v
         toMyVariables(list, vars);
         toMyVariables(coeffs, c);
         Variable *z = problem->mapping[xc.var];
-        FactoryConstraints::createConstraintSum(problem, id, vars, c, z, LE);
+        FactoryConstraints::createConstraintSum(problem, vars, c, z, LE);
         return;
     }
     vector<Tree *> trees;
@@ -697,7 +697,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCond
             vec<Cosoco::BasicNode *> nodes;
             vec<Variable *>          vars;
             createArrays(parameters, vars, nodes);
-            FactoryConstraints::createConstraintSumGen(problem, id, vars, nodes, cond.val, cond.op);
+            FactoryConstraints::createConstraintSumGen(problem, vars, nodes, cond.val, cond.op);
             return;
         }
     }
@@ -721,28 +721,28 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, vecto
 
 
 void CosocoCallbacks::buildConstraintAtMost(string id, vector<XVariable *> &list, int value, int k) {
-    FactoryConstraints::createConstraintAtMost(problem, id, toMyVariables(list), value, k);
+    FactoryConstraints::createConstraintAtMost(problem, toMyVariables(list), value, k);
 }
 
 
 void CosocoCallbacks::buildConstraintAtLeast(string id, vector<XVariable *> &list, int value, int k) {
-    FactoryConstraints::createConstraintAtLeast(problem, id, toMyVariables(list), value, k);
+    FactoryConstraints::createConstraintAtLeast(problem, toMyVariables(list), value, k);
 }
 
 
 void CosocoCallbacks::buildConstraintExactlyK(string id, vector<XVariable *> &list, int value, int k) {
-    FactoryConstraints::createConstraintExactly(problem, id, toMyVariables(list), value, k);
+    FactoryConstraints::createConstraintExactly(problem, toMyVariables(list), value, k);
 }
 
 
 void CosocoCallbacks::buildConstraintExactlyVariable(string id, vector<XVariable *> &list, int value, XVariable *x) {
-    FactoryConstraints::createConstraintExactlyVariable(problem, id, toMyVariables(list), value, problem->mapping[x->id]);
+    FactoryConstraints::createConstraintExactlyVariable(problem, toMyVariables(list), value, problem->mapping[x->id]);
 }
 
 
 void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &list, XCondition &xc) {
     if(xc.operandType == VARIABLE && xc.op == EQ) {
-        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[xc.var]);
+        FactoryConstraints::createConstraintNValuesEQV(problem, toMyVariables(list), problem->mapping[xc.var]);
         return;
     }
     if(xc.operandType == VARIABLE)
@@ -750,19 +750,19 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
 
     if(xc.operandType == INTEGER) {
         if(xc.op == LE) {
-            FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val);
+            FactoryConstraints::createConstraintNValuesLE(problem, toMyVariables(list), xc.val);
             return;
         }
         if(xc.op == LT) {
-            FactoryConstraints::createConstraintNValuesLE(problem, id, toMyVariables(list), xc.val - 1);
+            FactoryConstraints::createConstraintNValuesLE(problem, toMyVariables(list), xc.val - 1);
             return;
         }
         if(xc.op == GE) {
-            FactoryConstraints::createConstraintNValuesGE(problem, id, toMyVariables(list), xc.val);
+            FactoryConstraints::createConstraintNValuesGE(problem, toMyVariables(list), xc.val);
             return;
         }
         if(xc.op == GT) {
-            FactoryConstraints::createConstraintNValuesGE(problem, id, toMyVariables(list), xc.val + 1);
+            FactoryConstraints::createConstraintNValuesGE(problem, toMyVariables(list), xc.val + 1);
             return;
         }
         if(xc.op == EQ) {
@@ -770,7 +770,7 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
             std::vector<int> tmp;
             tmp.push_back(xc.val);
             buildVariableInteger(auxVar, tmp);
-            FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+            FactoryConstraints::createConstraintNValuesEQV(problem, toMyVariables(list), problem->mapping[auxVar]);
             return;
         }
         throw runtime_error("c Such nValues constraint Not yes supported");
@@ -781,7 +781,7 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
             buildVariableInteger(auxVar, xc.min, xc.max);
         else
             buildVariableInteger(auxVar, xc.set);
-        FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+        FactoryConstraints::createConstraintNValuesEQV(problem, toMyVariables(list), problem->mapping[auxVar]);
         return;
     }
     assert(xc.op == NOTIN);
@@ -797,7 +797,7 @@ void CosocoCallbacks::buildConstraintNValues(string id, vector<XVariable *> &lis
     string     auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
     XVariable *aux    = new XVariable(auxVar, nullptr);
     buildVariableInteger(auxVar, 1, max - min + 2);
-    FactoryConstraints::createConstraintNValuesEQV(problem, id, toMyVariables(list), problem->mapping[auxVar]);
+    FactoryConstraints::createConstraintNValuesEQV(problem, toMyVariables(list), problem->mapping[auxVar]);
     if(xc.operandType == SET)
         buildConstraintExtension(id, aux, xc.set, false, false);
     else {
@@ -892,7 +892,7 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list,
 
 
 void CosocoCallbacks::buildConstraintAmong(string id, vector<XVariable *> &list, vector<int> &values, int k) {
-    FactoryConstraints::createConstraintAmong(problem, id, toMyVariables(list), vector2vec(values), k);
+    FactoryConstraints::createConstraintAmong(problem, toMyVariables(list), vector2vec(values), k);
 }
 
 
@@ -905,7 +905,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
         auto *x = new XVariable(auxVar, nullptr);
         occurs.push(problem->mapping[x->id]);
     }
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), vector2vec(values), occurs);
 }
 
 
@@ -915,7 +915,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
     for(auto &xv : varOccurs) {
         occurs.push(problem->mapping[xv->id]);
     }
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), vector2vec(values), occurs);
 }
 
 
@@ -928,7 +928,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
         auto *x = new XVariable(auxVar, nullptr);
         occurs.push(problem->mapping[x->id]);
     }
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), vector2vec(values), occurs);
 }
 
 
@@ -969,7 +969,7 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<Tree *> &list, XC
             createAuxiliaryVariablesAndExpressions(list, auxiliaryVariables);
             vars.clear();
             for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problem->mapping[auxiliaryVariable]);
-            FactoryConstraints::createConstraintMaximumVariableEQ(problem, id, vars, problem->mapping[xc.var]);
+            FactoryConstraints::createConstraintMaximumVariableEQ(problem, vars, problem->mapping[xc.var]);
             return;
         }
     }
@@ -984,7 +984,7 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XC
             createAuxiliaryVariablesAndExpressions(list, auxiliaryVariables);
             vars.clear();
             for(auto &auxiliaryVariable : auxiliaryVariables) vars.push(problem->mapping[auxiliaryVariable]);
-            FactoryConstraints::createConstraintMinimumVariableEQ(problem, id, vars, problem->mapping[xc.var]);
+            FactoryConstraints::createConstraintMinimumVariableEQ(problem, vars, problem->mapping[xc.var]);
             return;
         }
     }
@@ -994,7 +994,7 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<Tree *> &list, XC
 void CosocoCallbacks::buildConstraintMaximumArg(string id, vector<XVariable *> &list, RankType rank, XCondition &xc) {
     if(xc.op != EQ || xc.operandType != VARIABLE)
         throw runtime_error("maximum arg with condition != (eq,x) not yet implemented");
-    FactoryConstraints::createConstraintMaximumArg(problem, id, toMyVariables(list), problem->mapping[xc.var], rank);
+    FactoryConstraints::createConstraintMaximumArg(problem, toMyVariables(list), problem->mapping[xc.var], rank);
 }
 
 
@@ -1011,7 +1011,7 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &lis
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {
             toMyVariables(list, vars);
-            FactoryConstraints::createConstraintMaximumVariableEQ(problem, id, vars, problem->mapping[xc.var]);
+            FactoryConstraints::createConstraintMaximumVariableEQ(problem, vars, problem->mapping[xc.var]);
         } else
             buildConstraintIntension(id, new Tree(createExpression("max", xc.op, list, xc.var)));
         return;
@@ -1020,24 +1020,24 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &lis
     if(xc.operandType == INTEGER) {
         if(xc.op == LE || xc.op == LT) {
             toMyVariables(list, vars);
-            FactoryConstraints::createConstraintMaximumLE(problem, id, vars, xc.op == LE ? xc.val : xc.val - 1);
+            FactoryConstraints::createConstraintMaximumLE(problem, vars, xc.op == LE ? xc.val : xc.val - 1);
             return;
         }
         if(xc.op == GE || xc.op == GT) {
             toMyVariables(list, vars);
-            FactoryConstraints::createConstraintMaximumGE(problem, id, vars, xc.op == GE ? xc.val : xc.val + 1);
+            FactoryConstraints::createConstraintMaximumGE(problem, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
 
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
         buildVariableInteger(auxVar, xc.val, xc.val);
-        FactoryConstraints::createConstraintMaximumVariableEQ(problem, id, vars, problem->mapping[auxVar]);
+        FactoryConstraints::createConstraintMaximumVariableEQ(problem, vars, problem->mapping[auxVar]);
         return;
     }
     // Interval
     toMyVariables(list, vars);
-    FactoryConstraints::createConstraintMaximumLE(problem, id, vars, xc.min);
-    FactoryConstraints::createConstraintMaximumGE(problem, id, vars, xc.max);
+    FactoryConstraints::createConstraintMaximumLE(problem, vars, xc.min);
+    FactoryConstraints::createConstraintMaximumGE(problem, vars, xc.max);
 }
 
 
@@ -1045,7 +1045,7 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
     if(xc.operandType == VARIABLE) {
         if(xc.op == EQ) {
             toMyVariables(list, vars);
-            FactoryConstraints::createConstraintMinimumVariableEQ(problem, id, vars, problem->mapping[xc.var]);
+            FactoryConstraints::createConstraintMinimumVariableEQ(problem, vars, problem->mapping[xc.var]);
         } else
             buildConstraintIntension(id, new XCSP3Core::Tree(createExpression("min", xc.op, list, xc.var)));
         return;
@@ -1054,18 +1054,18 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
     if(xc.operandType == INTEGER) {
         if(xc.op == LE || xc.op == LT) {
             toMyVariables(list, vars);
-            FactoryConstraints::createConstraintMinimumLE(problem, id, vars, xc.op == LE ? xc.val : xc.val - 1);
+            FactoryConstraints::createConstraintMinimumLE(problem, vars, xc.op == LE ? xc.val : xc.val - 1);
             return;
         }
         if(xc.op == GE || xc.op == GT) {
             toMyVariables(list, vars);
-            FactoryConstraints::createConstraintMinimumGE(problem, id, vars, xc.op == GE ? xc.val : xc.val + 1);
+            FactoryConstraints::createConstraintMinimumGE(problem, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
-        FactoryConstraints::createConstraintMinimumEQ(problem, id, vars, xc.val);
+        FactoryConstraints::createConstraintMinimumEQ(problem, vars, xc.val);
         // string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
         // buildVariableInteger(auxVar, xc.val, xc.val);
-        // FactoryConstraints::createConstraintMinimumVariableEQ(problem, id, vars, problem->mapping[auxVar]);
+        // FactoryConstraints::createConstraintMinimumVariableEQ(problem, vars, problem->mapping[auxVar]);
         //  Tree *tmp = new Tree(createExpression("min", xc.op, list, std::to_string(xc.val)));
         //  tmp->prefixe();
         //  buildConstraintIntension(id, new XCSP3Core::Tree(createExpression("min", xc.op, list, std::to_string(xc.val))));
@@ -1073,15 +1073,15 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
     }
     /// Interval
     toMyVariables(list, vars);
-    FactoryConstraints::createConstraintMinimumLE(problem, id, vars, xc.min);
-    FactoryConstraints::createConstraintMinimumGE(problem, id, vars, xc.max);
+    FactoryConstraints::createConstraintMinimumLE(problem, vars, xc.min);
+    FactoryConstraints::createConstraintMinimumGE(problem, vars, xc.max);
 }
 
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, int startIndex, XVariable *index,
                                              RankType rank, int value) {
     Variable *idx = problem->mapping[index->id];
-    FactoryConstraints::createConstraintElementConstant(problem, id, toMyVariables(list), idx, startIndex, value);
+    FactoryConstraints::createConstraintElementConstant(problem, toMyVariables(list), idx, startIndex, value);
 }
 
 
@@ -1104,14 +1104,14 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
                 tuples.last().last() = vars.last()->domain.toIdv(i);
             }
         }
-        FactoryConstraints::createConstraintExtension(problem, id, vars, tuples, true, true);
+        FactoryConstraints::createConstraintExtension(problem, vars, tuples, true, true);
         return;
     }
 
     Variable *idx = problem->mapping[index->id];
     Variable *val = problem->mapping[value->id];
     assert(val != nullptr);
-    FactoryConstraints::createConstraintElementVariable(problem, id, toMyVariables(list), idx, startIndex, val);
+    FactoryConstraints::createConstraintElementVariable(problem, toMyVariables(list), idx, startIndex, val);
 }
 
 
@@ -1131,7 +1131,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
             tuples.last().push(val->domain.toIdv(list[v]));
         }
     }
-    FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
+    FactoryConstraints::createConstraintExtension(problem, tmp, tuples, true, false);
 }
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVariable *index, int startIndex, XCondition &xc) {
@@ -1170,7 +1170,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, XVari
         vec<Variable *> tmp;
         tmp.push(x);
         tmp.push(z);
-        FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
+        FactoryConstraints::createConstraintExtension(problem, tmp, tuples, true, false);
         return;
     }
 
@@ -1218,7 +1218,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &mat
                 }
             }
         }
-        FactoryConstraints::createConstraintExtension(problem, id, tmp, tuples, true, false);
+        FactoryConstraints::createConstraintExtension(problem, tmp, tuples, true, false);
         return;
     }
 
@@ -1315,7 +1315,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &mat
             }
         }
     }
-    FactoryConstraints::createConstraintExtension(problem, id, vars, tuples, true, false);
+    FactoryConstraints::createConstraintExtension(problem, vars, tuples, true, false);
 }
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
@@ -1328,7 +1328,7 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<int> &list, int s
             values.push(idv);
     }
 
-    FactoryConstraints::createConstraintUnary(problem, id, x, values, true);
+    FactoryConstraints::createConstraintUnary(problem, x, values, true);
 }
 
 
@@ -1352,8 +1352,8 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable 
             m2.last().push(problem->mapping[matrix[i][j]->id]);
         }
     }
-    FactoryConstraints::createConstraintElementMatrix(problem, id, m2, problem->mapping[rowIndex->id],
-                                                      problem->mapping[colIndex->id], value);
+    FactoryConstraints::createConstraintElementMatrix(problem, m2, problem->mapping[rowIndex->id], problem->mapping[colIndex->id],
+                                                      value);
 }
 
 void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex,
@@ -1366,15 +1366,15 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<XVariable 
         }
     }
 
-    FactoryConstraints::createConstraintElementMatrix(problem, id, m2, problem->mapping[rowIndex->id],
-                                                      problem->mapping[colIndex->id], problem->mapping[value->id]);
+    FactoryConstraints::createConstraintElementMatrix(problem, m2, problem->mapping[rowIndex->id], problem->mapping[colIndex->id],
+                                                      problem->mapping[value->id]);
 }
 
 void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list, int startIndex) {
     if(startIndex != 0)
         throw runtime_error("Channel is not implemented with index != 0");
     toMyVariables(list);
-    FactoryConstraints::createConstraintChannel(problem, id, vars, 0);
+    FactoryConstraints::createConstraintChannel(problem, vars, 0);
     buildConstraintAlldifferent(id, list);
 }
 
@@ -1384,7 +1384,7 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
     vec<Variable *> Y;
     toMyVariables(list1, X);
     toMyVariables(list2, Y);
-    FactoryConstraints::createContraintChannelXY(problem, id, X, Y, startIndex1, startIndex2);
+    FactoryConstraints::createContraintChannelXY(problem, X, Y, startIndex1, startIndex2);
     if(list1.size() == list2.size()) {
         buildConstraintAlldifferent(id, list1);
         buildConstraintAlldifferent(id, list2);
@@ -1431,7 +1431,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
             buildVariableInteger(auxVar, 0, 3);
             Variable *aux = problem->mapping[auxVar];
 
-            FactoryConstraints::createConstraintDisjunctive(problem, id, vars[i], vars[j], lengths[i], lengths[j], aux);
+            FactoryConstraints::createConstraintDisjunctive(problem, vars[i], vars[j], lengths[i], lengths[j], aux);
         }
 }
 
@@ -1445,7 +1445,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
             Variable *xj = problem->mapping[origins[j]->id];
             Variable *wi = problem->mapping[lengths[i]->id];
             Variable *wj = problem->mapping[lengths[j]->id];
-            FactoryConstraints::createConstraintDisjunctiveVars(problem, id, xi, xj, wi, wj);
+            FactoryConstraints::createConstraintDisjunctiveVars(problem, xi, xj, wi, wj);
         }
 }
 
@@ -1505,7 +1505,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             Variable *hj  = problem->mapping[lengths[j][1]->id];
 
 
-            FactoryConstraints::createConstraintDisjunctive2DVar(problem, id, xi, xj, yi, yj, wi, wj, hi, hj, aux);
+            FactoryConstraints::createConstraintDisjunctive2DVar(problem, xi, xj, yi, yj, wi, wj, hi, hj, aux);
         }
     }
 }
@@ -1530,7 +1530,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             X.push(problem->mapping[origins[i][0]->id]);
             Y.push(problem->mapping[origins[i][1]->id]);
         }
-        FactoryConstraints::createConstraintNoOverlap(problem, id, X, w, Y, h);
+        FactoryConstraints::createConstraintNoOverlap(problem, X, w, Y, h);
     }
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
@@ -1548,7 +1548,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             buildVariableInteger(auxVar, 0, 3);
             Variable *aux = problem->mapping[auxVar];
-            FactoryConstraints::createConstraintDisjunctive2D(problem, id, x1, x2, y1, y2, lengths[i][0], lengths[j][0],
+            FactoryConstraints::createConstraintDisjunctive2D(problem, x1, x2, y1, y2, lengths[i][0], lengths[j][0],
                                                               lengths[i][1], lengths[j][1], aux);
         }
     }
@@ -1579,8 +1579,8 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
     buildConstraintCumulative(id, ox, lx, ly, xc);
     xc.val = maxX - minX;
     buildConstraintCumulative(id, oy, ly, lx, xc);
-    // FactoryConstraints::createConstraintCumulative(problem, id, ox, lx, ly, maxY - minY);
-    // FactoryConstraints::createConstraintCumulative(problem, id, oy, ly, lx, maxX - minX);
+    // FactoryConstraints::createConstraintCumulative(problem, ox, lx, ly, maxY - minY);
+    // FactoryConstraints::createConstraintCumulative(problem, oy, ly, lx, maxX - minX);
 
     return;
 
@@ -1626,9 +1626,9 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
     vals.copyTo(h);
     toMyVariables(origins, vars);
     if(xc.operandType == VARIABLE)
-        FactoryConstraints::createConstraintCumulative(problem, id, vars, l, h, problem->mapping[xc.var]);
+        FactoryConstraints::createConstraintCumulative(problem, vars, l, h, problem->mapping[xc.var]);
     else
-        FactoryConstraints::createConstraintCumulative(problem, id, vars, l, h, xc.val);
+        FactoryConstraints::createConstraintCumulative(problem, vars, l, h, xc.val);
 }
 
 
@@ -1643,10 +1643,9 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
     toMyVariables(varHeights, myvarHeights);
     toMyVariables(origins, vars);
     if(xc.operandType == VARIABLE)
-        FactoryConstraints::createConstraintCumulativeHeightVariableLV(problem, id, vars, l, myvarHeights,
-                                                                       problem->mapping[xc.var]);
+        FactoryConstraints::createConstraintCumulativeHeightVariableLV(problem, vars, l, myvarHeights, problem->mapping[xc.var]);
     else
-        FactoryConstraints::createConstraintCumulativeHeightVariable(problem, id, vars, l, myvarHeights, xc.val);
+        FactoryConstraints::createConstraintCumulativeHeightVariable(problem, vars, l, myvarHeights, xc.val);
 }
 
 
@@ -1663,7 +1662,7 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
     if(xc.operandType == VARIABLE) {
         throw std::runtime_error("Cumulative with variable lenghts and condition variable is not yet implemented");
     } else
-        FactoryConstraints::createConstraintCumulativeWidthVariables(problem, id, vars, myvarwidths, heights, xc.val);
+        FactoryConstraints::createConstraintCumulativeWidthVariables(problem, vars, myvarwidths, heights, xc.val);
 }
 
 
@@ -1676,11 +1675,10 @@ void CosocoCallbacks::buildConstraintCumulative(string id, vector<XVariable *> &
     toMyVariables(varheights, myvarheights);
     toMyVariables(origins, vars);
     if(xc.operandType == VARIABLE) {
-        FactoryConstraints::createConstraintCumulativeHeightAndWidthAndConditionVariables(problem, id, vars, myvarwidths,
+        FactoryConstraints::createConstraintCumulativeHeightAndWidthAndConditionVariables(problem, vars, myvarwidths,
                                                                                           myvarheights, problem->mapping[xc.var]);
     } else
-        FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(problem, id, vars, myvarwidths, myvarheights,
-                                                                              xc.val);
+        FactoryConstraints::createConstraintCumulativeHeightAndWidthVariables(problem, vars, myvarwidths, myvarheights, xc.val);
 }
 
 
@@ -1701,7 +1699,7 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
     vec<int> limits;
 
     limits.growTo(vars[0]->domain.maxSize(), cond.val - (cond.op == LT ? 1 : 0));
-    FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, limits);
+    FactoryConstraints::createConstraintBinPacking(problem, vars, s, limits);
 }
 
 
@@ -1724,9 +1722,9 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
             buildVariableInteger(auxVar, cap, cap);
             loads.push(problem->variables.last());
         }
-        FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, loads);
+        FactoryConstraints::createConstraintBinPacking(problem, vars, s, loads);
     } else
-        FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, c);
+        FactoryConstraints::createConstraintBinPacking(problem, vars, s, c);
 }
 
 void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &list, vector<int> &sizes,
@@ -1739,7 +1737,7 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
     vec<Variable *> loads;
     toMyVariables(capacities, loads);
     if(load) {
-        FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, loads);
+        FactoryConstraints::createConstraintBinPacking(problem, vars, s, loads);
     } else {
         set<int> b;
         for(Variable *x : vars)
@@ -1771,7 +1769,7 @@ void CosocoCallbacks::buildConstraintBinPacking(string id, vector<XVariable *> &
     toMyVariables(list, vars);
     vec<Variable *> loads;
     for(XCondition &xc : conditions) loads.push(problem->mapping[xc.var]);
-    FactoryConstraints::createConstraintBinPacking(problem, id, vars, s, loads);
+    FactoryConstraints::createConstraintBinPacking(problem, vars, s, loads);
 }
 
 //--------------------------------------------------------------------------------------
@@ -1784,14 +1782,14 @@ void CosocoCallbacks::buildConstraintInstantiation(string id, vector<XVariable *
         if(values[i] == STAR)
             continue;
         value.push(values[i]);
-        FactoryConstraints::createConstraintUnary(problem, id, problem->mapping[list[i]->id], value, true);
+        FactoryConstraints::createConstraintUnary(problem, problem->mapping[list[i]->id], value, true);
     }
 }
 
 
 void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, vector<int> values, bool covered) {
     toMyVariables(list);
-    FactoryConstraints::createConstraintPrecedence(problem, id, vars, vector2vec(values), covered);
+    FactoryConstraints::createConstraintPrecedence(problem, vars, vector2vec(values), covered);
 }
 
 void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &list, bool covered) {
@@ -1802,7 +1800,7 @@ void CosocoCallbacks::buildConstraintPrecedence(string id, vector<XVariable *> &
     }
     vec<int> tmp;
     for(int v : values) tmp.push(v);
-    FactoryConstraints::createConstraintPrecedence(problem, id, vars, tmp, covered);
+    FactoryConstraints::createConstraintPrecedence(problem, vars, tmp, covered);
 }
 
 void CosocoCallbacks::buildConstraintKnapsack(string id, vector<XVariable *> &list, vector<int> &weights, vector<int> &profits,
@@ -1840,7 +1838,7 @@ void CosocoCallbacks::buildConstraintFlow(string id, vector<XVariable *> &list, 
         vec<int> coeffs;
         coeffs.growTo(succs[i].size(), 1);
         for(int j = 0; j < preds[i].size(); j++) coeffs.push(-1);
-        FactoryConstraints::createConstraintSum(problem, id, tmp, coeffs, balance[i], EQ);
+        FactoryConstraints::createConstraintSum(problem, tmp, coeffs, balance[i], EQ);
     }
     buildConstraintSum(id, list, weights, xc);
 }
@@ -1854,7 +1852,7 @@ void CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
     string tmp = "le(" + expr + ",0)";
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
 
-    auto *po = static_cast<OptimizationProblem *>(problem);
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
     po->addObjectiveUB(oc, true);
@@ -1864,7 +1862,7 @@ void CosocoCallbacks::buildObjectiveMinimizeExpression(string expr) {
 void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
     string tmp = "ge(" + expr + ",0)";   // Fake value
     buildConstraintIntension("objective", new XCSP3Core::Tree(tmp));
-    auto *po = static_cast<OptimizationProblem *>(problem);
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
     assert(oc != nullptr);
@@ -1872,16 +1870,16 @@ void CosocoCallbacks::buildObjectiveMaximizeExpression(string expr) {
 }
 
 void CosocoCallbacks::buildObjectiveMinimizeVariable(XVariable *x) {
-    FactoryConstraints::createConstraintUnaryLE(problem, "", problem->mapping[x->id], 0);
-    auto *po = static_cast<OptimizationProblem *>(problem);
+    FactoryConstraints::createConstraintUnaryLE(problem, problem->mapping[x->id], 0);
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Minimize;
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
     po->addObjectiveUB(oc, true);
 }
 
 void CosocoCallbacks::buildObjectiveMaximizeVariable(XVariable *x) {
-    FactoryConstraints::createConstraintUnaryGE(problem, "", problem->mapping[x->id], 0);
-    auto *po = static_cast<OptimizationProblem *>(problem);
+    FactoryConstraints::createConstraintUnaryGE(problem, problem->mapping[x->id], 0);
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
     po->addObjectiveLB(oc, true);
@@ -1902,7 +1900,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
         if(sumboolean) {
             auto *po = dynamic_cast<OptimizationProblem *>(problem);
             po->type = Minimize;
-            FactoryConstraints::createConstraintSumBooleanLE(problem, "objective", vars, INT_MAX);
+            FactoryConstraints::createConstraintSumBooleanLE(problem, vars, INT_MAX);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveUB(oc, true);
             return;
@@ -1925,9 +1923,9 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
                 break;
             }
         if(sumboolean) {
-            auto *po = static_cast<OptimizationProblem *>(problem);
+            auto *po = dynamic_cast<OptimizationProblem *>(problem);
             po->type = Maximize;
-            FactoryConstraints::createConstraintSumBooleanGE(problem, "objective", vars, INT_MIN);
+            FactoryConstraints::createConstraintSumBooleanGE(problem, vars, INT_MIN);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveLB(oc, true);
             return;
@@ -1952,7 +1950,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
             po->type           = OptimisationType::Maximize;
             invertOptimization = true;
 
-            FactoryConstraints::createConstraintSum(problem, "objective", variables, vector2vec(origcoeffs), INT_MAX, LE);
+            FactoryConstraints::createConstraintSum(problem, variables, vector2vec(origcoeffs), INT_MAX, LE);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveLB(oc, true);
             break;
@@ -1961,19 +1959,19 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
             throw runtime_error("Objective product not yet supported");
             break;
         case MINIMUM_O: {
-            FactoryConstraints::createConstraintMinimumLE(problem, "objective", variables, INT_MAX);
+            FactoryConstraints::createConstraintMinimumLE(problem, variables, INT_MAX);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveUB(oc, true);
             break;
         }
         case MAXIMUM_O: {
-            FactoryConstraints::createConstraintMaximumLE(problem, "objective", variables, INT_MAX);
+            FactoryConstraints::createConstraintMaximumLE(problem, variables, INT_MAX);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveUB(oc, true);
             break;
         }
         case NVALUES_O: {
-            FactoryConstraints::createConstraintNValuesLE(problem, "objective", variables, variables.size() + 1);
+            FactoryConstraints::createConstraintNValuesLE(problem, variables, variables.size() + 1);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveUB(oc, true);
             break;
@@ -2000,7 +1998,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
         if(sumboolean) {
             auto *po = dynamic_cast<OptimizationProblem *>(problem);
             po->type = Minimize;
-            FactoryConstraints::createConstraintSumBooleanLE(problem, "objective", vars, INT_MAX);
+            FactoryConstraints::createConstraintSumBooleanLE(problem, vars, INT_MAX);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveUB(oc, true);
             return;
@@ -2019,17 +2017,17 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Varia
         case EXPRESSION_O:
             break;   // useless, want to discard warning
         case SUM_O: {
-            FactoryConstraints::createConstraintSum(problem, "objective", variables, vector2vec(origcoeffs), INT_MIN, GE);
+            FactoryConstraints::createConstraintSum(problem, variables, vector2vec(origcoeffs), INT_MIN, GE);
             break;
         }
         case PRODUCT_O:
             throw runtime_error("Objective product not yet supported");
             break;
         case MINIMUM_O:
-            FactoryConstraints::createConstraintMinimumGE(problem, "objective", variables, INT_MIN);
+            FactoryConstraints::createConstraintMinimumGE(problem, variables, INT_MIN);
             break;
         case MAXIMUM_O:
-            FactoryConstraints::createConstraintMaximumGE(problem, "objective", variables, INT_MIN);
+            FactoryConstraints::createConstraintMaximumGE(problem, variables, INT_MIN);
             break;
         case NVALUES_O:
             throw runtime_error("Objective expression not yet supported");
@@ -2059,7 +2057,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
         if(sumboolean) {
             auto *po = dynamic_cast<OptimizationProblem *>(problem);
             po->type = Maximize;
-            FactoryConstraints::createConstraintSumBooleanGE(problem, "objective", vars, INT_MIN);
+            FactoryConstraints::createConstraintSumBooleanGE(problem, vars, INT_MIN);
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
             po->addObjectiveLB(oc, true);
             return;
@@ -2131,7 +2129,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tr
             vec<Cosoco::BasicNode *> nodes;
             vec<Variable *>          vars;
             createArrays(parameters, vars, nodes);
-            FactoryConstraints::createConstraintSumGen(problem, "objective", vars, nodes, INT_MAX, LE);
+            FactoryConstraints::createConstraintSumGen(problem, vars, nodes, INT_MAX, LE);
             auto *po = dynamic_cast<OptimizationProblem *>(problem);
             po->type = Minimize;
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
@@ -2163,7 +2161,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
             vec<Cosoco::BasicNode *> nodes;
             vec<Variable *>          vars;
             createArrays(parameters, vars, nodes);
-            FactoryConstraints::createConstraintSumGen(problem, "objective", vars, nodes, INT_MIN, GE);
+            FactoryConstraints::createConstraintSumGen(problem, vars, nodes, INT_MIN, GE);
             auto *po = dynamic_cast<OptimizationProblem *>(problem);
             po->type = Maximize;
             auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
@@ -2207,13 +2205,13 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
             break;
         }
         default:
-            runtime_error("Objective expression without sum and variables coeffs not yet supported");
+            throw runtime_error("Objective expression without sum and variables coeffs not yet supported");
     }
 }
 
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XVariable *> &list, vector<XVariable *> &coefs) {
-    auto *po = static_cast<OptimizationProblem *>(problem);
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
     po->type = OptimisationType::Maximize;
     toMyVariables(list);
     vec<Variable *> c;
@@ -2228,7 +2226,7 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
             break;
         }
         default:
-            runtime_error("Objective expression without sum and variables coeffs not yet supported");
+            throw runtime_error("Objective expression without sum and variables coeffs not yet supported");
     }
     auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
     po->addObjectiveLB(oc, true);

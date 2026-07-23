@@ -23,8 +23,8 @@ class STR0 : public Extension, ObserverDeleteDecision {
     bool updateDomains();
 
    public:
-    STR0(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
-    STR0(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
+    STR0(Problem &p, vec<Variable *> &vars, size_t max_n_tuples);
+    STR0(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
 
     // filtering
     bool filter(Variable *x) override;

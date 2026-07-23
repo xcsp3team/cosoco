@@ -26,7 +26,7 @@ class NoOverlap : public GlobalConstraint {
 
 
    public:
-    NoOverlap(Problem &pb, std::string &n, vec<Variable *> &xs, vec<int> &widths, vec<Variable *> &ys, vec<int> &heights);
+    NoOverlap(Problem &pb, vec<Variable *> &xs, vec<int> &widths, vec<Variable *> &ys, vec<int> &heights);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

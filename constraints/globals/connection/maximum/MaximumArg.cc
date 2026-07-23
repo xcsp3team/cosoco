@@ -110,8 +110,8 @@ bool MaximumArg::filter(Variable *dummy) {
 //----------------------------------------------
 // Constructor and initialisation methods
 //----------------------------------------------
-MaximumArg::MaximumArg(Problem &p, std::string n, vec<Variable *> &vars, Variable *v, XCSP3Core::RankType r)
-    : GlobalConstraint(p, n, "Maximum Arg", Constraint::createScopeVec(v, &vars)), rank(r) {
+MaximumArg::MaximumArg(Problem &p, vec<Variable *> &vars, Variable *v, XCSP3Core::RankType r)
+    : GlobalConstraint(p, "Maximum Arg", Constraint::createScopeVec(v, &vars)), rank(r) {
     index = v;
     vars.copyTo(list);
 }

@@ -121,12 +121,11 @@ bool MDDExtension::manageSuccessfulExploration(Variable *x, int idv, int level) 
 // Constructors and initialisation
 //----------------------------------------------
 
-MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, vec<XCSP3Core::XTransition *> &transitions)
-    : MDDExtension(p, n, vars, new MDD(transitions, vars)) { }
+MDDExtension::MDDExtension(Problem &p, vec<Variable *> &vars, vec<XCSP3Core::XTransition *> &transitions)
+    : MDDExtension(p, vars, new MDD(transitions, vars)) { }
 
 
-MDDExtension::MDDExtension(Problem &p, std::string n, vec<Variable *> &vars, MDD *m)
-    : Extension(p, n, vars, 0, true), mdd(m), gac(Matrix<bool>()) {
+MDDExtension::MDDExtension(Problem &p, vec<Variable *> &vars, MDD *m) : Extension(p, vars, 0, true), mdd(m), gac(Matrix<bool>()) {
     type          = "MDD";
     trueTimestamp = falseTimestamp = 1;
     nbValuesWithoutSupports.growTo(vars.size());

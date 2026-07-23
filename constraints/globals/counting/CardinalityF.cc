@@ -125,8 +125,8 @@ int CardinalityF::doFiltering() {
 // Construction and initialisation
 //----------------------------------------------
 
-CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
-    : GlobalConstraint(p, n, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
+CardinalityF::CardinalityF(Problem &p, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
+    : GlobalConstraint(p, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
     isPostponable = true;
     _vars.copyTo(vars);
     o.copyTo(occurs);

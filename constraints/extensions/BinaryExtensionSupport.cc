@@ -82,8 +82,8 @@ bool BinaryExtensionSupport::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *xx, Variable *yy)
-    : Extension(p, n, createScopeVec(xx, yy), 0, support), x(xx), y(yy), nbtuples(0) {
+BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, bool support, Variable *xx, Variable *yy)
+    : Extension(p, createScopeVec(xx, yy), 0, support), x(xx), y(yy), nbtuples(0) {
     supportsForX.growTo(x->domain.maxSize());
     supportsForY.growTo(y->domain.maxSize());
     type = "Extension - Binary Support";
@@ -92,9 +92,9 @@ BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, std::string n, bool s
 }
 
 
-BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *xx, Variable *yy,
+BinaryExtensionSupport::BinaryExtensionSupport(Problem &p, bool support, Variable *xx, Variable *yy,
                                                BinaryExtensionSupport *hasSameTuples)
-    : Extension(p, n, createScopeVec(xx, yy), 0, support), x(xx), y(yy) {
+    : Extension(p, createScopeVec(xx, yy), 0, support), x(xx), y(yy) {
     supportsForX.growTo(xx->domain.maxSize());
     supportsForY.growTo(yy->domain.maxSize());
     for(int i = 0; i < hasSameTuples->supportsForX.size(); i++) hasSameTuples->supportsForX[i].copyTo(supportsForX[i]);

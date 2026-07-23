@@ -76,7 +76,7 @@ MDD::~MDD() {
 //----------------------------------------------
 
 
-MDD *MDD::buildFromAutomata(std::string name, vec<Variable *> &scope, string start, std::vector<string> &finals,
+MDD *MDD::buildFromAutomata(vec<Variable *> &scope, string start, std::vector<string> &finals,
                             vec<XCSP3Core::XTransition *> &transitions) {
     // Build Map state-> possible state
     std::map<std::string, vec<XCSP3Core::XTransition *> *> nextTransitions;

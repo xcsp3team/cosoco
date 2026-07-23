@@ -10,7 +10,7 @@ class Circuit : public AllDifferentAC {
     vec<bool> pred;
 
    public:
-    Circuit(Problem &p, std::string n, vec<Variable *> &vars);
+    Circuit(Problem &p, vec<Variable *> &vars);
 
     bool isCorrectlyDefined() override;
     bool filter(Variable *dummy) override;
@@ -20,7 +20,7 @@ class Circuit : public AllDifferentAC {
         SparseSet set;
         vec<bool> tmp;   // Temporary, avoid to create it at each filter calls
 
-        Circuit(Problem &p, std::string n, vec<Variable *> &vars);
+        Circuit(Problem &p, vec<Variable *> &vars);
 
         bool isCorrectlyDefined() override;
         bool filter(Variable *dummy) override;

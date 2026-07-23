@@ -226,40 +226,34 @@ bool SumBooleanGenEQ::filter(Variable* dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-SumBoolean::SumBoolean(Problem& p, std::string n, vec<Variable*>& vars, long l) : GlobalConstraint(p, n, "Sum", vars), limit(l) {
+SumBoolean::SumBoolean(Problem& p, vec<Variable*>& vars, long l) : GlobalConstraint(p, "Sum", vars), limit(l) {
     isPostponable = true;
 }
 
-SumBooleanEQ::SumBooleanEQ(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
-    type = "Sum Boolean EQ";
-}
+SumBooleanEQ::SumBooleanEQ(Problem& p, vec<Variable*>& vars, long l) : SumBoolean(p, vars, l) { type = "Sum Boolean EQ"; }
 
-SumBooleanLE::SumBooleanLE(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
-    type = "Sum Boolean LE";
-}
+SumBooleanLE::SumBooleanLE(Problem& p, vec<Variable*>& vars, long l) : SumBoolean(p, vars, l) { type = "Sum Boolean LE"; }
 
-SumBooleanGE::SumBooleanGE(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
-    type = "Sum Boolean GE";
-}
+SumBooleanGE::SumBooleanGE(Problem& p, vec<Variable*>& vars, long l) : SumBoolean(p, vars, l) { type = "Sum Boolean GE"; }
 
-SumBooleanGen::SumBooleanGen(Problem& p, std::string n, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
-    : GlobalConstraint(p, n, "Sum", vars), limit(l) {
+SumBooleanGen::SumBooleanGen(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : GlobalConstraint(p, "Sum", vars), limit(l) {
     isPostponable = true;
     _nodes.copyTo(nodes);
 }
 
-SumBooleanGenLE::SumBooleanGenLE(Problem& p, std::string n, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
-    : SumBooleanGen(p, n, _nodes, vars, l) {
+SumBooleanGenLE::SumBooleanGenLE(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : SumBooleanGen(p, _nodes, vars, l) {
     type = "Sum Boolean Gen LE";
 }
 
-SumBooleanGenGE::SumBooleanGenGE(Problem& p, std::string n, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
-    : SumBooleanGen(p, n, _nodes, vars, l) {
+SumBooleanGenGE::SumBooleanGenGE(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : SumBooleanGen(p, _nodes, vars, l) {
     type = "Sum Boolean Gen GE";
 }
 
-SumBooleanGenEQ::SumBooleanGenEQ(Problem& p, std::string n, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
-    : SumBooleanGen(p, n, _nodes, vars, l) {
+SumBooleanGenEQ::SumBooleanGenEQ(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : SumBooleanGen(p, _nodes, vars, l) {
     type = "Sum Boolean Gen EQ";
 }
 

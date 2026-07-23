@@ -170,8 +170,8 @@ void BinPacking::delayedConstruction(int id) {
 }
 
 
-BinPacking::BinPacking(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &_sizes, vec<int> &_limits)
-    : GlobalConstraint(p, n, "BinPacking", vars) {
+BinPacking::BinPacking(Problem &p, vec<Variable *> &vars, vec<int> &_sizes, vec<int> &_limits)
+    : GlobalConstraint(p, "BinPacking", vars) {
     nItems = _sizes.size();
     nBins  = _limits.size();
     _sizes.copyTo(sizes);

@@ -1,6 +1,9 @@
 #ifndef COSOCO_LINKEDSET_H
 #define COSOCO_LINKEDSET_H
 
+#include <iostream>
+#include <ostream>
+
 #include "Vec.h"
 
 namespace Cosoco {
@@ -151,6 +154,7 @@ class LinkedSet {
                 return;
             del(idv, level);
         }
+        display();
     }
 
     virtual void delValuesLE(int minId, int level) {
