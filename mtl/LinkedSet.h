@@ -2,7 +2,6 @@
 #define COSOCO_LINKEDSET_H
 
 #include <iostream>
-#include <ostream>
 
 #include "Vec.h"
 
@@ -37,15 +36,10 @@ class LinkedSet {
     vec<int> nexts;
 
 
-    int _lastRemoved;   // The last dropped element of the list.
-
     /**
-     * The backward linking of all absent elements of the list (from last to first). An array index corresponds to an element. An
-     * array value gives the previous absent element of the list or -1 if it does not exist. Hence, <code> prevsDel[i] == j
-     * </code> means that j is the previously deleted element of the list before i.
+     * The stack of removed elements
      */
-    vec<int> _prevRemoved;
-
+    vec<int> removed;
     /**
      * The level at which absent elements have been removed from the list. An array index corresponds to an element. An array
      * value gives the level at which the corresponding element has been removed from the list. Hence, <code> absentLevels[i] == j
@@ -57,7 +51,7 @@ class LinkedSet {
     int nbLevels;
 
 
-    virtual void del(const int a) {
+    void del(const int a) {
         assert(a < maxSize());
         // if(!contains(a))
         //    return;
@@ -73,13 +67,14 @@ class LinkedSet {
         else
             prevs[next] = prev;
         // add to the end of the list of absent elements
-        _prevRemoved[a] = _lastRemoved;
-        _lastRemoved    = a;
+        removed.push(a);
     }
 
-    void add(const int a) {
-        assert(_lastRemoved == a);
-        // add to the list of present elements (works only if elements are managed as in a stack)
+    void add() {
+        // add to the list the last element removed
+        int a = removed.last();
+        removed.pop();
+        _size++;
         int prev = prevs[a], next = nexts[a];
         if(prev == -1)
             _first = a;
@@ -89,8 +84,6 @@ class LinkedSet {
             _last = a;
         else
             prevs[next] = a;
-        // remove from the list of absent elements
-        _lastRemoved = _prevRemoved[a];
     }
 
    public:
@@ -106,8 +99,8 @@ class LinkedSet {
         _last  = cap - 1;
         prevs.growTo(cap);
         nexts.growTo(cap);
-        _prevRemoved.growTo(cap, -1);
         removedLevels.growTo(cap, -1);
+        removed.growTo(cap);
         fill();
     }
 
@@ -117,9 +110,8 @@ class LinkedSet {
         for(int i = 0; i < prevs.size(); i++) prevs[i] = i - 1;
         for(int i = 0; i < nexts.size(); i++) nexts[i] = i + 1;
         nexts.last() = -1;
-        _lastRemoved = -1;
-        _prevRemoved.fill(-1);
         removedLevels.fill(-1);
+        removed.clear();
     }
 
 
@@ -140,7 +132,7 @@ class LinkedSet {
     }
 
 
-    virtual void reduceTo(int a, int level) {
+    void reduceTo(int a, int level) {
         if(isLimitRecordedAtLevel(level) == false)
             recordLimit(level);
         for(int b = _first; b != -1; b = next(b))
@@ -148,7 +140,7 @@ class LinkedSet {
                 del(b, level);
     }
 
-    virtual void delValuesGE(int maxId, int level) {
+    void delValuesGE(int maxId, int level) {
         for(int idv = last(); idv != -1; idv = prev(idv)) {   // Reverse traversal because of deletion
             if(idv < maxId)
                 return;
@@ -157,7 +149,7 @@ class LinkedSet {
         display();
     }
 
-    virtual void delValuesLE(int minId, int level) {
+    void delValuesLE(int minId, int level) {
         for(int idv = first(); idv != -1; idv = next(idv)) {
             if(idv > minId)
                 return;
@@ -165,7 +157,7 @@ class LinkedSet {
         }
     }
     // ---------- Access and contains method and iterators
-    virtual bool contains(const int k) const {
+    bool contains(const int k) const {
         assert(k < maxSize());
         return removedLevels[k] == -1;
     }
@@ -185,8 +177,11 @@ class LinkedSet {
     reverse_iterator rbegin();
     reverse_iterator rend();
 
-    virtual int lastRemoved() const { return _lastRemoved; }
-    virtual int prevRemoved(int id) { return _prevRemoved[id]; }
+    int lastRemoved() const { return removed.size() == 0 ? -1 : removed.last(); }
+    int prevRemoved(int id) {
+        assert(false);
+        //    return _prevRemoved[id];
+    }
 
 
     int first() { return _first; }
@@ -221,18 +216,18 @@ class LinkedSet {
         return prev;
     }
 
-    virtual int lastRemovedLevel() { return _lastRemoved == -1 ? -1 : removedLevels[_lastRemoved]; }
+    int lastRemovedLevel() { return lastRemoved() == -1 ? -1 : removedLevels[lastRemoved()]; }
 
-    virtual void restoreLastDropped() {
-        assert(_lastRemoved != -1 && !contains(_lastRemoved));
-        removedLevels[_lastRemoved] = -1;
-        _size++;
-        add(_lastRemoved);
+    void restoreLastDropped() {
+        assert(lastRemoved() != -1 && !contains(lastRemoved()));
+        removedLevels[lastRemoved()] = -1;
+        add();
     }
 
-    virtual void restoreLimit(int level) {
-        assert(_lastRemoved == -1 || removedLevels[_lastRemoved] <= level);
-        for(int a = _lastRemoved; a != -1 && removedLevels[a] >= level; a = _lastRemoved) restoreLastDropped();
+
+    void restoreLimit(int level) {
+        assert(lastRemoved() == -1 || removedLevels[lastRemoved()] <= level);
+        for(int a = lastRemoved(); a != -1 && removedLevels[a] >= level; a = lastRemoved()) restoreLastDropped();
         limits[level] = NOT_STORED;
     }
 
