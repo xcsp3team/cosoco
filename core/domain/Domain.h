@@ -4,6 +4,7 @@
 
 #include "mtl/LinkedSet.h"
 #include "mtl/LinkedSetIterator.h"
+#include "mtl/LinkedSetOpt.h"
 #include "mtl/Vec.h"
 #include "utils/Verbose.h"
 

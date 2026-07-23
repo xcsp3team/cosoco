@@ -57,7 +57,7 @@ class LinkedSet {
     int nbLevels;
 
 
-    void del(const int a) {
+    virtual void del(const int a) {
         assert(a < maxSize());
         // if(!contains(a))
         //    return;
@@ -140,7 +140,7 @@ class LinkedSet {
     }
 
 
-    void reduceTo(int a, int level) {
+    virtual void reduceTo(int a, int level) {
         if(isLimitRecordedAtLevel(level) == false)
             recordLimit(level);
         for(int b = _first; b != -1; b = next(b))
@@ -148,9 +148,7 @@ class LinkedSet {
                 del(b, level);
     }
 
-    void delValuesGE(int maxId, int level) {
-        display();
-        std::cout << maxId << std::endl;
+    virtual void delValuesGE(int maxId, int level) {
         for(int idv = last(); idv != -1; idv = prev(idv)) {   // Reverse traversal because of deletion
             if(idv < maxId)
                 return;
@@ -159,7 +157,7 @@ class LinkedSet {
         display();
     }
 
-    void delValuesLE(int minId, int level) {
+    virtual void delValuesLE(int minId, int level) {
         for(int idv = first(); idv != -1; idv = next(idv)) {
             if(idv > minId)
                 return;
@@ -167,7 +165,7 @@ class LinkedSet {
         }
     }
     // ---------- Access and contains method and iterators
-    bool contains(const int k) const {
+    virtual bool contains(const int k) const {
         assert(k < maxSize());
         return removedLevels[k] == -1;
     }
@@ -187,8 +185,8 @@ class LinkedSet {
     reverse_iterator rbegin();
     reverse_iterator rend();
 
-    int lastRemoved() const { return _lastRemoved; }
-    int prevRemoved(int id) { return _prevRemoved[id]; }
+    virtual int lastRemoved() const { return _lastRemoved; }
+    virtual int prevRemoved(int id) { return _prevRemoved[id]; }
 
 
     int first() { return _first; }
@@ -223,16 +221,16 @@ class LinkedSet {
         return prev;
     }
 
-    int lastRemovedLevel() { return _lastRemoved == -1 ? -1 : removedLevels[_lastRemoved]; }
+    virtual int lastRemovedLevel() { return _lastRemoved == -1 ? -1 : removedLevels[_lastRemoved]; }
 
-    void restoreLastDropped() {
+    virtual void restoreLastDropped() {
         assert(_lastRemoved != -1 && !contains(_lastRemoved));
         removedLevels[_lastRemoved] = -1;
         _size++;
         add(_lastRemoved);
     }
 
-    void restoreLimit(int level) {
+    virtual void restoreLimit(int level) {
         assert(_lastRemoved == -1 || removedLevels[_lastRemoved] <= level);
         for(int a = _lastRemoved; a != -1 && removedLevels[a] >= level; a = _lastRemoved) restoreLastDropped();
         limits[level] = NOT_STORED;
