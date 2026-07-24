@@ -231,7 +231,8 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
     colorize(termcolor::blue, options::boolOptions["colors"].value);
     printf("Domain Sizes: ");
     resetcolors();
-    printf("%d..%d\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize());
+    printf("%d..%d (%d optimized)\n", solvingProblem->minimumDomainSize(), solvingProblem->maximumDomainSize(),
+           solvingProblem->nbOptimizedDomains());
     printf("c |            ");
     resetcolors();
     colorize(termcolor::blue, options::boolOptions["colors"].value);

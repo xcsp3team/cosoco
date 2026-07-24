@@ -23,9 +23,9 @@ class Domain {
     vec<int> nAssignments;
     using iterator         = LinkedSetIterator;
     using reverse_iterator = LinkedSetIterator;
-
+    bool isOptimized;
     // ---------- Constructors and initialisation
-    Domain(int sz) : idvs(sz, true) { }
+    Domain(int sz, bool isOpt = false) : idvs(sz, true, isOpt), isOptimized(isOpt) { }
     void reinitialize() { idvs.fill(); }
     void delayedConstruction(int nbVars) { }
 

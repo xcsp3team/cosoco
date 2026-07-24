@@ -177,6 +177,13 @@ int Problem::minimumDomainSize() {
     return nb;
 }
 
+int Problem::nbOptimizedDomains() {
+    int nb = 0;
+    for(Variable *v : variables)
+        if(v->domain.isOptimized)
+            nb++;
+    return nb;
+}
 
 void Problem::nbTypeOfConstraints(std::map<std::string, int> &tmp) {
     for(Constraint *c : constraints) tmp[c->type]++;
