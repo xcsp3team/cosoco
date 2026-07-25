@@ -22,9 +22,6 @@ void Variable::addConstraint(Constraint *c) { constraints.push(c); }
 
 
 // Delete Methods
-void Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
-    domain.delIdv(idv, level);
-}
 
 void Variable::delValuesGE(int max, int lvl) {
     if(domain.isOptimized)
@@ -45,13 +42,6 @@ void Variable::delValuesLE(int min, int lvl) {
         delIdv(idv, lvl);
     }
 }
-
-
-// Assign methods
-void Variable::assignToIdv(int idv, int level) { domain.reduceTo(idv, level); }
-
-
-void Variable::assignToVal(int v, int level) { domain.reduceTo(domain.toIdv(v), level); }
 
 
 // Display

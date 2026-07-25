@@ -43,15 +43,17 @@ class Variable {
 
     Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 
+    // Do not use directly, use solver's one. Returns true if it has to be added to the trail
     // Delete Methods
-    void delIdv(int idv, int lvl);      // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+    void delIdv(int idv, int lvl) { domain.delIdv(idv, lvl); }
     void delValuesGE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
     void delValuesLE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
 
 
     // Assign method
-    void assignToIdv(int idv, int lvl);   // Don't use directly, use solver's one. Returns true if it has to be added to the trail
-    void assignToVal(int v, int lvl);     // Don't use directly, use solver's one. Returns true if it has to be added to the trail
+    // Don't use directly, use solver's one. Returns true if it has to be added to the trail
+    void assignToIdv(int idv, int lvl) { domain.reduceTo(idv, lvl); }
+    void assignToVal(int v, int lvl) { domain.reduceTo(domain.toIdv(v), lvl); }
 
     // Restore State of the variable after backtrack
     bool isRecorded(int level) { return domain.idvs.lastRemovedLevel() == level; }
