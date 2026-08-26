@@ -1018,13 +1018,12 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &lis
     }
 
     if(xc.operandType == INTEGER) {
+        toMyVariables(list, vars);
         if(xc.op == LE || xc.op == LT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMaximumLE(problem, vars, xc.op == LE ? xc.val : xc.val - 1);
             return;
         }
         if(xc.op == GE || xc.op == GT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMaximumGE(problem, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
@@ -1052,13 +1051,12 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
     }
 
     if(xc.operandType == INTEGER) {
+        toMyVariables(list, vars);
         if(xc.op == LE || xc.op == LT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMinimumLE(problem, vars, xc.op == LE ? xc.val : xc.val - 1);
             return;
         }
         if(xc.op == GE || xc.op == GT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMinimumGE(problem, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
