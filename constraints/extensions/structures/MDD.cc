@@ -14,7 +14,7 @@ using namespace Cosoco;
 
 MDD::MDD(vec<XCSP3Core::XTransition *> &transitions, vec<Variable *> &scope) {
     std::map<std::string, MDDNode *> nodes;
-    std::set<string>                 possibleRoots, possibleLeaves;
+    std::set<std::string>            possibleRoots, possibleLeaves;
     std::set<std::string>::iterator  it;
     unsigned int                     nb = 0;
     for(XCSP3Core::XTransition *tr : transitions) {
@@ -31,7 +31,7 @@ MDD::MDD(vec<XCSP3Core::XTransition *> &transitions, vec<Variable *> &scope) {
     assert(possibleLeaves.size() == 1);
     assert(possibleRoots.size() == 1);
 
-    std::set<string> nodeNames;
+    std::set<std::string> nodeNames;
     for(XCSP3Core::XTransition *tr : transitions) {
         nodeNames.insert(tr->from);
         nodeNames.insert(tr->to);
@@ -76,7 +76,7 @@ MDD::~MDD() {
 //----------------------------------------------
 
 
-MDD *MDD::buildFromAutomata(vec<Variable *> &scope, string start, std::vector<string> &finals,
+MDD *MDD::buildFromAutomata(vec<Variable *> &scope, std::string start, std::vector<std::string> &finals,
                             vec<XCSP3Core::XTransition *> &transitions) {
     // Build Map state-> possible state
     std::map<std::string, vec<XCSP3Core::XTransition *> *> nextTransitions;
