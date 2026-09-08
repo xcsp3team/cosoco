@@ -238,14 +238,15 @@ int Solver::search(vec<RootPropagation> &assumptions) {
     std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
     std::vector<std::vector<Lit>> sharedNogoods;
 
+    int disableSingletons = options::intOptions["disablesingleton"].value;
+
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
 
 
         if(propagate() != nullptr) {
-            if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value &&
-               currentNbValues > problem.nbValues()) {
+            if(decisionLevel() == 0 && problem.nbVariables() >= disableSingletons && currentNbValues > problem.nbValues()) {
                 currentNbValues = problem.nbValues();
                 int nb          = decisionVariables.size();
                 for(int i = decisionVariables.size() - 1; i >= 0; i--) {

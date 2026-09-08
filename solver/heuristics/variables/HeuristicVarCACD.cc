@@ -40,7 +40,7 @@ Variable *HeuristicVarCACD::select() {
                 return x;
     }
 
-    if(options::boolOptions["lazyvar"].value && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+    if(lazy && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
         Variable *tmp = secondBest;
         secondBest    = nullptr;
         return tmp;
