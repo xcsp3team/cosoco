@@ -78,12 +78,12 @@ class Solver : public AbstractSolver {
     HeuristicVal *heuristicVal;        // The heuristic to choose values
     Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
-    SparseSetOfVariables   queue;                       // Propagation queue
-    SparseSet              queue4Nogoods;               // The queue for nogood propagation (postpone nogoods prop)
-    int                    smallest_in_queue;           // Smallest domain size in queue
-    Constraint            *currentFilteredConstraint;   // The constraint that is filtered
-    vec<PickVariables>     pickVariables;               // The set of picking variables history
-    std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
+    SparseSetOfVariables queue;                       // Propagation queue
+    SparseSet            queue4Nogoods;               // The queue for nogood propagation (postpone nogoods prop)
+    int                  smallest_in_queue;           // Smallest domain size in queue
+    Constraint          *currentFilteredConstraint;   // The constraint that is filtered
+    vec<PickVariables>   pickVariables;               // The set of picking variables history
+    SparseSet            postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict
     vec<ObserverNewDecision *>     observersNewDecision;       // Classes listen for decisions

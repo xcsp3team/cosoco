@@ -41,7 +41,8 @@ Solver::Solver(Problem &p)
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
       queue(p.nbVariables(), p.variables),
-      queue4Nogoods(p.nbVariables(), false) {
+      queue4Nogoods(p.nbVariables(), false),
+      postponeFiltering(p.nbConstraints(), false) {
     heuristicVar = nullptr;
     heuristicVal = nullptr;
     statistics.growTo(NBSTATS, 0);
@@ -604,7 +605,7 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                     continue;
                 if(x->timestamp > c->timestamp && isEntailed(c) == false) {
                     if(c->postpone()) {   // Postpone the filtering of these constraints
-                        postponeFiltering.insert(c);
+                        postponeFiltering.add(c->idc);
                         c->postponedBy = x;
                         continue;
                     }
@@ -633,8 +634,8 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         }
 
         // Filter postponed constraints
-        for(auto *c : postponeFiltering) {
-            // std::cout << "post" << c->type << std::endl;
+        for(int idc : postponeFiltering) {
+            Constraint *c = problem.constraints[idc];
             if(filterConstraint(c, c->postponedBy) == false)
                 return c;
         }
