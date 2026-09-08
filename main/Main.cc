@@ -197,7 +197,9 @@ int main(int argc, char **argv) {
         printStats(solvers[0]);
         printf("\n");
 
-        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution())
+        // Not after an enumeration: the search has already displayed every solution.
+        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution() &&
+           (options::intOptions["nbsols"].value == 1 || optimize))
             solver->displayCurrentSolution(options::intOptions["model"].value);
 
 

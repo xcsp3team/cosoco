@@ -370,7 +370,9 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
-    if(displaySolution)
+    // When a single solution is asked, the display is left to Main, which emits it after the
+    // 's' line as XCSP3 expects. Enumerating needs it here, as solutions are not kept.
+    if(displaySolution && options::intOptions["nbsols"].value != 1)
         displayCurrentSolution(displaySolution);
 
     if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
