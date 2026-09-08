@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
             S->seed = S->seed * (core + 1);
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
-                S->displaySolution        = false;
+                S->displaySolution        = 0;
                 optimizer->invertBestCost = callbacks[0].invertOptimization;
                 optimizer->setSolver(S, solution);
 

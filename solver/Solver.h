@@ -58,7 +58,7 @@ class Solver : public AbstractSolver {
 
     // -- Minor fields ----------------------------------------------------------------------
     double    seed = 91648253;   // A seed value
-    bool      displaySolution;
+    int       displaySolution;   // verbosity level for solutions (0: none, see option 'model')
     bool      checkSolution = true;             // Check solution or not
     int       nbDeletedValuesByAVariable;       // count the number of deleted values by a filtering on one variable
     Solution *optimizationSolution = nullptr;   // Used to display best bound during the search.
