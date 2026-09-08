@@ -33,6 +33,14 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+if(NOT "${STATIC_BUILD}" STREQUAL "${_STATIC_BUILD_CACHED}")
+    # STATIC_BUILD was toggled: drop the cached lookup, otherwise the library
+    # found for the previous mode silently survives and the binary is linked
+    # the wrong way.
+    unset(LIBXML2_LIBRARY CACHE)
+    set(_STATIC_BUILD_CACHED "${STATIC_BUILD}" CACHE INTERNAL "last STATIC_BUILD value")
+endif()
+
 if(STATIC_BUILD)
     # Select libxml2.a rather than the shared library. Restricted to this
     # lookup: on macOS the system libraries below exist only as dylibs.
