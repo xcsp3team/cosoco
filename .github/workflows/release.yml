@@ -1,0 +1,211 @@
+name: Build and release
+
+# Builds the static binary on each platform we ship, packs every one of them
+# in a wheel, and, on a tag, attaches the lot to the GitHub release and
+# publishes the wheels on PyPI.
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  binaries:
+    name: Binary (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Building on an old distribution is not what makes the Linux binary
+          # portable -- being fully static is -- but it keeps the syscalls it
+          # relies on modest.
+          - { target: linux-x86_64, os: ubuntu-22.04 }
+          - { target: linux-aarch64, os: ubuntu-22.04-arm }
+          # macos-15-intel is what replaced the retired macos-13; should it
+          # go the same way, dropping the line ships Apple Silicon only.
+          - { target: macos-x86_64, os: macos-15-intel }
+          - { target: macos-arm64, os: macos-15 }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: cosoco
+
+      # build.sh expects both dependencies as siblings of the cosoco directory.
+      - uses: actions/checkout@v4
+        with:
+          repository: xcsp3team/XCSP3-CPP-Parser
+          path: XCSP3-CPP-Parser
+      - uses: actions/checkout@v4
+        with:
+          repository: crillab/pfactory
+          path: pfactory
+
+      - name: Install the build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake autoconf automake libtool libxml2-dev liblzma-dev zlib1g-dev
+
+      - name: Install the build dependencies (macOS)
+        if: runner.os == 'macOS'
+        # Deliberately not xz: liblzma has to come from the SDK, since a
+        # Homebrew one would leave the binary depending on /opt/homebrew.
+        run: brew install autoconf automake libtool libxml2
+
+      - name: Build
+        working-directory: cosoco
+        run: ./build.sh --static
+
+      - name: Strip
+        working-directory: cosoco
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then strip -s main/cosoco; else strip main/cosoco; fi
+          ls -l main/cosoco
+
+      - name: Check that the binary is self-contained
+        working-directory: cosoco
+        run: |
+          file main/cosoco
+          if [ "$RUNNER_OS" = Linux ]; then
+            # A fully static executable has no dynamic section at all.
+            if readelf -d main/cosoco 2>/dev/null | grep -q NEEDED; then
+              echo "::error::the binary still depends on shared libraries"
+              readelf -d main/cosoco
+              exit 1
+            fi
+          else
+            otool -L main/cosoco
+            # Only the libraries that are part of macOS itself may remain.
+            if otool -L main/cosoco | tail -n +2 | awk '{print $1}' |
+                 grep -qvE '^(/usr/lib/|/System/Library/)'; then
+              echo "::error::the binary links a library that macOS does not ship"
+              exit 1
+            fi
+          fi
+
+      - name: Solve an instance with it
+        working-directory: cosoco
+        run: |
+          ./main/cosoco .github/smoke.xml -model=2 | tee out.txt
+          grep -q '^s SATISFIABLE' out.txt
+          grep -q '<instantiation' out.txt
+
+      # The Linux binary is claimed to be musllinux-compatible as well as
+      # manylinux, which holds only as long as it stays fully static.
+      - name: Solve an instance with it, on musl
+        if: runner.os == 'Linux'
+        working-directory: cosoco
+        run: |
+          docker run --rm -v "$PWD:/cosoco" -w /cosoco alpine:3.20 \
+            ./main/cosoco .github/smoke.xml -model=2 | tee out-musl.txt
+          grep -q '^s SATISFIABLE' out-musl.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cosoco-${{ matrix.target }}
+          path: cosoco/main/cosoco
+          if-no-files-found: error
+
+  wheels:
+    name: Wheels
+    needs: binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: binaries
+          pattern: cosoco-*
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: python -m pip install --upgrade build
+
+      - name: Take the version from the tag
+        if: github.ref_type == 'tag'
+        run: echo "COSOCO_BIN_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Build one wheel per binary
+        run: |
+          set -eu
+          # Artifacts travel through a zip, which drops the executable bit:
+          # install(1) puts it back. The Linux binary gets two wheels, since
+          # being static makes it run on musl systems as well.
+          wheel() {
+            install -m 755 "binaries/cosoco-$1/cosoco" python/cosoco_bin/cosoco
+            COSOCO_BIN_PLAT="$2" python -m build --wheel --outdir dist python
+          }
+          wheel linux-x86_64 manylinux_2_17_x86_64
+          wheel linux-x86_64 musllinux_1_1_x86_64
+          wheel linux-aarch64 manylinux_2_17_aarch64
+          wheel linux-aarch64 musllinux_1_1_aarch64
+          wheel macos-x86_64 macosx_11_0_x86_64
+          wheel macos-arm64 macosx_11_0_arm64
+          ls -l dist
+
+      - name: Install the wheel of this runner and solve an instance
+        run: |
+          python -m pip install dist/cosoco_bin-*-manylinux_2_17_x86_64.whl
+          cosoco .github/smoke.xml -model=2 | tee out.txt
+          grep -q '^s SATISFIABLE' out.txt
+          python -c "import cosoco_bin, os; assert os.access(cosoco_bin.PATH, os.X_OK), cosoco_bin.PATH"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels
+          path: dist/*.whl
+          if-no-files-found: error
+
+  release:
+    name: GitHub release
+    if: github.ref_type == 'tag'
+    needs: [binaries, wheels]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Attach the binaries and the wheels to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # The job checks nothing out, so gh has no repository to infer.
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          mkdir upload
+          for directory in artifacts/cosoco-*/; do
+            name=$(basename "$directory")  # cosoco-linux-x86_64
+            install -m 755 "$directory/cosoco" "upload/$name"
+          done
+          cp artifacts/wheels/*.whl upload/
+          (cd upload && sha256sum -- * > SHA256SUMS)
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" \
+              --title "cosoco ${GITHUB_REF_NAME#v}" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" upload/* --clobber
+
+  pypi:
+    name: PyPI
+    # Dormant until the repository variable is set, so that a tag does not
+    # publish before a trusted publisher is configured on PyPI.
+    if: github.ref_type == 'tag' && vars.PUBLISH_TO_PYPI == 'true'
+    needs: wheels
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
