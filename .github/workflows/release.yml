@@ -50,16 +50,59 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cmake autoconf automake libtool libxml2-dev liblzma-dev zlib1g-dev
+            cmake autoconf automake libtool liblzma-dev zlib1g-dev
 
       - name: Install the build dependencies (macOS)
         if: runner.os == 'macOS'
-        # Deliberately not xz: liblzma has to come from the SDK, since a
-        # Homebrew one would leave the binary depending on /opt/homebrew.
-        run: brew install autoconf automake libtool libxml2
+        run: brew install autoconf automake libtool
+
+      - name: Build a minimal static libxml2
+        run: |
+          set -eu
+          version=2.13.8
+          sha256=277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a
+          if [ "$RUNNER_OS" = macOS ] && [ -d /opt/homebrew/opt/libxml2 ]; then
+            echo "::error::a Homebrew libxml2 is installed; CMakeLists.txt prefers it to this one"
+            exit 1
+          fi
+          curl -sSLO "https://download.gnome.org/sources/libxml2/${version%.*}/libxml2-$version.tar.xz"
+          echo "$sha256  libxml2-$version.tar.xz" | shasum -a 256 -c -
+          tar xf "libxml2-$version.tar.xz"
+          if [ "$RUNNER_OS" = Linux ]; then
+            extra="-DLIBXML2_WITH_LZMA=ON"
+          else
+            # The macOS SDK carries no lzma header, and a Homebrew one would
+            # be a dependency the binary cannot take with it.
+            extra="-DLIBXML2_WITH_LZMA=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
+          fi
+          # Without ICU: the libxml2 Ubuntu ships is built against it, which
+          # a static link cannot satisfy without dragging in ICU's data blob,
+          # 30 MB of it. Without HTTP either: nanohttp is what calls
+          # getaddrinfo, which a static glibc only serves by bringing the
+          # shared libraries back.
+          cmake -S "libxml2-$version" -B libxml2-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$HOME/libxml2" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DLIBXML2_WITH_ICU=OFF \
+            -DLIBXML2_WITH_HTTP=OFF \
+            -DLIBXML2_WITH_PYTHON=OFF \
+            -DLIBXML2_WITH_PROGRAMS=OFF \
+            -DLIBXML2_WITH_TESTS=OFF \
+            -DLIBXML2_WITH_ZLIB=ON \
+            $extra
+          cmake --build libxml2-build --target install -j 4
+          # CMAKE_PREFIX_PATH rather than LibXml2_ROOT: cosoco asks for cmake
+          # 3.10, which leaves CMP0074 at OLD and the latter ignored.
+          echo "CMAKE_PREFIX_PATH=$HOME/libxml2" >> "$GITHUB_ENV"
 
       - name: Build
         working-directory: cosoco
+        env:
+          # pfactory builds its examples with -Werror, and clang rejects an
+          # unused constant in one of them that gcc lets through. CXXFLAGS
+          # comes after -Werror on the command line, so -Wno-error wins.
+          CXXFLAGS: -O3 -Wno-error
         run: ./build.sh --static
 
       - name: Strip
