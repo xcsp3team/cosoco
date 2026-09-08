@@ -49,6 +49,8 @@ void Constraint::addToScope(vec<Variable *> &vars) {
 void Constraint::delayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
     makeDelayedConstruction(id);
+    isPostponable = isPostponable && options::intOptions["postponesize"].value > 0 &&
+                    scope.size() > options::intOptions["postponesize"].value;
 }
 
 #define MAXVARIABLESFORIDX 2000
