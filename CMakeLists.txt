@@ -11,10 +11,41 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wno-parentheses -Wall -O3 -Wno-unused-label")
 
-include_directories(/usr/local/opt/libxml2/include/libxml2/)
+option(STATIC_BUILD "Produce a portable binary by linking dependencies statically" OFF)
+
+if(APPLE)
+    # Homebrew keeps libxml2 keg-only, so it is not in the default search path.
+    # /opt/homebrew: Apple Silicon -- /usr/local: Intel
+    foreach(_brew_prefix /opt/homebrew /usr/local)
+        if(EXISTS ${_brew_prefix}/opt/libxml2)
+            list(APPEND CMAKE_PREFIX_PATH ${_brew_prefix}/opt/libxml2)
+        endif()
+    endforeach()
+endif()
+
+if(STATIC_BUILD)
+    if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        # Governs which macOS versions the binary runs on: the counterpart of
+        # the glibc version constraint on Linux.
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version" FORCE)
+    endif()
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+if(STATIC_BUILD)
+    # Select libxml2.a rather than the shared library. Restricted to this
+    # lookup: on macOS the system libraries below exist only as dylibs.
+    set(_saved_suffixes ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+endif()
+
 find_package(LibXml2 REQUIRED)
+
+if(STATIC_BUILD)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ${_saved_suffixes})
+endif()
+
 include_directories(${LIBXML2_INCLUDE_DIRS})
 
 file(GLOB_RECURSE Cosoco_SOURCES
@@ -83,6 +114,26 @@ link_libraries(pthread)
 add_executable(cosoco main/Main.cc)
 target_link_libraries(cosoco ${LIBRARY_NAME})
 target_link_libraries(cosoco ${LIBXML2_LIBRARIES})
+
+if(STATIC_BUILD)
+    # libxml2 needs these; they must come after it on the link line.
+    target_link_libraries(cosoco z)
+    if(APPLE)
+        # macOS ships no static libSystem, so a fully static executable is not
+        # possible there. Dependencies are linked statically and the system
+        # libraries (libSystem, libc++, libiconv) stay dynamic -- they are part
+        # of macOS itself, so the binary still needs nothing installed.
+        target_link_libraries(cosoco iconv)
+        # liblzma is not always offered as a link stub by the macOS SDK.
+        find_library(LZMA_LIBRARY lzma)
+        if(LZMA_LIBRARY)
+            target_link_libraries(cosoco ${LZMA_LIBRARY})
+        endif()
+    else()
+        target_link_libraries(cosoco lzma)
+        set_target_properties(cosoco PROPERTIES LINK_FLAGS "-static")
+    endif()
+endif()
 
 
 target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
