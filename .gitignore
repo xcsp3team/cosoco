@@ -49,3 +49,8 @@ lib
 # misc
 *.log
 
+# python packaging
+python/cosoco_bin/cosoco
+python/build/
+python/dist/
+python/*.egg-info/
