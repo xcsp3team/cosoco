@@ -27,7 +27,7 @@ struct pair {
     int nb;
 };
 
-class CompactTable : public Extension, ObserverDeleteDecision {
+class CompactTable : public Extension, public ObserverDeleteDecision, public VariablePositionInConstraint {
    protected:
     vec<int>  SVal;
     vec<int>  SSup;

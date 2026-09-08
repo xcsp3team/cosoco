@@ -400,7 +400,7 @@ void Solver::newDecision(Variable *x, int idv) {
                 x->domain.toVal(idv), x->size(), KNRM);
 
     assignToIdv(x, idv);
-    for(Constraint *c : x->constraints) c->assignVariable(x);
+    for(auto &pair : x->constraints) pair.first->assignVariable(x, pair.second);
     notifyNewDecision(x);
     x->domain.nAssignments[idv]++;
 }
@@ -472,8 +472,8 @@ void Solver::backtrack(bool isFull) {
 
     unassignedVariables.add(assigned);   // Unassign decision variable
     decisionVariables.add(assigned);
-    for(Constraint *c : assigned->constraints)   // those constraints have to knwon
-        c->unassignVariable(assigned);
+    for(auto &pair : assigned->constraints)   // those constraints have to knwon
+        pair.first->unassignVariable(assigned, pair.second);
     if(assigned->size() > 1)
         wrongDecisions++;
     notifyDeleteDecision(assigned, v, isFull);
@@ -601,7 +601,8 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
             assert(x->size() > 0);
 
 
-            for(Constraint *c : x->constraints) {
+            for(auto &pair : x->constraints) {
+                Constraint *c = pair.first;
                 if(c->isDisabled)
                     continue;
                 if(x->timestamp > c->timestamp && isEntailed(c) == false) {

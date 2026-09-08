@@ -6,7 +6,7 @@
 #include "solver/observers/ObserverDecision.h"
 
 namespace Cosoco {
-class ShortSTR2 : public Extension, ObserverDeleteDecision {
+class ShortSTR2 : public Extension, public ObserverDeleteDecision, public VariablePositionInConstraint {
    protected:
     SparseSet           Sval;
     SparseSet           Ssup;

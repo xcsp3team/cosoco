@@ -4,7 +4,7 @@
 
 namespace Cosoco {
 
-class AtLeastK : public GlobalConstraint {
+class AtLeastK : public GlobalConstraint, public VariablePositionInConstraint {
    public:
     int       k;
     int       value;

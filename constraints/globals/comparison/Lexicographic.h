@@ -5,7 +5,7 @@
 
 namespace Cosoco {
 
-class Lexicographic : public GlobalConstraint {
+class Lexicographic : public GlobalConstraint, public VariablePositionInConstraint {
    public:
     vec<Variable *> X, Y;
     bool            strict;

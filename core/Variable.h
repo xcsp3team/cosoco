@@ -20,12 +20,13 @@ class Variable {
 
     friend class Problem;
 
-    Problem          &problem;       // The associated problem
-    const int         idx;           // The position in problem.variables
-    const int         array;         // the array in which the variable appear (-1 if none)
-    const std::string _name;         // I do not like _ but... useful for name() function
-    Domain           &domain;        // The domain
-    vec<Constraint *> constraints;   // Set of constraints where it occurs
+    Problem          &problem;   // The associated problem
+    const int         idx;       // The position in problem.variables
+    const int         array;     // the array in which the variable appear (-1 if none)
+    const std::string _name;     // I do not like _ but... useful for name() function
+    Domain           &domain;    // The domain
+
+    vec<std::pair<Constraint *, int>> constraints;   // Set of constraints where it occurs with the position in the scope
 
     // Datas used for some algorithms (some heuristics and so on...)
     double wdeg;   // The wdeg value
@@ -39,7 +40,7 @@ class Variable {
 
     // Construction methods
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem
-    void addConstraint(Constraint *c);              // This constraint contains the variable
+    void addConstraint(Constraint *c, int posx);    // This constraint contains the variable at position posx
 
     Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 

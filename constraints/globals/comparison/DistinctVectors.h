@@ -6,7 +6,7 @@
 
 
 namespace Cosoco {
-class DistinctVectors : public GlobalConstraint {
+class DistinctVectors : public GlobalConstraint, public VariablePositionInConstraint {
    protected:
     int             sentinel1, sentinel2;   // Two sentinels for tracking the presence of different values.
     vec<Variable *> X, Y;                   // X != Y

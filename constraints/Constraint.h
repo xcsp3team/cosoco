@@ -24,11 +24,24 @@ class Variable;
 class Solver;
 typedef vec<Variable *> vecVariables;
 
-class Constraint {
+#define MAXVARIABLESFORIDX 2000
+
+class VariablePositionInConstraint {
    protected:
+    bool               use_map;
     vec<int>           idxToScopePositionArray;
     std::map<int, int> idxToScopePositionMap;
-    int                arity;
+
+
+   public:
+    void makeDelayedConstruction(Constraint *c);
+    int  toScopePosition(int idx);
+};
+
+
+class Constraint {
+   protected:
+    int arity;
 
 
    public:
@@ -60,7 +73,7 @@ class Constraint {
     void         makeDelayedConstruction(int id);
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
-    bool postpone();
+    bool postpone() const;
 
    protected:
     virtual bool filter(Variable *x) = 0;   // Called by all constraints. protected because call is done by filterFrom
@@ -70,11 +83,8 @@ class Constraint {
     virtual void  reinitialize();   // The constraint must be reinitialized (after a full backtrak)
 
     // Assign and unassign variables
-    void assignVariable(Variable *x);
-    void unassignVariable(Variable *x);
-
-    // map idx variable to scope position
-    int toScopePosition(int idx);
+    void assignVariable(Variable *x, int posx);
+    void unassignVariable(Variable *x, int posx);
 
 
     // Check tuple validity
