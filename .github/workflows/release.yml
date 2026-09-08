@@ -68,28 +68,33 @@ jobs:
           curl -sSLO "https://download.gnome.org/sources/libxml2/${version%.*}/libxml2-$version.tar.xz"
           echo "$sha256  libxml2-$version.tar.xz" | shasum -a 256 -c -
           tar xf "libxml2-$version.tar.xz"
-          if [ "$RUNNER_OS" = Linux ]; then
-            extra="-DLIBXML2_WITH_LZMA=ON"
-          else
-            # The macOS SDK carries no lzma header, and a Homebrew one would
-            # be a dependency the binary cannot take with it.
-            extra="-DLIBXML2_WITH_LZMA=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
+          extra=""
+          if [ "$RUNNER_OS" = macOS ]; then
+            extra="-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
           fi
-          # Without ICU: the libxml2 Ubuntu ships is built against it, which
-          # a static link cannot satisfy without dragging in ICU's data blob,
-          # 30 MB of it. Without HTTP either: nanohttp is what calls
-          # getaddrinfo, which a static glibc only serves by bringing the
-          # shared libraries back.
+          # Everything that would leave an external symbol behind is off: the
+          # XCSP3 parser links libxml2 too, without -lz, and its build is not
+          # ours to fix. ICU, because the libxml2 Ubuntu ships is built
+          # against it and a static link cannot satisfy that without dragging
+          # in 30 MB of ICU data. HTTP, because nanohttp is the only caller
+          # of getaddrinfo, which a static glibc will not serve without the
+          # shared libraries back. zlib and lzma, because cosoco does not
+          # read compressed instances anyway. iconv, because libxml2 handles
+          # UTF-8, UTF-16 and Latin-1 on its own, which is all XCSP3 asks
+          # for.
           cmake -S "libxml2-$version" -B libxml2-build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$HOME/libxml2" \
             -DBUILD_SHARED_LIBS=OFF \
             -DLIBXML2_WITH_ICU=OFF \
             -DLIBXML2_WITH_HTTP=OFF \
+            -DLIBXML2_WITH_ZLIB=OFF \
+            -DLIBXML2_WITH_LZMA=OFF \
+            -DLIBXML2_WITH_ICONV=OFF \
+            -DLIBXML2_WITH_MODULES=OFF \
             -DLIBXML2_WITH_PYTHON=OFF \
             -DLIBXML2_WITH_PROGRAMS=OFF \
             -DLIBXML2_WITH_TESTS=OFF \
-            -DLIBXML2_WITH_ZLIB=ON \
             $extra
           cmake --build libxml2-build --target install -j 4
           # CMAKE_PREFIX_PATH rather than LibXml2_ROOT: cosoco asks for cmake
