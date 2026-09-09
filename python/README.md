@@ -1,4 +1,4 @@
-# cosoco-bin
+# cosoco
 
 [cosoco](https://github.com/xcsp3team/cosoco) is a compact constraint solver,
 written in C++, that reads [XCSP3](https://xcsp.org) instances.
@@ -8,7 +8,7 @@ of the wheel. It contains no binding: cosoco is meant to be run as a separate
 process.
 
 ```bash
-pip install cosoco-bin
+pip install cosoco
 cosoco instance.xml -model=2
 ```
 

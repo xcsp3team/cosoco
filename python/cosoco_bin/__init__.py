@@ -21,7 +21,7 @@ __all__ = ["PATH", "main"]
 PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cosoco")
 
 try:
-    __version__ = _version("cosoco-bin")
+    __version__ = _version("cosoco")
 except PackageNotFoundError:  # imported from a source tree, not installed
     __version__ = "unknown"
 

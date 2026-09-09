@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cosoco-bin"
+name = "cosoco"
 dynamic = ["version"]
 description = "The cosoco constraint solver, shipped as a prebuilt executable"
 readme = "README.md"

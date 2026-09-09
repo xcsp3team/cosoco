@@ -202,7 +202,7 @@ jobs:
 
       - name: Install the wheel of this runner and solve an instance
         run: |
-          python -m pip install dist/cosoco_bin-*-manylinux_2_17_x86_64.whl
+          python -m pip install dist/cosoco-*-manylinux_2_17_x86_64.whl
           cosoco .github/smoke.xml -model=2 | tee out.txt
           grep -q '^s SATISFIABLE' out.txt
           python -c "import cosoco_bin, os; assert os.access(cosoco_bin.PATH, os.X_OK), cosoco_bin.PATH"
