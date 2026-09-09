@@ -6,6 +6,8 @@ main/cosoco.*
 
 # instances
 *.xml
+# ... but the instance the workflows solve to check a binary is one
+!.github/smoke.xml
 
 #cmake
 cmake_install.cmake
@@ -49,3 +51,8 @@ lib
 # misc
 *.log
 
+# python packaging
+python/cosoco_bin/cosoco
+python/build/
+python/dist/
+python/*.egg-info/

@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
             S->seed = S->seed * (core + 1);
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
-                S->displaySolution        = false;
+                S->displaySolution        = 0;
                 optimizer->invertBestCost = callbacks[0].invertOptimization;
                 optimizer->setSolver(S, solution);
 
@@ -197,7 +197,9 @@ int main(int argc, char **argv) {
         printStats(solvers[0]);
         printf("\n");
 
-        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution())
+        // Not after an enumeration: the search has already displayed every solution.
+        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution() &&
+           (options::intOptions["nbsols"].value == 1 || optimize))
             solver->displayCurrentSolution(options::intOptions["model"].value);
 
 
