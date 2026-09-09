@@ -107,6 +107,9 @@ jobs:
           # pfactory builds its examples with -Werror, and clang rejects an
           # unused constant in one of them that gcc lets through. CXXFLAGS
           # comes after -Werror on the command line, so -Wno-error wins.
+          # -O3 has to stay: pfactory's configure defaults CXXFLAGS to -O3
+          # only when it is unset, so setting the variable here without it
+          # would build pfactory unoptimised.
           CXXFLAGS: -O3 -Wno-error
         run: ./build.sh --static
 

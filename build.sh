@@ -11,7 +11,14 @@ case "$1" in
 esac
 
 cd ../XCSP3-CPP-Parser
-./build.sh
+# Its own build.sh configures a Debug build: no optimisation at all. The
+# parser reads every instance cosoco is given, so it is on the critical path
+# of every run -- a 5 MB instance takes 0.68 s to parse that way, and 0.26 s
+# built like this. Configure the tree here rather than calling that script.
+# No -G: cmake refuses to change the generator of a tree already configured,
+# and the default is the one we want anyway.
+cmake -DCMAKE_BUILD_TYPE=Release .
+cmake --build . --target all -- -j 8
 cd ../pfactory
 ./bootstrap
 make
