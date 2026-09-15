@@ -534,7 +534,11 @@ void FactoryConstraints::createConstraintAllDiffList(Problem *p, vec<vec<Variabl
 
 
 void FactoryConstraints::createConstraintAllEqual(Problem *p, vec<Variable *> &vars) {
-    for(int i = 0; i < vars.size() - 1; i++) p->addConstraint(new Cosoco::EQ(*p, vars[i], vars[i + 1]));
+    for(int i = 0; i < vars.size() - 1; i++) {
+        if(vars[i] == vars[i + 1])
+            continue;
+        p->addConstraint(new Cosoco::EQ(*p, vars[i], vars[i + 1]));
+    }
 }
 
 
