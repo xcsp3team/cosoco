@@ -42,9 +42,13 @@ std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
 
 void NoGoodsEngine::generateNogoodFromSolution() {
     vec<Lit> nogood;
-    for(Variable *x : solver.problem.variables)
+    for(Variable *x : solver.problem.variables) {
+        if(x->idx >= solver.problem.nbOriginalVars)
+            break;
         if(x->useless == false)
             nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
+    }
+
     addNoGood(nogood);
 }
 

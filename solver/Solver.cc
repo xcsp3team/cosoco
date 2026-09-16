@@ -299,9 +299,10 @@ int Solver::search(vec<RootPropagation> &assumptions) {
             if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
                 break;
             if(decisionVariables.isEmpty()) {   // A solution is found
-                if(manageSolution())            // The search is finished
+                int backtrackLevel;
+                if(manageSolution(backtrackLevel))   // The search is finished
                     break;
-                handleFailure(decisionLevel());   // remove the last decision level
+                handleFailure(backtrackLevel);   // remove thecorrect backtrack level (exclude auxilliary vars)
             } else {
                 // Start with assumptions
                 Variable *x   = nullptr;
@@ -344,7 +345,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
 }
 
 
-bool Solver::manageSolution() {
+bool Solver::manageSolution(int &backtrackLevel) {
     nbSolutions++;
     lastSolutionRun = statistics[restarts];
 #ifdef COMPARESOLUTIONS
@@ -375,8 +376,15 @@ bool Solver::manageSolution() {
     if(displaySolution && options::intOptions["nbsols"].value != 1)
         displayCurrentSolution(displaySolution);
 
-    if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
-        noGoodsEngine->generateNogoodFromSolution();
+    if(options::intOptions["nbsols"].value > 1 || options::intOptions["nbsols"].value == 0) {
+        // exit(1);
+        noGoodsEngine->generateNogoodFromSolution();   // Add nogood
+
+        // Find correct backtrack level (exclude auxiliary vars...)
+        backtrackLevel = decisionLevel();
+        while(backtrackLevel >= 0 && decisionVariableAtLevel(backtrackLevel)->idx >= problem.nbOriginalVars) backtrackLevel--;
+    }
+
 
     if(nbSolutions == options::intOptions["nbsols"].value) {
         status = REACH_GOAL;
@@ -619,7 +627,6 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                 }
             }
         }
-
         // Nogood filtering
         while(queue4Nogoods.isEmpty() == false) {
             int idx = queue4Nogoods.pop();
