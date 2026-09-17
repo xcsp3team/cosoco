@@ -110,22 +110,12 @@ void Constraint::unassignVariable(Variable *x, int posx) {
 }
 
 void VariablePositionInConstraint::makeDelayedConstruction(Constraint *c) {
-    use_map = c->problem.variables.size() >= MAXVARIABLESFORIDX;
-
-    if(use_map == false)
-        idxToScopePositionArray.growTo(c->problem.variables.size(), NOTINSCOPE);
-    for(int i = 0; i < c->scope.size(); i++) {
-        if(use_map == false)
-            idxToScopePositionArray[c->scope[i]->idx] = i;
-        else
-            idxToScopePositionMap.insert({c->scope[i]->idx, i});
-    }
+    idxToScopePositionMap.reserve(c->scope.size());
+    for(int i = 0; i < c->scope.size(); i++) idxToScopePositionMap.insert({c->scope[i]->idx, i});
 }
 
 
 int VariablePositionInConstraint::toScopePosition(int idx) {
-    if(use_map == false)
-        return idxToScopePositionArray[idx];
     auto it = idxToScopePositionMap.find(idx);
     if(it == idxToScopePositionMap.end())
         return NOTINSCOPE;

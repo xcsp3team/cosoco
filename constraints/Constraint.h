@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include "XCSP3Tree.h"
 #include "core/Problem.h"
@@ -24,13 +25,10 @@ class Variable;
 class Solver;
 typedef vec<Variable *> vecVariables;
 
-#define MAXVARIABLESFORIDX 2000
 
 class VariablePositionInConstraint {
    protected:
-    bool               use_map;
-    vec<int>           idxToScopePositionArray;
-    std::map<int, int> idxToScopePositionMap;
+    std::unordered_map<int, int> idxToScopePositionMap;
 
 
    public:
