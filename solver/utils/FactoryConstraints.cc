@@ -497,15 +497,17 @@ void FactoryConstraints::createExtenstionDistinctVector(Problem *p, vec<Variable
         Variable *y = list2[i];
         if(x == y)
             continue;
-        for(int v1 : x->domain) {
-            for(int v2 : y->domain) {
+        for(int idv1 : x->domain) {
+            for(int idv2 : y->domain) {
+                int v1 = x->domain.toVal(idv1);
+                int v2 = y->domain.toVal(idv2);
                 if(v1 == v2)
                     continue;
                 tuples.push();
                 vec<int> &tp = tuples.last();
                 tp.growTo(scope.size(), STAR);
-                tp[position[x->idx]] = x->domain.toIdv(v1);
-                tp[position[y->idx]] = y->domain.toIdv(v2);
+                tp[position[x->idx]] = idv1;
+                tp[position[y->idx]] = idv2;
             }
         }
     }
@@ -532,7 +534,11 @@ void FactoryConstraints::createConstraintAllDiffList(Problem *p, vec<vec<Variabl
 
 
 void FactoryConstraints::createConstraintAllEqual(Problem *p, vec<Variable *> &vars) {
-    for(int i = 0; i < vars.size() - 1; i++) p->addConstraint(new Cosoco::EQ(*p, vars[i], vars[i + 1]));
+    for(int i = 0; i < vars.size() - 1; i++) {
+        if(vars[i] == vars[i + 1])
+            continue;
+        p->addConstraint(new Cosoco::EQ(*p, vars[i], vars[i + 1]));
+    }
 }
 
 

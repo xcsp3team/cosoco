@@ -57,8 +57,8 @@ class Solver : public AbstractSolver {
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double    seed = 91648253;   // A seed value
-    bool      displaySolution;
+    double    seed = 91648253;                  // A seed value
+    int       displaySolution;                  // verbosity level for solutions (0: none, see option 'model')
     bool      checkSolution = true;             // Check solution or not
     int       nbDeletedValuesByAVariable;       // count the number of deleted values by a filtering on one variable
     Solution *optimizationSolution = nullptr;   // Used to display best bound during the search.
@@ -113,7 +113,7 @@ class Solver : public AbstractSolver {
 
     int  solve(vec<RootPropagation> &assumps) override;   // The main function
     int  search(vec<RootPropagation> &assumps);           // The search function
-    bool manageSolution();                                // Return true if the search is finished
+    bool manageSolution(int &backtrackLevel);             // Return true if the search is finished.
 
     // --------------------------------------------------------------------------------------
     // Decision methods
