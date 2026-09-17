@@ -5,11 +5,14 @@
 
 namespace Cosoco {
 
-class Lexicographic : public GlobalConstraint, public VariablePositionInConstraint {
+class Lexicographic : public GlobalConstraint {
    public:
-    vec<Variable *> X, Y;
-    bool            strict;
+    vec<Variable *>              X, Y;
+    bool                         strict;
+    VariablePositionInConstraint variablePosition;
+
     Lexicographic(Problem &p, vec<Variable *> &X, vec<Variable *> &Y, bool st);
+    void delayedConstruction(int id) override;
 
     bool isCorrectlyDefined() override;
 

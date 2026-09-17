@@ -58,9 +58,6 @@ void Constraint::makeDelayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
     arity = scope.size();
 
-    auto *tmp = dynamic_cast<VariablePositionInConstraint *>(this);
-    if(tmp != nullptr)
-        tmp->makeDelayedConstruction(this);
 
     unassignedVariablesIdx.setCapacity(arity, true);
     assert(unassignedVariablesIdx.size() == arity);

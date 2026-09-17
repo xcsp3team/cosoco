@@ -6,13 +6,15 @@
 #include "solver/observers/ObserverDecision.h"
 
 namespace Cosoco {
-class ShortSTR2 : public Extension, public ObserverDeleteDecision, public VariablePositionInConstraint {
+class ShortSTR2 : public Extension, public ObserverDeleteDecision {
    protected:
-    SparseSet           Sval;
-    SparseSet           Ssup;
-    SparseSetMultiLevel validTuples;
-    vec<SparseSet *>    gacIdValues;
-    vec<int>            lastSize;
+    SparseSet                    Sval;
+    SparseSet                    Ssup;
+    SparseSetMultiLevel          validTuples;
+    vec<SparseSet *>             gacIdValues;
+    vec<int>                     lastSize;
+    VariablePositionInConstraint variablePosition;
+
 
     bool isValidTuple(int *tuple);
     void delTuple(int position, int lvl);

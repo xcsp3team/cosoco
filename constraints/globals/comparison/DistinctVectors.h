@@ -6,11 +6,13 @@
 
 
 namespace Cosoco {
-class DistinctVectors : public GlobalConstraint, public VariablePositionInConstraint {
+class DistinctVectors : public GlobalConstraint {
    protected:
-    int             sentinel1, sentinel2;   // Two sentinels for tracking the presence of different values.
-    vec<Variable *> X, Y;                   // X != Y
-    int             size;                   // The size of vectors
+    int                          sentinel1, sentinel2;   // Two sentinels for tracking the presence of different values.
+    vec<Variable *>              X, Y;                   // X != Y
+    int                          size;                   // The size of vectors
+    VariablePositionInConstraint variablePosition;
+
 
     bool isSentinel(int i);
 
@@ -22,6 +24,7 @@ class DistinctVectors : public GlobalConstraint, public VariablePositionInConstr
 
    public:
     DistinctVectors(Problem &p, vec<Variable *> &XX, vec<Variable *> &YY);
+    void delayedConstruction(int id) override;
 
     bool isCorrectlyDefined() override;
 

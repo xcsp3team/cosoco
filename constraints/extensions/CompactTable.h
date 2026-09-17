@@ -27,7 +27,7 @@ struct pair {
     int nb;
 };
 
-class CompactTable : public Extension, public ObserverDeleteDecision, public VariablePositionInConstraint {
+class CompactTable : public Extension, public ObserverDeleteDecision {
    protected:
     vec<int>  SVal;
     vec<int>  SSup;
@@ -50,6 +50,8 @@ class CompactTable : public Extension, public ObserverDeleteDecision, public Var
     bool                firstCall;        // First filtering call?
     vec<vec<int>>       residues;   // residues[x][a] is the index of the word where a support was found the last time for (x,a)
     uint64_t            lastTimestamps;   // last time it was called
+
+    VariablePositionInConstraint variablePosition;
     // Bitset methods
     void fillTo1(BITSET *bitset) const {
         for(int i = 0; i < nWords; i++) bitset[i] = BIT_ALL_ONE;

@@ -94,7 +94,7 @@ void CompactTable::manageLastPastVar() {
     int posLast = NOTINSCOPE;
     if(solver->decisionLevel() > 0) {
         Variable *last = solver->decisionVariableAtLevel(solver->decisionLevel());
-        posLast        = toScopePosition(last->idx);
+        posLast        = variablePosition.toScopePosition(last->idx);
         if(posLast != NOTINSCOPE && lastSizes[posLast] != 1) {
             deltaSizes[posLast] = lastSizes[posLast] - 1;
             SVal.push(posLast);
@@ -195,6 +195,8 @@ CompactTable::CompactTable(Problem &p, vec<Variable *> &vars, Matrix<int> *tuple
 
 void CompactTable::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
+
     // Create space
     nWords         = (int)ceil(((double)tuples->nrows()) / ((double)SIZEW));
     current        = new BITSET[nWords];
