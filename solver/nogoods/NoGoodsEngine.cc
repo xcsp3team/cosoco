@@ -213,8 +213,6 @@ void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.pu
 
 
 void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
-    if(solver.nogoodsFromRestarts == false)
-        return;
     Lit current = getPositiveDecisionFor(x, x->domain.toIdv(v));
     int pos     = currentBranch.firstOccurrenceOf(current);
     if(pos == -1) {
