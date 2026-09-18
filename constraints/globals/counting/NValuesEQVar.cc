@@ -81,7 +81,7 @@ bool NValuesEQVar::filter(Variable *x) {
             if(fixedValues.size() == limit) {
                 for(int pos : unfixedVariables) {
                     Variable *y = scope[pos];
-                    for(int idv : reverse(y->domain)) {
+                    for(int idv : y->domain) {
                         int vy = y->domain.toVal(idv);
                         if(fixedValues.find(vy) == fixedValues.end() && solver->delVal(y, vy) == false)
                             return false;
@@ -91,7 +91,7 @@ bool NValuesEQVar::filter(Variable *x) {
             } else if(fixedValues.size() + unfixedVariables.size() == limit) {
                 for(int pos : unfixedVariables) {
                     Variable *y = scope[pos];
-                    for(int idv : reverse(y->domain)) {
+                    for(int idv : y->domain) {
                         int vy = y->domain.toVal(idv);
                         if(fixedValues.find(vy) != fixedValues.end() && solver->delVal(y, vy) == false)
                             return false;

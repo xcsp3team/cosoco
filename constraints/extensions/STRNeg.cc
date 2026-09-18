@@ -79,7 +79,7 @@ bool STRNeg::filter(Variable *dummy) {
     for(int posx : unassignedVariablesIdx) {
         Variable *x                     = scope[posx];
         long      nbValidTuplesOfValues = nbTotalValidTuples / x->size();
-        for(int idv : reverse(x->domain))
+        for(int idv : x->domain)
             if(nbConflicts[posx][idv] == nbValidTuplesOfValues &&
                solver->delIdv(scope[posx], idv) == false)   // All possible values are in valid conflict tuples
                 return false;
@@ -150,7 +150,6 @@ void STRNeg::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     if(tuples->nrows() == 0)   // the constrain is always satisfied. Can occcur: see StillLife-wastage-8-8.xml
         return;
-
 
     validTuples.setCapacity(tuples->nrows(), true);
 

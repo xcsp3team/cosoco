@@ -92,7 +92,7 @@ bool MDDExtension::updateDomains() {
         if(nbRemovals == 0)
             continue;
         int nb = 0;
-        for(int idv : reverse(x->domain)) {
+        for(int idv : x->domain) {
             if(gac[pos][idv] == false) {
                 if(solver->delIdv(x, idv) == false)
                     return false;

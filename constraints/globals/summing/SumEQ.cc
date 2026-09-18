@@ -69,7 +69,7 @@ bool SumEQ::filter(Variable *dummy) {
                 min -= x->maximum() * c;
                 max -= x->minimum() * c;
             }
-            for(int idv : reverse(x->domain)) {
+            for(int idv : x->domain) {
                 int v = x->domain.toVal(idv);
                 if(max + v * c < limit && solver->delIdv(x, idv) == false)
                     return false;

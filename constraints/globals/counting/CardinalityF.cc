@@ -67,7 +67,7 @@ bool CardinalityF::filter(Variable *dummy) {
         if(status == 0)
             break;
         for(int v : valueToCompute) {
-            for(int posx : reverse(possibles[v])) {
+            for(int posx : possibles[v]) {
                 if(vars[posx]->containsValue(values[v]) == false) {
                     possibles[v].del(posx);
 

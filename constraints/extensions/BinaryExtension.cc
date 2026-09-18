@@ -38,7 +38,7 @@ bool BinaryExtension::filterSupport(Variable *dummy) {
                 return false;
         return solver->entail(this);
     }
-    for(int idvx : reverse(x->domain)) {
+    for(int idvx : x->domain) {
         if(resx[idvx] != -1 && y->containsIdv(resx[idvx]) == true)
             continue;
         bool found = false;
@@ -53,7 +53,7 @@ bool BinaryExtension::filterSupport(Variable *dummy) {
         if(found == false && solver->delIdv(x, idvx) == false)
             return false;
     }
-    for(int idvy : reverse(y->domain)) {
+    for(int idvy : y->domain) {
         if(resy[idvy] != -1 && x->containsIdv(resy[idvy]) == true)
             continue;
         bool found = false;
