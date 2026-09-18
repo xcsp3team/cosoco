@@ -22,6 +22,9 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
     OFFSET = static_cast<unsigned int>(pow(2, n2 + 1));   // +1 because 0 excluded ???
+    // watcherPosition is a dense array over all possible x!=idv literals; bounded by the same
+    // n1+n2 check above, so this can't overflow further than that guard already allows.
+    watcherPosition.growTo(static_cast<int>(OFFSET * static_cast<unsigned int>(s.problem.nbVariables())), -1);
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
@@ -121,14 +124,13 @@ void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
 }
 
 void NoGoodsEngine::addWatcher(Lit ng, unsigned int ngposition) {
-    int wp = -1;
-    if(watcherPosition.count(ng) == 0) {
-        watchers.push();                                     // Add a new watcher for x!=idv
-        watcherPosition.insert({ng, watchers.size() - 1});   // insert the position in the maps
-        wp = watchers.size() - 1;
-    } else
-        wp = watcherPosition[ng];
-    assert(wp >= 0);
+    unsigned int idx = watcherIndex(ng);
+    int          wp  = watcherPosition[idx];
+    if(wp == -1) {
+        watchers.push();   // Add a new watcher for x!=idv
+        wp                   = watchers.size() - 1;
+        watcherPosition[idx] = wp;   // record the position, single write
+    }
     watchers[wp].push(ngposition);   // the tuple watch this nogood
 }
 
@@ -143,10 +145,11 @@ bool NoGoodsEngine::propagate(Variable *x) {
     if(x->size() > 1)   // Nothing to do
         return true;
 
-    Lit ng = getNegativeDecisionFor(x, x->valueId());
-    if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
+    Lit          ng       = getNegativeDecisionFor(x, x->valueId());
+    unsigned int idx      = watcherIndex(ng);
+    int          position = watcherPosition[idx];
+    if(position == -1)   // this tuple does not watch any nogood
         return true;
-    int position = watcherPosition[ng];
     int i = 0, j = 0;
     for(; i < watchers[position].size();) {
         unsigned int ngposition    = watchers[position][i++];
@@ -242,6 +245,11 @@ inline Lit NoGoodsEngine::getPositiveDecisionFor(Variable *x, int idv) const { r
 
 
 inline Lit NoGoodsEngine::getNegativeDecisionFor(Variable *x, int idv) const { return -getPositiveDecisionFor(x, idv); }
+
+inline unsigned int NoGoodsEngine::watcherIndex(Lit ng) const {
+    assert(ng < 0);   // watcherPosition only ever keys negative decisions (x != idv)
+    return static_cast<unsigned int>(-ng - 1);
+}
 
 
 //-----------------------------------------------------------------------
