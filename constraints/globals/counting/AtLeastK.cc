@@ -36,7 +36,7 @@ bool AtLeastK::isCorrectlyDefined() {
 
 
 bool AtLeastK::filter(Variable *x) {
-    int posIdx = toScopePosition(x->idx);
+    int posIdx = variablePosition.toScopePosition(x->idx);
     assert(posIdx != NOTINSCOPE);
 
 
@@ -71,4 +71,9 @@ AtLeastK::AtLeastK(Problem &p, vec<Variable *> &vars, int kk, int val)
     : GlobalConstraint(p, "At least", vars), k(kk), value(val), sentinels(vars.size(), false) {
     // Need k+1 sentinels
     for(int i = 0; i < k + 1; i++) sentinels.add(i);
+}
+
+void AtLeastK::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
 }
