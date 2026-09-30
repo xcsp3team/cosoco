@@ -239,6 +239,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
     std::vector<std::vector<Lit>> sharedNogoods;
 
     int disableSingletons = options::intOptions["disablesingleton"].value;
+    int restarts_lim      = options::intOptions["restarts_lim"].value;
 
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
@@ -267,8 +268,11 @@ int Solver::search(vec<RootPropagation> &assumptions) {
             if(status == FULL_EXPLORATION)
                 break;
             if(restart != nullptr && restart->isItTimeToRestart()) {
-                // Manage rest art
+                // Manage restart
                 doRestart();
+                if(restarts_lim > 0 && restarts_lim <= statistics[restarts])
+                    raise(SIGABRT);
+
                 if(threadsGroup != nullptr) {
                     rootPropagationsCommunicator->recvAll(sharedPropagations);
                     // Fact to propagate
