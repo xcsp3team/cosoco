@@ -132,7 +132,8 @@ void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
 void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
     if(freezed)
         return;
-    for(Constraint *c : x->constraints) {
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 1)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg -= c->wdeg[c->unassignedVariablesIdx[0]];
     }
@@ -142,7 +143,8 @@ void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
 void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(freezed)
         return;
-    for(Constraint *c : x->constraints) {
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 2)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg += c->wdeg[c->unassignedVariablesIdx[0]];
     }

@@ -53,30 +53,19 @@ void Constraint::delayedConstruction(int id) {
                     scope.size() > options::intOptions["postponesize"].value;
 }
 
-#define MAXVARIABLESFORIDX 2000
 
 void Constraint::makeDelayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
     arity = scope.size();
 
-    if(arity > 1 && problem.variables.size() < MAXVARIABLESFORIDX)
-        idxToScopePositionArray.growTo(problem.variables.size(), NOTINSCOPE);
-
 
     unassignedVariablesIdx.setCapacity(arity, true);
     assert(unassignedVariablesIdx.size() == arity);
-    if(arity > 1)
-        for(int i = 0; i < scope.size(); i++) {
-            if(problem.variables.size() < MAXVARIABLESFORIDX)
-                idxToScopePositionArray[scope[i]->idx] = i;
-            else
-                idxToScopePositionMap.insert({scope[i]->idx, i});
-        }
 
     current.growTo(scope.size());
     wdeg.growTo(scope.size());
     idc = id;
-    for(Variable *v : scope) v->addConstraint(this);
+    for(int i = 0; i < scope.size(); i++) scope[i]->addConstraint(this, i);
 }
 
 
@@ -98,35 +87,32 @@ bool Constraint::filterFrom(Variable *x) {
     return filter(x);
 }
 
-bool Constraint::postpone() {
+bool Constraint::postpone() const {
     return isPostponable && options::intOptions["postponesize"].value > 0 &&
            scope.size() > options::intOptions["postponesize"].value;
 }
 
 // Assign and unassign variables
-void Constraint::assignVariable(Variable *x) {
-    int posx = toScopePosition(x->idx);
+void Constraint::assignVariable(Variable *x, int posx) {
     assert(posx >= 0 && posx < scope.size());
     assert(unassignedVariablesIdx.contains(posx));
     unassignedVariablesIdx.del(posx);
 }
 
 
-void Constraint::unassignVariable(Variable *x) {
-    int posInScope = toScopePosition(x->idx);
-    assert(posInScope < scope.size());
-    assert(!unassignedVariablesIdx.contains(posInScope));
-    unassignedVariablesIdx.add(posInScope);
+void Constraint::unassignVariable(Variable *x, int posx) {
+    assert(posx < scope.size());
+    assert(!unassignedVariablesIdx.contains(posx));
+    unassignedVariablesIdx.add(posx);
+}
+
+void VariablePositionInConstraint::makeDelayedConstruction(Constraint *c) {
+    idxToScopePositionMap.reserve(c->scope.size());
+    for(int i = 0; i < c->scope.size(); i++) idxToScopePositionMap.insert({c->scope[i]->idx, i});
 }
 
 
-// idx -> scope position
-int Constraint::toScopePosition(int idx) {
-    if(arity == 1)
-        return scope[0]->idx == idx ? 0 : NOTINSCOPE;
-
-    if(problem.variables.size() < MAXVARIABLESFORIDX)
-        return idxToScopePositionArray[idx];
+int VariablePositionInConstraint::toScopePosition(int idx) {
     auto it = idxToScopePositionMap.find(idx);
     if(it == idxToScopePositionMap.end())
         return NOTINSCOPE;

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include "XCSP3Tree.h"
 #include "core/Problem.h"
@@ -24,11 +25,21 @@ class Variable;
 class Solver;
 typedef vec<Variable *> vecVariables;
 
+
+class VariablePositionInConstraint {
+   protected:
+    std::unordered_map<int, int> idxToScopePositionMap;
+
+
+   public:
+    void makeDelayedConstruction(Constraint *c);
+    int  toScopePosition(int idx);
+};
+
+
 class Constraint {
    protected:
-    vec<int>           idxToScopePositionArray;
-    std::map<int, int> idxToScopePositionMap;
-    int                arity;
+    int arity;
 
 
    public:
@@ -60,7 +71,7 @@ class Constraint {
     void         makeDelayedConstruction(int id);
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
-    bool postpone();
+    bool postpone() const;
 
    protected:
     virtual bool filter(Variable *x) = 0;   // Called by all constraints. protected because call is done by filterFrom
@@ -70,11 +81,8 @@ class Constraint {
     virtual void  reinitialize();   // The constraint must be reinitialized (after a full backtrak)
 
     // Assign and unassign variables
-    void assignVariable(Variable *x);
-    void unassignVariable(Variable *x);
-
-    // map idx variable to scope position
-    int toScopePosition(int idx);
+    void assignVariable(Variable *x, int posx);
+    void unassignVariable(Variable *x, int posx);
 
 
     // Check tuple validity

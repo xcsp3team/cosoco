@@ -13,11 +13,11 @@ bool DistinctVectors::isSatisfiedBy(Cosoco::vec<int> &tuple) {
     tupleX.growTo(size);
     tupleY.growTo(size);
     for(int i = 0; i < size; i++) {
-        int posX  = toScopePosition(X[i]->idx);
+        int posX  = variablePosition.toScopePosition(X[i]->idx);
         tupleX[i] = tuple[posX];
     }
     for(int i = 0; i < size; i++) {
-        int posY  = toScopePosition(Y[i]->idx);
+        int posY  = variablePosition.toScopePosition(Y[i]->idx);
         tupleY[i] = tuple[posY];
     }
     for(int i = 0; i < size; i++)
@@ -124,4 +124,9 @@ DistinctVectors::DistinctVectors(Cosoco::Problem &p, vec<Variable *> &XX, vec<Va
             sentinel2 = 0;
     }
     assert(sentinel1 != sentinel2);
+}
+
+void DistinctVectors::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
 }

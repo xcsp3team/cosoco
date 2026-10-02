@@ -87,11 +87,13 @@ void HeuristicVarCACD::notifyNewDecision(Variable *x, Solver &s) {
     if(freezed)
         return;
 
-    for(Constraint *c : x->constraints)
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 1) {
             int posy = c->unassignedVariablesIdx[0];   // the other variable whose score must be updated
             vscores[posy] -= cvscores[c->idc][posy];
         }
+    }
 }
 
 
@@ -99,11 +101,13 @@ void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s, bool 
     if(freezed)
         return;
 
-    for(Constraint *c : x->constraints)
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 2) {
             int posy = c->unassignedVariablesIdx[0];   // the other variable whose score must be updated
             vscores[posy] += cvscores[c->idc][posy];
         }
+    }
 }
 
 

@@ -69,8 +69,8 @@ bool IPSLearner::canEliminateSingletonVariable(Variable *x) {
         return false;
     if(problem.isBinary)
         return true;
-    for(Constraint *c : x->constraints)
-        if(getNbFreeVariables(c) > 1)
+    for(auto &pair : x->constraints)
+        if(getNbFreeVariables(pair.first) > 1)
             return false;
     return true;
 }
