@@ -296,8 +296,6 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                 }
             }
         } else {
-            if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
-                break;
             if(decisionVariables.isEmpty()) {   // A solution is found
                 int backtrackLevel;
                 if(manageSolution(backtrackLevel))   // The search is finished
