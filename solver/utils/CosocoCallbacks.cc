@@ -139,12 +139,19 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
                                     inArray ? problem->variablesArray.size() - 1 : -1);
 
     }*/
-    if(max - min < 1000)
-        x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
-                                    inArray ? problem->variablesArray.size() - 1 : -1);
-    else
-        x = problem->createVariable(id, *(new DomainValue(vector2vec(values))),
-                                    inArray ? problem->variablesArray.size() - 1 : -1);
+    if(max - min < 1000) {
+        buildVariableInteger(id, values[0], values[values.size() - 1]);
+        Variable *x = problem->variables.last();
+        for(int idv : reverse(x->domain)) {
+            int v = x->domain.toVal(idv);
+            if(std::find(values.begin(), values.end(), v) == values.end())
+                x->delIdv(idv, 0);
+        }
+        assert(values.size() == x->domain.size());
+        return;
+    }
+
+    x = problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";
