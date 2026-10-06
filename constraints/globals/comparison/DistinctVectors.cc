@@ -33,6 +33,20 @@ bool DistinctVectors::isCorrectlyDefined() {
     return true;
 }
 
+bool DistinctVectorsK::isCorrectlyDefined() {
+    for(int i = 0; i < lists.size(); i++) {
+        for(int j = i + 1; j < lists.size(); j++)
+            if(lists[i].size() != lists[j].size())
+                throw std::logic_error("Constraint " + std::to_string(idc) +
+                                       ": DistinctVector K: Two lists have different sizes");
+    }
+    return true;
+}
+
+bool DistinctVectorsK::isSatisfiedBy(Cosoco::vec<int> &tuple) {
+    return true;
+    // TODO
+}
 
 //----------------------------------------------------------
 // Filtering
@@ -102,9 +116,70 @@ void DistinctVectors::handlePossibleInferenceFor(int sentinel) {
 }
 
 
+int DistinctVectorsK::isSentinelFor(int i, int ii, int j) {
+    Variable *x = lists[i][j];
+    Variable *y = lists[ii][j];
+    if(x->size() == 1 && y->size() == 1)
+        return x->value() == y->value() ? 0 : 1;
+
+    sentinels[i][ii] = j;
+    sentinels[ii][i] = j;
+    return -1;
+}
+
+int DistinctVectorsK::findSentinel(int i, int ii, int jToIgnore) {
+    int j = sentinels[i][ii];
+    if(j != jToIgnore) {
+        int b = isSentinelFor(i, ii, j);
+        if(b != 0)
+            return b;
+    }
+    for(j = 0; j < m; j++) {
+        if(j == jToIgnore)
+            continue;
+        int b = isSentinelFor(i, ii, j);
+        if(b != 0)
+            return b;
+    }
+    return false;
+}
+
+bool DistinctVectorsK::filter(Variable *x) {
+    int level = solver->decisionLevel();
+    if(x->size() != 1)
+        return true;
+    int v = x->value();
+    int p = variablePosition.toScopePosition(x->idx);
+    int i = rows[p], j = cols[p];
+    for(int ii = 0; ii < n; ii++) {
+        if(ii == i)
+            continue;
+        int k = offsets[std::min(i, ii)] + std::abs(ii - i) - 1;
+        if(!set.contains(k))
+            continue;
+        Variable *y = lists[ii][j];
+        if(y->containsValue((v) == false)) {
+            set.del(k, level);
+            continue;
+        }
+        int b = findSentinel(i, ii, j);
+        if(b == 0) {   // no other sentinel
+            if(solver->delVal(y, v) == false)
+                return false;
+            set.del(k, level);
+        } else if(b == 1) {   // strong sentinel
+            set.del(k, level);
+        }
+    }
+    return true;
+}
+
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
+void DistinctVectorsK::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    set.restoreLimit(s.decisionLevel() + 1);
+}
 
 
 DistinctVectors::DistinctVectors(Cosoco::Problem &p, vec<Variable *> &XX, vec<Variable *> &YY)
@@ -126,7 +201,37 @@ DistinctVectors::DistinctVectors(Cosoco::Problem &p, vec<Variable *> &XX, vec<Va
     assert(sentinel1 != sentinel2);
 }
 
+DistinctVectorsK::DistinctVectorsK(Problem &p, vec<vec<Variable *>> &XX) : GlobalConstraint(p, "Distinct Vectors K", 0) {
+    lists.growTo(XX.size());
+    int i = 0;
+    for(auto &list : XX) list.copyTo(lists[i++]);
+    n = lists.size();
+    m = lists[0].size();
+
+    for(auto &list : lists) addToScope(list);
+    rows = new int[scope.size()];
+    cols = new int[scope.size()];
+
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < m; j++) {
+            int p   = variablePosition.toScopePosition(lists[i][j]->idx);
+            rows[p] = i;
+            cols[p] = j;
+        }
+    offsets = new int[n - 1];
+    for(int i = 1; i < n - 1; i++) offsets[i] = offsets[i - 1] + (n - i);
+    sentinels = new int *[n];
+    for(int i = 0; i < n; i++) sentinels[i] = new int[n];
+    set.setCapacity((n * (n - 1)) / 2, true);   // TODO
+}
+
+
 void DistinctVectors::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
+}
+
+void DistinctVectorsK::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     variablePosition.makeDelayedConstruction(this);
 }

@@ -516,17 +516,11 @@ void FactoryConstraints::createExtenstionDistinctVector(Problem *p, vec<Variable
 
 
 void FactoryConstraints::createConstraintAllDiffList(Problem *p, vec<vec<Variable *>> &lists) {
-    if(0) {
-        verbose.log(NORMAL, "c AllDiff List constraint using %d DistinctVectors constraints \n",
-                    lists.size() * (lists.size() - 1) / 2);
-
-        for(int i = 0; i < lists.size(); i++)
-            for(int j = i + 1; j < lists.size(); j++) p->addConstraint(new DistinctVectors(*p, lists[i], lists[j]));
-    } else {
-        verbose.log(NORMAL, "c AllDiff List constraint using extension constraint\n", lists.size() * (lists.size() - 1) / 2);
-        for(int i = 0; i < lists.size(); i++)
-            for(int j = i + 1; j < lists.size(); j++) FactoryConstraints::createExtenstionDistinctVector(p, lists[i], lists[j]);
+    if(lists.size() == 2) {
+        p->addConstraint(new DistinctVectors(*p, lists[0], lists[1]));
+        return;
     }
+    p->addConstraint(new DistinctVectorsK(*p, lists));
 }
 
 
