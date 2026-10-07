@@ -40,12 +40,27 @@ bool DistinctVectorsK::isCorrectlyDefined() {
                 throw std::logic_error("Constraint " + std::to_string(idc) +
                                        ": DistinctVector K: Two lists have different sizes");
     }
+    if(scope.size() != n_rows * n_cols)
+        throw std::logic_error("Constraint " + std::to_string(idc) + ": DistinctVector K: all variables must be different");
+
+
     return true;
 }
 
+bool DistinctVectorsK::areDifferent(int start1, int start2, vec<int> &tuple) const {
+    for(int j = 0; j < n_cols; j++)
+        if(tuple[start1 + j] != tuple[start2 + j])
+            return true;
+    return false;
+}
+
+
 bool DistinctVectorsK::isSatisfiedBy(Cosoco::vec<int> &tuple) {
+    for(int i = 0; i < n_rows; i++)
+        for(int ii = i + 1; ii < n_rows; ii++)
+            if(areDifferent(i * n_cols, ii * n_cols, tuple) == false)
+                return false;
     return true;
-    // TODO
 }
 
 //----------------------------------------------------------
@@ -134,34 +149,39 @@ int DistinctVectorsK::findSentinel(int i, int ii, int jToIgnore) {
         if(b != 0)
             return b;
     }
-    for(j = 0; j < m; j++) {
+    for(j = 0; j < n_cols; j++) {
         if(j == jToIgnore)
             continue;
         int b = isSentinelFor(i, ii, j);
         if(b != 0)
             return b;
     }
-    return false;
+    return 0;
 }
 
 bool DistinctVectorsK::filter(Variable *x) {
-    int level = solver->decisionLevel();
     if(x->size() != 1)
         return true;
-    int v = x->value();
-    int p = variablePosition.toScopePosition(x->idx);
+    int level = solver->decisionLevel();
+    int v     = x->value();
+    int p     = variablePosition.toScopePosition(x->idx);
     int i = rows[p], j = cols[p];
-    for(int ii = 0; ii < n; ii++) {
+    for(int ii = 0; ii < n_rows; ii++) {
         if(ii == i)
             continue;
         int k = offsets[std::min(i, ii)] + std::abs(ii - i) - 1;
-        if(!set.contains(k))
+
+        if(set.contains(k) == false)
             continue;
+
         Variable *y = lists[ii][j];
-        if(y->containsValue((v) == false)) {
+        std::cout << ii << " " << j << " " << v << std::endl;
+        std::cout << y->_name << std::endl;
+        if(y->containsValue(v) == false) {
             set.del(k, level);
             continue;
         }
+        std::cout << "ici" << std::endl;
         int b = findSentinel(i, ii, j);
         if(b == 0) {   // no other sentinel
             if(solver->delVal(y, v) == false)
@@ -205,24 +225,10 @@ DistinctVectorsK::DistinctVectorsK(Problem &p, vec<vec<Variable *>> &XX) : Globa
     lists.growTo(XX.size());
     int i = 0;
     for(auto &list : XX) list.copyTo(lists[i++]);
-    n = lists.size();
-    m = lists[0].size();
+    n_rows = lists.size();
+    n_cols = lists[0].size();
 
     for(auto &list : lists) addToScope(list);
-    rows = new int[scope.size()];
-    cols = new int[scope.size()];
-
-    for(int i = 0; i < n; i++)
-        for(int j = 0; j < m; j++) {
-            int p   = variablePosition.toScopePosition(lists[i][j]->idx);
-            rows[p] = i;
-            cols[p] = j;
-        }
-    offsets = new int[n - 1];
-    for(int i = 1; i < n - 1; i++) offsets[i] = offsets[i - 1] + (n - i);
-    sentinels = new int *[n];
-    for(int i = 0; i < n; i++) sentinels[i] = new int[n];
-    set.setCapacity((n * (n - 1)) / 2, true);   // TODO
 }
 
 
@@ -234,4 +240,21 @@ void DistinctVectors::delayedConstruction(int id) {
 void DistinctVectorsK::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     variablePosition.makeDelayedConstruction(this);
+    rows = new int[scope.size()];
+    cols = new int[scope.size()];
+    for(int i = 0; i < n_rows; i++)
+        for(int j = 0; j < n_cols; j++) {
+            int p   = variablePosition.toScopePosition(lists[i][j]->idx);
+            rows[p] = i;
+            cols[p] = j;
+        }
+    offsets    = new int[n_rows - 1];
+    offsets[0] = 0;
+    for(int i = 1; i < n_rows - 1; i++) offsets[i] = offsets[i - 1] + (n_rows - i);
+    sentinels = new int *[n_rows];
+    for(int i = 0; i < n_rows; i++) {
+        sentinels[i] = new int[n_rows];
+        std::fill_n(sentinels[i], n_rows, 0);
+    }
+    set.setCapacity((n_rows * (n_rows - 1)) / 2, true);   // TODO
 }

@@ -38,21 +38,19 @@ class DistinctVectors : public GlobalConstraint {
 class DistinctVectorsK : public GlobalConstraint, ObserverDeleteDecision {
    protected:
     vec<vec<Variable *>>         lists;
-    int                          n, m;
+    int                          n_rows, n_cols;
     int                         *rows, *cols;
     VariablePositionInConstraint variablePosition;
 
     int  *offsets;
     int **sentinels;
 
-    // Notifications : restore validTuples when backtrack is performed
-    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
-
 
     SparseSetMultiLevel set;
 
-    int findSentinel(int i, int ii, int jToIgnore);
-    int isSentinelFor(int i, int ii, int j);
+    int  findSentinel(int i, int ii, int jToIgnore);
+    int  isSentinelFor(int i, int ii, int j);
+    bool areDifferent(int start1, int start2, vec<int> &tuple) const;
 
    public:
     DistinctVectorsK(Problem &p, vec<vec<Variable *>> &XX);
@@ -60,6 +58,7 @@ class DistinctVectorsK : public GlobalConstraint, ObserverDeleteDecision {
     bool isCorrectlyDefined() override;
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool filter(Variable *x) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 };
 
 }   // namespace Cosoco
