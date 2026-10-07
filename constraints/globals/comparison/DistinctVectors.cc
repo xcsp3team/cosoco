@@ -175,13 +175,10 @@ bool DistinctVectorsK::filter(Variable *x) {
             continue;
 
         Variable *y = lists[ii][j];
-        std::cout << ii << " " << j << " " << v << std::endl;
-        std::cout << y->_name << std::endl;
         if(y->containsValue(v) == false) {
             set.del(k, level);
             continue;
         }
-        std::cout << "ici" << std::endl;
         int b = findSentinel(i, ii, j);
         if(b == 0) {   // no other sentinel
             if(solver->delVal(y, v) == false)
@@ -237,9 +234,16 @@ void DistinctVectors::delayedConstruction(int id) {
     variablePosition.makeDelayedConstruction(this);
 }
 
+
+void DistinctVectorsK::attachSolver(Solver *s) {
+    Constraint::attachSolver(s);
+    s->addObserverDeleteDecision(this);   // We need to restore validTuples.
+}
+
 void DistinctVectorsK::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     variablePosition.makeDelayedConstruction(this);
+
     rows = new int[scope.size()];
     cols = new int[scope.size()];
     for(int i = 0; i < n_rows; i++)

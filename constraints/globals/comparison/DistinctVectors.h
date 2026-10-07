@@ -35,7 +35,7 @@ class DistinctVectors : public GlobalConstraint {
     bool filter(Variable *x) override;
 };
 
-class DistinctVectorsK : public GlobalConstraint, ObserverDeleteDecision {
+class DistinctVectorsK : public GlobalConstraint, public ObserverDeleteDecision {
    protected:
     vec<vec<Variable *>>         lists;
     int                          n_rows, n_cols;
@@ -54,6 +54,7 @@ class DistinctVectorsK : public GlobalConstraint, ObserverDeleteDecision {
 
    public:
     DistinctVectorsK(Problem &p, vec<vec<Variable *>> &XX);
+    void attachSolver(Solver *s) override;
     void delayedConstruction(int id) override;
     bool isCorrectlyDefined() override;
     bool isSatisfiedBy(vec<int> &tuple) override;
