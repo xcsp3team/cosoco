@@ -1,8 +1,9 @@
 #include "CosocoCallbacks.h"
 
+#include <format>
+
 #include "DomainSmallValues.h"
 #include "constraints/primitives/BasicNodes.h"
-
 using namespace Cosoco;
 
 bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &parameters) {
@@ -1450,7 +1451,19 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
             Variable *xj = problem->mapping[origins[j]->id];
             Variable *wi = problem->mapping[lengths[i]->id];
             Variable *wj = problem->mapping[lengths[j]->id];
-            FactoryConstraints::createConstraintDisjunctiveVars(problem, xi, xj, wi, wj);
+            if((wi->minimum() == 0 || wj->minimum() == 0) && zeroIgnored) {
+                // string tmp = "or(eq(wi, 0), eq(wj, 0), le(add(xi, wi), xj), le(add(xj, wj), xi))";
+
+                string tmp = "or(eq(" + wi->_name + ",0),eq(" + wj->_name + ",0),le(add(" + xi->_name + "," + wi->_name + ")," +
+                             xj->_name + "),le(add(" + xj->_name + "," + wj->_name + ")," + xi->_name + "))";
+                std::cout << tmp << std::endl;
+                // string tmp = "or(eq(" + wi->_name + ", 0), eq(" + wj->_name + ", 0), le(add(" + xi->_name + ", " +
+                // wi->_name +
+                //              "), " + xj->_name + "), le(add(" + xj->_name + ", " + wj->_name + "), " + xi->_name + ")))";
+                manageIntension->intension(id, new Tree(tmp));
+            } else {
+                FactoryConstraints::createConstraintDisjunctiveVars(problem, xi, xj, wi, wj);
+            }
         }
 }
 

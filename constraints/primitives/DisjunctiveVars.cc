@@ -13,6 +13,11 @@ using namespace Cosoco;
 
 bool DisjunctiveVars::isSatisfiedBy(vec<int> &t) { return t[0] + t[2] <= t[1] || t[1] + t[3] <= t[0]; }
 
+bool DisjunctiveVars::isCorrectlyDefined() {
+    if(w1->minimum() <= 0 || w2->minimum() <= 0)
+        throw new std::logic_error("Minimum values in DisjunctiveVar must be greater than 0");
+    return true;
+}
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
