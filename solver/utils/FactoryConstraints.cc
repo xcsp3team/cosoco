@@ -516,10 +516,10 @@ void FactoryConstraints::createExtenstionDistinctVector(Problem *p, vec<Variable
 
 
 void FactoryConstraints::createConstraintAllDiffList(Problem *p, vec<vec<Variable *>> &lists) {
-    if(lists.size() == 2) {
+    /*if(lists.size() == 2) {
         p->addConstraint(new DistinctVectors(*p, lists[0], lists[1]));
         return;
-    }
+    }*/
     p->addConstraint(new DistinctVectorsK(*p, lists));
 }
 
