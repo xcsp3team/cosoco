@@ -1,7 +1,5 @@
 #include "CosocoCallbacks.h"
 
-#include <format>
-
 #include "DomainSmallValues.h"
 #include "constraints/primitives/BasicNodes.h"
 using namespace Cosoco;
