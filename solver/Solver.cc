@@ -607,13 +607,13 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                 if(c->isDisabled)
                     continue;
                 if(x->timestamp > c->timestamp && isEntailed(c) == false) {
-                    if(c->postpone()) {   // Postpone the filtering of these constraints
+                    if(c->postpone()) {
+                        // Postpone the filtering of these constraints
                         postponeFiltering.add(c->idc);
                         c->postponedBy = x;
                         continue;
                     }
-
-
+                    
                     if(filterConstraint(c, x) == false)
                         return c;
                 }
