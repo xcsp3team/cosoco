@@ -120,13 +120,10 @@ int Optimizer::search() {
             else
                 lower = best + 1;
             if(noFullRestartAfterSolution) {   // Do not completely restart after a solution
-                int bestLevel = -1;
-                for(Variable *x : objectiveConstraint->scope) {
-                    if(x->domain.lastRemovedLevel() > bestLevel)
-                        bestLevel = x->domain.lastRemovedLevel();
-                }
-                // std::cout << "best : " << bestLevel << std::endl;
+                int bestLevel = objectiveConstraint->getLevelOfLastRemovedValueInScope();
+                std::cout << "best : " << bestLevel << std::endl;
                 solver->backtrack(bestLevel - 1 >= 0 ? bestLevel - 1 : 0);
+                for(Variable *x : objectiveConstraint->scope) solver->addToQueue(x);
             } else {
                 solver->_firstCall = true;
             }

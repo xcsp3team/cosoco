@@ -72,6 +72,7 @@ class Constraint {
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
     bool postpone() const;
+    int  getLevelOfLastRemovedValueInScope();
 
    protected:
     virtual bool filter(Variable *x) = 0;   // Called by all constraints. protected because call is done by filterFrom

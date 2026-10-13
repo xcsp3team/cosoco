@@ -92,6 +92,15 @@ bool Constraint::postpone() const {
            scope.size() > options::intOptions["postponesize"].value;
 }
 
+int Constraint::getLevelOfLastRemovedValueInScope() {
+    int level = -1;
+    for(Variable *x : scope) {
+        int tmp = x->domain.lastRemovedLevel();
+        level   = std::max(level, tmp);
+    }
+    return level;
+}
+
 // Assign and unassign variables
 void Constraint::assignVariable(Variable *x, int posx) {
     assert(posx >= 0 && posx < scope.size());

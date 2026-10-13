@@ -237,6 +237,9 @@ int Solver::search() {
     lastSolution.clear();   // Store the last solution
     status      = RUNNING;
     nbSolutions = 0;
+    reinitializeConstraints();
+    entailedConstraints.clear();
+
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
@@ -599,8 +602,6 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         while(queue.size() > 0) {
             Variable *x = pickInQueue();
             assert(x->size() > 0);
-
-
             for(auto &pair : x->constraints) {
                 Constraint *c = pair.first;
                 if(c->isDisabled)
