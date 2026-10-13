@@ -3,7 +3,6 @@
 #include <solver/heuristics/values/HeuristicValLast.h>
 #include <solver/heuristics/values/HeuristicValRandom.h>
 #include <solver/heuristics/variables/HeuristicVarCACD.h>
-#include <solver/heuristics/variables/HeuristicVarFirst.h>
 #include <solver/restarts/GeometricRestart.h>
 #include <solver/restarts/InnerOuter.h>
 #include <solver/restarts/LubyRestart.h>
@@ -182,38 +181,33 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
 // Search methods
 //----------------------------------------------
 
-int Solver::solve(vec<RootPropagation> &assumps) {
-    bool firstCall = nbSolutions == 0;
-
-    if(doProfiling && firstCall)
-        profiling->initialize();
-
-    fullBacktrack();
-
+int Solver::firstCall() {
     if(problem.isConstructionDone == false)
         throw std::logic_error("c\nc Error: the construction problem is not finished...! (problem.delayedConstruction())\nc\n");
 
-    if(nogoodsFromRestarts && restart == nullptr)
-        verbose.log(NORMAL, "c WARNING: no restarts, but nogoods from restarts are enabled\n");
+    if(doProfiling && nbSolutions == 0)
+        profiling->initialize();
 
-    lastSolution.clear();   // Store the last solution
+    fullBacktrack();
+    reinitializeConstraints();
     entailedConstraints.clear();
-    status            = RUNNING;
-    nbSolutions       = 0;
-    firstPropagations = true;
 
     for(Constraint *c : problem.constraints)
         if(c->scope.size() == 1 && c->filterFrom(c->scope[0]) == false)
             return R_UNSAT;
-    queue.clear();
 
-    Constraint *pc    = propagateComplete();
+
+    firstPropagations = true;
+
+    queue.clear();
+    Constraint *pc = propagateComplete();
+
     firstPropagations = false;
     if(pc != nullptr) {
         status = FULL_EXPLORATION;
         return R_UNSAT;
     }
-    if(firstCall) {
+    if(nbSolutions == 0) {
         verbose.log(NORMAL, "c root propagations     : %-12lld\n", statistics[rootPropagations]);
         if(restart == nullptr)
             verbose.log(NORMAL, "c restarts disabled, print stats every %d conflicts\n", displayStatsEveryConflicts);
@@ -229,22 +223,23 @@ int Solver::solve(vec<RootPropagation> &assumps) {
             unassignedVariables.del(x);
             decisionVariables.del(x);
         }
-
-    return search(assumps);
+    return R_UNKNOWN;
 }
 
 
-int Solver::search(vec<RootPropagation> &assumptions) {
+int Solver::search() {
     std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
     std::vector<std::vector<Lit>> sharedNogoods;
 
     int disableSingletons = options::intOptions["disablesingleton"].value;
     int restarts_lim      = options::intOptions["restarts_lim"].value;
 
+    lastSolution.clear();   // Store the last solution
+    status      = RUNNING;
+    nbSolutions = 0;
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
-
 
         if(propagate() != nullptr) {
             if(decisionLevel() == 0 && problem.nbVariables() >= disableSingletons && currentNbValues > problem.nbValues()) {
@@ -256,8 +251,6 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                     if(decisionVariables.size() == 1)
                         break;
                 }
-                if(nb > decisionVariables.size())
-                    std::cout << decisionVariables.size() << "après " << nb << std::endl;
             }
             // A conflict occurs
             if(stopSearch)
@@ -288,7 +281,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                         }
                     }
 
-                    if(!ok)   // We propagate a false fact at decision level 0 !!
+                    if(ok == false)   // We propagate a false fact at decision level 0 !!
                         return R_UNSAT;
 
                     nogoodCommunicator->recvAll(sharedNogoods);
@@ -312,20 +305,16 @@ int Solver::search(vec<RootPropagation> &assumptions) {
 
                 // Perform user provided assumption:
                 while(decisionLevel() < assumptions.size()) {
-                    // printf("Decision level %d\n", decisionLevel());
                     RootPropagation &assumption = assumptions[decisionLevel()];
-                    // printf("x=%d equal=%d idv=%d\n", assumption.idx,assumption.equal, assumption.idv);
-                    // assert(assumption.equal); // We deal only with positive assumptions
-                    Variable *tmp = problem.variables[assumption.idx];
+                    Variable        *tmp        = problem.variables[assumption.idx];
 
                     if(tmp->containsIdv(assumption.idv) == false) {   // UNSAT WRT Assumptions
                         fullBacktrack();
                         return R_UNSAT;
-                    } else {
-                        x   = tmp;
-                        idv = assumption.idv;
-                        break;
                     }
+                    x   = tmp;
+                    idv = assumption.idv;
+                    break;
                 }
 
                 if(x == nullptr) {                  // No assumptions
@@ -379,7 +368,6 @@ bool Solver::manageSolution(int &backtrackLevel) {
         displayCurrentSolution(displaySolution);
 
     if(options::intOptions["nbsols"].value > 1 || options::intOptions["nbsols"].value == 0) {
-        // exit(1);
         noGoodsEngine->generateNogoodFromSolution();   // Add nogood
 
         // Find correct backtrack level (exclude auxiliary vars...)
@@ -552,7 +540,7 @@ Variable *Solver::pickInQueue() {   // Select the variable with the smallest dom
     int       minDomain = INT_MAX;
     Variable *x         = nullptr;
     if(queue.size() > 100) {
-        Variable *x = queue[queue.size() - 1];
+        x = queue[queue.size() - 1];
         queue.del(x);
         return x;
     }
@@ -672,8 +660,6 @@ Constraint *Solver::propagateComplete() {
     return propagate();
 }
 
-
-bool Solver::isGACGuaranted() { return false; }
 
 //----------------------------------------------------------
 // Variable modifications : assign/remove values from domain

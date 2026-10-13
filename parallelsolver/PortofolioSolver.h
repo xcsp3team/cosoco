@@ -38,7 +38,8 @@ class ParallelSolver : public AbstractSolver {
 class PortofolioSolver : public ParallelSolver {
    public:
     PortofolioSolver(Problem &p, bool optimize);
-    virtual int solve(vec<RootPropagation> &assumps) override;
+    int firstCall() override;
+    int search() override;
 
 
     void diversifySolvers();

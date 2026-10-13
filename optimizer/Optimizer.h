@@ -28,20 +28,19 @@ class Optimizer : public AbstractSolver, public ObserverConflict {
     OptimisationType     optimtype;        // Minimize or Maximize
     bool                 useDicothomicMode;   // TODO: class inheritence ?
     bool                 progressSaving;
-    bool                 firstCall;
 
     explicit Optimizer(Problem &p);
 
-    int  solve(vec<RootPropagation> &assumps) override;
+    int  firstCall() override;
+    int  search() override;
     void printFinalStats() override;
     void displayCurrentSolution(int verbosity) override;
 
-    int solveInOneDirection(vec<RootPropagation> &assumps);
 
     void setSolver(Solver *s, Solution *solution);
 
 
-    double realTimeForBestSolution() { return bestSolution->realTimeForBestSolution; }
+    double realTimeForBestSolution() const { return bestSolution->realTimeForBestSolution; }
 
 
     long bestCost() { return bestSolution->bestBound(); }

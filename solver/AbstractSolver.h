@@ -39,13 +39,29 @@ class AbstractSolver {
     pFactory::Communicator<RootPropagation>  *rootPropagationsCommunicator;
     pFactory::Communicator<std::vector<Lit>> *nogoodCommunicator;
     bool                                      firstPropagations;
-    inline int                                solve() {
-        vec<RootPropagation> assumps;
-        return solve(assumps);
+    bool                                      _firstCall;
+    vec<RootPropagation>                      assumptions;
+
+    void setAssumptions(vec<RootPropagation> &assumps) {
+        _firstCall = true;
+        for(int i = 0; i < assumps.size(); i++)assumptions.push({assumps[i].idx, assumps[i].equal, assumps[i].idv});
     }
-    virtual int  solve(vec<RootPropagation> &assumps) = 0;
-    virtual void printFinalStats()                    = 0;   // The final stats to print
-    virtual void printIntermediateStats() { }                // The intermediate stats to print
+
+    virtual int firstCall() = 0;
+    virtual int search()    = 0;
+    int         solve() {
+        if(_firstCall) {
+            int tmp = firstCall();
+            if(tmp != R_UNKNOWN)
+                return tmp;
+            _firstCall = false;
+        }
+        return search();
+    }
+
+
+    virtual void printFinalStats() = 0;         // The final stats to print
+    virtual void printIntermediateStats() { }   // The intermediate stats to print
 
     virtual void displayCurrentSolution(int verbosity) = 0;   // displayCurrentBranch the current solution
 
