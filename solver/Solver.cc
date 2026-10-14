@@ -193,7 +193,7 @@ int Solver::firstCall() {
     entailedConstraints.clear();
 
     for(Constraint *c : problem.constraints)
-        if(c->scope.size() == 1 && c->filterFrom(c->scope[0]) == false)
+        if(c->scope.size() == 1 && c->filter(c->scope[0]) == false)
             return R_UNSAT;
 
 
@@ -429,9 +429,8 @@ bool Solver::isAssigned(Variable *x) const { return unassignedVariables.contains
 //----------------------------------------------
 
 void Solver::reinitializeConstraints() {
-    for(Constraint *c : problem.constraints) {   // Reinitialisze status for all constraints
+    for(Constraint *c : problem.constraints) {   // Reinitialize status for all constraints
         c->reinitialize();
-        assert(c->status() == UNDEF);
     }
 }
 
@@ -572,7 +571,7 @@ bool Solver::filterConstraint(Cosoco::Constraint *c, Cosoco::Variable *x) {
     c->timestamp = ++timestamp;
 
     doProfiling && profiling->beforeConstraintCall(c);
-    bool noConflict = c->filterFrom(x);
+    bool noConflict = c->filter(x);
     doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
 
     if(noConflict == false) {   // Inconsistent
@@ -613,7 +612,7 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
                         c->postponedBy = x;
                         continue;
                     }
-                    
+
                     if(filterConstraint(c, x) == false)
                         return c;
                 }

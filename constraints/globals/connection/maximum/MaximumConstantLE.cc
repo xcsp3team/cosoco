@@ -10,11 +10,6 @@ using namespace Cosoco;
 //----------------------------------------------
 
 
-State MaximumConstantLE::status() { return done ? CONSISTENT : UNDEF; }
-
-
-void MaximumConstantLE::reinitialize() { done = false; }
-
 //----------------------------------------------
 // Check validity and correct definition
 //----------------------------------------------
@@ -33,9 +28,8 @@ bool MaximumConstantLE::isSatisfiedBy(vec<int> &tuple) {
 //----------------------------------------------
 
 bool MaximumConstantLE::filter(Variable *dummy) {
-    for(auto & x : scope)
+    for(auto &x : scope)
         if(solver->delValuesGE(x, k + 1) == false)
             return false;
-    solver->entail(this);
-    return true;
+    return solver->entail(this);
 }

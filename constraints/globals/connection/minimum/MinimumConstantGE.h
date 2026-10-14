@@ -11,9 +11,7 @@ class MinimumConstantGE : public MinimumConstant {
    public:
     MinimumConstantGE(Problem &p, vec<Variable *> &vars, int kk) : MinimumConstant(p, vars, kk), done(false) { }
 
-    State status() override;
-    void  reinitialize() override;
-
+    
     bool filter(Variable *dummy) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };

@@ -22,16 +22,11 @@ Unary::Unary(Problem &p, Variable *xx, const vec<int> &vals, bool areS)
 }
 
 
-Cosoco::State Cosoco::Unary::status() { return UNDEF; }
-
-
-void Cosoco::Unary::reinitialize() { }
-
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
 
-bool Cosoco::Unary::filter(Cosoco::Variable *dummy) {
+bool Unary::filter(Cosoco::Variable *dummy) {
     if(done) {
         // If new call => because restarts and entail is deleted...
         solver->entail(this);

@@ -5,15 +5,8 @@
 #include "mtl/Vec.h"
 namespace Cosoco {
 class MaximumConstantLE : public MaximumConstant {
-    bool done;   // TODO transform and use entail...
    public:
-    MaximumConstantLE(Problem &p, vec<Variable *> &vars, int kk) : MaximumConstant(p, vars, kk), done(false) {
-        type = "Maximum Constant LE";
-    }
-
-    State status() override;
-
-    void reinitialize() override;
+    MaximumConstantLE(Problem &p, vec<Variable *> &vars, int kk) : MaximumConstant(p, vars, kk) { type = "Maximum Constant LE"; }
 
     bool filter(Variable *dummy) override;
     bool isSatisfiedBy(vec<int> &tuple) override;

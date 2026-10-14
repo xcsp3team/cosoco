@@ -7,9 +7,6 @@
 namespace Cosoco {
 
 class Unary : public Constraint {
-   protected:
-    bool filter(Variable *x) override;
-
    public:
     Variable *x;
     bool      done;
@@ -17,9 +14,8 @@ class Unary : public Constraint {
     vec<int>  values;
 
     Unary(Problem &p, Variable *xx, const vec<int> &vals, bool areS);
-    State status() override;
-    void  reinitialize() override;
-    bool  isSatisfiedBy(vec<int> &tuple) override;
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 
