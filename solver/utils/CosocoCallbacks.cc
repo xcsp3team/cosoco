@@ -141,12 +141,7 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
     if(max - min < 1000) {
         buildVariableInteger(id, values[0], values[values.size() - 1]);
         Variable *x = problem->variables.last();
-        for(int idv : reverse(x->domain)) {
-            int v = x->domain.toVal(idv);
-            if(std::find(values.begin(), values.end(), v) == values.end())
-                x->delIdv(idv, 0);
-        }
-        assert(values.size() == x->domain.size());
+        FactoryConstraints::createConstraintUnary(problem, x, vector2vec(values), true);
         return;
     }
 

@@ -155,7 +155,7 @@ bool NoGoodsEngine::propagate(Variable *x) {
         unsigned int ngposition    = watchers[position][i++];
         Lit         *nogood        = &(nogoods[ngposition]);
         int          falsePosition = ng == nogood[0] ? 0 : 1;
-        // assert(ng == nogood[falsePosition]);
+        assert(ng == nogood[falsePosition]);
 
         Variable *y   = getVariableIn(nogood[1 - falsePosition]);
         int       idv = getIndexIn(nogood[1 - falsePosition]);
