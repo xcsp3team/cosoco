@@ -51,7 +51,7 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
         addProgressSaving();
 }
 
-int Optimizer::firstCall() {
+RESULT Optimizer::firstCall() {
     if(solver == nullptr)
         throw std::runtime_error("Solver is not attached to the optimizer!");
     // Bounds are correctly initialized
@@ -60,7 +60,7 @@ int Optimizer::firstCall() {
     return R_UNKNOWN;
 }
 
-int Optimizer::search() {
+RESULT Optimizer::search() {
     bool                 noFullRestartAfterSolution = options::boolOptions["nr"].value;
     bool                 first                      = true;
     vec<int>             tuple;

@@ -38,8 +38,8 @@ class ParallelSolver : public AbstractSolver {
 class PortofolioSolver : public ParallelSolver {
    public:
     PortofolioSolver(Problem &p, bool optimize);
-    int firstCall() override;
-    int search() override;
+    RESULT firstCall() override;
+    RESULT search() override;
 
 
     void diversifySolvers();

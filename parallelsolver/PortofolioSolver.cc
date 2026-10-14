@@ -62,16 +62,17 @@ void ParallelSolver::displayCurrentSolution(int verbosity) {
 PortofolioSolver::PortofolioSolver(Problem &p, bool optimize) : ParallelSolver(p, optimize) { }
 
 
-int PortofolioSolver::firstCall() {
+RESULT PortofolioSolver::firstCall() {
     diversifySolvers();
     return R_UNKNOWN;
 }
 
-int PortofolioSolver::search() {
+RESULT PortofolioSolver::search() {
     for(auto solver : solvers) group->add([=]() { return solver->solve(); });
 
-    group->start();         // Start the tasks
-    return group->wait();   // Wait that one task is finished
+    group->start();            // Start the tasks
+    int tmp = group->wait();   // Wait that one task is finished
+    return static_cast<RESULT>(tmp);
 }
 
 

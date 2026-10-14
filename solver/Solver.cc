@@ -181,7 +181,7 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
 // Search methods
 //----------------------------------------------
 
-int Solver::firstCall() {
+RESULT Solver::firstCall() {
     if(problem.isConstructionDone == false)
         throw std::logic_error("c\nc Error: the construction problem is not finished...! (problem.delayedConstruction())\nc\n");
 
@@ -227,7 +227,7 @@ int Solver::firstCall() {
 }
 
 
-int Solver::search() {
+RESULT Solver::search() {
     std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
     std::vector<std::vector<Lit>> sharedNogoods;
 

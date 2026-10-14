@@ -107,9 +107,9 @@ class Solver : public AbstractSolver {
     // Main methods
     // --------------------------------------------------------------------------------------
 
-    int  firstCall() override;
-    int  search() override;                     // The main function
-    bool manageSolution(int &backtrackLevel);   // Return true if the search is finished.
+    RESULT firstCall() override;
+    RESULT search() override;                     // The main function
+    bool   manageSolution(int &backtrackLevel);   // Return true if the search is finished.
 
     // --------------------------------------------------------------------------------------
     // Decision methods

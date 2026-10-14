@@ -31,10 +31,10 @@ class Optimizer : public AbstractSolver, public ObserverConflict {
 
     explicit Optimizer(Problem &p);
 
-    int  firstCall() override;
-    int  search() override;
-    void printFinalStats() override;
-    void displayCurrentSolution(int verbosity) override;
+    RESULT firstCall() override;
+    RESULT search() override;
+    void   printFinalStats() override;
+    void   displayCurrentSolution(int verbosity) override;
 
 
     void setSolver(Solver *s, Solution *solution);

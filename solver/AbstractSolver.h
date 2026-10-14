@@ -8,11 +8,7 @@
 
 namespace Cosoco {
 
-#define R_UNKNOWN -1
-#define R_SAT     1
-#define R_UNSAT   2
-#define R_OPT     3
-
+enum RESULT { R_UNKNOWN, R_SAT, R_UNSAT, R_OPT };
 enum STATE { RUNNING, REACH_GOAL, FULL_EXPLORATION, OPTIMUM };
 typedef long long Lit;
 
@@ -47,11 +43,11 @@ class AbstractSolver {
         for(int i = 0; i < assumps.size(); i++) assumptions.push({assumps[i].idx, assumps[i].equal, assumps[i].idv});
     }
 
-    virtual int firstCall() = 0;
-    virtual int search()    = 0;
-    int         solve() {
+    virtual RESULT firstCall() = 0;
+    virtual RESULT search()    = 0;
+    RESULT         solve() {
         if(_firstCall) {
-            int tmp = firstCall();
+            RESULT tmp = firstCall();
             if(tmp != R_UNKNOWN)
                 return tmp;
             _firstCall = false;
