@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
 
         // --------------------------- SOLVE ----------------------------------------
 
-        int returnCode = solver->solve();
+        RESULT returnCode = solver->solve();
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"

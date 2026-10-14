@@ -12,7 +12,6 @@ namespace Cosoco {
 class ExactlyK : public GlobalConstraint {
     int      k;
     int      value;
-    bool     done;
     vec<int> valueToidv;
 
    public:
@@ -25,10 +24,6 @@ class ExactlyK : public GlobalConstraint {
     bool isSatisfiedBy(vec<int> &tuple) override;
 
     bool isCorrectlyDefined() override;
-
-    State status() override;
-
-    void reinitialize() override;
 };
 }   // namespace Cosoco
 

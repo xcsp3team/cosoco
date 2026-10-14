@@ -16,7 +16,6 @@
 #define NOTINSCOPE -1
 namespace Cosoco {
 
-enum State { CONSISTENT, INCONSISTENT, UNDEF };
 
 class Problem;
 
@@ -72,13 +71,12 @@ class Constraint {
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
     bool postpone() const;
+    int  getLevelOfLastRemovedValueInScope();
 
-   protected:
-    virtual bool filter(Variable *x) = 0;   // Called by all constraints. protected because call is done by filterFrom
 
    public:
-    virtual State status();         // Override this method if it is known when CONSISTENT / INCONSISTENT
-    virtual void  reinitialize();   // The constraint must be reinitialized (after a full backtrak)
+    virtual void reinitialize();            // The constraint must be reinitialized (after a full backtrak)
+    virtual bool filter(Variable *x) = 0;   // Filter the constraint
 
     // Assign and unassign variables
     void assignVariable(Variable *x, int posx);

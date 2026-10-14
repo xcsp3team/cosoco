@@ -58,8 +58,8 @@ class SparseSet {
 
 
     // Fill and clear methods
-    void clear() { limit = 0; }
-    void fill() { limit = capacity; }
+    virtual void clear() { limit = 0; }
+    void         fill() { limit = capacity; }
 
 
     // Questions about size methods

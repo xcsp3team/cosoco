@@ -111,8 +111,6 @@ void AdapterAC3rm::delayedConstruction(int id) {
     constraint->current.growTo(scope.size());
 }
 
-State AdapterAC3rm::status() { return constraint->status(); }
-
 
 void AdapterAC3rm::reinitialize() { constraint->reinitialize(); }
 

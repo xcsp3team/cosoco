@@ -74,22 +74,22 @@ void Constraint::attachSolver(Solver *s) { solver = s; }
 
 // Filtering
 
-State Constraint::status() { return UNDEF; }   // By default, a constraint must be filtering at each call
 
 void Constraint::reinitialize() { }   // By default, nothing to do
 
-bool Constraint::filterFrom(Variable *x) {
-    State st2 = status();
-    if(st2 == CONSISTENT)
-        return true;
-    if(st2 == INCONSISTENT)
-        return false;
-    return filter(x);
-}
 
 bool Constraint::postpone() const {
     return isPostponable && options::intOptions["postponesize"].value > 0 &&
            scope.size() > options::intOptions["postponesize"].value;
+}
+
+int Constraint::getLevelOfLastRemovedValueInScope() {
+    int level = -1;
+    for(Variable *x : scope) {
+        int tmp = x->domain.lastRemovedLevel();
+        level   = std::max(level, tmp);
+    }
+    return level;
 }
 
 // Assign and unassign variables

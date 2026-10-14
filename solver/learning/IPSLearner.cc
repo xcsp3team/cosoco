@@ -65,7 +65,7 @@ int IPSLearner::getNbFreeVariables(Constraint *c) {
 
 bool IPSLearner::canEliminateSingletonVariable(Variable *x) {
     assert(x->size() == 1);
-    if(solver.isGACGuaranted() == false)
+    if(false)
         return false;
     if(problem.isBinary)
         return true;
