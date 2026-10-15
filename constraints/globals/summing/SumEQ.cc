@@ -35,19 +35,7 @@ bool Sum::isCorrectlyDefined() {
 
 
 bool SumEQ::filter(Variable *dummy) {
-    long min = 0, max = 0;
-    for(int i = 0; i < scope.size(); i++) {
-        long c    = coefficients[i];
-        int  vmin = scope[i]->minimum();
-        int  vmax = scope[i]->maximum();
-        if(c >= 0) {
-            min += vmin * c;
-            max += vmax * c;
-        } else {
-            min += vmax * c;
-            max += vmin * c;
-        }
-    }
+    computeBounds();
     if(min > limit || max < limit)
         return false;
     int positionOfLastChange = -1;
@@ -98,4 +86,4 @@ bool SumEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-SumEQ::SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, vars, coefs, l) { }
+SumEQ::SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIncremental(p, vars, coefs, l) { type = "SumEQ"; }

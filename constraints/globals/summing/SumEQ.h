@@ -4,12 +4,10 @@
 #include "Sum.h"
 namespace Cosoco {
 
-class SumEQ : public Sum {
+class SumEQ : public SumIncremental {
    public:
     SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
     bool filter(Variable *x) override;
-
-
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };

@@ -100,7 +100,7 @@ void Constraint::assignVariable(Variable *x, int posx) {
 }
 
 
-void Constraint::unassignVariable(Variable *x, int posx) {
+void Constraint::unassignVariable(Variable *x, int posx, int v) {
     assert(posx < scope.size());
     assert(!unassignedVariablesIdx.contains(posx));
     unassignedVariablesIdx.add(posx);
