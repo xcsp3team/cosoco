@@ -72,12 +72,13 @@ bool SumGE::filter(Variable *dummy) {
 
 
 void SumIncremental::computeBounds() {
-    min = max = 0;
-    for(int i = 0; i < scope.size(); i++) {
-        Variable *x     = scope[i];
+    min = fixed;
+    max = fixed;
+    for(int posx : unassignedVariablesIdx) {
+        Variable *x     = scope[posx];
         long      xmin  = x->minimum();
         long      xmax  = x->maximum();
-        long      coeff = coefficients[i];
+        long      coeff = coefficients[posx];
         min += coeff * (coeff >= 0 ? xmin : xmax);
         max += coeff * (coeff >= 0 ? xmax : xmin);
     }
@@ -116,15 +117,14 @@ SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIn
     type = "SumGE";
 }
 
-void SumIncremental::delayedConstruction(int id) {
-    Constraint::delayedConstruction(id);
-    // TODO
+void SumIncremental::assignVariable(Variable *x, int posx) {
+    Constraint::assignVariable(x, posx);
+    long coeff = coefficients[posx];
+    fixed += coeff * x->value();
 }
 
-void SumIncremental::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
-    // TODO
-}
-
-void SumIncremental::notifyDomainAssignment(Variable *x, int idv, Solver &s) {
-    // TODO
+void SumIncremental::unassignVariable(Variable *x, int posx, int v) {
+    Constraint::unassignVariable(x, posx, v);
+    long coeff = coefficients[posx];
+    fixed -= coeff * v;
 }

@@ -475,7 +475,7 @@ void Solver::backtrack(bool isFull) {
     unassignedVariables.add(assigned);   // Unassign decision variable
     decisionVariables.add(assigned);
     for(auto &pair : assigned->constraints)   // those constraints have to knwon
-        pair.first->unassignVariable(assigned, pair.second);
+        pair.first->unassignVariable(assigned, pair.second, v);
     if(assigned->size() > 1)
         wrongDecisions++;
     notifyDeleteDecision(assigned, v, isFull);

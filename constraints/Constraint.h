@@ -79,8 +79,8 @@ class Constraint {
     virtual bool filter(Variable *x) = 0;   // Filter the constraint
 
     // Assign and unassign variables
-    void assignVariable(Variable *x, int posx);
-    void unassignVariable(Variable *x, int posx);
+    virtual void assignVariable(Variable *x, int posx);
+    virtual void unassignVariable(Variable *x, int posx, int v);
 
 
     // Check tuple validity

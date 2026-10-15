@@ -25,21 +25,20 @@ class Sum : public GlobalConstraint {
     }
 };
 
-class SumIncremental : public Sum, public ObserverDeleteDecision, public ObserverDomainReduction {
+class SumIncremental : public Sum {
    protected:
-    long min, max;
+    long min, max, fixed;
     void computeBounds();
 
    public:
     SumIncremental(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, vars, coefs, l) {
-        min = 0;
-        max = 0;
+        min   = 0;
+        max   = 0;
+        fixed = 0;
     }
 
-    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
-    void notifyDomainAssignment(Variable *x, int idv, Solver &s) override;
-    void notifyDomainReduction(Variable *x, int idv, Solver &s) override { }
-    void delayedConstruction(int id) override;
+    void assignVariable(Variable *x, int posx) override;
+    void unassignVariable(Variable *x, int posx, int v) override;
 };
 }   // namespace Cosoco
 
