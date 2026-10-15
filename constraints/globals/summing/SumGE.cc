@@ -71,7 +71,7 @@ bool SumGE::filter(Variable *dummy) {
 }
 
 
-void SumGE::computeBounds() {
+void SumIncremental::computeBounds() {
     min = max = 0;
     for(int i = 0; i < scope.size(); i++) {
         Variable *x     = scope[i];
@@ -82,8 +82,6 @@ void SumGE::computeBounds() {
         max += coeff * (coeff >= 0 ? xmax : xmin);
     }
 }
-
-
 //----------------------------------------------
 // Objective constraint
 //----------------------------------------------
@@ -108,11 +106,25 @@ long SumGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
 //----------------------------------------------
 
 
-SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, vars, coefs, l) {
+SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIncremental(p, vars, coefs, l) {
     leftmostPositiveCoefficientPosition = coefficients.size();
     for(int i = coefficients.size() - 1; i >= 0; i--) {
         if(coefficients[i] < 0)
             break;
         leftmostPositiveCoefficientPosition = i;
     }
+    type = "SumGE";
+}
+
+void SumIncremental::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    // TODO
+}
+
+void SumIncremental::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    // TODO
+}
+
+void SumIncremental::notifyDomainAssignment(Variable *x, int idv, Solver &s) {
+    // TODO
 }
