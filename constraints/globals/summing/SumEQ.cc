@@ -39,6 +39,9 @@ bool SumEQ::filter(Variable *dummy) {
     if(min > limit || max < limit)
         return false;
     int positionOfLastChange = -1;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
     while(true) {
         for(int i = 0; i < scope.size(); i++) {
             if(i == positionOfLastChange) {
@@ -77,7 +80,8 @@ bool SumEQ::filter(Variable *dummy) {
         if(positionOfLastChange == -1)
             break;
     }
-
+    if(min == limit)
+        solver->entail(this);
     return true;
 }
 

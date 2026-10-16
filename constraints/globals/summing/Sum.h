@@ -11,10 +11,17 @@ class Sum : public GlobalConstraint {
    public:
     long      limit;
     vec<long> coefficients;
+    long      maxGap;
+
 
     Sum(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : GlobalConstraint(p, "Sum", vars), limit(l) {
         for(int c : coefs) coefficients.push(c);
         isPostponable = true;
+        maxGap        = LONG_MIN;
+        for(int posx = 0; posx < scope.size(); posx++) {
+            Variable *x = scope[posx];
+            maxGap      = std::max(maxGap, std::abs(coefficients[posx] * (x->maximum() - x->minimum())));
+        }
     }
     bool isCorrectlyDefined() override;   // Implementation inside SumEQ
 

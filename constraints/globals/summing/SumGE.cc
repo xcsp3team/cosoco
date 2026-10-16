@@ -25,7 +25,9 @@ bool SumGE::filter(Variable *dummy) {
     }
     if(max < limit)
         return false;
-
+    if(limit <= max - maxGap)
+        return true;
+    
     for(int posx : unassignedVariablesIdx) {
         Variable *x     = scope[posx];
         long      coeff = coefficients[posx];
