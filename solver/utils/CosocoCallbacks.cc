@@ -6,8 +6,13 @@ using namespace Cosoco;
 
 bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &parameters) {
     for(Node *n : parameters) {
-        if(n->type == OVAR)
+        if(n->type == OVAR) {
+            auto     *nv = dynamic_cast<NodeVariable *>(n);
+            Variable *x  = problem->mapping[nv->var];
+            if(x->minimum() != 0 || x->maximum() != 1)
+                return false;
             continue;
+        }
         if(n->type == ONOT && n->parameters[0]->type == OVAR)
             continue;
         if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)

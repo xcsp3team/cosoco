@@ -268,7 +268,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     bool verbose = false;
 
-    static bool matchParams(const std::vector<Node *> &parameters);
+    bool matchParams(const std::vector<Node *> &parameters);
 
     void createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes);
 

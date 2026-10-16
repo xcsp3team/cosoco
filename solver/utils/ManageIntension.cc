@@ -995,7 +995,7 @@ class PNary1 : public FakePrimitive {
 
 
     bool post() override {
-        if(canonized->root->type == OOR && CosocoCallbacks::matchParams(canonized->root->parameters)) {
+        if(canonized->root->type == OOR && callbacks.matchParams(canonized->root->parameters)) {
             vec<Cosoco::BasicNode *> nodes;
             vec<Variable *>          vars;
             callbacks.createArrays(canonized->root->parameters, vars, nodes);
@@ -1007,7 +1007,7 @@ class PNary1 : public FakePrimitive {
         if(canonized->root->type == OEQ &&
            (canonized->root->parameters[0]->type == OOR || canonized->root->parameters[0]->type == OAND) &&
            canonized->root->parameters[1]->type == OVAR) {
-            if(CosocoCallbacks::matchParams(canonized->root->parameters[0]->parameters) == false)
+            if(callbacks.matchParams(canonized->root->parameters[0]->parameters) == false)
                 return false;
 
             vec<Cosoco::BasicNode *> nodes;
