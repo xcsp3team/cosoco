@@ -27,6 +27,26 @@ bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &paramete
     return true;
 }
 
+static bool isSatisfiedBy(XCondition &xc, int v) {
+    if(xc.operandType == INTERVAL)
+        return (xc.min <= v && v <= xc.max) == (xc.op == IN);
+    if(xc.operandType == SET)
+        return (std::find(xc.set.begin(), xc.set.end(), v) != xc.set.end()) == (xc.op == IN);
+    switch(xc.op) {
+        case LE:
+            return v <= xc.val;
+        case LT:
+            return v < xc.val;
+        case GE:
+            return v >= xc.val;
+        case GT:
+            return v > xc.val;
+        case EQ:
+            return v == xc.val;
+        default:
+            return v != xc.val;
+    }
+}
 
 void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes) {
     for(Node *n : parameters) {
@@ -214,6 +234,10 @@ void CosocoCallbacks::beginObjectives() { startToParseObjective = true; }
 // Basic constraints
 //--------------------------------------------------------------------------------------
 
+void CosocoCallbacks::buildConstraintFalse(string id) {
+    std::cout << "c constraint " + id + " is always false (see during parsing)\n";
+    problem->isUnsatisfiable = true;
+}
 
 void CosocoCallbacks::buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
                                                bool hasStar) {
@@ -584,6 +608,12 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
 
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) {
+    if(list.empty() && xc.operandType != VARIABLE) {   // All the terms cancel out (see normalizeSum): the sum is 0
+        if(isSatisfiedBy(xc, 0))
+            return;
+        buildConstraintFalse(id);
+        return;
+    }
     vars.clear();
     toMyVariables(list, vars);
     buildConstraintSum(id, vars, origcoeffs, xc);

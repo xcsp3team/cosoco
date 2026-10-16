@@ -17,16 +17,17 @@ class Solver;
 
 class Problem {
    public:
-    const std::string     name;                  // The name of the problem
-    Solver               *solver;                // The attached solver (initialized to nullptr)
-    vec<Constraint *>     constraints;           // The set of constraints
-    vec<Variable *>       variables;             // The set of variables
-    std::vector<std::string>      arrayNames;            // The name of the variables array
-    vec<vec<Variable *> > variablesArray;        // The different arrays of Variables
-    bool                  isConstructionDone;    // true if the construction of the problem is done
-    bool                  isBinary;              // Not currently used
-    int                   nbExtensionsSharded;   // nb extension constraints shared
-    int                   nbOriginalVars;        // The number of original vars in the model
+    const std::string        name;                  // The name of the problem
+    Solver                  *solver;                // The attached solver (initialized to nullptr)
+    vec<Constraint *>        constraints;           // The set of constraints
+    vec<Variable *>          variables;             // The set of variables
+    std::vector<std::string> arrayNames;            // The name of the variables array
+    vec<vec<Variable *> >    variablesArray;        // The different arrays of Variables
+    bool                     isConstructionDone;    // true if the construction of the problem is done
+    bool                     isBinary;              // Not currently used
+    bool                     isUnsatisfiable;       // true if a constraint is always false (see buildConstraintFalse)
+    int                      nbExtensionsSharded;   // nb extension constraints shared
+    int                      nbOriginalVars;        // The number of original vars in the model
     std::map<std::string, Variable *>
         mapping;   // The mapping between the name of the variables and the Variable itself. Useful for parsing
 

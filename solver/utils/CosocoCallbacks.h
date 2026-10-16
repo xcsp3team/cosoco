@@ -307,6 +307,7 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     // Basic constraints
     //--------------------------------------------------------------------------------------
 
+    void buildConstraintFalse(string id) override;
 
     void buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
                                   bool hasStar) override;

@@ -191,7 +191,8 @@ RESULT Solver::firstCall() {
     fullBacktrack();
     reinitializeConstraints();
     entailedConstraints.clear();
-
+    if(problem.isUnsatisfiable)
+        return R_UNSAT;
     for(Constraint *c : problem.constraints)
         if(c->scope.size() == 1 && c->filter(c->scope[0]) == false)
             return R_UNSAT;
