@@ -118,7 +118,7 @@ MDD *MDD::buildFromAutomata(vec<Variable *> &scope, std::string start, std::vect
                     } else {
                         MDDNode *nextNode = nullptr;
                         if(nexts.find(nextState) == nexts.end()) {
-                            nextNode         = new MDDNode(nextState, nb++, node->level + 1, scope[i]->domain.maxSize());
+                            nextNode         = new MDDNode(nextState, nb++, node->level + 1, scope[i + 1]->domain.maxSize());
                             nexts[nextState] = nextNode;
                         }
                         nextNode = nexts[nextState];
