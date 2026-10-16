@@ -107,6 +107,11 @@ int main(int argc, char **argv) {
             parser.parse(argv[1]);   // parse the input file
             solvingProblems.push(callbacks[0].problem);
             optimize = callbacks[0].optimizationProblem;
+            if(optimize && options::intOptions["nbsols"].value != 1) {
+                std::cout << "nbsols can only be used with satisfaction problems\n";
+                exit(1);
+            }
+
             mem_used = (int)(memUsed() * 1.2);   // Suppose 20% for solver
             if(nbcores > 1 && mem_lim > 0) {
                 if(nbcores > mem_lim / mem_used) {
