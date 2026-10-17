@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
         }
 
         if(options::intOptions["dsp"].value == 1) {
-            execlp("python3", "python3", "structure.py", argv[1], NULL);
-            exit(1);
+            std::string cmd = "python3 structure.py \"" + std::string(argv[1]) + "\"";
+            system(cmd.c_str());
         }
         if(options::intOptions["dsp"].value == 2) {
             execlp("more", "more", argv[1], NULL);
@@ -174,7 +174,8 @@ int main(int argc, char **argv) {
 
 
         displayProblemStatistics(solvingProblems[0], initial_time);
-
+        if(options::intOptions["dsp"].value == 1)
+            exit(1);
 
         if(nbcores == 1)
             solver = solvers[0];
