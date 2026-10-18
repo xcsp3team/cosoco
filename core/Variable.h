@@ -28,9 +28,6 @@ class Variable {
 
     vec<std::pair<Constraint *, int>> constraints;   // Set of constraints where it occurs with the position in the scope
 
-    // Datas used for some algorithms (some heuristics and so on...)
-    double wdeg;   // The wdeg value
-
 
     // Fake data used in some algorithms. Use must be circumscribed to one call of the algorithm
     // See for example Constraint/scopeIsOk

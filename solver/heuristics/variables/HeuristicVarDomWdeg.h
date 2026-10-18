@@ -22,8 +22,6 @@ class HeuristicVarDomWdeg : public HeuristicVar, ObserverConflict, ObserverNewDe
     void      notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void      notifyFullBacktrack() override;
     void      notifyNewDecision(Variable *x, Solver &s) override;
-    bool      stop() override;
-    bool      start() override;
 };
 
 }   // namespace Cosoco

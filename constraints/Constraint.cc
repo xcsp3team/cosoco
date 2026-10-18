@@ -16,10 +16,9 @@ using namespace Cosoco;
 
 
 // Constructors and delayed initialisation
-Constraint::Constraint(Problem &p) : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
+Constraint::Constraint(Problem &p) : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0) { }
 
-Constraint::Constraint(Problem &p, vec<Variable *> &vars)
-    : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
+Constraint::Constraint(Problem &p, vec<Variable *> &vars) : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0) {
     addToScope(vars);
 }
 
@@ -63,7 +62,6 @@ void Constraint::makeDelayedConstruction(int id) {
     assert(unassignedVariablesIdx.size() == arity);
 
     current.growTo(scope.size());
-    wdeg.growTo(scope.size());
     idc = id;
     for(int i = 0; i < scope.size(); i++) scope[i]->addConstraint(this, i);
 }

@@ -19,8 +19,6 @@ class PickOnDom : public HeuristicVar, ObserverConflict, ObserverDeleteDecision 
     Variable *select() override;
     void      notifyConflict(Constraint *c, int level) override;
     void      notifyFullBacktrack() override;
-    bool      stop() override;
-    bool      start() override;
 };
 
 }   // namespace Cosoco

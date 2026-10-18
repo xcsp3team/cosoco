@@ -54,8 +54,6 @@ class Constraint {
     bool            isPostponable = false;    // If the tag is trus the constraint is filtered after the fixed point
     Variable       *postponedBy;              // The variable wanted to make the filtering
     bool            isDisabled = false;       // The constraint is enabled or not (useful an optimisation solving)
-    // Special datas used for some algorithms (some heuristics and so on...)
-    vec<double> wdeg;   // The wdeg value associated to each var of the constraint
 
 
     // Constructors and delayed initialisation

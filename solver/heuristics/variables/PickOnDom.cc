@@ -12,7 +12,7 @@ using namespace Cosoco;
 PickOnDom::PickOnDom(Solver &s) : HeuristicVar(s) {
     s.addObserverConflict(this);
     s.addObserverDeleteDecision(this);
-    variablesWeights.growTo(s.problem.nbVariables(), 0);
+    variablesWeights.growTo(s.problem.nbVariables(), 1);
 }
 
 
@@ -23,16 +23,20 @@ Variable *PickOnDom::select() {
         return tmp;
     }
 
-    Variable *x     = solver.decisionVariables[0];
-    double    bestV = static_cast<double>(x->size()) / x->wdeg;
+    Variable *x    = solver.decisionVariables[0];
+    double    wdeg = variablesWeights[x->idx];
+
+    double bestV = static_cast<double>(x->size()) / wdeg;
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
-        Variable *y = solver.decisionVariables[i];
-        if(y->wdeg / static_cast<double>(y->size()) > bestV) {
-            bestV      = y->wdeg / static_cast<double>(y->size());
+        Variable *y     = solver.decisionVariables[i];
+        double    ywdeg = variablesWeights[y->idx];
+
+        if(ywdeg / static_cast<double>(y->size()) > bestV) {
+            bestV      = ywdeg / static_cast<double>(y->size());
             secondBest = x;
             x          = y;
         } else {
-            if(y->wdeg / static_cast<double>(y->size()) == bestV)
+            if(ywdeg / static_cast<double>(y->size()) == bestV)
                 secondBest = y;
         }
     }
@@ -46,7 +50,7 @@ void PickOnDom::notifyConflict(Constraint *c, int level) {
     if(freezed)
         return;
     if(mode == 0) {
-        for(PickVariables &p : solver.pickVariables) p.x->wdeg += 1;
+        for(PickVariables &p : solver.pickVariables) variablesWeights[p.x->idx]++;
         return;
     }
     if(mode == 3) {
@@ -54,7 +58,7 @@ void PickOnDom::notifyConflict(Constraint *c, int level) {
                        ((double)(solver.problem.nbVariables()));
         double sum = 0;
         for(PickVariables &p : solver.pickVariables) sum += p.deletedValues;
-        for(PickVariables &p : solver.pickVariables) p.x->wdeg += ratio * (p.deletedValues / sum);
+        for(PickVariables &p : solver.pickVariables) variablesWeights[p.x->idx] += ratio * (p.deletedValues / sum);
     }
     // for(int idx : solver.pickQueueHistory) solver.problem.variables[idx]->wdeg += solver.pickQueueHistory.counter(idx);
     //     for(int idx : solver.pickQueueHistory) std::cout << solver.pickQueueHistory.counter(idx) << " ";
@@ -72,20 +76,6 @@ void PickOnDom::notifyFullBacktrack() {
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0) {
         printf("erer\n");
-        for(Constraint *c : solver.problem.constraints) c->wdeg.fill(0);
-        for(Variable *x : solver.problem.variables) x->wdeg = 0;
+        for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = 1;
     }
-}
-
-bool PickOnDom::start() {
-    freezed = false;
-    for(int i = 0; i < variablesWeights.size(); i++) variablesWeights[i] = solver.problem.variables[i]->wdeg;
-    return false;
-}
-
-
-bool PickOnDom::stop() {
-    freezed = true;
-    for(int i = 0; i < variablesWeights.size(); i++) solver.problem.variables[i]->wdeg = variablesWeights[i];
-    return false;
 }
