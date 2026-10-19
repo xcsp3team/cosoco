@@ -34,15 +34,18 @@ class Matcher : public ObserverDeleteDecision {
     int                 nVisitedNodes;
     SparseSetMultiLevel fixedVars;
     vec<SparseSet>      neighborsOfValues;
-    SparseSet           neighborsOfT, varsOutSCC, valsInSCC;
+    SparseSet           neighborsOfT, valsInSCC;
     int                *numDFS;
     int                *lowLink;
+    vec<unsigned long>  sccStamp;   // taille arity, initialisé à 0
+    unsigned long       curStamp = 0;
 
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
     int normalizedValue(int v) const { return v - minValue; }
 
     bool findMatchingFor(int x);
     void computeNeighbors();
+    void processSCC(int node);
 
    public:
     explicit Matcher(Constraint *c);

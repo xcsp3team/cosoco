@@ -31,7 +31,6 @@ Matcher::Matcher(Constraint* cc)
     stackTarjan.setCapacity(nNodes, false);
     neighborsOfT.setCapacity(interval, false);
     valsInSCC.setCapacity(interval, false);
-    varsOutSCC.setCapacity(arity, false);
     neighborsOfValues.growTo(interval);
     for(auto& tmp : neighborsOfValues) tmp.setCapacity(arity + 1, false);
 
@@ -49,6 +48,7 @@ Matcher::Matcher(Constraint* cc)
     std::fill_n(numDFS, nNodes, 0);
     lowLink = new int[nNodes];
     std::fill_n(lowLink, nNodes, 0);
+    sccStamp.growTo(arity, 0);
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
@@ -182,6 +182,46 @@ void Matcher::computeNeighbors() {
     }
 }
 
+[[gnu::noinline]] void Matcher::processSCC(int node) {
+    splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodes;
+    if(!splitSCC)
+        return;
+
+    valsInSCC.clear();
+    int nVarsInSCC = 0;
+    ++curStamp;
+    int nodeSCC = -1;
+    while(nodeSCC != node) {
+        assert(stackTarjan.size() > 0);
+        nodeSCC = stackTarjan.pop();
+        if(nodeSCC < arity) {
+            sccStamp[nodeSCC] = curStamp;
+            nVarsInSCC++;
+        } else if(nodeSCC < T)
+            valsInSCC.add(nodeSCC - arity);
+    }
+
+    int nVarsOut = unfixed.size() - nVarsInSCC;
+    if(nVarsOut <= 0 || valsInSCC.size() == 0)
+        return;
+
+    for(int nv : valsInSCC) {
+        int        v         = domainValue(nv);
+        SparseSet& neighbors = neighborsOfValues[nv];
+        if(neighbors.size() < nVarsOut) {
+            for(int idx : neighbors) {
+                if(idx < arity && unfixed.contains(idx) && sccStamp[idx] != curStamp && var2val[idx] != nv)
+                    constraint->solver->delVal(scope[idx], v);
+            }
+        } else {
+            for(int idx : unfixed) {
+                if(sccStamp[idx] != curStamp && scope[idx]->containsValue(v) && var2val[idx] != nv)
+                    constraint->solver->delVal(scope[idx], v);
+            }
+        }
+    }
+}
+
 
 void Matcher::tarjanRemoveValues(int node) {
     assert(visitTime[node] < time);
@@ -217,43 +257,6 @@ void Matcher::tarjanRemoveValues(int node) {
                 lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
         }
     }
-    if(lowLink[node] == numDFS[node]) {   // if node is the root of a SCC
-        splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodes;
-        if(splitSCC) {
-            // first, we compute varsOutSCC and valsInSCC
-            varsOutSCC.resetTo(unfixed);
-            valsInSCC.clear();
-            int nodeSCC = -1;
-            // assert(stackTarjan.contains(node));
-            // stackTarjan.display();
-            // std::cout << "\n";
-            while(nodeSCC != node) {
-                // std::cout << nodeSCC << " " << node << std::endl;
-                assert(stackTarjan.size() > 0);
-                nodeSCC = stackTarjan.pop();
-                if(nodeSCC < arity)
-                    varsOutSCC.del(nodeSCC);
-                else if(nodeSCC < T)
-                    valsInSCC.add(nodeSCC - arity);
-            }
-
-            // second, we remove appropriate values (linking values in the CSS with variables outside the SCC)
-            if(varsOutSCC.size() > 0 && valsInSCC.size() > 0) {
-                for(int nv : valsInSCC) {
-                    int        v         = domainValue(nv);
-                    SparseSet& neighbors = neighborsOfValues[nv];
-                    if(neighbors.size() < varsOutSCC.size()) {
-                        for(int idx : neighbors) {
-                            if(idx < arity && varsOutSCC.contains(idx) && var2val[idx] != nv)
-                                constraint->solver->delVal(scope[idx], v);
-                        }
-                    } else
-                        for(int idx : varsOutSCC) {
-                            if(scope[idx]->containsValue(v) && var2val[idx] != nv)
-                                constraint->solver->delVal(scope[idx], v);
-                        }
-                }
-            }
-        }
-    }
+    if(lowLink[node] == numDFS[node])   // if node is the root of a SCC
+        processSCC(node);
 }
