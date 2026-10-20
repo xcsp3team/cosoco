@@ -28,6 +28,7 @@ MatcherCardinality::MatcherCardinality(Constraint* c, vec<int>& _keys, vec<int>&
     minOccs = new int[interval];
     maxOccs = new int[interval];
     std::fill_n(maxOccs, interval, INT_MAX);
+    std::fill_n(minOccs, interval, 0);
     for(int i = 0; i < keys.size(); i++) {
         minOccs[normalizedValue(keys[i])] = _minOccs[i];
         maxOccs[normalizedValue(keys[i])] = _maxOccs[i];
@@ -330,6 +331,7 @@ bool MatcherCardinality::findMatchingForValue(int u) {
                     handleAugmentingPath(posx, v);
                     return true;
                 } else if(w != v) {
+                    assert(posx >= 0 && posx <= constraint->scope.size());
                     if(val2var[w].size() > minOccs[w] && var2val[posx] == w) {
                         val2var[w].del(posx);
                         handleAugmentingPath(posx, v);

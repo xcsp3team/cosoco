@@ -52,7 +52,8 @@ Solver::Solver(Problem &p)
     warmStart           = false;
     nogoodsFromRestarts = false;
     firstPropagations   = false;
-
+    smallest_in_queue   = INT_MAX;
+    
     displaySolution = options::intOptions["model"].value;
 
     if(options::boolOptions["profile"].value)
