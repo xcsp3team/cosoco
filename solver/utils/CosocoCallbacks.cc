@@ -934,14 +934,22 @@ void CosocoCallbacks::buildConstraintAmong(string id, vector<XVariable *> &list,
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values, vector<int> &intOccurs,
                                                  bool closed) {
-    vec<Variable *> occurs;
+    /*vec<Variable *> occurs;
     for(int value : intOccurs) {
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
         buildVariableInteger(auxVar, value, value);
         auto *x = new XVariable(auxVar, nullptr);
         occurs.push(problem->mapping[x->id]);
     }
-    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), vector2vec(values), occurs);
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+    */
+    vec<int> v;
+    vector2vec(values);
+    vals.copyTo(v);
+    vec<int> min;
+    vector2vec(intOccurs);
+    vals.copyTo(min);
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), v, min, min);
 }
 
 
@@ -957,14 +965,21 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
 
 void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> &list, vector<int> values,
                                                  vector<XInterval> &intervalOccurs, bool closed) {
-    vec<Variable *> occurs;
+    /*vec<Variable *> occurs;
     for(XInterval &xi : intervalOccurs) {
         string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
         buildVariableInteger(auxVar, xi.min, xi.max);
         auto *x = new XVariable(auxVar, nullptr);
         occurs.push(problem->mapping[x->id]);
     }
-    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), vector2vec(values), occurs);
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), occurs);
+*/
+    vec<int> min, max;
+    for(XInterval &xi : intervalOccurs) {
+        min.push(xi.min);
+        max.push(xi.max);
+    }
+    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), min, max);
 }
 
 

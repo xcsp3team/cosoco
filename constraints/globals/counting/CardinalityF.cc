@@ -27,6 +27,11 @@ bool CardinalityF::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
+bool CardinalityM::isCorrectlyDefined() { return true; }
+
+bool CardinalityM::isSatisfiedBy(vec<int> &tuple) { return true; }
+
+
 bool CardinalityF::isCorrectlyDefined() { return true; }
 
 void CardinalityF::init() {
@@ -120,7 +125,12 @@ int CardinalityF::doFiltering() {
     return again;
 }
 
-
+bool CardinalityM::filter(Variable *dummy) {
+    if(matcher.findMaximumMatching() == false)
+        return false;
+    matcher.removeInconsistentValues();
+    return true;
+}
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -150,4 +160,12 @@ CardinalityF::CardinalityF(Problem &p, vec<Variable *> &_vars, vec<int> &v, vec<
     offset  = min;
     int idx = 0;
     for(int v1 : values) values2indexes[OFFSET(v1)] = idx++;
+}
+
+CardinalityM::CardinalityM(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max)
+    : GlobalConstraint(p, n, "Cardinality M", vars), matcher(this, v, min, max) {
+    min.copyTo(minOccs);
+    max.copyTo(maxOccs);
+    v.copyTo(values);
+    isPostponable = true;
 }
