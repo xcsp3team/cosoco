@@ -42,7 +42,7 @@ class CardinalityM : public GlobalConstraint {
 
    public:
     // A weak cardinality filtering used when list is too big
-    CardinalityM(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max);
+    CardinalityM(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max);
 
 
     // Filtering method, return false if a conflict occurs

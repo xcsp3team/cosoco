@@ -949,7 +949,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
     vec<int> min;
     vector2vec(intOccurs);
     vals.copyTo(min);
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), v, min, min);
+    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), v, min, min);
 }
 
 
@@ -979,7 +979,7 @@ void CosocoCallbacks::buildConstraintCardinality(string id, vector<XVariable *> 
         min.push(xi.min);
         max.push(xi.max);
     }
-    FactoryConstraints::createConstraintCardinality(problem, id, toMyVariables(list), vector2vec(values), min, max);
+    FactoryConstraints::createConstraintCardinality(problem, toMyVariables(list), vector2vec(values), min, max);
 }
 
 

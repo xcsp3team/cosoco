@@ -162,8 +162,8 @@ CardinalityF::CardinalityF(Problem &p, vec<Variable *> &_vars, vec<int> &v, vec<
     for(int v1 : values) values2indexes[OFFSET(v1)] = idx++;
 }
 
-CardinalityM::CardinalityM(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max)
-    : GlobalConstraint(p, n, "Cardinality M", vars), matcher(this, v, min, max) {
+CardinalityM::CardinalityM(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max)
+    : GlobalConstraint(p, "Cardinality M", vars), matcher(this, v, min, max) {
     min.copyTo(minOccs);
     max.copyTo(maxOccs);
     v.copyTo(values);

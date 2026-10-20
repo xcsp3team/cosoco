@@ -93,7 +93,7 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
 }
 
 
-bool Matcher::findMatchingFor(int x) {
+bool MatcherAllDifferent::findMatchingFor(int x) {
     stack.clear();
     time++;
     predBFS[x] = -1;
@@ -445,9 +445,7 @@ bool MatcherCardinality::findMaximumMatching() {
         if(var2val[x] == -1)
             unmatched.push(x);
         else if(scope[x]->size() == 1 && unfixed.contains(x)) {
-            if(unfixed.isLimitRecordedAtLevel(level) == false)
-                unfixed.recordLimit(level);
-            unfixed.del(x);
+            unfixed.del(x, level);
         }
     }
     while(unmatched.size() > 0) {
