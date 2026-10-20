@@ -12,7 +12,7 @@ class CumulativeVariablesH : public Cumulative {
     vec<Variable *> heightVariables;
 
    public:
-    CumulativeVariablesH(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, int limit);
+    CumulativeVariablesH(Problem &p, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, int limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -26,7 +26,7 @@ class CumulativeVariablesHLimitV : public CumulativeVariablesH {
     Variable *limitvar;
 
    public:
-    CumulativeVariablesHLimitV(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, Variable *limit);
+    CumulativeVariablesHLimitV(Problem &p, vec<Variable *> &vars, vec<int> &, vec<Variable *> &, Variable *limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -25,7 +25,7 @@ class ElementMatrixVariable : public ElementMatrix {
     bool filterValue();
 
    public:
-    ElementMatrixVariable(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, Variable *v);
+    ElementMatrixVariable(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, Variable *v);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -5,61 +5,20 @@
 #ifndef COSOCO_XEQORYK_H
 #define COSOCO_XEQORYK_H
 
+#include "BasicNodes.h"
 #include "Solver.h"
 #include "constraints/globals/GlobalConstraint.h"
 namespace Cosoco {
 
-class BasicNode {
-   public:
-    virtual ~BasicNode() = default;
-    Variable *x;
-    BasicNode(Variable *xx) : x(xx) { }
-    virtual int  value()                  = 0;
-    virtual int  minimum()                = 0;
-    virtual int  maximum()                = 0;
-    virtual bool setFalse(Solver *solver) = 0;
-    virtual bool setTrue(Solver *solver)  = 0;
-};
+class BasicNode;
 
-class BasicNodeEq : public BasicNode {
-   public:
-    int v;
-    BasicNodeEq(Variable *xx, int vv) : BasicNode(xx), v(vv) { }
-    int  value() override { return x->value(); }
-    int  minimum() override { return (x->size() == 1 && x->value() == v) ? 1 : 0; }
-    int  maximum() override { return (x->containsValue(v) == false) ? 0 : 1; }
-    bool setTrue(Solver *solver) override { return solver->assignToVal(x, v); }
-    bool setFalse(Solver *solver) override { return solver->delVal(x, v); }
-};
-
-class BasicNodeVar : public BasicNode {
-   public:
-    int v;
-    BasicNodeVar(Variable *xx) : BasicNode(xx) { }
-    int  value() override { return x->value(); }
-    int  minimum() override { return x->minimum(); }
-    int  maximum() override { return x->maximum(); }
-    bool setTrue(Solver *solver) override { return solver->assignToVal(x, 1); }
-    bool setFalse(Solver *solver) override { return solver->assignToVal(x, 0); }
-};
-
-class BasicNodeNe : public BasicNode {
-   public:
-    int v;
-    BasicNodeNe(Variable *xx, int vv) : BasicNode(xx), v(vv) { }
-    int  value() override { return x->value(); }
-    int  minimum() override { return x->containsValue(v) == false ? 1 : 0; }
-    int  maximum() override { return (x->size() == 1 && x->value() == v) ? 0 : 1; }
-    bool setTrue(Solver *solver) override { return solver->delVal(x, v); }
-    bool setFalse(Solver *solver) override { return solver->assignToVal(x, v); }
-};
-
+// in(sk[50][2],set(1,2,4))
 class xEqGenOr : public GlobalConstraint {
     Variable        *result;
     vec<BasicNode *> nodes;
 
    public:
-    xEqGenOr(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
+    xEqGenOr(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -73,7 +32,7 @@ class xEqGenAnd : public GlobalConstraint {
     vec<BasicNode *> nodes;
 
    public:
-    xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
+    xEqGenAnd(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nn);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -89,7 +48,23 @@ class GenOr : public GlobalConstraint {
     int findSentinel(int other);
 
    public:
-    GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nn);
+    GenOr(Problem &p, vec<Variable *> &vars, vec<BasicNode *> &nn);
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+class Or : public GlobalConstraint {
+    vec<Variable *> nodes;
+    int             s1, s2;
+
+    int findSentinel(int other);
+
+   public:
+    Or(Problem &p, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -8,7 +8,7 @@ using namespace std;
 using namespace Cosoco;
 
 
-Problem::Problem(std::string n) : name(n), isConstructionDone(false) { }
+Problem::Problem(std::string n) : name(n), isConstructionDone(false), isUnsatisfiable(false) { }
 
 
 void Problem::delayedConstruction() {
@@ -86,7 +86,7 @@ bool Problem::checkSolution() {
                 std::cout << x->name() << " " << x->value() << " " << x->domain.toVal(x->domain[0]) << endl;
             c->display();
             fprintf(stderr, "Solution Error : (core %d) constraint number %d (name %s) is not valid\n", solver->core, c->idc,
-                    c->name.c_str());
+                    c->type.c_str());
             exit(1);
         }
     }
@@ -143,6 +143,8 @@ long Problem::nbValues() {
 }
 
 int Problem::minimumArity() {
+    if(constraints.size() == 0)
+        return -1;
     int tmp = constraints[0]->scope.size();
     for(Constraint *c : constraints)
         if(c->scope.size() < tmp)

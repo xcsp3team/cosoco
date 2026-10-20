@@ -9,19 +9,18 @@
 
 namespace Cosoco {
 class BinPackingLoad : public BinPacking {
-   protected :
-    SparseSet freeItems;
-    vec<Variable*> loads;
+   protected:
+    SparseSet       freeItems;
+    vec<Variable *> loads;
 
-   public :
-    BinPackingLoad(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &_sizes, vec<Variable*> &_loads);
+   public:
+    BinPackingLoad(Problem &p, vec<Variable *> &vars, vec<int> &_sizes, vec<Variable *> &_loads);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
-
 };
 }   // namespace Cosoco
 

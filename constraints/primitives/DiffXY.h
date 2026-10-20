@@ -8,7 +8,7 @@ namespace Cosoco {
 class DiffXY : public Binary {
    public:
     // Constructors
-    DiffXY(Problem &p, std::string n, Variable *xx, Variable *yy);
+    DiffXY(Problem &p, Variable *xx, Variable *yy);
 
     // filtering
     bool filter(Variable *x) override;

@@ -15,8 +15,7 @@ class SumScalar : public GlobalConstraint {
    public:
     int half;
 
-    SumScalar(Problem &p, std::string n, vec<Variable *> &scp)
-        : GlobalConstraint(p, n, "Sum Scalar", scp), set01vs1(scp.size() / 2) { }
+    SumScalar(Problem &p, vec<Variable *> &scp) : GlobalConstraint(p, "Sum Scalar", scp), set01vs1(scp.size() / 2) { }
 
 
     bool isCorrectlyDefined() override {

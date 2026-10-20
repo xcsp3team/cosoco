@@ -10,7 +10,7 @@ class HeuristicVarFirst : public HeuristicVar {
     HeuristicVarFirst(Solver &s);
 
 
-    virtual Variable *select() override;
+    Variable *select() override;
 };
 }   // namespace Cosoco
 

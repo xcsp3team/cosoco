@@ -4,6 +4,7 @@
 
 #include "NoGoodsEngine.h"
 
+#include "Options.h"
 #include "Solver.h"
 #include "System.h"
 using namespace Cosoco;
@@ -21,6 +22,9 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0)
         throw std::runtime_error("Domains and variables are too big to enable Nogood engine");
 
     OFFSET = static_cast<unsigned int>(pow(2, n2 + 1));   // +1 because 0 excluded ???
+    // watcherPosition is a dense array over all possible x!=idv literals; bounded by the same
+    // n1+n2 check above, so this can't overflow further than that guard already allows.
+    watcherPosition.growTo(static_cast<int>(OFFSET * static_cast<unsigned int>(s.problem.nbVariables())), -1);
     statistics.growTo(NOGOODSSTATS, 0);
     s.addObserverNewDecision(this);
     s.addObserverDeleteDecision(this);
@@ -41,9 +45,13 @@ std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
 
 void NoGoodsEngine::generateNogoodFromSolution() {
     vec<Lit> nogood;
-    for(Variable *x : solver.problem.variables)
+    for(Variable *x : solver.problem.variables) {
+        if(x->idx >= solver.problem.nbOriginalVars)
+            break;
         if(x->useless == false)
             nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
+    }
+
     addNoGood(nogood);
 }
 
@@ -59,7 +67,7 @@ bool NoGoodsEngine::generateNogoodsFromRestarts() {
         if(currentDecision < 0) {
             if(nogood.size() < maxArity && currentDecision != currentBranch[0]) {
                 addNoGood(nogood);
-                if(solver.threadsGroup != nullptr && nogood.size() < solver.problem.nbVariables() / 20) {
+                if(solver.threadsGroup != nullptr && nogood.size() <= options::intOptions["share"].value) {
                     std::vector<Lit> tmp;
                     for(auto &l : nogood) tmp.push_back(l);
                     solver.nogoodCommunicator->send(tmp);
@@ -116,14 +124,13 @@ void NoGoodsEngine::addNoGood(vec<Lit> &nogood) {
 }
 
 void NoGoodsEngine::addWatcher(Lit ng, unsigned int ngposition) {
-    int wp = -1;
-    if(watcherPosition.count(ng) == 0) {
-        watchers.push();                                     // Add a new watcher for x!=idv
-        watcherPosition.insert({ng, watchers.size() - 1});   // insert the position in the maps
-        wp = watchers.size() - 1;
-    } else
-        wp = watcherPosition[ng];
-    assert(wp >= 0);
+    unsigned int idx = watcherIndex(ng);
+    int          wp  = watcherPosition[idx];
+    if(wp == -1) {
+        watchers.push();   // Add a new watcher for x!=idv
+        wp                   = watchers.size() - 1;
+        watcherPosition[idx] = wp;   // record the position, single write
+    }
     watchers[wp].push(ngposition);   // the tuple watch this nogood
 }
 
@@ -138,10 +145,11 @@ bool NoGoodsEngine::propagate(Variable *x) {
     if(x->size() > 1)   // Nothing to do
         return true;
 
-    Lit ng = getNegativeDecisionFor(x, x->valueId());
-    if(watcherPosition.count(ng) == 0)   // this tuple does not watch any nogood
+    Lit          ng       = getNegativeDecisionFor(x, x->valueId());
+    unsigned int idx      = watcherIndex(ng);
+    int          position = watcherPosition[idx];
+    if(position == -1)   // this tuple does not watch any nogood
         return true;
-    int position = watcherPosition[ng];
     int i = 0, j = 0;
     for(; i < watchers[position].size();) {
         unsigned int ngposition    = watchers[position][i++];
@@ -189,6 +197,10 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
     for(Lit lit : nogoodsOfSize1) {
         Variable *x   = getVariableIn(lit);
         int       idv = getIndexIn(lit);
+        if(idv < 0 || idv >= x->domain.maxSize()) {
+            solver.nogoodsFromRestarts = false;   // :(
+            return;
+        }
         solver.delIdv(x, idv);
     }
 }
@@ -200,9 +212,13 @@ void NoGoodsEngine::enqueueNoGoodsOfSize1() {
 void NoGoodsEngine::notifyNewDecision(Variable *x, Solver &s) { currentBranch.push(getPositiveDecisionFor(x, x->valueId())); }
 
 
-void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void NoGoodsEngine::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     Lit current = getPositiveDecisionFor(x, x->domain.toIdv(v));
     int pos     = currentBranch.firstOccurrenceOf(current);
+    if(pos == -1) {
+        solver.nogoodsFromRestarts = false;
+        return;
+    }
     assert(pos >= 0);
     currentBranch.cut(pos + 1);
     assert(currentBranch.last() == current);
@@ -228,6 +244,11 @@ inline Lit NoGoodsEngine::getPositiveDecisionFor(Variable *x, int idv) const { r
 
 inline Lit NoGoodsEngine::getNegativeDecisionFor(Variable *x, int idv) const { return -getPositiveDecisionFor(x, idv); }
 
+inline unsigned int NoGoodsEngine::watcherIndex(Lit ng) const {
+    assert(ng < 0);   // watcherPosition only ever keys negative decisions (x != idv)
+    return static_cast<unsigned int>(-ng - 1);
+}
+
 
 //-----------------------------------------------------------------------
 // -- Minor methods
@@ -240,7 +261,7 @@ void NoGoodsEngine::displayTuples(vec<Tuple> &ng) {
 }
 
 void NoGoodsEngine::printStats() {
-    printf("\nc nogoods               : %lu\n", statistics[nbnogoods]);
+    printf("c\nc nogoods               : %lu\n", statistics[nbnogoods]);
     printf("c nogoods sizes         : #1: %lu   #2: %lu   max size: %lu   avg size: %lu\n", statistics[size1], statistics[size2],
            statistics[maxsize], statistics[nbnogoods] == 0 ? 0 : statistics[sumsize] / statistics[nbnogoods]);
     printf("c ng propagations       : %lu\n", statistics[props]);

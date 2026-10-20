@@ -80,7 +80,7 @@ bool BinPackingLoad::filter(Variable *x) {
             } else if(currentFill + possibleExtent - minSize < load)
                 return false;
         } else {
-            if(solver->delValuesLowerOrEqualThan(loads[i], currentFill - 1) == false)
+            if(solver->delValuesLE(loads[i], currentFill - 1) == false)
                 return false;
             int loadMin        = loads[i]->minimum();
             int loadMax        = loads[i]->maximum();
@@ -117,8 +117,8 @@ T &as_lvalue(T &&val) {
     return val;
 }
 
-BinPackingLoad::BinPackingLoad(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &_sizes, vec<Variable *> &_loads)
-    : BinPacking(p, n, vars.extend(_loads), _sizes, as_lvalue(vec<int>(_loads.size()))) {
+BinPackingLoad::BinPackingLoad(Problem &p, vec<Variable *> &vars, vec<int> &_sizes, vec<Variable *> &_loads)
+    : BinPacking(p, vars.extend(_loads), _sizes, as_lvalue(vec<int>(_loads.size()))) {
     _loads.copyTo(loads);
     vars.shrink(_loads.size());
     assert(vars.size() + _loads.size() == scope.size());   // To be sure

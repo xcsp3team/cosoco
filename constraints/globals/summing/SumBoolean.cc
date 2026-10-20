@@ -1,4 +1,3 @@
-//
 // Created by audemard on 04/10/2025.
 //
 
@@ -26,6 +25,20 @@ bool SumBooleanEQ::isSatisfiedBy(vec<int>& tuple) {
 
 bool SumBooleanLE::isSatisfiedBy(vec<int>& tuple) { return sum(tuple) <= limit; }
 
+bool SumBooleanGE::isSatisfiedBy(vec<int>& tuple) { return sum(tuple) >= limit; }
+
+bool SumBooleanGenLE::isSatisfiedBy(vec<int>& tuple) {
+    return true;   // TODO
+}
+
+bool SumBooleanGenGE::isSatisfiedBy(vec<int>& tuple) {
+    return true;   // TODO
+}
+
+bool SumBooleanGenEQ::isSatisfiedBy(vec<int>& tuple) {
+    return true;   // TODO
+}
+
 bool SumBoolean::isCorrectlyDefined() {
     for(Variable* x : scope)
         if(x->size() != 2)
@@ -33,7 +46,8 @@ bool SumBoolean::isCorrectlyDefined() {
     return true;
 }
 
-bool SumBooleanGE::isSatisfiedBy(vec<int>& tuple) { return sum(tuple) >= limit; }
+bool SumBooleanGen::isCorrectlyDefined() { return nodes.size() == scope.size(); }
+
 
 //----------------------------------------------
 // Filtering
@@ -124,64 +138,164 @@ bool SumBooleanGE::filter(Variable* dummy) {
     return true;
 }
 
+bool SumBooleanGenLE::filter(Variable* dummy) {
+    int cnt0 = 0, cnt1 = 0;
+    for(BasicNode* x : nodes)
+        if(x->size() == 1) {
+            if(x->maximum() == 0)   // Min or Max .. Use value ??
+                cnt0++;
+            else
+                cnt1++;
+        }
+    if(cnt1 > limit)
+        return false;
+
+    int diff = scope.size() - cnt0 - cnt1;
+    if(cnt1 + diff <= limit)
+        return solver->entail(this);
+
+    if(cnt1 == limit) {
+        for(BasicNode* x : nodes) {
+            if(x->size() != 1)
+                x->setFalse(solver);
+        }
+        return solver->entail(this);
+    }
+    return true;
+}
+
+bool SumBooleanGenGE::filter(Variable* dummy) {
+    int cnt0 = 0, cnt1 = 0;
+    for(BasicNode* x : nodes)
+        if(x->size() == 1) {
+            if(x->minimum() == 0)
+                cnt0++;
+            else
+                cnt1++;
+        }
+
+    int diff = scope.size() - cnt0 - cnt1;
+
+    if(cnt1 >= limit)
+        return solver->entail(this);
+
+
+    if(cnt1 + diff < limit)
+        return false;
+
+    if(cnt1 + diff == limit) {
+        for(BasicNode* x : nodes) {
+            if(x->size() != 1)
+                x->setTrue(solver);
+        }
+        return solver->entail(this);
+    }
+    return true;
+}
+
+bool SumBooleanGenEQ::filter(Variable* dummy) {
+    int cnt0 = 0, cnt1 = 0;
+    for(BasicNode* x : nodes)
+        if(x->size() == 1) {
+            if(x->minimum() == 0)
+                cnt0++;
+            else
+                cnt1++;
+        }
+
+    int diff = scope.size() - cnt0 - cnt1;
+    if(cnt1 > limit || cnt1 + diff < limit)
+        return false;
+    if(cnt1 < limit && cnt1 + diff > limit)
+        return true;
+    // at this point, either cnt1 == limit, and we have to remove all 1s or cnt1 + diff == limit, and we have to remove all 0s
+
+    for(BasicNode* x : nodes) {
+        if(x->size() != 1) {
+            if(cnt1 == limit)
+                x->setFalse(solver);
+            else
+                x->setTrue(solver);
+        }
+    }
+    return solver->entail(this);
+}
+
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-SumBoolean::SumBoolean(Problem& p, std::string n, vec<Variable*>& vars, long l) : GlobalConstraint(p, n, "Sum", vars), limit(l) {
+SumBoolean::SumBoolean(Problem& p, vec<Variable*>& vars, long l) : GlobalConstraint(p, "Sum", vars), limit(l) {
     isPostponable = true;
 }
 
-SumBooleanEQ::SumBooleanEQ(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
-    type = "Sum Boolean EQ";
+SumBooleanEQ::SumBooleanEQ(Problem& p, vec<Variable*>& vars, long l) : SumBoolean(p, vars, l) { type = "Sum Boolean EQ"; }
+
+SumBooleanLE::SumBooleanLE(Problem& p, vec<Variable*>& vars, long l) : SumBoolean(p, vars, l) { type = "Sum Boolean LE"; }
+
+SumBooleanGE::SumBooleanGE(Problem& p, vec<Variable*>& vars, long l) : SumBoolean(p, vars, l) { type = "Sum Boolean GE"; }
+
+SumBooleanGen::SumBooleanGen(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : GlobalConstraint(p, "Sum", vars), limit(l) {
+    isPostponable = true;
+    _nodes.copyTo(nodes);
 }
 
-SumBooleanLE::SumBooleanLE(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
-    type = "Sum Boolean LE";
+SumBooleanGenLE::SumBooleanGenLE(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : SumBooleanGen(p, _nodes, vars, l) {
+    type = "Sum Boolean Gen LE";
 }
 
-SumBooleanGE::SumBooleanGE(Problem& p, std::string n, vec<Variable*>& vars, long l) : SumBoolean(p, n, vars, l) {
-    type = "Sum Boolean GE";
+SumBooleanGenGE::SumBooleanGenGE(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : SumBooleanGen(p, _nodes, vars, l) {
+    type = "Sum Boolean Gen GE";
 }
 
+SumBooleanGenEQ::SumBooleanGenEQ(Problem& p, vec<BasicNode*>& _nodes, vec<Variable*>& vars, long l)
+    : SumBooleanGen(p, _nodes, vars, l) {
+    type = "Sum Boolean Gen EQ";
+}
 
 //----------------------------------------------
 // Objective constraint
 //----------------------------------------------
 
-void SumBooleanLE::updateBound(long bound) { limit = bound; }   // Update the current bound
+void SumBoolean::updateBound(long bound) { limit = bound; }   // Update the current bound
 
-long SumBooleanLE::maxUpperBound() {
+long SumBoolean::maxUpperBound() {
     long max = 0;
     for(Variable* x : scope) max += x->maximum();
     return max;
 }
 
 
-long SumBooleanLE::minLowerBound() {
+long SumBoolean::minLowerBound() {
     long min = 0;
     for(Variable* x : scope) min += x->minimum();
     return min;
 }
 
 
-long SumBooleanLE::computeScore(vec<int>& solution) { return sum(solution); }
+long SumBoolean::computeScore(vec<int>& solution) { return sum(solution); }
 
-void SumBooleanGE::updateBound(long bound) { limit = bound; }   // Update the current bound
+void SumBooleanGen::updateBound(long bound) { limit = bound; }   // Update the current bound
 
-long SumBooleanGE::maxUpperBound() {
+long SumBooleanGen::maxUpperBound() {
     long max = 0;
-    for(Variable* x : scope) max += x->maximum();
+    for(BasicNode* x : nodes) max += x->maximum();
     return max;
 }
 
 
-long SumBooleanGE::minLowerBound() {
+long SumBooleanGen::minLowerBound() {
     long min = 0;
-    for(Variable* x : scope) min += x->minimum();
+    for(BasicNode* x : nodes) min += x->minimum();
     return min;
 }
 
-
-long SumBooleanGE::computeScore(vec<int>& solution) { return sum(solution); }
+long SumBooleanGen::computeScore(vec<int>& solution) {
+    long sum = 0;
+    for(int i = 0; i < nodes.size(); i++) sum += nodes[i]->value(solution[i]);
+    return sum;
+}

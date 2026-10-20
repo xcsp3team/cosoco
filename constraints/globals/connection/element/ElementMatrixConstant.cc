@@ -24,13 +24,13 @@ bool ElementMatrixConstant::filter(Variable *x) {
     // filtering the domain of rindex
 
     if(solver->decisionLevel() == 0) {
-        for(int idv : reverse(rindex->domain)) {
+        for(int idv : rindex->domain) {
             int v = rindex->domain.toVal(idv);
             if((v < 0 || v > matrix.size()) && solver->delIdv(rindex, idv) == false)
                 return false;
         }
 
-        for(int idv : reverse(cindex->domain)) {
+        for(int idv : cindex->domain) {
             int v = cindex->domain.toVal(idv);
             if((v < 0 || v > matrix[0].size()) && solver->delIdv(cindex, idv) == false)
                 return false;
@@ -38,13 +38,13 @@ bool ElementMatrixConstant::filter(Variable *x) {
     }
 
     if(rindex->size() > 1) {
-        for(int idv : reverse(rindex->domain)) {
+        for(int idv : rindex->domain) {
             int rv = rindex->domain.toVal(idv);
             int cv = rsentinels[rv];
             if(cv != -1 && cindex->containsValue(cv) && matrix[rv][cv]->containsValue(value))
                 continue;
             bool found = false;
-            for(int b : reverse(cindex->domain)) {
+            for(int b : cindex->domain) {
                 int cv2 = cindex->domain.toVal(b);
                 if(matrix[rv][cv2]->containsValue(value)) {
                     found          = true;
@@ -59,13 +59,13 @@ bool ElementMatrixConstant::filter(Variable *x) {
 
     // filtering the domain of cindex
     if(cindex->size() > 1) {
-        for(int idv : reverse(cindex->domain)) {
+        for(int idv : cindex->domain) {
             int cv = cindex->domain.toVal(idv);
             int rv = csentinels[cv];
             if(rv != -1 && rindex->containsValue(rv) && matrix[rv][cv]->containsValue(value))
                 continue;
             bool found = false;
-            for(int a : reverse(rindex->domain)) {
+            for(int a : rindex->domain) {
                 int rv2 = rindex->domain.toVal(a);
                 if(matrix[rv2][cv]->containsValue(value)) {
                     found          = true;
@@ -91,10 +91,10 @@ bool ElementMatrixConstant::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------------------
 
-ElementMatrix::ElementMatrix(Problem &p, std::string n) : GlobalConstraint(p, n, "", 0) { }
+ElementMatrix::ElementMatrix(Problem &p) : GlobalConstraint(p, "", 0) { }
 
-ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci)
-    : GlobalConstraint(p, n, "ElementMatrix", 0) {
+ElementMatrix::ElementMatrix(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci)
+    : GlobalConstraint(p, "ElementMatrix", 0) {
     matrix.growTo(m.size());
     vec<Variable *> vars;
     for(int i = 0; i < m.size(); i++) {
@@ -121,9 +121,8 @@ ElementMatrix::ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m
     addToScope(vars);
 }
 
-ElementMatrixConstant::ElementMatrixConstant(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci,
-                                             int v)
-    : ElementMatrix(p, n, m, ri, ci) {
+ElementMatrixConstant::ElementMatrixConstant(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, int v)
+    : ElementMatrix(p, m, ri, ci) {
     type  = "Element Matrix Constant";
     value = v;
 

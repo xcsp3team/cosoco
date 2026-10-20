@@ -10,7 +10,7 @@ class AtMostK : public GlobalConstraint {
     int k;
     int value;
 
-    AtMostK(Problem &p, std::string n, vec<Variable *> &vars, int k, int val);
+    AtMostK(Problem &p, vec<Variable *> &vars, int k, int val);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 

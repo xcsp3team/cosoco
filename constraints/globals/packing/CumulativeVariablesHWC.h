@@ -9,11 +9,10 @@
 namespace Cosoco {
 class CumulativeVariablesHWC : public Cumulative {
     vec<Variable *> widthVariables, heightVariables;
-    Variable *limitVariable;
+    Variable       *limitVariable;
 
-   public :
-    CumulativeVariablesHWC(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &, vec<Variable *> &,
-                           Variable *limit);
+   public:
+    CumulativeVariablesHWC(Problem &p, vec<Variable *> &vars, vec<Variable *> &, vec<Variable *> &, Variable *limit);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
     int  maxWidth(int posx) override;

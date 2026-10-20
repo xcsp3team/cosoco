@@ -4,14 +4,12 @@
 #include "Sum.h"
 namespace Cosoco {
 
-class SumGE : public Sum, public ObjectiveConstraint {
+class SumGE : public SumIncremental, public ObjectiveConstraint {
    protected:
-    long min, max;
-    int  leftmostPositiveCoefficientPosition;
-    void computeBounds();
+    int leftmostPositiveCoefficientPosition;
 
    public:
-    SumGE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
+    SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
     bool filter(Variable *x) override;
 
 

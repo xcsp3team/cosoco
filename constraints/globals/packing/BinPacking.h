@@ -52,11 +52,11 @@ class BinPacking : public GlobalConstraint, ObserverDeleteDecision {
     SparseSetMultiLevel usableBins;
 
    public:
-    BinPacking(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &_sizes, vec<int> &_limits);
+    BinPacking(Problem &p, vec<Variable *> &vars, vec<int> &_sizes, vec<int> &_limits);
     bool isCorrectlyDefined() override;
     void delayedConstruction(int id) override;
     void attachSolver(Solver *s) override;
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 
 
     // Filtering method, return false if a conflict occurs

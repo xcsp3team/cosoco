@@ -19,7 +19,7 @@ class DoubleDiff : public Constraint {
 
    public:
     // Constructors
-    DoubleDiff(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2);
+    DoubleDiff(Problem &p, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2);
 
     // filtering
     bool filter(Variable *x) override;

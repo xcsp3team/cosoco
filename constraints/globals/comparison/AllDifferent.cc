@@ -55,14 +55,14 @@ bool AllDifferentAC::filter(Variable *x) {
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
-AllDifferent::AllDifferent(Problem &p, std::string n, vec<Variable *> &vars) : GlobalConstraint(p, n, "All Different", vars) { }
+AllDifferent::AllDifferent(Problem &p, vec<Variable *> &vars) : GlobalConstraint(p, "All Different", vars) { }
 
-AllDifferentWeak::AllDifferentWeak(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
+AllDifferentWeak::AllDifferentWeak(Problem &p, vec<Variable *> &vars) : AllDifferent(p, vars) {
     type    = "All Different Weak";
     matcher = new MatcherAllDifferent(this);
 }
 
-AllDifferentAC::AllDifferentAC(Problem &p, std::string nn, vec<Variable *> &vars) : AllDifferent(p, nn, vars) {
+AllDifferentAC::AllDifferentAC(Problem &p, vec<Variable *> &vars) : AllDifferent(p, vars) {
     type          = "All Different AC";
     matcher       = new MatcherAllDifferent(this);
     isPostponable = true;

@@ -24,7 +24,7 @@ vec<AbstractSolver *> solvers;
 bool   optimize = false;
 double realTimeStart;
 
-string version("2.5");
+string version("2.6.1");
 
 void displayProblemStatistics(Problem *solvingProblem, double initial_time);
 
@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
         }
 
         if(options::intOptions["dsp"].value == 1) {
-            execlp("python3", "python3", "structure.py", argv[1], NULL);
-            exit(1);
+            std::string cmd = "python3 structure.py \"" + std::string(argv[1]) + "\"";
+            system(cmd.c_str());
         }
         if(options::intOptions["dsp"].value == 2) {
             execlp("more", "more", argv[1], NULL);
@@ -107,6 +107,11 @@ int main(int argc, char **argv) {
             parser.parse(argv[1]);   // parse the input file
             solvingProblems.push(callbacks[0].problem);
             optimize = callbacks[0].optimizationProblem;
+            if(optimize && options::intOptions["nbsols"].value != 1) {
+                std::cout << "nbsols can only be used with satisfaction problems\n";
+                exit(1);
+            }
+
             mem_used = (int)(memUsed() * 1.2);   // Suppose 20% for solver
             if(nbcores > 1 && mem_lim > 0) {
                 if(nbcores > mem_lim / mem_used) {
@@ -149,7 +154,7 @@ int main(int argc, char **argv) {
             S->seed = S->seed * (core + 1);
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
-                S->displaySolution        = false;
+                S->displaySolution        = 0;
                 optimizer->invertBestCost = callbacks[0].invertOptimization;
                 optimizer->setSolver(S, solution);
 
@@ -169,7 +174,8 @@ int main(int argc, char **argv) {
 
 
         displayProblemStatistics(solvingProblems[0], initial_time);
-
+        if(options::intOptions["dsp"].value == 1)
+            exit(1);
 
         if(nbcores == 1)
             solver = solvers[0];
@@ -185,20 +191,21 @@ int main(int argc, char **argv) {
 
         // --------------------------- SOLVE ----------------------------------------
 
-        int returnCode = solver->solve();
-        std::cout << returnCode << std::endl;
+        RESULT returnCode = solver->solve();
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
                : returnCode == R_SAT   ? "s SATISFIABLE\n"
                                        : "s UNKNOWN\n");
         if(nbcores == 1 && options::intOptions["model"].value == false && solver->nbSolutions >= 1)
-            printf("d N_SOLUTIONS %d\n\n", solvers[0]->nbSolutions);
+            printf("d N_SOLUTIONS %d\nc\n", solvers[0]->nbSolutions);
         resetcolors();
         printStats(solvers[0]);
         printf("\n");
 
-        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution())
+        // Not after an enumeration: the search has already displayed every solution.
+        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution() &&
+           (options::intOptions["nbsols"].value == 1 || optimize))
             solver->displayCurrentSolution(options::intOptions["model"].value);
 
 
@@ -311,7 +318,7 @@ void displayProblemStatistics(Problem *solvingProblem, double initial_time) {
                c->type.c_str());
     }
 
-    printf("\n");
+    printf("c |\n");
     printf("c =========================================================================================================\n");
 }
 
@@ -372,13 +379,13 @@ void limitRessourcesUsage(int cpu_lim, int mem_lim) {
 // destructors and may cause deadlocks if a malloc/free function happens to be running (these
 // functions are guarded by locks for multithreaded use).
 static void SIGINT_exit(int signum) {
-    printf("\n");
+    printf("c \n");
     printf("c *** INTERRUPTED ***\n");
 
     if(true) {
         if(options::intOptions["verb"].value >= 0) {
             printStats(solvers[0]);
-            printf("\n");
+            printf("c\n");
             colorize(termcolor::bright_green, options::boolOptions["colors"].value);
             if(solvers[0]->nbSolutions >= 1)
                 printf("d N_SOLUTIONS %d\n", solvers[0]->nbSolutions);
@@ -387,11 +394,11 @@ static void SIGINT_exit(int signum) {
             if(optimize) {
                 if(solvers[0]->hasSolution()) {
                     printf("s SATISFIABLE\n");
-                    printf("c Best value found: %ld\n\n", ((Optimizer *)solvers[0])->bestCost());
+                    printf("c Best value found: %ld\nc\n", ((Optimizer *)solvers[0])->bestCost());
                     if(options::intOptions["model"].value)
                         solvers[0]->displayCurrentSolution(options::intOptions["model"].value);
                 } else
-                    printf("c No Bound found!\n\ns UNKNOWN\n");
+                    printf("c No Bound found!\ns UNKNOWN\nc\n");
             } else {
                 if(solvers[0]->nbSolutions > 0)
                     printf("s SATISFIABLE\n");

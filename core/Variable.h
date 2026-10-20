@@ -13,20 +13,20 @@ class Constraint;
 
 class Variable {
    protected:
-    bool          addToTrail;   // Need to add in the trail
-    unsigned long timestamp;    // Last time the variable was put in queue
+    unsigned long timestamp;   // Last time the variable was put in queue
 
    public:
     friend class Solver;
 
     friend class Problem;
 
-    Problem          &problem;       // The associated problem
-    const int         idx;           // The position in problem.variables
-    const int         array;         // the array in which the variable appear (-1 if none)
-    const std::string _name;         // I do not like _ but... useful for name() function
-    Domain           &domain;        // The domain
-    vec<Constraint *> constraints;   // Set of constraints where it occurs
+    Problem          &problem;   // The associated problem
+    const int         idx;       // The position in problem.variables
+    const int         array;     // the array in which the variable appear (-1 if none)
+    const std::string _name;     // I do not like _ but... useful for name() function
+    Domain           &domain;    // The domain
+
+    vec<std::pair<Constraint *, int>> constraints;   // Set of constraints where it occurs with the position in the scope
 
     // Datas used for some algorithms (some heuristics and so on...)
     double wdeg;   // The wdeg value
@@ -40,62 +40,73 @@ class Variable {
 
     // Construction methods
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem
-    void addConstraint(Constraint *c);              // This constraint contains the variable
+    void addConstraint(Constraint *c, int posx);    // This constraint contains the variable at position posx
 
     Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods
-    bool delVal(int v, int lvl);     // Do not use directly, use solver's one
-    bool delIdv(int idv, int lvl);   // Do not use directly, use solver's one
+    void delIdv(int idv, int lvl);      // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+    void delValuesGE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+    void delValuesLE(int v, int lvl);   // Do not use directly, use solver's one. Returns true if it has to be added to the trail
+
 
     // Assign method
-    void assignToIdv(int idv, int lvl);   // Do not use directly, use solver's one
-    void assignToVal(int v, int lvl);     // Do not use directly, use solver's one
+    void assignToIdv(int idv, int lvl);   // Don't use directly, use solver's one. Returns true if it has to be added to the trail
+    void assignToVal(int v, int lvl);     // Don't use directly, use solver's one. Returns true if it has to be added to the trail
 
-   public:
+    // Restore State of the variable after backtrack
+    bool isRecorded(int level) { return domain.idvs.lastRemovedLevel() == level; }
+    void restore(int level) const { domain.restore(level); }
+
     // Minor methods
     void display(bool allDetails = false);   // displayCurrentBranch
 
 
-    inline const char *name() { return _name.c_str(); }   // The name
+    const char *name() { return _name.c_str(); }   // The name
 
 
     // ----------  shortcut methods
-    inline int size() { return domain.size(); }   // The current number of elements in the domain
+    int size() { return domain.size(); }   // The current number of elements in the domain
 
 
-    inline bool isAssigned() { return domain.size() == 1; }   // is it assign to a value
+    bool isAssigned() { return domain.size() == 1; }   // is it assign to a value
 
 
     // The value of the variable
-    inline int value() {
+    int value() {
         assert(domain.size() == 1);
         return domain.valueAtPosition(0);
     }
 
 
     // The id of the value of the variable
-    inline int valueId() {
+    int valueId() {
         assert(domain.size() == 1);
         return domain[0];
     }
 
 
-    inline bool containsValue(int v) { return domain.containsValue(v); }
+    bool containsValue(int v) { return domain.containsValue(v); }
 
 
-    inline bool containsIdv(int idv) { return domain.containsIdv(idv); }
+    bool containsIdv(int idv) { return domain.containsIdv(idv); }
 
 
-    inline bool isUniqueValue(int v) { return domain.isUniqueValue(v); }
+    bool isUniqueValue(int v) { return domain.isUniqueValue(v); }
 
 
-    inline int minimum() { return domain.minimum(); }
+    int minimum() { return domain.minimum(); }
 
 
-    inline int maximum() { return domain.maximum(); }
+    int maximum() { return domain.maximum(); }
 
     static bool haveSameDomainType(vec<Variable *> &vars);
+
+    bool isBoolean() { return domain.isBoolean(); }
+
+    static int maxDomainSize(vec<Variable *> &list);
+
+    static int sumDomainSize(vec<Variable *> &list);
 };
 
 }   // namespace Cosoco

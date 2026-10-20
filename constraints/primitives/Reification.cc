@@ -35,7 +35,10 @@ bool XeqAndY::isSatisfiedBy(vec<int> &tuple) {
     return true;
 }
 
-
+bool XeqMinSubkYY::isSatisfiedBy(vec<int> &tuple) {
+    int nb = std::min(k - tuple[1], tuple[1]);
+    return tuple[0] == nb;
+}
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
@@ -44,21 +47,21 @@ bool XeqAndY::isSatisfiedBy(vec<int> &tuple) {
 bool ReifLE::filter(Variable *dummy) {
     if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesLowerOrEqualThan(y, z->minimum()) == false)
+            if(solver->delValuesLE(y, z->minimum()) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesGreaterOrEqualThan(z, y->maximum()) == false)
+            if(solver->delValuesGE(z, y->maximum()) == false)
                 return false;
         return true;
     }
     if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesGreaterOrEqualThan(y, z->maximum() + 1) == false)
+            if(solver->delValuesGE(y, z->maximum() + 1) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesLowerOrEqualThan(z, y->minimum() - 1) == false)
+            if(solver->delValuesLE(z, y->minimum() - 1) == false)
                 return false;
         return true;
     }
@@ -74,21 +77,21 @@ bool ReifLE::filter(Variable *dummy) {
 bool ReifLT::filter(Variable *dummy) {
     if(x->domain.size() == 1 && x->value() == 0) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesLowerOrEqualThan(y, z->minimum() - 1) == false)
+            if(solver->delValuesLE(y, z->minimum() - 1) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesGreaterOrEqualThan(z, y->maximum() + 1) == false)
+            if(solver->delValuesGE(z, y->maximum() + 1) == false)
                 return false;
         return true;
     }
     if(x->domain.size() == 1 && x->value() == 1) {   // Assigned at 0  => y > z
         if(solver->isAssigned(y) == false)
-            if(solver->delValuesGreaterOrEqualThan(y, z->maximum()) == false)
+            if(solver->delValuesGE(y, z->maximum()) == false)
                 return false;
 
         if(solver->isAssigned(z) == false)
-            if(solver->delValuesLowerOrEqualThan(z, y->minimum()) == false)
+            if(solver->delValuesLE(z, y->minimum()) == false)
                 return false;
         return true;
     }
@@ -236,14 +239,14 @@ bool XeqYneK::filter(Variable *dummy) {
 bool XeqKleY::filter(Variable *dummy) {
     if(x->size() == 1) {
         if(x->value() == 0) {   // y < k
-            if(solver->delValuesGreaterOrEqualThan(y, k) == false)
+            if(solver->delValuesGE(y, k) == false)
                 return false;
             solver->entail(this);
             return true;
         }
         // y >= k
 
-        if(solver->delValuesLowerOrEqualThan(y, k - 1) == false)
+        if(solver->delValuesLE(y, k - 1) == false)
             return false;
         solver->entail(this);
         return true;
@@ -267,13 +270,13 @@ bool XeqKleY::filter(Variable *dummy) {
 bool XeqYleK::filter(Variable *dummy) {
     if(x->size() == 1) {
         if(x->value() == 0) {   // y > k
-            if(solver->delValuesLowerOrEqualThan(y, k) == false)
+            if(solver->delValuesLE(y, k) == false)
                 return false;
             solver->entail(this);
             return true;
         }
         // y <= k
-        if(solver->delValuesGreaterOrEqualThan(y, k + 1) == false)
+        if(solver->delValuesGE(y, k + 1) == false)
             return false;
         solver->entail(this);
         return true;
@@ -351,48 +354,69 @@ bool XeqAndY::filter(Cosoco::Variable *dummy) {
     return true;
 }
 
+
+bool XeqMinSubkYY::filter(Cosoco::Variable *dummy) {
+    /*int minFirst = std::min(y->minimum(), k - y->maximum());
+    int minLast  = std::min(y->maximum(), k - y->minimum());
+    // filtering the domain of the Min variable
+    if(solver->delValuesGreaterOrEqualThan(x, minLast + 1) == false ||
+       solver->delValuesLowerOrEqualThan(x, minFirst - 1) == false)
+        return false;
+
+    // Filtering the domains of variables in the vector
+    if(solver->delValuesLowerOrEqualThan(y, x->minimum() - 1) == false)
+        return false;
+    if(solver->delValuesGreaterOrEqualThan(y, k - x->minimum() + 1) == false)
+        return false;
+    */
+
+    for(int idv : x->domain) {
+        int v = x->domain.toVal(idv);
+        if(y->containsValue(v) == false && y->containsValue(k - v) == false && solver->delIdv(x, idv) == false)
+            return false;
+    }
+    for(int idv : y->domain) {
+        int v   = y->domain.toVal(idv);
+        int min = std::min(v, k - v);
+        if(x->containsValue(min) == false && solver->delIdv(y, idv) == false)
+            return false;
+    }
+    return true;
+}
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-ReifLE::ReifLE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifLE::ReifLE(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y <= Z)";
 }
 
-ReifLT::ReifLT(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifLT::ReifLT(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y < Z)";
 }
 
-ReifEQ::ReifEQ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifEQ::ReifEQ(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     residue = INT_MAX;
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y = Z)";
 }
 
-ReifNE::ReifNE(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+ReifNE::ReifNE(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     residue = INT_MAX;
     assert(xx->domain.maxSize() == 2);
     type = "X = (Y != Z)";
 }
 
-XeqYeqK::XeqYeqK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (Y = k)";
-}
+XeqYeqK::XeqYeqK(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (Y = k)"; }
 
-XeqYneK::XeqYneK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (Y != k)";
-}
+XeqYneK::XeqYneK(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (Y != k)"; }
 
-XeqKleY::XeqKleY(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (k <= Y)";
-}
-XeqYleK::XeqYleK(Problem &p, std::string n, Variable *xx, Variable *yy, int _k) : Binary(p, n, xx, yy), k(_k) {
-    type = "X = (Y <= k)";
-}
+XeqKleY::XeqKleY(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (k <= Y)"; }
+XeqYleK::XeqYleK(Problem &p, Variable *xx, Variable *yy, int _k) : Binary(p, xx, yy), k(_k) { type = "X = (Y <= k)"; }
 
-XeqAndY::XeqAndY(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &vars) : Constraint(p, n, vars) {
+XeqAndY::XeqAndY(Cosoco::Problem &p, vec<Cosoco::Variable *> &vars) : Constraint(p, vars) {
     type = "X = AND(Y_i)";
     x    = vars.last();
     vars.copyTo(list);
@@ -400,3 +424,7 @@ XeqAndY::XeqAndY(Cosoco::Problem &p, std::string n, vec<Cosoco::Variable *> &var
     s1 = list[0];
     s2 = list[1];
 }
+
+XeqMinSubkYY::XeqMinSubkYY(Problem &p, Variable *xx, Variable *yy, int kk) : Binary(p, xx, yy), k(kk) { type = "X = MIN(k-Y,Y)"; }
+
+bool XeqMinSubkYY::isCorrectlyDefined() { return k > 0; }

@@ -14,7 +14,7 @@ class NValuesLEK : public GlobalConstraint, public ObjectiveConstraint {
    public:
     int           k;
     std::set<int> myset;
-    NValuesLEK(Problem &p, std::string n, vec<Variable *> &vars, int k);
+    NValuesLEK(Problem &p, vec<Variable *> &vars, int k);
 
     bool filter(Variable *x) override;
 

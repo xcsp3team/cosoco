@@ -11,7 +11,7 @@ class HeuristicValStickingValue : public HeuristicVal {
 
    public:
     HeuristicValStickingValue(Solver &s, HeuristicVal *h);
-    virtual int select(Variable *x) override;
+    int select(Variable *x) override;
 };
 }   // namespace Cosoco
 

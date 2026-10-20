@@ -8,7 +8,7 @@ class Binary : public Constraint {
    public:
     Variable *x, *y;
 
-    Binary(Problem &p, std::string n, Variable *xx, Variable *yy) : Constraint(p, n, createScopeVec(xx, yy)), x(xx), y(yy) { }
+    Binary(Problem &p, Variable *xx, Variable *yy) : Constraint(p, createScopeVec(xx, yy)), x(xx), y(yy) { }
 };
 
 }   // namespace Cosoco

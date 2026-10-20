@@ -22,7 +22,7 @@ using namespace Cosoco;
 using namespace std;
 namespace XCSP3Core {
 class CosocoCallbacks;
-
+class BasicNode;
 
 class Primitive {
    public:
@@ -60,6 +60,12 @@ class Primitive {
     }
 };
 
+struct InternNode {
+   public:
+    XCSP3Core::Node *parent;
+    int              index;
+    InternNode(XCSP3Core::Node *_parent, int _index) : parent(_parent), index(_index) { }
+};
 
 class ManageIntension {
    public:
@@ -67,15 +73,19 @@ class ManageIntension {
     CosocoCallbacks          &callbacks;
     map<string, Constraint *> cachedExtensions;
     explicit ManageIntension(CosocoCallbacks &callbacks);
-    void  createPrimitives();
-    void  intension(std::string id, Tree *tree);
-    bool  recognizePrimitives(std::string id, Tree *tree);
-    bool  toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
-    bool  existInCacheExtension(string &expr, vec<Variable *> &scope);
-    bool  decompose(std::string id, Tree *tree);
-    bool  decompose(Node *node);
-    void  extractVariables(Node *node, vector<string> &listOfVariables);
-    Node *simplify(Node *node);
+    void        createPrimitives();
+    void        intension(std::string id, Tree *tree);
+    bool        recognizePrimitives(std::string id, Tree *tree);
+    bool        toExtension(std::string id, Tree *tree, vec<Variable *> &scope, bool forceExtension);
+    bool        existInCacheExtension(string &expr, vec<Variable *> &scope);
+    bool        decompose(std::string id, Tree *tree);
+    bool        decompose(Node *node);
+    static void extractVariables(Node *node, vector<string> &listOfVariables);
+
+    bool        replaceSameNodes(Tree *tree);                                     // Replace same internal nodes
+    static void internalNodes(Node *node, vec<InternNode> &list);                 // Get all internal nodes
+    static void extractSameNodes(vec<InternNode> &list, vec<InternNode> &same);   // Extract same internal nodes
+    Node       *simplify(Node *node);
 };
 
 
@@ -256,6 +266,12 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
         }
     }
 
+    bool verbose = false;
+
+    bool matchParams(const std::vector<Node *> &parameters);
+
+    void createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes);
+
     void beginInstance(InstanceType type) override;
 
     void endInstance() override;
@@ -291,12 +307,13 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     // Basic constraints
     //--------------------------------------------------------------------------------------
 
+    void buildConstraintFalse(string id) override;
 
     void buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
                                   bool hasStar) override;
 
 
-    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar);
+    void buildConstraintExtensionAs(string id, vector<XVariable *> list, bool support, bool hasStar) override;
 
     void buildConstraintExtension2(const string &id, vec<Variable *> &scope, const vector<vector<int>> &origTuples, bool support,
                                    bool hasStar) const;
@@ -418,6 +435,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintMinimum(string id, vector<Tree *> &list, XCondition &xc) override;
 
+    void buildConstraintMaximumArg(string id, vector<Tree *> &list, RankType rank, XCondition &xc) override;
+
+    void buildConstraintMaximumArg(string id, vector<XVariable *> &list, RankType rank, XCondition &xc) override;
+
+
     void buildConstraintMaximum(string id, vector<XVariable *> &list, XCondition &xc) override;
 
     void buildConstraintMinimum(string id, vector<XVariable *> &list, XCondition &xc) override;
@@ -446,6 +468,11 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
     void buildConstraintElement(string id, vector<vector<XVariable *>> &matrix, int startRowIndex, XVariable *rowIndex,
                                 int startColIndex, XVariable *colIndex, XVariable *value) override;
 
+    void buildConstraintElement(string id, vector<int> &list, int startIndex, XVariable *index, RankType rank,
+                                int value) override;
+
+    void buildConstraintElement(string id, vector<vector<int>> &matrix, int startRowIndex, XVariable *rowIndex, int startColIndex,
+                                XVariable *colIndex, XCondition &xc) override;
 
     void buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
                                 int startIndex2) override;
@@ -464,6 +491,9 @@ class CosocoCallbacks : public XCSP3CoreCallbacks {
 
     void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<vector<int>> &lengths,
                                   bool zeroIgnored) override;
+
+    void buildConstraintNoOverlap(string id, vector<vector<XVariable *>> &origins, vector<XVariable *> &varLengths,
+                                  vector<int> &intLengths, bool zeroIgnored) override;
 
     void buildConstraintCumulative(string id, vector<XVariable *> &origins, vector<int> &lengths, vector<int> &heights,
                                    XCondition &xc) override;

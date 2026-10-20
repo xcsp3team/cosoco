@@ -19,7 +19,7 @@ class Xor : public GlobalConstraint {
 
    public:
     // Constructors
-    Xor(Problem &p, std::string n, vec<Variable *> &vars);
+    Xor(Problem &p, vec<Variable *> &vars);
 
     // filtering
     bool filter(Variable *x) override;
@@ -27,6 +27,28 @@ class Xor : public GlobalConstraint {
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
+
+class XeqXor : public GlobalConstraint {
+   protected:
+    Variable       *x;
+    vec<Variable *> vars;
+    Variable       *sentinel1, *sentinel2;
+
+    bool enforceSentinel(Variable *sentinel, int value);
+    int  toBeRemoved(Variable *sentinel);
+
+   public:
+    // Constructors
+    XeqXor(Problem &p, vec<Variable *> &vars, Variable *xx);
+    Variable *findAnotherSentinel(Variable *other);
+
+    // filtering
+    bool filter(Variable *x) override;
+    // checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+
 }   // namespace Cosoco
 
 

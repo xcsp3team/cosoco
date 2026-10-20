@@ -8,7 +8,7 @@ class xTimesyEQz : public Ternary {
    public:
     int k;
     // Constructors
-    xTimesyEQz(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    xTimesyEQz(Problem &p, Variable *xx, Variable *yy, Variable *zz);
 
     // filtering
     bool filter(Variable *x) override;

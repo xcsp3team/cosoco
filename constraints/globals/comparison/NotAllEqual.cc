@@ -65,4 +65,4 @@ bool NotAllEqual::filter(Variable *dummy) {
 // Constructor and initialisation methods
 //----------------------------------------------
 
-NotAllEqual::NotAllEqual(Problem &p, std::string nn, vec<Variable *> &vars) : GlobalConstraint(p, nn, "Not All Equal", vars) { }
+NotAllEqual::NotAllEqual(Problem &p, vec<Variable *> &vars) : GlobalConstraint(p, "Not All Equal", vars) { }

@@ -41,7 +41,7 @@ bool SumScalarLEK::filter(Variable *x) {
 //----------------------------------------------
 
 
-SumScalarLEK::SumScalarLEK(Problem &p, std::string n, vec<Variable *> &variables, vec<Variable *> &coefs, long l)
-    : SumScalar(p, n, Constraint::createScopeVec(&variables, &coefs)), limit(l) {
+SumScalarLEK::SumScalarLEK(Problem &p, vec<Variable *> &variables, vec<Variable *> &coefs, long l)
+    : SumScalar(p, Constraint::createScopeVec(&variables, &coefs)), limit(l) {
     half = variables.size();
 }

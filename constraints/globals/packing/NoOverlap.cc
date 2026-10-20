@@ -42,19 +42,21 @@ bool NoOverlap::filter(Variable *dummy) {
 
 // optimizations are possible ; to be done
 bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, vec<int> &t2, vec<vec<int> > &residues) {
+    if(unassignedVariablesIdx.size() > 100)
+        return true;
+
     bool find = false;
     for(int i = 0; i < half; i++) {
         Variable *dom1 = x1[i];
-        for(int k = 0; k < dom1->domain.size(); k++) {
-            find    = false;
-            int idv = dom1->domain[k];
-            int v   = dom1->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
+        for(int idv : dom1->domain) {
+            find  = false;
+            int v = dom1->domain.toVal(idv);   // we are going to look for a support of (x1[i],v)
             // we compute the set of tasks overlapping on the first axis wrt (x1[i],v)
             overlappings.clear();
             for(int j = 0; j < half; j++)
                 if(j != i && overlap(v + t1[i], x1[j], v - t1[j]))
-                    overlappings.insert(j);
-            if(overlappings.empty())
+                    overlappings.add(j);
+            if(overlappings.size() == 0)
                 continue;
             if(overlappings.size() == 1) {
                 int j = *overlappings.begin();
@@ -69,11 +71,10 @@ bool NoOverlap::filter(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &x2, v
                 // also, a local form of energetic reasoning is used
                 Variable *dom2    = x2[i];
                 int       residue = residues[i][idv];
-                if(dom2->domain.containsIdv(residue)) {
+                if(residue != -1 && dom2->domain.containsIdv(residue)) {
                     int w = dom2->domain.toVal(residue);
                     if(findSupport(x1, t1, x2, t2, w, w + t2[i])) {
-                        k = dom1->size();
-                        continue;
+                        break;
                     }
                 }
                 for(int idv2 : dom2->domain) {
@@ -127,16 +128,18 @@ bool NoOverlap::findSupport(vec<Variable *> &x1, vec<int> &t1, vec<Variable *> &
 // Construction and initialisation
 //----------------------------------------------
 
-NoOverlap::NoOverlap(Problem &pb, std::string &n, vec<Variable *> &X, vec<int> &w, vec<Variable *> &Y, vec<int> &h)
-    : GlobalConstraint(pb, n, "NoOverlap", Constraint::createScopeVec(&X, &Y)) {
+NoOverlap::NoOverlap(Problem &pb, vec<Variable *> &X, vec<int> &w, vec<Variable *> &Y, vec<int> &h)
+    : GlobalConstraint(pb, "NoOverlap", Constraint::createScopeVec(&X, &Y)) {
     X.copyTo(xs);
     Y.copyTo(ys);
     w.copyTo(widths);
     h.copyTo(heights);
     half = xs.size();
+    overlappings.setCapacity(xs.size(), false);
     residues1.growTo(xs.size());
     for(int i = 0; i < xs.size(); i++) residues1[i].growTo(xs[i]->domain.maxSize(), -1);
 
     residues2.growTo(ys.size());
     for(int i = 0; i < ys.size(); i++) residues2[i].growTo(ys[i]->domain.maxSize(), -1);
+    isPostponable = true;
 }

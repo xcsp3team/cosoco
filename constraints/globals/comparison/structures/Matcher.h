@@ -21,6 +21,7 @@ class Matcher : public ObserverDeleteDecision {
     int                *var2val;
     int                 arity;
     vec<int>            unmatched;
+    vec<int>            stack;
     SparseSetMultiLevel unfixed;
     int                *predBFS;     // predBFS[idx] is the predecessor of variable x in the current BFS
     long               *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
@@ -46,7 +47,7 @@ class Matcher : public ObserverDeleteDecision {
     explicit Matcher(Constraint *c);
     virtual bool findMaximumMatching() = 0;
 
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void removeInconsistentValues();
     void tarjanRemoveValues(int node);
 };

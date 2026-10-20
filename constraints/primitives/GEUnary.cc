@@ -17,7 +17,7 @@ bool GEUnary::isSatisfiedBy(vec<int> &tuple) { return tuple[0] >= k; }
 //----------------------------------------------
 
 bool GEUnary::filter(Variable *x) {
-    if(solver->delValuesLowerOrEqualThan(x, k - 1) == false)
+    if(solver->delValuesLE(x, k - 1) == false)
         return false;
     solver->entail(this);
     return true;
@@ -40,7 +40,7 @@ long GEUnary::computeScore(vec<int> &solution) { return solution[0]; }
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
-GEUnary::GEUnary(Problem &p, std::string n, Variable *xx, int kk) : Constraint(p, n), k(kk) {
+GEUnary::GEUnary(Problem &p, Variable *xx, int kk) : Constraint(p), k(kk) {
     addToScope(xx);
     type = "X >= k";
 }

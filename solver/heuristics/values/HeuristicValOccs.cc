@@ -10,11 +10,11 @@ using namespace Cosoco;
 
 
 HeuristicValOccs::HeuristicValOccs(Solver &s) : HeuristicVal(s) {
-    for(int i = 0; i < solver.problem.variablesArray.size(); i++) {
+    for(auto &array : solver.problem.variablesArray) {
         nbOccurrences.push();
         elements.push();
         // Put all elements in Map.
-        for(Variable *x : solver.problem.variablesArray[i]) {
+        for(Variable *x : array) {
             for(int idv : x->domain) {
                 int v = x->domain.toVal(idv);
                 if(nbOccurrences.last().has(v) == false) {

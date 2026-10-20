@@ -13,6 +13,11 @@ using namespace Cosoco;
 
 bool DisjunctiveVars::isSatisfiedBy(vec<int> &t) { return t[0] + t[2] <= t[1] || t[1] + t[3] <= t[0]; }
 
+bool DisjunctiveVars::isCorrectlyDefined() {
+    if(w1->minimum() <= 0 || w2->minimum() <= 0)
+        throw new std::logic_error("Minimum values in DisjunctiveVar must be greater than 0");
+    return true;
+}
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
@@ -25,11 +30,11 @@ bool DisjunctiveVars::filter(Variable *xx) {
     if(!b1 && !b2)
         return false;
     if(!b2)   // we enforce the first part
-        return solver->delValuesLowerOrEqualThan(x2, min1 - 1) && solver->delValuesGreaterOrEqualThan(x1, max1 + 1) &&
-               solver->delValuesGreaterOrEqualThan(w1, x2->maximum() - x1->minimum() + 1);
+        return solver->delValuesLE(x2, min1 - 1) && solver->delValuesGE(x1, max1 + 1) &&
+               solver->delValuesGE(w1, x2->maximum() - x1->minimum() + 1);
     if(!b1)   // we enforce the second part
-        return solver->delValuesLowerOrEqualThan(x1, min2 - 1) && solver->delValuesGreaterOrEqualThan(x2, max2 + 1) &&
-               solver->delValuesGreaterOrEqualThan(w2, x1->maximum() - x2->minimum() + 1);
+        return solver->delValuesLE(x1, min2 - 1) && solver->delValuesGE(x2, max2 + 1) &&
+               solver->delValuesGE(w2, x1->maximum() - x2->minimum() + 1);
 
     return solver->delValuesInRange(x1, max1 + 1, min2 - 1) && solver->delValuesInRange(x2, max2 + 1, min1 - 1);
 }
@@ -39,8 +44,8 @@ bool DisjunctiveVars::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-DisjunctiveVars::DisjunctiveVars(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *ww1, Variable *ww2)
-    : GlobalConstraint(p, n, "DisjunctiveVars", Constraint::createScopeVec(xx1, xx2, ww1, ww2)) {
+DisjunctiveVars::DisjunctiveVars(Problem &p, Variable *xx1, Variable *xx2, Variable *ww1, Variable *ww2)
+    : GlobalConstraint(p, "DisjunctiveVars", Constraint::createScopeVec(xx1, xx2, ww1, ww2)) {
     x1 = xx1;
     x2 = xx2;
     w1 = ww1;

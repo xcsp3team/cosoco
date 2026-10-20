@@ -14,7 +14,7 @@ using namespace Cosoco;
 
 bool xEqGenOr::isSatisfiedBy(vec<int> &tuple) {
     return true;
-    int r            = tuple.last();
+    /*int r            = tuple.last();
     int clauseResult = 0;
     int i            = 0;
     for(BasicNode *n : nodes) {
@@ -23,11 +23,13 @@ bool xEqGenOr::isSatisfiedBy(vec<int> &tuple) {
     }
 
     return r == clauseResult;
+    // TODO
+    */
 }
 
 bool xEqGenAnd::isSatisfiedBy(vec<int> &tuple) {
     return true;
-    int r            = tuple.last();
+    /*int r            = tuple.last();
     int clauseResult = 0;
     int i            = 0;
     for(BasicNode *n : nodes) {
@@ -36,11 +38,13 @@ bool xEqGenAnd::isSatisfiedBy(vec<int> &tuple) {
     }
 
     return r == clauseResult;
+    // TODO
+    */
 }
 
 bool GenOr::isSatisfiedBy(vec<int> &tuple) {
     return true;
-    int r            = tuple.last();
+    /*int r            = tuple.last();
     int clauseResult = 0;
     int i            = 0;
     for(BasicNode *n : nodes) {
@@ -49,7 +53,17 @@ bool GenOr::isSatisfiedBy(vec<int> &tuple) {
     }
 
     return r == clauseResult;
+    TODO
+    */
 }
+
+bool Or::isSatisfiedBy(vec<int> &tuple) {
+    for(int v : tuple)
+        if(v == 1)
+            return true;
+    return false;
+}
+
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
@@ -205,24 +219,59 @@ bool GenOr::filter(Variable *x) {
     return true;
 }
 
+int Or::findSentinel(int other) {
+    for(int i = 0; i < scope.size(); i++)
+        if(i != other && scope[i]->maximum() >= 1)
+            return i;
+    return -1;
+}
+
+bool Or::filter(Variable *x) {
+    if(scope[s1]->maximum() == 0) {
+        int o = findSentinel(s2);
+        if(o == -1) {
+            if(solver->assignToVal(scope[s2], 1) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s1 = o;
+    }
+    if(scope[s2]->maximum() == 0) {
+        int o = findSentinel(s1);
+        if(o == -1) {
+            if(solver->assignToVal(scope[s1], 1) == false)
+                return false;
+            return solver->entail(this);
+        }
+        s2 = o;
+    }
+    return true;
+}
+
+
 //----------------------------------------------
 // Constructor and initialisation methods
 //----------------------------------------------
 
-xEqGenOr::xEqGenOr(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
-    : GlobalConstraint(p, n, "X = Generalized OR", Constraint::createScopeVec(&vars, r)), result(r) {
+xEqGenOr::xEqGenOr(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, "X = Generalized OR", Constraint::createScopeVec(&vars, r)), result(r) {
     nnodes.copyTo(nodes);
 }
 
 
-xEqGenAnd::xEqGenAnd(Problem &p, std::string n, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
-    : GlobalConstraint(p, n, "X = Generalized AND", Constraint::createScopeVec(&vars, r)), result(r) {
+xEqGenAnd::xEqGenAnd(Problem &p, Variable *r, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, "X = Generalized AND", Constraint::createScopeVec(&vars, r)), result(r) {
     nnodes.copyTo(nodes);
 }
 
-GenOr::GenOr(Problem &p, std::string n, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
-    : GlobalConstraint(p, n, "Generalized OR", Constraint::createScopeVec(&vars)) {
+GenOr::GenOr(Problem &p, vec<Variable *> &vars, vec<BasicNode *> &nnodes)
+    : GlobalConstraint(p, "Generalized OR", Constraint::createScopeVec(&vars)) {
     nnodes.copyTo(nodes);
+    s1 = 0;
+    s2 = 1;
+}
+
+Or::Or(Problem &p, vec<Variable *> &vars) : GlobalConstraint(p, "OR", vars) {
     s1 = 0;
     s2 = 1;
 }

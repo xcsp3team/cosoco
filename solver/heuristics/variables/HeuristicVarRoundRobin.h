@@ -16,7 +16,7 @@ class HeuristicVarRoundRobin : public HeuristicVar, ObserverDeleteDecision {
 
 
    public:
-    explicit HeuristicVarRoundRobin(Solver &s);
+    explicit HeuristicVarRoundRobin(Solver &s, int nb = 10);
     Variable *select() override;
     void      notifyFullBacktrack() override;
 };

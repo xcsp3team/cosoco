@@ -10,7 +10,7 @@ class ElementConstant : public Element {
     int indexInList;
 
    public:
-    ElementConstant(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, int kk, bool one = false);
+    ElementConstant(Problem &p, vec<Variable *> &vars, Variable *i, int kk, bool one = false);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -14,7 +14,7 @@ namespace Cosoco {
 
 class AllDifferent : public GlobalConstraint {
    public:
-    AllDifferent(Problem &p, std::string n, vec<Variable *> &vars);
+    AllDifferent(Problem &p, vec<Variable *> &vars);
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
@@ -24,7 +24,7 @@ class AllDifferentWeak : public AllDifferent {
     Matcher *matcher;
 
    public:
-    AllDifferentWeak(Problem &p, std::string n, vec<Variable *> &vars);
+    AllDifferentWeak(Problem &p, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -34,7 +34,7 @@ class AllDifferentAC : public AllDifferent {
     Matcher *matcher;
 
    public:
-    AllDifferentAC(Problem &p, std::string n, vec<Variable *> &vars);
+    AllDifferentAC(Problem &p, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -31,15 +31,15 @@ bool MaximumVariableGE::filter(Variable *dummy) {
         ub = std::max(ub, scope[i]->maximum());
     }
     // Update bounds of maxVars
-    if(solver->delValuesLowerOrEqualThan(maxVar, lb) == false)
+    if(solver->delValuesLE(maxVar, lb) == false)
         return false;
-    if(solver->delValuesGreaterOrEqualThan(maxVar, ub + 1) == false)
+    if(solver->delValuesGE(maxVar, ub + 1) == false)
         return false;
 
     ub = maxVar->maximum();
     // Update scope vars
     for(int i = 0; i < scope.size() - 1; i++) {   // Forget maxVar
-        if(solver->delValuesGreaterOrEqualThan(scope[i], ub + 1) == false)
+        if(solver->delValuesGE(scope[i], ub + 1) == false)
             return false;
     }
     return true;

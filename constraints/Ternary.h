@@ -7,8 +7,8 @@ class Ternary : public Constraint {
    public:
     Variable *x, *y, *z;
 
-    Ternary(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz)
-        : Constraint(p, n, createScopeVec(xx, yy, zz)), x(xx), y(yy), z(zz) { }
+    Ternary(Problem &p, Variable *xx, Variable *yy, Variable *zz)
+        : Constraint(p, createScopeVec(xx, yy, zz)), x(xx), y(yy), z(zz) { }
 };
 
 }   // namespace Cosoco

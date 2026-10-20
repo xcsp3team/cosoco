@@ -27,7 +27,7 @@ bool ElementConstant::filter(Variable *dummy) {
     }
 
     if(index->size() > 1) {   // checking that the values of index are still valid
-        for(int idv : reverse(index->domain)) {
+        for(int idv : index->domain) {
             int v = index->domain.toVal(idv);
             if(getVariableFor(v)->containsValue(result) == false && solver->delVal(index, v) == false)
                 return false;
@@ -50,8 +50,8 @@ bool ElementConstant::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-ElementConstant::ElementConstant(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, int kk, bool one)
-    : Element(p, n, "Element Constant", Constraint::createScopeVec(&vars, i), i, one), result(kk) {
+ElementConstant::ElementConstant(Problem &p, vec<Variable *> &vars, Variable *i, int kk, bool one)
+    : Element(p, "Element Constant", Constraint::createScopeVec(&vars, i), i, one), result(kk) {
     szVector    = vars.size();
     indexInList = vars.firstOccurrenceOf(i);
 }

@@ -63,6 +63,8 @@ void CardinalityF::init() {
 //----------------------------------------------
 
 bool CardinalityF::filter(Variable *dummy) {
+    init();
+
     while(true) {
         int status = doFiltering();
         if(status == -1)
@@ -70,11 +72,11 @@ bool CardinalityF::filter(Variable *dummy) {
         if(status == 0)
             break;
         for(int v : valueToCompute) {
-            for(int posx : reverse(possibles[v])) {
-                if(vars[posx]->containsValue(v) == false) {
+            for(int posx : possibles[v]) {
+                if(vars[posx]->containsValue(values[v]) == false) {
                     possibles[v].del(posx);
 
-                } else if(vars[posx]->isAssigned()) {
+                } else if(vars[posx]->size() == 1) {
                     possibles[v].del(posx);
                     mandatories[v].add(posx);
                 }
@@ -85,16 +87,15 @@ bool CardinalityF::filter(Variable *dummy) {
 }
 
 int CardinalityF::doFiltering() {
-    init();
     bool again = false;
     for(int i : reverse(valueToCompute)) {
         int szBefore = occurs[i]->size();
-        if(solver->delValuesLowerOrEqualThan(occurs[i], mandatories[i].size() - 1) == false)
+        if(solver->delValuesLE(occurs[i], mandatories[i].size() - 1) == false)
             return -1;
         again |= (occurs[i]->size() < szBefore);
 
         szBefore = occurs[i]->size();
-        if(solver->delValuesGreaterOrEqualThan(occurs[i], mandatories[i].size() + possibles[i].size() + 1) == false)
+        if(solver->delValuesGE(occurs[i], mandatories[i].size() + possibles[i].size() + 1) == false)
             return -1;
         again |= (occurs[i]->size() < szBefore);
 
@@ -134,8 +135,8 @@ bool CardinalityM::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
-    : GlobalConstraint(p, n, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
+CardinalityF::CardinalityF(Problem &p, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
+    : GlobalConstraint(p, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
     isPostponable = true;
     _vars.copyTo(vars);
     o.copyTo(occurs);
@@ -155,7 +156,6 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
         if(x->minimum() < min)
             min = x->minimum();
     }
-    std::cout << min << " " << max << std::endl;
     values2indexes.growTo(max - min + 1, -1);
     offset  = min;
     int idx = 0;

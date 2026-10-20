@@ -6,18 +6,20 @@ namespace Cosoco {
 
 class AtLeastK : public GlobalConstraint {
    public:
-    int       k;
-    int       value;
-    SparseSet sentinels;   // The sentinels saying t
+    int                          k;
+    int                          value;
+    SparseSet                    sentinels;   // The sentinels saying t
+    VariablePositionInConstraint variablePosition;
 
 
-    AtLeastK(Problem &p, std::string n, vec<Variable *> &vars, int k, int val);
+    AtLeastK(Problem &p, vec<Variable *> &vars, int k, int val);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;
     bool isCorrectlyDefined() override;
+    void delayedConstruction(int id) override;
 };
 }   // namespace Cosoco
 

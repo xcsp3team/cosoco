@@ -35,7 +35,7 @@ struct MinOrder {
 //----------------------------------------------------------
 class AllDifferentBC : public AllDifferent {
    public:
-    AllDifferentBC(Problem &p, std::string n, vec<Variable *> &vars);
+    AllDifferentBC(Problem &p, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

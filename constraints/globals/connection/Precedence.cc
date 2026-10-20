@@ -39,7 +39,7 @@ bool Precedence::isCorrectlyDefined() { return true; }
 // Check validity and correct definition
 //----------------------------------------------
 
-void Precedence::notifyDeleteDecision(Variable *x, int v, Solver &s) { reinit = true; }
+void Precedence::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { reinit = true; }
 
 bool Precedence::filter(Variable *x) {
     if(solver->decisionLevel() == 0 && solver->conflicts == 0) {
@@ -106,8 +106,7 @@ bool Precedence::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------
 
-Precedence::Precedence(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &vs, bool c)
-    : GlobalConstraint(p, n, "Precedence", vars) {
+Precedence::Precedence(Problem &p, vec<Variable *> &vars, vec<int> &vs, bool c) : GlobalConstraint(p, "Precedence", vars) {
     vs.copyTo(values);
     // control((!covered || list.length > values.length) && values.length > 1);
     r       = scope.size();

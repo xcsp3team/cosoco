@@ -15,4 +15,4 @@ class HeuristicVal {
 }   // namespace Cosoco
 
 
-#endif /* HEURISTICVAR_H */
+#endif /* HEURISTICVAL_H */

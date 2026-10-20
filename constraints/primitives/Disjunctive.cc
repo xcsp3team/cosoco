@@ -62,7 +62,7 @@ bool Disjunctive::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-Disjunctive::Disjunctive(Problem &p, std::string n, Variable *xx, Variable *yy, int ll1, int ll2, Variable *zz)
-    : Ternary(p, n, xx, yy, zz), lx(ll1), ly(ll2) {
+Disjunctive::Disjunctive(Problem &p, Variable *xx, Variable *yy, int ll1, int ll2, Variable *zz)
+    : Ternary(p, xx, yy, zz), lx(ll1), ly(ll2) {
     type = "Disjunctive";
 }

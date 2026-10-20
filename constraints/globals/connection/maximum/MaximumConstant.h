@@ -13,8 +13,7 @@ class MaximumConstant : public GlobalConstraint, public ObjectiveConstraint {
     int k;
 
 
-    MaximumConstant(Problem &p, std::string n, vec<Variable *> &vars, int kk)
-        : GlobalConstraint(p, n, "Max constant", vars), k(kk) { }
+    MaximumConstant(Problem &p, vec<Variable *> &vars, int kk) : GlobalConstraint(p, "Max constant", vars), k(kk) { }
 
 
     // Function related to optimisation (see ObjectiveConstraint class)

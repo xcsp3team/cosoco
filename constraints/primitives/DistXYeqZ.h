@@ -10,7 +10,7 @@ namespace Cosoco {
 
 class DistXYeqZ : public Ternary {
    public:
-    DistXYeqZ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz);
+    DistXYeqZ(Problem &p, Variable *xx, Variable *yy, Variable *zz);
 
     // filtering
     bool filter(Variable *x) override;
@@ -18,12 +18,12 @@ class DistXYeqZ : public Ternary {
 
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;
-   private :
-    vec<int> rx, ry, rzx, rzy;
-    bool supportX(Variable *t, int v, int a, int b, int c);
-    bool supportY(Variable *t, int v, int a, int b, int c);
-    bool supportZ(Variable *t, int v, int a, int b, int c);
 
+   private:
+    vec<int> rx, ry, rzx, rzy;
+    bool     supportX(Variable *t, int v, int a, int b, int c);
+    bool     supportY(Variable *t, int v, int a, int b, int c);
+    bool     supportZ(Variable *t, int v, int a, int b, int c);
 };
 }   // namespace Cosoco
 

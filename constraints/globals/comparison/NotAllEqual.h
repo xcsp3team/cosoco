@@ -7,7 +7,7 @@
 namespace Cosoco {
 class NotAllEqual : public GlobalConstraint {
    public:
-    NotAllEqual(Problem &p, std::string n, vec<Variable *> &vars);
+    NotAllEqual(Problem &p, vec<Variable *> &vars);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *dummy) override;

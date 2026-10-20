@@ -109,20 +109,20 @@ bool STR0::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-void STR0::notifyDeleteDecision(Variable *x, int v, Solver &s) { set.fill(); }
+void STR0::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { set.fill(); }
 
 
 //----------------------------------------------
 // Constructors and initialisation
 //----------------------------------------------
 
-STR0::STR0(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples) : Extension(p, n, vars, max_n_tuples, true) {
+STR0::STR0(Problem &p, vec<Variable *> &vars, size_t max_n_tuples) : Extension(p, vars, max_n_tuples, true) {
     type = "Extension - STR0";
 }
 
 
-STR0::STR0(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
-    : Extension(p, n, vars, true, tuplesFromOtherConstraint) {
+STR0::STR0(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
+    : Extension(p, vars, true, tuplesFromOtherConstraint) {
     type = "Extension - STR0";
 }
 

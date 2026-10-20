@@ -13,11 +13,9 @@ class Unary : public Constraint {
     bool      areSupports;
     vec<int>  values;
 
-    Unary(Problem &p, std::string n, Variable *xx, const vec<int> &vals, bool areS);
-    State status() override;
-    void  reinitialize() override;
-    bool  filter(Variable *x) override;
-    bool  isSatisfiedBy(vec<int> &tuple) override;
+    Unary(Problem &p, Variable *xx, const vec<int> &vals, bool areS);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
 };
 }   // namespace Cosoco
 

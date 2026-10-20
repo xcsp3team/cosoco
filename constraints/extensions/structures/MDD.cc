@@ -76,7 +76,7 @@ MDD::~MDD() {
 //----------------------------------------------
 
 
-MDD *MDD::buildFromAutomata(std::string name, vec<Variable *> &scope, std::string start, std::vector<std::string> &finals,
+MDD *MDD::buildFromAutomata(vec<Variable *> &scope, std::string start, std::vector<std::string> &finals,
                             vec<XCSP3Core::XTransition *> &transitions) {
     // Build Map state-> possible state
     std::map<std::string, vec<XCSP3Core::XTransition *> *> nextTransitions;
@@ -118,7 +118,7 @@ MDD *MDD::buildFromAutomata(std::string name, vec<Variable *> &scope, std::strin
                     } else {
                         MDDNode *nextNode = nullptr;
                         if(nexts.find(nextState) == nexts.end()) {
-                            nextNode         = new MDDNode(nextState, nb++, node->level + 1, scope[i]->domain.maxSize());
+                            nextNode         = new MDDNode(nextState, nb++, node->level + 1, scope[i + 1]->domain.maxSize());
                             nexts[nextState] = nextNode;
                         }
                         nextNode = nexts[nextState];

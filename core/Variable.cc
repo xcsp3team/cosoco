@@ -8,7 +8,7 @@ using namespace Cosoco;
 
 // Construction and Initialisation
 Variable::Variable(Problem &p, std::string n, Domain &d, int id, int a)
-    : addToTrail(false), timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), wdeg(1), useless(false) { }
+    : timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), wdeg(1), useless(false) { }
 
 
 void Variable::delayedConstruction(int id, int nbVars) {
@@ -18,56 +18,46 @@ void Variable::delayedConstruction(int id, int nbVars) {
 }
 
 
-void Variable::addConstraint(Constraint *c) { constraints.push(c); }
+void Variable::addConstraint(Constraint *c, int posx) { constraints.push({c, posx}); }
 
 
 // Delete Methods
-bool Variable::delVal(int v, int level) {   // Do not use directly, use solver's one
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.delVal(v, level);
-    return size() == 0;
+void Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
+    domain.delIdv(idv, level);
 }
 
-
-bool Variable::delIdv(int idv, int level) {   // Do not use directly, use solver's one
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
-        domain.idvs.recordLimit(level);
+void Variable::delValuesGE(int max, int lvl) {
+    for(int idv : reverse(domain)) {   // Reverse traversal because of deletion
+        if(domain.toVal(idv) < max)
+            return;
+        delIdv(idv, lvl);
     }
-    domain.delIdv(idv, level);
-    return size() == 0;
+    // domain.idvs.delValuesGE(domain.toIdv(max), lvl); }
+}
+void Variable::delValuesLE(int min, int lvl) {
+    for(int idv : domain) {
+        if(domain.toVal(idv) > min)
+            return;
+        delIdv(idv, lvl);
+    }
+    // domain.idvs.delValuesLE(domain.toIdv(min), lvl);
 }
 
 
 // Assign methods
-void Variable::assignToIdv(int idv, int level) {
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.reduceTo(idv, level);
-}
+void Variable::assignToIdv(int idv, int level) { domain.reduceTo(idv, level); }
 
 
-void Variable::assignToVal(int v, int level) {
-    if(domain.idvs.isLimitRecordedAtLevel(level) == false) {
-        addToTrail = true;
-        domain.idvs.recordLimit(level);
-    }
-    domain.reduceTo(domain.toIdv(v), level);
-}
+void Variable::assignToVal(int v, int level) { domain.reduceTo(domain.toIdv(v), level); }
 
 
 // Display
 void Variable::display(bool allDetails) {
     printf("Variable %s\n", name());
     if(allDetails)
-        for(Constraint *c : constraints) {
+        for(auto &pair : constraints) {
             printf("     ");
-            c->display(true);
+            pair.first->display(true);
         }
     printf("     ");
     domain.display();
@@ -81,4 +71,19 @@ bool Variable::haveSameDomainType(vec<Variable *> &vars) {
         if(h != v->domain.hash())
             return false;
     return true;
+}
+
+int Variable::maxDomainSize(vec<Variable *> &list) {
+    int tmp = 0;
+    for(Variable *x : list)
+        if(x->size() > tmp)
+            tmp = x->size();
+    return tmp;
+}
+
+
+int Variable::sumDomainSize(vec<Variable *> &list) {
+    int tmp = 0;
+    for(Variable *x : list) tmp += x->size();
+    return tmp;
 }

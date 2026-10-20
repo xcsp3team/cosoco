@@ -11,7 +11,7 @@ class SumScalarLEK : public SumScalar {
    public:
     long limit;
 
-    SumScalarLEK(Problem &p, std::string n, vec<Variable *> &variables, vec<Variable *> &coefs, long l);
+    SumScalarLEK(Problem &p, vec<Variable *> &variables, vec<Variable *> &coefs, long l);
 
 
     bool isCorrectlyDefined() override;

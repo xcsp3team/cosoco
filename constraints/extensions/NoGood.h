@@ -14,8 +14,8 @@ class NoGood : public Constraint {
     vec<int> tuple;
 
     // Constructors
-    NoGood(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &tuple);
-    // NoGood(Problem &p, std::string n, vec<Variable *> &vars, vec);
+    NoGood(Problem &p, vec<Variable *> &vars, vec<int> &tuple);
+    // NoGood(Problem &p, vec<Variable *> &vars, vec);
 
     // filtering
     bool filter(Variable *x) override;

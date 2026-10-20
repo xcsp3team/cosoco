@@ -16,11 +16,10 @@ using namespace Cosoco;
 
 
 // Constructors and delayed initialisation
-Constraint::Constraint(Problem &p, std::string n)
-    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
+Constraint::Constraint(Problem &p) : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0), wdeg(0) { }
 
-Constraint::Constraint(Problem &p, std::string n, vec<Variable *> &vars)
-    : problem(p), solver(nullptr), name(std::move(n)), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
+Constraint::Constraint(Problem &p, vec<Variable *> &vars)
+    : problem(p), solver(nullptr), unassignedVariablesIdx(), timestamp(0), wdeg(0) {
     addToScope(vars);
 }
 
@@ -50,32 +49,23 @@ void Constraint::addToScope(vec<Variable *> &vars) {
 void Constraint::delayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
     makeDelayedConstruction(id);
+    isPostponable = isPostponable && options::intOptions["postponesize"].value > 0 &&
+                    scope.size() > options::intOptions["postponesize"].value;
 }
 
-#define MAXVARIABLESFORIDX 2000
 
 void Constraint::makeDelayedConstruction(int id) {
     assert(scope.size() > 0);   // scopeInitialisation have to be done
     arity = scope.size();
 
-    if(arity > 1 && problem.variables.size() < MAXVARIABLESFORIDX)
-        idxToScopePositionArray.growTo(problem.variables.size(), NOTINSCOPE);
-
 
     unassignedVariablesIdx.setCapacity(arity, true);
     assert(unassignedVariablesIdx.size() == arity);
-    if(arity > 1)
-        for(int i = 0; i < scope.size(); i++) {
-            if(problem.variables.size() < MAXVARIABLESFORIDX)
-                idxToScopePositionArray[scope[i]->idx] = i;
-            else
-                idxToScopePositionMap.insert({scope[i]->idx, i});
-        }
 
     current.growTo(scope.size());
     wdeg.growTo(scope.size());
     idc = id;
-    for(Variable *v : scope) v->addConstraint(this);
+    for(int i = 0; i < scope.size(); i++) scope[i]->addConstraint(this, i);
 }
 
 
@@ -84,48 +74,45 @@ void Constraint::attachSolver(Solver *s) { solver = s; }
 
 // Filtering
 
-State Constraint::status() { return UNDEF; }   // By default, a constraint must be filtering at each call
 
 void Constraint::reinitialize() { }   // By default, nothing to do
 
-bool Constraint::filterFrom(Variable *x) {
-    State st2 = status();
-    if(st2 == CONSISTENT)
-        return true;
-    if(st2 == INCONSISTENT)
-        return false;
-    return filter(x);
-}
 
-bool Constraint::postpone() {
+bool Constraint::postpone() const {
     return isPostponable && options::intOptions["postponesize"].value > 0 &&
            scope.size() > options::intOptions["postponesize"].value;
 }
 
+int Constraint::getLevelOfLastRemovedValueInScope() {
+    int level = -1;
+    for(Variable *x : scope) {
+        int tmp = x->domain.lastRemovedLevel();
+        level   = std::max(level, tmp);
+    }
+    return level;
+}
+
 // Assign and unassign variables
-void Constraint::assignVariable(Variable *x) {
-    int posx = toScopePosition(x->idx);
+void Constraint::assignVariable(Variable *x, int posx) {
     assert(posx >= 0 && posx < scope.size());
     assert(unassignedVariablesIdx.contains(posx));
     unassignedVariablesIdx.del(posx);
 }
 
 
-void Constraint::unassignVariable(Variable *x) {
-    int posInScope = toScopePosition(x->idx);
-    assert(posInScope < scope.size());
-    assert(!unassignedVariablesIdx.contains(posInScope));
-    unassignedVariablesIdx.add(posInScope);
+void Constraint::unassignVariable(Variable *x, int posx, int v) {
+    assert(posx < scope.size());
+    assert(!unassignedVariablesIdx.contains(posx));
+    unassignedVariablesIdx.add(posx);
+}
+
+void VariablePositionInConstraint::makeDelayedConstruction(Constraint *c) {
+    idxToScopePositionMap.reserve(c->scope.size());
+    for(int i = 0; i < c->scope.size(); i++) idxToScopePositionMap.insert({c->scope[i]->idx, i});
 }
 
 
-// idx -> scope position
-int Constraint::toScopePosition(int idx) {
-    if(arity == 1)
-        return scope[0]->idx == idx ? 0 : NOTINSCOPE;
-
-    if(problem.variables.size() < MAXVARIABLESFORIDX)
-        return idxToScopePositionArray[idx];
+int VariablePositionInConstraint::toScopePosition(int idx) {
     auto it = idxToScopePositionMap.find(idx);
     if(it == idxToScopePositionMap.end())
         return NOTINSCOPE;
@@ -207,7 +194,7 @@ void Constraint::toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &s
 
 // Display
 void Constraint::display(bool allDetails) {
-    printf("Constraint {%s} %s : [", (typeid(*this).name()) + 9, name.c_str());   // 9 to remove namespace...
+    printf("Constraint %d (%s) : [", idc, (typeid(*this).name()) + 9);   // 9 to remove namespace...
     for(int i = 0; i < scope.size(); i++) printf(" %s ", scope[i]->name());
     printf("]\n");
 }

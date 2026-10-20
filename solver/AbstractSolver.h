@@ -8,11 +8,7 @@
 
 namespace Cosoco {
 
-#define R_UNKNOWN -1
-#define R_SAT     1
-#define R_UNSAT   2
-#define R_OPT     3
-
+enum RESULT { R_UNKNOWN, R_SAT, R_UNSAT, R_OPT };
 enum STATE { RUNNING, REACH_GOAL, FULL_EXPLORATION, OPTIMUM };
 typedef long long Lit;
 
@@ -39,18 +35,40 @@ class AbstractSolver {
     pFactory::Communicator<RootPropagation>  *rootPropagationsCommunicator;
     pFactory::Communicator<std::vector<Lit>> *nogoodCommunicator;
     bool                                      firstPropagations;
-    inline int                                solve() {
-        vec<RootPropagation> assumps;
-        return solve(assumps);
+    bool                                      _firstCall;
+    vec<RootPropagation>                      assumptions;
+
+    void setAssumptions(vec<RootPropagation> &assumps) {
+        _firstCall = true;
+        for(int i = 0; i < assumps.size(); i++) assumptions.push({assumps[i].idx, assumps[i].equal, assumps[i].idv});
     }
-    virtual int  solve(vec<RootPropagation> &assumps) = 0;
-    virtual void printFinalStats()                    = 0;   // The final stats to print
-    virtual void printIntermediateStats() { }                // The intermediate stats to print
+
+    virtual RESULT firstCall() = 0;
+    virtual RESULT search()    = 0;
+    RESULT         solve() {
+        if(_firstCall) {
+            RESULT tmp = firstCall();
+            if(tmp != R_UNKNOWN)
+                return tmp;
+            _firstCall = false;
+        }
+        return search();
+    }
+
+
+    virtual void printFinalStats() = 0;         // The final stats to print
+    virtual void printIntermediateStats() { }   // The intermediate stats to print
 
     virtual void displayCurrentSolution(int verbosity) = 0;   // displayCurrentBranch the current solution
 
     explicit AbstractSolver(Problem &pp)
-        : problem(pp), core(0), status(RUNNING), nbSolutions(0), random_seed(91648253), threadsGroup(nullptr) { }
+        : problem(pp),
+          core(0),
+          status(RUNNING),
+          nbSolutions(0),
+          random_seed(91648253),
+          threadsGroup(nullptr),
+          _firstCall(true) { }
 
 
     void setVerbosity(int vv) {

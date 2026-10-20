@@ -11,9 +11,8 @@
 
 namespace Cosoco {
 class PickOnDom : public HeuristicVar, ObserverConflict, ObserverDeleteDecision {
-    unsigned long next;
-    int           mode = 0;
-    vec<double>   variablesWeights;
+    int         mode = 0;
+    vec<double> variablesWeights;
 
    public:
     PickOnDom(Solver &s);

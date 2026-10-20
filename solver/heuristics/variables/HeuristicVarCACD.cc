@@ -40,6 +40,11 @@ Variable *HeuristicVarCACD::select() {
                 return x;
     }
 
+    if(lazy && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
 
     Variable *x = solver.decisionVariables[0];
 
@@ -48,8 +53,12 @@ Variable *HeuristicVarCACD::select() {
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
         if(vscores[y->idx] > bestV) {
-            bestV = vscores[y->idx];
-            x     = y;
+            bestV      = vscores[y->idx];
+            secondBest = x;
+            x          = y;
+        } else {
+            if(vscores[y->idx] > bestV)
+                secondBest = y;
         }
     }
     assert(x != nullptr);
@@ -58,6 +67,7 @@ Variable *HeuristicVarCACD::select() {
 
 
 void HeuristicVarCACD::notifyConflict(Constraint *c, int level) {
+    secondBest = nullptr;
     if(freezed)
         return;
     double increment = 1;
@@ -77,32 +87,36 @@ void HeuristicVarCACD::notifyNewDecision(Variable *x, Solver &s) {
     if(freezed)
         return;
 
-    for(Constraint *c : x->constraints)
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 1) {
             int posy = c->unassignedVariablesIdx[0];   // the other variable whose score must be updated
             vscores[posy] -= cvscores[c->idc][posy];
         }
+    }
 }
 
 
-void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void HeuristicVarCACD::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(freezed)
         return;
 
-    for(Constraint *c : x->constraints)
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 2) {
             int posy = c->unassignedVariablesIdx[0];   // the other variable whose score must be updated
             vscores[posy] += cvscores[c->idc][posy];
         }
+    }
 }
 
 
 void HeuristicVarCACD::notifyFullBacktrack() {
+    secondBest = nullptr;
     if(options::boolOptions["rw"].value == false)
         return;
     if(freezed)
         return;
-
     if(solver.statistics[GlobalStats::restarts] > 0 &&
        ((solver.statistics[GlobalStats::restarts] + 1) - solver.lastSolutionRun) % 30 == 0)
         reset();

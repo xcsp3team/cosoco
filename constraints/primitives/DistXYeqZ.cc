@@ -69,9 +69,8 @@ bool DistXYeqZ::filter(Variable *dummy) {
             }
         if(solver->delIdv(x, idx) == false)
             return false;
-        stopLoop1:;
+    stopLoop1:;
     }
-
 
 
     for(int idy : y->domain) {
@@ -95,15 +94,14 @@ bool DistXYeqZ::filter(Variable *dummy) {
             }
         if(solver->delIdv(y, idy) == false)
             return false;
-        stopLoop2:;
+    stopLoop2:;
     }
-
 
 
     for(int idz : z->domain) {
         int vz = z->domain.toVal(idz);
-        if(rzx[idz] != -1 && rzx[idz] < x->domain.maxSize() && x->containsIdv(rzx[idz])
-           && rzy[idz] < y->domain.maxSize() && y->containsIdv(rzy[idz]))
+        if(rzx[idz] != -1 && rzx[idz] < x->domain.maxSize() && x->containsIdv(rzx[idz]) && rzy[idz] < y->domain.maxSize() &&
+           y->containsIdv(rzy[idz]))
             continue;
         if(x->size() <= y->size())
             for(int idx : x->domain) {
@@ -125,7 +123,7 @@ bool DistXYeqZ::filter(Variable *dummy) {
             }
         if(solver->delIdv(z, idz) == false)
             return false;
-        stopLoop3:;
+    stopLoop3:;
     }
 
     return true;
@@ -136,7 +134,7 @@ bool DistXYeqZ::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-DistXYeqZ::DistXYeqZ(Problem &p, std::string n, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, n, xx, yy, zz) {
+DistXYeqZ::DistXYeqZ(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     type = "|X - Y| = Z";
     rx.growTo(x->domain.maxSize());
     ry.growTo(y->domain.maxSize());
