@@ -28,9 +28,8 @@ class AdapterAC3rm : public Constraint, public ObjectiveConstraint {
     void attachSolver(Solver *s) override;
     void delayedConstruction(int id) override;
     //   Filtering method, return false if a conflict occurs
-    bool  filter(Variable *x) override;
-    State status() override;
-    void  reinitialize() override;
+    bool filter(Variable *x) override;
+    void reinitialize() override;
 
 
     // Check tuple validity

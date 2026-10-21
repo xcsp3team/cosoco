@@ -19,7 +19,7 @@ class NoOverlap : public GlobalConstraint {
     vec<Variable *> ys;
     vec<int>        heights;
     int             half;
-    std::set<int>   overlappings;
+    SparseSet       overlappings;
 
     vec<vec<int> > residues1;
     vec<vec<int> > residues2;

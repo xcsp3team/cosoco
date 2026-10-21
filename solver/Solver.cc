@@ -3,7 +3,6 @@
 #include <solver/heuristics/values/HeuristicValLast.h>
 #include <solver/heuristics/values/HeuristicValRandom.h>
 #include <solver/heuristics/variables/HeuristicVarCACD.h>
-#include <solver/heuristics/variables/HeuristicVarFirst.h>
 #include <solver/restarts/GeometricRestart.h>
 #include <solver/restarts/InnerOuter.h>
 #include <solver/restarts/LubyRestart.h>
@@ -41,7 +40,8 @@ Solver::Solver(Problem &p)
       decisionVariables(p.nbVariables(), p.variables, true),
       entailedConstraints(p.nbConstraints(), false),
       queue(p.nbVariables(), p.variables),
-      queue4Nogoods(p.nbVariables(), false) {
+      queue4Nogoods(p.nbVariables(), false),
+      postponeFiltering(p.nbConstraints(), false) {
     heuristicVar = nullptr;
     heuristicVal = nullptr;
     statistics.growTo(NBSTATS, 0);
@@ -181,38 +181,34 @@ void Solver::setDecisionVariables(vec<Variable *> &vars) {
 // Search methods
 //----------------------------------------------
 
-int Solver::solve(vec<RootPropagation> &assumps) {
-    bool firstCall = nbSolutions == 0;
-
-    if(doProfiling && firstCall)
-        profiling->initialize();
-
-    fullBacktrack();
-
+RESULT Solver::firstCall() {
     if(problem.isConstructionDone == false)
         throw std::logic_error("c\nc Error: the construction problem is not finished...! (problem.delayedConstruction())\nc\n");
 
-    if(nogoodsFromRestarts && restart == nullptr)
-        verbose.log(NORMAL, "c WARNING: no restarts, but nogoods from restarts are enabled\n");
+    if(doProfiling && nbSolutions == 0)
+        profiling->initialize();
 
-    lastSolution.clear();   // Store the last solution
+    fullBacktrack();
+    reinitializeConstraints();
     entailedConstraints.clear();
-    status            = RUNNING;
-    nbSolutions       = 0;
+    if(problem.isUnsatisfiable)
+        return R_UNSAT;
+    for(Constraint *c : problem.constraints)
+        if(c->scope.size() == 1 && c->filter(c->scope[0]) == false)
+            return R_UNSAT;
+
+
     firstPropagations = true;
 
-    for(Constraint *c : problem.constraints)
-        if(c->scope.size() == 1 && c->filterFrom(c->scope[0]) == false)
-            return R_UNSAT;
     queue.clear();
+    Constraint *pc = propagateComplete();
 
-    Constraint *pc    = propagateComplete();
     firstPropagations = false;
     if(pc != nullptr) {
         status = FULL_EXPLORATION;
         return R_UNSAT;
     }
-    if(firstCall) {
+    if(nbSolutions == 0) {
         verbose.log(NORMAL, "c root propagations     : %-12lld\n", statistics[rootPropagations]);
         if(restart == nullptr)
             verbose.log(NORMAL, "c restarts disabled, print stats every %d conflicts\n", displayStatsEveryConflicts);
@@ -228,23 +224,29 @@ int Solver::solve(vec<RootPropagation> &assumps) {
             unassignedVariables.del(x);
             decisionVariables.del(x);
         }
-
-    return search(assumps);
+    return R_UNKNOWN;
 }
 
 
-int Solver::search(vec<RootPropagation> &assumptions) {
+RESULT Solver::search() {
     std::vector<RootPropagation>  sharedPropagations, sharedPropagationsNC;
     std::vector<std::vector<Lit>> sharedNogoods;
+
+    int disableSingletons = options::intOptions["disablesingleton"].value;
+    int restarts_lim      = options::intOptions["restarts_lim"].value;
+
+    lastSolution.clear();   // Store the last solution
+    status      = RUNNING;
+    nbSolutions = 0;
+    reinitializeConstraints();
+    entailedConstraints.clear();
 
     while(status == RUNNING) {
         if(threadsGroup != nullptr && threadsGroup->isStopped())
             return R_UNKNOWN;
 
-
         if(propagate() != nullptr) {
-            if(decisionLevel() == 0 && problem.nbVariables() >= options::intOptions["disablesingleton"].value &&
-               currentNbValues > problem.nbValues()) {
+            if(decisionLevel() == 0 && problem.nbVariables() >= disableSingletons && currentNbValues > problem.nbValues()) {
                 currentNbValues = problem.nbValues();
                 int nb          = decisionVariables.size();
                 for(int i = decisionVariables.size() - 1; i >= 0; i--) {
@@ -253,8 +255,6 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                     if(decisionVariables.size() == 1)
                         break;
                 }
-                if(nb > decisionVariables.size())
-                    std::cout << decisionVariables.size() << "après " << nb << std::endl;
             }
             // A conflict occurs
             if(stopSearch)
@@ -265,8 +265,11 @@ int Solver::search(vec<RootPropagation> &assumptions) {
             if(status == FULL_EXPLORATION)
                 break;
             if(restart != nullptr && restart->isItTimeToRestart()) {
-                // Manage rest art
+                // Manage restart
                 doRestart();
+                if(restarts_lim > 0 && restarts_lim <= statistics[restarts])
+                    raise(SIGABRT);
+
                 if(threadsGroup != nullptr) {
                     rootPropagationsCommunicator->recvAll(sharedPropagations);
                     // Fact to propagate
@@ -282,7 +285,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                         }
                     }
 
-                    if(!ok)   // We propagate a false fact at decision level 0 !!
+                    if(ok == false)   // We propagate a false fact at decision level 0 !!
                         return R_UNSAT;
 
                     nogoodCommunicator->recvAll(sharedNogoods);
@@ -294,12 +297,11 @@ int Solver::search(vec<RootPropagation> &assumptions) {
                 }
             }
         } else {
-            if(heuristicVar->stop())   // Only useful if LNS is used in optimizer: stop the search with the fragment
-                break;
             if(decisionVariables.isEmpty()) {   // A solution is found
-                if(manageSolution())            // The search is finished
+                int backtrackLevel;
+                if(manageSolution(backtrackLevel))   // The search is finished
                     break;
-                handleFailure(decisionLevel());   // remove the last decision level
+                handleFailure(backtrackLevel);   // remove thecorrect backtrack level (exclude auxilliary vars)
             } else {
                 // Start with assumptions
                 Variable *x   = nullptr;
@@ -307,20 +309,16 @@ int Solver::search(vec<RootPropagation> &assumptions) {
 
                 // Perform user provided assumption:
                 while(decisionLevel() < assumptions.size()) {
-                    // printf("Decision level %d\n", decisionLevel());
                     RootPropagation &assumption = assumptions[decisionLevel()];
-                    // printf("x=%d equal=%d idv=%d\n", assumption.idx,assumption.equal, assumption.idv);
-                    // assert(assumption.equal); // We deal only with positive assumptions
-                    Variable *tmp = problem.variables[assumption.idx];
+                    Variable        *tmp        = problem.variables[assumption.idx];
 
                     if(tmp->containsIdv(assumption.idv) == false) {   // UNSAT WRT Assumptions
                         fullBacktrack();
                         return R_UNSAT;
-                    } else {
-                        x   = tmp;
-                        idv = assumption.idv;
-                        break;
                     }
+                    x   = tmp;
+                    idv = assumption.idv;
+                    break;
                 }
 
                 if(x == nullptr) {                  // No assumptions
@@ -342,7 +340,7 @@ int Solver::search(vec<RootPropagation> &assumptions) {
 }
 
 
-bool Solver::manageSolution() {
+bool Solver::manageSolution(int &backtrackLevel) {
     nbSolutions++;
     lastSolutionRun = statistics[restarts];
 #ifdef COMPARESOLUTIONS
@@ -368,11 +366,19 @@ bool Solver::manageSolution() {
 
     for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
 
-    if(displaySolution)
+    // When a single solution is asked, the display is left to Main, which emits it after the
+    // 's' line as XCSP3 expects. Enumerating needs it here, as solutions are not kept.
+    if(displaySolution && options::intOptions["nbsols"].value != 1)
         displayCurrentSolution(displaySolution);
 
-    if(nbSolutions > 1 || nbSolutions == 0)   // Add nogood
-        noGoodsEngine->generateNogoodFromSolution();
+    if(options::intOptions["nbsols"].value > 1 || options::intOptions["nbsols"].value == 0) {
+        noGoodsEngine->generateNogoodFromSolution();   // Add nogood
+
+        // Find correct backtrack level (exclude auxiliary vars...)
+        backtrackLevel = decisionLevel();
+        while(backtrackLevel >= 0 && decisionVariableAtLevel(backtrackLevel)->idx >= problem.nbOriginalVars) backtrackLevel--;
+    }
+
 
     if(nbSolutions == options::intOptions["nbsols"].value) {
         status = REACH_GOAL;
@@ -398,7 +404,7 @@ void Solver::newDecision(Variable *x, int idv) {
                 x->domain.toVal(idv), x->size(), KNRM);
 
     assignToIdv(x, idv);
-    for(Constraint *c : x->constraints) c->assignVariable(x);
+    for(auto &pair : x->constraints) pair.first->assignVariable(x, pair.second);
     notifyNewDecision(x);
     x->domain.nAssignments[idv]++;
 }
@@ -424,9 +430,8 @@ bool Solver::isAssigned(Variable *x) const { return unassignedVariables.contains
 //----------------------------------------------
 
 void Solver::reinitializeConstraints() {
-    for(Constraint *c : problem.constraints) {   // Reinitialisze status for all constraints
+    for(Constraint *c : problem.constraints) {   // Reinitialize status for all constraints
         c->reinitialize();
-        assert(c->status() == UNDEF);
     }
 }
 
@@ -470,8 +475,8 @@ void Solver::backtrack(bool isFull) {
 
     unassignedVariables.add(assigned);   // Unassign decision variable
     decisionVariables.add(assigned);
-    for(Constraint *c : assigned->constraints)   // those constraints have to knwon
-        c->unassignVariable(assigned);
+    for(auto &pair : assigned->constraints)   // those constraints have to knwon
+        pair.first->unassignVariable(assigned, pair.second, v);
     if(assigned->size() > 1)
         wrongDecisions++;
     notifyDeleteDecision(assigned, v, isFull);
@@ -538,7 +543,7 @@ Variable *Solver::pickInQueue() {   // Select the variable with the smallest dom
     int       minDomain = INT_MAX;
     Variable *x         = nullptr;
     if(queue.size() > 100) {
-        Variable *x = queue[queue.size() - 1];
+        x = queue[queue.size() - 1];
         queue.del(x);
         return x;
     }
@@ -567,7 +572,7 @@ bool Solver::filterConstraint(Cosoco::Constraint *c, Cosoco::Variable *x) {
     c->timestamp = ++timestamp;
 
     doProfiling && profiling->beforeConstraintCall(c);
-    bool noConflict = c->filterFrom(x);
+    bool noConflict = c->filter(x);
     doProfiling && profiling->afterConstraintCall(c, nbDeletedValuesByAVariable);
 
     if(noConflict == false) {   // Inconsistent
@@ -597,25 +602,23 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         while(queue.size() > 0) {
             Variable *x = pickInQueue();
             assert(x->size() > 0);
-
-
-            for(Constraint *c : x->constraints) {
+            for(auto &pair : x->constraints) {
+                Constraint *c = pair.first;
                 if(c->isDisabled)
                     continue;
                 if(x->timestamp > c->timestamp && isEntailed(c) == false) {
-                    if(c->postpone()) {   // Postpone the filtering of these constraints
-                        postponeFiltering.insert(c);
+                    if(c->postpone()) {
+                        // Postpone the filtering of these constraints
+                        postponeFiltering.add(c->idc);
                         c->postponedBy = x;
                         continue;
                     }
-
 
                     if(filterConstraint(c, x) == false)
                         return c;
                 }
             }
         }
-
         // Nogood filtering
         while(queue4Nogoods.isEmpty() == false) {
             int idx = queue4Nogoods.pop();
@@ -633,8 +636,8 @@ Constraint *Solver::propagate(bool startWithSATEngine) {
         }
 
         // Filter postponed constraints
-        for(auto *c : postponeFiltering) {
-            // std::cout << "post" << c->type << std::endl;
+        for(int idc : postponeFiltering) {
+            Constraint *c = problem.constraints[idc];
             if(filterConstraint(c, c->postponedBy) == false)
                 return c;
         }
@@ -658,8 +661,6 @@ Constraint *Solver::propagateComplete() {
     return propagate();
 }
 
-
-bool Solver::isGACGuaranted() { return false; }
 
 //----------------------------------------------------------
 // Variable modifications : assign/remove values from domain

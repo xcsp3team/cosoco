@@ -25,7 +25,9 @@ bool SumGE::filter(Variable *dummy) {
     }
     if(max < limit)
         return false;
-
+    if(limit <= max - maxGap)
+        return true;
+    
     for(int posx : unassignedVariablesIdx) {
         Variable *x     = scope[posx];
         long      coeff = coefficients[posx];
@@ -71,19 +73,18 @@ bool SumGE::filter(Variable *dummy) {
 }
 
 
-void SumGE::computeBounds() {
-    min = max = 0;
-    for(int i = 0; i < scope.size(); i++) {
-        Variable *x     = scope[i];
+void SumIncremental::computeBounds() {
+    min = fixed;
+    max = fixed;
+    for(int posx : unassignedVariablesIdx) {
+        Variable *x     = scope[posx];
         long      xmin  = x->minimum();
         long      xmax  = x->maximum();
-        long      coeff = coefficients[i];
+        long      coeff = coefficients[posx];
         min += coeff * (coeff >= 0 ? xmin : xmax);
         max += coeff * (coeff >= 0 ? xmax : xmin);
     }
 }
-
-
 //----------------------------------------------
 // Objective constraint
 //----------------------------------------------
@@ -108,11 +109,24 @@ long SumGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
 //----------------------------------------------
 
 
-SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, vars, coefs, l) {
+SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIncremental(p, vars, coefs, l) {
     leftmostPositiveCoefficientPosition = coefficients.size();
     for(int i = coefficients.size() - 1; i >= 0; i--) {
         if(coefficients[i] < 0)
             break;
         leftmostPositiveCoefficientPosition = i;
     }
+    type = "SumGE";
+}
+
+void SumIncremental::assignVariable(Variable *x, int posx) {
+    Constraint::assignVariable(x, posx);
+    long coeff = coefficients[posx];
+    fixed += coeff * x->value();
+}
+
+void SumIncremental::unassignVariable(Variable *x, int posx, int v) {
+    Constraint::unassignVariable(x, posx, v);
+    long coeff = coefficients[posx];
+    fixed -= coeff * v;
 }

@@ -57,7 +57,7 @@ bool SumNE::filterUniqueNonSingletonVariable(int posx) {
     Variable *x   = scope[posx];
     long      sum = computeSumExceptPos(posx);
 
-    for(int idv : reverse(x->domain))
+    for(int idv : x->domain)
         if(sum + x->domain.toVal(idv) * coefficients[posx] == limit)
             return solver->delIdv(x, idv);   // Only one value can be removed
     return true;
@@ -69,4 +69,6 @@ bool SumNE::filterUniqueNonSingletonVariable(int posx) {
 //----------------------------------------------
 
 SumNE::SumNE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l)
-    : Sum(p, vars, coefs, l), watchedPosition1(-1), watchedPosition2(-1) { }
+    : Sum(p, vars, coefs, l), watchedPosition1(-1), watchedPosition2(-1) {
+    type = "SumNE";
+}

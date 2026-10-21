@@ -56,7 +56,7 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
         return false;
 
 
-    for(int idv : reverse(value->domain)) {
+    for(int idv : value->domain) {
         int v = value->domain.toVal(idv);
         if(sentinels[idv] == nullptr || sentinels[idv]->containsValue(v) == false) {
             Variable *s = findNewSentinelFor(v, nullptr);

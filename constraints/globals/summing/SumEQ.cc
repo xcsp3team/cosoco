@@ -35,22 +35,13 @@ bool Sum::isCorrectlyDefined() {
 
 
 bool SumEQ::filter(Variable *dummy) {
-    long min = 0, max = 0;
-    for(int i = 0; i < scope.size(); i++) {
-        long c    = coefficients[i];
-        int  vmin = scope[i]->minimum();
-        int  vmax = scope[i]->maximum();
-        if(c >= 0) {
-            min += vmin * c;
-            max += vmax * c;
-        } else {
-            min += vmax * c;
-            max += vmin * c;
-        }
-    }
+    computeBounds();
     if(min > limit || max < limit)
         return false;
     int positionOfLastChange = -1;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
     while(true) {
         for(int i = 0; i < scope.size(); i++) {
             if(i == positionOfLastChange) {
@@ -69,7 +60,7 @@ bool SumEQ::filter(Variable *dummy) {
                 min -= x->maximum() * c;
                 max -= x->minimum() * c;
             }
-            for(int idv : reverse(x->domain)) {
+            for(int idv : x->domain) {
                 int v = x->domain.toVal(idv);
                 if(max + v * c < limit && solver->delIdv(x, idv) == false)
                     return false;
@@ -89,7 +80,8 @@ bool SumEQ::filter(Variable *dummy) {
         if(positionOfLastChange == -1)
             break;
     }
-
+    if(min == limit)
+        solver->entail(this);
     return true;
 }
 
@@ -98,4 +90,4 @@ bool SumEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-SumEQ::SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, vars, coefs, l) { }
+SumEQ::SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIncremental(p, vars, coefs, l) { type = "SumEQ"; }

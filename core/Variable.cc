@@ -18,7 +18,7 @@ void Variable::delayedConstruction(int id, int nbVars) {
 }
 
 
-void Variable::addConstraint(Constraint *c) { constraints.push(c); }
+void Variable::addConstraint(Constraint *c, int posx) { constraints.push({c, posx}); }
 
 
 // Delete Methods
@@ -48,9 +48,9 @@ void Variable::delValuesLE(int min, int lvl) {
 void Variable::display(bool allDetails) {
     printf("Variable %s\n", name());
     if(allDetails)
-        for(Constraint *c : constraints) {
+        for(auto &pair : constraints) {
             printf("     ");
-            c->display(true);
+            pair.first->display(true);
         }
     printf("     ");
     domain.display();

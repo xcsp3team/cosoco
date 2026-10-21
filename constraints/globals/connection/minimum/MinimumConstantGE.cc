@@ -5,11 +5,6 @@
 using namespace Cosoco;
 
 
-State MinimumConstantGE::status() { return done ? CONSISTENT : UNDEF; }
-
-
-void MinimumConstantGE::reinitialize() { done = false; }
-
 //----------------------------------------------
 // Check validity
 //----------------------------------------------
@@ -31,6 +26,5 @@ bool MinimumConstantGE::filter(Variable *dummy) {
     for(auto &x : scope)
         if(solver->delValuesLE(x, k - 1) == false)
             return false;
-    solver->entail(this);
-    return true;
+    return solver->entail(this);
 }

@@ -21,9 +21,9 @@ class Matcher : public ObserverDeleteDecision {
     int                *val2var, *var2val;
     int                 arity;
     vec<int>            unmatched;
+    vec<int>            stack;
     SparseSetMultiLevel unfixed;
-    int                *predBFS;   // predBFS[idx] is the predecessor of variable x in the current BFS
-    std::queue<int>     queueBFS;
+    int                *predBFS;     // predBFS[idx] is the predecessor of variable x in the current BFS
     long               *visitTime;   // visitTime[n] is the time of the last visit (DFS) to node n (variable or value or T)
     long                time;        // For stamping
 

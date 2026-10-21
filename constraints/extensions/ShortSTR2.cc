@@ -41,7 +41,7 @@ bool ShortSTR2::filter(Variable *dummy) {
     int level   = solver->decisionLevel();
     if(level > 0) {
         Variable *last = solver->decisionVariableAtLevel(level);
-        posLast        = toScopePosition(last->idx);
+        posLast        = variablePosition.toScopePosition(last->idx);
         if(posLast != NOTINSCOPE)
             Sval.add(posLast);
     }
@@ -138,6 +138,8 @@ ShortSTR2::ShortSTR2(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromO
 
 void ShortSTR2::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
+
     for(Variable *x : scope) gacIdValues.push(new SparseSet(x->domain.maxSize()));
     validTuples.setCapacity(tuples->nrows(), true);
 }
