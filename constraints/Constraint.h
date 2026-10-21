@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include "XCSP3Tree.h"
 #include "core/Problem.h"
@@ -15,7 +16,6 @@
 #define NOTINSCOPE -1
 namespace Cosoco {
 
-enum State { CONSISTENT, INCONSISTENT, UNDEF };
 
 class Problem;
 
@@ -24,11 +24,21 @@ class Variable;
 class Solver;
 typedef vec<Variable *> vecVariables;
 
+
+class VariablePositionInConstraint {
+   protected:
+    std::unordered_map<int, int> idxToScopePositionMap;
+
+
+   public:
+    void makeDelayedConstruction(Constraint *c);
+    int  toScopePosition(int idx);
+};
+
+
 class Constraint {
    protected:
-    vec<int>           idxToScopePositionArray;
-    std::map<int, int> idxToScopePositionMap;
-    int                arity;
+    int arity;
 
 
    public:
@@ -60,21 +70,17 @@ class Constraint {
     void         makeDelayedConstruction(int id);
     // Filtering method, return false if a conflict occurs
     bool filterFrom(Variable *x);   // the function called when the constraint need to be filtered
-    bool postpone();
+    bool postpone() const;
+    int  getLevelOfLastRemovedValueInScope();
 
-   protected:
-    virtual bool filter(Variable *x) = 0;   // Called by all constraints. protected because call is done by filterFrom
 
    public:
-    virtual State status();         // Override this method if it is known when CONSISTENT / INCONSISTENT
-    virtual void  reinitialize();   // The constraint must be reinitialized (after a full backtrak)
+    virtual void reinitialize();            // The constraint must be reinitialized (after a full backtrak)
+    virtual bool filter(Variable *x) = 0;   // Filter the constraint
 
     // Assign and unassign variables
-    void assignVariable(Variable *x);
-    void unassignVariable(Variable *x);
-
-    // map idx variable to scope position
-    int toScopePosition(int idx);
+    virtual void assignVariable(Variable *x, int posx);
+    virtual void unassignVariable(Variable *x, int posx, int v);
 
 
     // Check tuple validity

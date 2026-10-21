@@ -51,6 +51,11 @@ class SparseSetMultiLevel : public SparseSet {
             recordLimit(level);
         SparseSet::add(k);
     }
+
+    void clear() override {
+        SparseSet::clear();
+        limits.fill(NOT_STORED);
+    }
 };
 };   // namespace Cosoco
 

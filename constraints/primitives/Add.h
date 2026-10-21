@@ -21,7 +21,7 @@ class Lt : public Binary {
 };
 
 class Add3 : public Ternary {
-    static bool tooLarge(int size1, int size2) { return size1 > 1 && size2 > 1 && size1 * static_cast<double>(size2) > 1000000; }
+    static bool tooLarge(int size1, int size2) { return size1 > 1 && size2 > 1 && size1 * static_cast<double>(size2) > 10000; }
 
     vec<int> rx;
     vec<int> ry;

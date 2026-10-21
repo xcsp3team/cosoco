@@ -24,7 +24,7 @@ vec<AbstractSolver *> solvers;
 bool   optimize = false;
 double realTimeStart;
 
-string version("2.6");
+string version("2.6.1");
 
 void displayProblemStatistics(Problem *solvingProblem, double initial_time);
 
@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
         }
 
         if(options::intOptions["dsp"].value == 1) {
-            execlp("python3", "python3", "structure.py", argv[1], NULL);
-            exit(1);
+            std::string cmd = "python3 structure.py \"" + std::string(argv[1]) + "\"";
+            system(cmd.c_str());
         }
         if(options::intOptions["dsp"].value == 2) {
             execlp("more", "more", argv[1], NULL);
@@ -107,6 +107,11 @@ int main(int argc, char **argv) {
             parser.parse(argv[1]);   // parse the input file
             solvingProblems.push(callbacks[0].problem);
             optimize = callbacks[0].optimizationProblem;
+            if(optimize && options::intOptions["nbsols"].value != 1) {
+                std::cout << "nbsols can only be used with satisfaction problems\n";
+                exit(1);
+            }
+
             mem_used = (int)(memUsed() * 1.2);   // Suppose 20% for solver
             if(nbcores > 1 && mem_lim > 0) {
                 if(nbcores > mem_lim / mem_used) {
@@ -149,7 +154,7 @@ int main(int argc, char **argv) {
             S->seed = S->seed * (core + 1);
             if(optimize) {
                 auto *optimizer           = new Optimizer(*solvingProblems[core]);
-                S->displaySolution        = false;
+                S->displaySolution        = 0;
                 optimizer->invertBestCost = callbacks[0].invertOptimization;
                 optimizer->setSolver(S, solution);
 
@@ -169,7 +174,8 @@ int main(int argc, char **argv) {
 
 
         displayProblemStatistics(solvingProblems[0], initial_time);
-
+        if(options::intOptions["dsp"].value == 1)
+            exit(1);
 
         if(nbcores == 1)
             solver = solvers[0];
@@ -185,7 +191,7 @@ int main(int argc, char **argv) {
 
         // --------------------------- SOLVE ----------------------------------------
 
-        int returnCode = solver->solve();
+        RESULT returnCode = solver->solve();
         colorize(termcolor::bright_green, options::boolOptions["colors"].value);
         printf(returnCode == R_OPT     ? "s OPTIMUM FOUND\n"
                : returnCode == R_UNSAT ? "s UNSATISFIABLE\n"
@@ -197,7 +203,9 @@ int main(int argc, char **argv) {
         printStats(solvers[0]);
         printf("\n");
 
-        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution())
+        // Not after an enumeration: the search has already displayed every solution.
+        if(returnCode != R_UNSAT && returnCode != R_UNKNOWN && options::intOptions["model"].value && solver->hasSolution() &&
+           (options::intOptions["nbsols"].value == 1 || optimize))
             solver->displayCurrentSolution(options::intOptions["model"].value);
 
 

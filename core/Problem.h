@@ -25,6 +25,7 @@ class Problem {
     vec<vec<Variable *> >    variablesArray;        // The different arrays of Variables
     bool                     isConstructionDone;    // true if the construction of the problem is done
     bool                     isBinary;              // Not currently used
+    bool                     isUnsatisfiable;       // true if a constraint is always false (see buildConstraintFalse)
     int                      nbExtensionsSharded;   // nb extension constraints shared
     int                      nbOriginalVars;        // The number of original vars in the model
     std::map<std::string, Variable *>

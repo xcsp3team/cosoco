@@ -8,7 +8,7 @@ using namespace std;
 using namespace Cosoco;
 
 
-Problem::Problem(std::string n) : name(n), isConstructionDone(false) { }
+Problem::Problem(std::string n) : name(n), isConstructionDone(false), isUnsatisfiable(false) { }
 
 
 void Problem::delayedConstruction() {
@@ -143,6 +143,8 @@ long Problem::nbValues() {
 }
 
 int Problem::minimumArity() {
+    if(constraints.size() == 0)
+        return -1;
     int tmp = constraints[0]->scope.size();
     for(Constraint *c : constraints)
         if(c->scope.size() < tmp)

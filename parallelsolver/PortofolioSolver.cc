@@ -62,16 +62,17 @@ void ParallelSolver::displayCurrentSolution(int verbosity) {
 PortofolioSolver::PortofolioSolver(Problem &p, bool optimize) : ParallelSolver(p, optimize) { }
 
 
-int PortofolioSolver::solve(vec<RootPropagation> &assumps) {
+RESULT PortofolioSolver::firstCall() {
     diversifySolvers();
+    return R_UNKNOWN;
+}
 
+RESULT PortofolioSolver::search() {
+    for(auto solver : solvers) group->add([=]() { return solver->solve(); });
 
-    for(auto solver : solvers) {
-        group->add([=]() { return solver->solve(); });
-    }
-
-    group->start();         // Start the tasks
-    return group->wait();   // Wait that one task is finished
+    group->start();            // Start the tasks
+    int tmp = group->wait();   // Wait that one task is finished
+    return static_cast<RESULT>(tmp);
 }
 
 
@@ -99,7 +100,6 @@ void PortofolioSolver::diversifySolvers() {
                 solver->heuristicVal = new HeuristicValRandom(*solver);
             if(core == 4)
                 solver->heuristicVal = new HeuristicValRoundRobin(*solver, "FLR");
-            ;
         }
         if(o == nullptr && core % 2 == 0)   // Stick - no stick
             solver->addStickingValue();

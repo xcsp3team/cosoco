@@ -2,13 +2,17 @@
 
 #include "DomainSmallValues.h"
 #include "constraints/primitives/BasicNodes.h"
-
 using namespace Cosoco;
 
 bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &parameters) {
     for(Node *n : parameters) {
-        if(n->type == OVAR)
+        if(n->type == OVAR) {
+            auto     *nv = dynamic_cast<NodeVariable *>(n);
+            Variable *x  = problem->mapping[nv->var];
+            if(x->minimum() != 0 || x->maximum() != 1)
+                return false;
             continue;
+        }
         if(n->type == ONOT && n->parameters[0]->type == OVAR)
             continue;
         if(n->type == OLE && n->parameters[0]->type == OVAR && n->parameters[1]->type == ODECIMAL)
@@ -23,6 +27,26 @@ bool CosocoCallbacks::matchParams(const std::vector<XCSP3Core::Node *> &paramete
     return true;
 }
 
+static bool isSatisfiedBy(XCondition &xc, int v) {
+    if(xc.operandType == INTERVAL)
+        return (xc.min <= v && v <= xc.max) == (xc.op == IN);
+    if(xc.operandType == SET)
+        return (std::find(xc.set.begin(), xc.set.end(), v) != xc.set.end()) == (xc.op == IN);
+    switch(xc.op) {
+        case LE:
+            return v <= xc.val;
+        case LT:
+            return v < xc.val;
+        case GE:
+            return v >= xc.val;
+        case GT:
+            return v > xc.val;
+        case EQ:
+            return v == xc.val;
+        default:
+            return v != xc.val;
+    }
+}
 
 void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable *> &vars, vec<Cosoco::BasicNode *> &nodes) {
     for(Node *n : parameters) {
@@ -139,12 +163,14 @@ void CosocoCallbacks::buildVariableInteger(string id, vector<int> &values) {
                                     inArray ? problem->variablesArray.size() - 1 : -1);
 
     }*/
-    if(max - min < 1000)
-        x = problem->createVariable(id, *(new DomainSmallValue(vector2vec(values))),
-                                    inArray ? problem->variablesArray.size() - 1 : -1);
-    else
-        x = problem->createVariable(id, *(new DomainValue(vector2vec(values))),
-                                    inArray ? problem->variablesArray.size() - 1 : -1);
+    if(max - min < 1000) {
+        buildVariableInteger(id, values[0], values[values.size() - 1]);
+        Variable *x = problem->variables.last();
+        FactoryConstraints::createConstraintUnary(problem, x, vector2vec(values), true);
+        return;
+    }
+
+    x = problem->createVariable(id, *(new DomainValue(vector2vec(values))), inArray ? problem->variablesArray.size() - 1 : -1);
     if(inArray == 1) {
         int dim = (int)std::count(id.begin(), id.end(), '[');
         for(int i = 0; i < dim; i++) arrayName += "[]";
@@ -208,6 +234,10 @@ void CosocoCallbacks::beginObjectives() { startToParseObjective = true; }
 // Basic constraints
 //--------------------------------------------------------------------------------------
 
+void CosocoCallbacks::buildConstraintFalse(string id) {
+    std::cout << "c constraint " + id + " is always false (see during parsing)\n";
+    problem->isUnsatisfiable = true;
+}
 
 void CosocoCallbacks::buildConstraintExtension(string id, vector<XVariable *> list, vector<vector<int>> &origTuples, bool support,
                                                bool hasStar) {
@@ -578,6 +608,12 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
 
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, vector<int> &origcoeffs, XCondition &xc) {
+    if(list.empty() && xc.operandType != VARIABLE) {   // All the terms cancel out (see normalizeSum): the sum is 0
+        if(isSatisfiedBy(xc, 0))
+            return;
+        buildConstraintFalse(id);
+        return;
+    }
     vars.clear();
     toMyVariables(list, vars);
     buildConstraintSum(id, vars, origcoeffs, xc);
@@ -1018,13 +1054,12 @@ void CosocoCallbacks::buildConstraintMaximum(string id, vector<XVariable *> &lis
     }
 
     if(xc.operandType == INTEGER) {
+        toMyVariables(list, vars);
         if(xc.op == LE || xc.op == LT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMaximumLE(problem, vars, xc.op == LE ? xc.val : xc.val - 1);
             return;
         }
         if(xc.op == GE || xc.op == GT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMaximumGE(problem, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
@@ -1052,13 +1087,12 @@ void CosocoCallbacks::buildConstraintMinimum(string id, vector<XVariable *> &lis
     }
 
     if(xc.operandType == INTEGER) {
+        toMyVariables(list, vars);
         if(xc.op == LE || xc.op == LT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMinimumLE(problem, vars, xc.op == LE ? xc.val : xc.val - 1);
             return;
         }
         if(xc.op == GE || xc.op == GT) {
-            toMyVariables(list, vars);
             FactoryConstraints::createConstraintMinimumGE(problem, vars, xc.op == GE ? xc.val : xc.val + 1);
             return;
         }
@@ -1445,7 +1479,13 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
             Variable *xj = problem->mapping[origins[j]->id];
             Variable *wi = problem->mapping[lengths[i]->id];
             Variable *wj = problem->mapping[lengths[j]->id];
-            FactoryConstraints::createConstraintDisjunctiveVars(problem, xi, xj, wi, wj);
+            if((wi->minimum() == 0 || wj->minimum() == 0) && zeroIgnored) {
+                string tmp = "or(eq(" + wi->_name + ",0),eq(" + wj->_name + ",0),le(add(" + xi->_name + "," + wi->_name + ")," +
+                             xj->_name + "),le(add(" + xj->_name + "," + wj->_name + ")," + xi->_name + "))";
+                manageIntension->intension(id, new Tree(tmp));
+            } else {
+                FactoryConstraints::createConstraintDisjunctiveVars(problem, xi, xj, wi, wj);
+            }
         }
 }
 

@@ -58,13 +58,12 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
 
 
 bool Matcher::findMatchingFor(int x) {
-    std::stack<int> stack;
-    assert(stack.size() == 0);
+    stack.clear();
     time++;
     predBFS[x] = -1;
     stack.push(x);
-    while(!stack.empty()) {
-        int y = stack.top();
+    while(stack.size() > 0) {
+        int y = stack.last();
         stack.pop();
         // std::cout << "y=" << y << std::endl;
         for(int a : scope[y]->domain) {

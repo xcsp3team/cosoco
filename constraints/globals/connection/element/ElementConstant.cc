@@ -27,7 +27,7 @@ bool ElementConstant::filter(Variable *dummy) {
     }
 
     if(index->size() > 1) {   // checking that the values of index are still valid
-        for(int idv : reverse(index->domain)) {
+        for(int idv : index->domain) {
             int v = index->domain.toVal(idv);
             if(getVariableFor(v)->containsValue(result) == false && solver->delVal(index, v) == false)
                 return false;

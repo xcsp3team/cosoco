@@ -51,25 +51,24 @@ void Optimizer::setSolver(Solver *s, Solution *solution) {
         addProgressSaving();
 }
 
-
-int Optimizer::solve(vec<RootPropagation> &assumps) {
+RESULT Optimizer::firstCall() {
     if(solver == nullptr)
         throw std::runtime_error("Solver is not attached to the optimizer!");
-    return solveInOneDirection(assumps);
+    // Bounds are correctly initialized
+    solver->checkSolution = true;
+
+    return R_UNKNOWN;
 }
 
-
-int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
-    // Bounds are correctly initialized
-    bool noFullRestartAfterSolution = options::boolOptions["nr"].value;
-    firstCall                       = true;
+RESULT Optimizer::search() {
+    bool                 noFullRestartAfterSolution = options::boolOptions["nr"].value;
+    bool                 first                      = true;
     vec<int>             tuple;
     ObjectiveConstraint *objective           = (optimtype == Minimize) ? objectiveUB : objectiveLB;
     auto                 objectiveConstraint = dynamic_cast<Constraint *>(objective);
     assert(objective != nullptr);
     status = RUNNING;
 
-    solver->checkSolution = true;
     while(status == RUNNING) {
         if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
             best = bestSolution->originalBound();
@@ -80,14 +79,13 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 lower = best + 1;
             solver->stopSearch = true;
         }
-
         if(optimtype == Minimize)
             objective->updateBound(upper);
         else
             objective->updateBound(lower);
 
         solver->stopSearch = false;
-        solver->solve(assumps);
+        solver->solve();
 
         objectiveConstraint->isDisabled = false;   // Enable the objective
 
@@ -97,14 +95,11 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
         callToSolver++;
         if(solver->hasASolution()) {
             nbSolutions++;
-            firstCall = false;
-
             if(solver->restart != nullptr)
                 solver->restart->initialize();
 
             objectiveConstraint->extractConstraintTupleFromInterpretation(solver->lastSolution, tuple);
             best = objective->computeScore(tuple);
-            // verbose.log(NORMAL, "c core %d: new best %ld\n", core, best);
 
             //   Store solution in order to avoid a signal
             bestSolution->begin(best);
@@ -116,7 +111,7 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
                 vec<int> idvalues;
                 idvalues.growTo(solver->problem.nbVariables());
                 for(Variable *x : solver->problem.variables) idvalues[x->idx] = solver->problem.variables[x->idx]->domain[0];
-                ((ForceIdvs *)solver->heuristicVal)->setIdValues(idvalues);
+                dynamic_cast<ForceIdvs *>(solver->heuristicVal)->setIdValues(idvalues);
             }
 
 
@@ -125,23 +120,19 @@ int Optimizer::solveInOneDirection(vec<RootPropagation> &assumps) {
             else
                 lower = best + 1;
             if(noFullRestartAfterSolution) {   // Do not completely restart after a solution
-                int bestLevel = -1;
-                for(Variable *x : objectiveConstraint->scope) {
-                    if(x->domain.lastRemovedLevel() > bestLevel)
-                        bestLevel = x->domain.lastRemovedLevel();
-                }
-                // std::cout << "best : " << bestLevel << std::endl;
+                int bestLevel = objectiveConstraint->getLevelOfLastRemovedValueInScope();
+                std::cout << "best : " << bestLevel << std::endl;
                 solver->backtrack(bestLevel - 1 >= 0 ? bestLevel - 1 : 0);
+                for(Variable *x : objectiveConstraint->scope) solver->addToQueue(x);
             } else {
-                solver->fullBacktrack();
-                solver->reinitializeConstraints();
+                solver->_firstCall = true;
             }
         } else {
             status = OPTIMUM;
-            if(firstCall && hasSolution() == false)
+            if(first && hasSolution() == false)
                 return R_UNSAT;
         }
-        firstCall = false;
+        first = false;
     }
     if(nbSolutions > 0)
         return R_OPT;

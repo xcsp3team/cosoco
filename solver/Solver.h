@@ -4,12 +4,9 @@
 #include <solver/observers/ObserverDomainReduction.h>
 #include <solver/restarts/Restart.h>
 
-#include <set>
-
 #include "AbstractSolver.h"
 #include "Profiling.h"
 #include "Solution.h"
-#include "core/Problem.h"
 #include "heuristics/values/HeuristicVal.h"
 #include "heuristics/variables/HeuristicVar.h"
 #include "mtl/SparseSetCounter.h"
@@ -19,7 +16,6 @@
 #include "nogoods/NoGoodsEngine.h"
 #include "observers/ObserverConflict.h"
 #include "observers/ObserverDecision.h"
-#include "restarts/Restart.h"
 
 namespace Cosoco {
 #define NBSTATS 3
@@ -57,8 +53,8 @@ class Solver : public AbstractSolver {
 
 
     // -- Minor fields ----------------------------------------------------------------------
-    double    seed = 91648253;   // A seed value
-    bool      displaySolution;
+    double    seed = 91648253;                  // A seed value
+    int       displaySolution;                  // verbosity level for solutions (0: none, see option 'model')
     bool      checkSolution = true;             // Check solution or not
     int       nbDeletedValuesByAVariable;       // count the number of deleted values by a filtering on one variable
     Solution *optimizationSolution = nullptr;   // Used to display best bound during the search.
@@ -78,12 +74,12 @@ class Solver : public AbstractSolver {
     HeuristicVal *heuristicVal;        // The heuristic to choose values
     Restart      *restart = nullptr;   // The restart strategy
     // -- Propagations ----------------------------------------------------------------------
-    SparseSetOfVariables   queue;                       // Propagation queue
-    SparseSet              queue4Nogoods;               // The queue for nogood propagation (postpone nogoods prop)
-    int                    smallest_in_queue;           // Smallest domain size in queue
-    Constraint            *currentFilteredConstraint;   // The constraint that is filtered
-    vec<PickVariables>     pickVariables;               // The set of picking variables history
-    std::set<Constraint *> postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
+    SparseSetOfVariables queue;                       // Propagation queue
+    SparseSet            queue4Nogoods;               // The queue for nogood propagation (postpone nogoods prop)
+    int                  smallest_in_queue;           // Smallest domain size in queue
+    Constraint          *currentFilteredConstraint;   // The constraint that is filtered
+    vec<PickVariables>   pickVariables;               // The set of picking variables history
+    SparseSet            postponeFiltering;           // The filtering of these constraints is postponed after the fixed point
     // -- Observers ----------------------------------------------------------------------
     vec<ObserverConflict *>        observersConflict;          // Classes listen for conflict
     vec<ObserverNewDecision *>     observersNewDecision;       // Classes listen for decisions
@@ -111,9 +107,9 @@ class Solver : public AbstractSolver {
     // Main methods
     // --------------------------------------------------------------------------------------
 
-    int  solve(vec<RootPropagation> &assumps) override;   // The main function
-    int  search(vec<RootPropagation> &assumps);           // The search function
-    bool manageSolution();                                // Return true if the search is finished
+    RESULT firstCall() override;
+    RESULT search() override;                     // The main function
+    bool   manageSolution(int &backtrackLevel);   // Return true if the search is finished.
 
     // --------------------------------------------------------------------------------------
     // Decision methods
@@ -145,13 +141,12 @@ class Solver : public AbstractSolver {
     Constraint *propagate(bool startWithSATEngine = false);   // Propagate the Queue
     bool        filterConstraint(Constraint *c, Variable *x);
     Constraint *propagateComplete();   // fill the queue and propagate everything
-    bool        isGACGuaranted();      // Return true if GAC is ensured
 
     bool entail(Constraint *c) {
         entailedConstraints.add(c->idc, decisionLevel());
         return true;   //
     }
-    bool isEntailed(Constraint *c) { return entailedConstraints.contains(c->idc); }
+    bool isEntailed(Constraint *c) const { return entailedConstraints.contains(c->idc); }
     // --------------------------------------------------------------------------------------
     // Domain variable modifications (add/remove values)
     // --------------------------------------------------------------------------------------
@@ -200,13 +195,13 @@ class Solver : public AbstractSolver {
     // minor methods
     // --------------------------------------------------------------------------------------
 
-    virtual void displayCurrentSolution(int verbosity) override;
-    virtual void printFinalStats() override;   // The final stats to print
+    void displayCurrentSolution(int verbosity) override;
+    void printFinalStats() override;   // The final stats to print
 
     void displayHeaderCurrentSearchSpace();
     void displayCurrentSearchSpace();
 
-    uint64_t globalTimestamps() { return conflicts + decisions + nodes; }
+    uint64_t globalTimestamps() const { return conflicts + decisions + nodes; }
     void     updateStatisticsWithNewConflict();
     bool     hasASolution() { return lastSolution.size() > 0; }
     void     displayTrail();
