@@ -53,6 +53,7 @@ class Problem {
     int  minimumTuplesInExtension();
     int  minimumDomainSize();
     int  maximumDomainSize();
+    int  nbOptimizedDomains();
     void nbTypeOfConstraints(std::map<std::string, int> &);
 
 

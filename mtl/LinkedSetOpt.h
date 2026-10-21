@@ -7,7 +7,7 @@
 #include "LinkedSet.h"
 
 namespace Cosoco {
-
+/*
 struct Slice {
     Slice(bool left_side, int idx, int a, int bound, int size, int level)
         : leftSide(left_side), idx(idx), a(a), bound(bound), size(size), level(level) { }
@@ -51,9 +51,10 @@ class LinkedSetOpt : public LinkedSet {
    public:
     LinkedSetOpt(int sz, bool full) : LinkedSet(sz, full) { }
 
-    bool contains(const int idv) const override { return insideBounds(idv) && contains(idv); }
+    bool contains(const int idv) const override { return insideBounds(idv) && LinkedSet::contains(idv); }
 
     void reduceTo(int a, int level) override {
+        assert(contains(a));
         delValuesGE(a + 1, level);
         delValuesLE(a - 1, level);
     }
@@ -144,7 +145,7 @@ class LinkedSetOpt : public LinkedSet {
         }
     }
 
-    virtual int lastRemovedLevel() override {
+    int lastRemovedLevel() override {
         if(removedStack.size() == -1)
             return -1;
         int k = removedStack.last();
@@ -167,5 +168,6 @@ class LinkedSetOpt : public LinkedSet {
         return k;
     }
 };
+*/
 }   // namespace Cosoco
 #endif   // COSOCO_LINKEDSETOPT_H
