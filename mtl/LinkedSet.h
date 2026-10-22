@@ -222,7 +222,7 @@ class LinkedSet {
     void delValuesLE(int minId, int level) {
         if(minId == _first)
             return del(minId, level);
-        // std::cout << minId << " " << _first << std::endl;
+        // std::cout << _first << " " << minId << std::endl;
 
         assert(_first < minId && minId <= _last);
 
@@ -326,7 +326,7 @@ class LinkedSet {
 
 
     int lastRemovedLevel() {
-        if(removed.size() == -1)
+        if(removed.size() == 0)
             return -1;
         int k = removed.last();
         if(k == -1)
@@ -360,7 +360,7 @@ class LinkedSet {
         while(removed.size() > 0 && lastRemovedLevel() >= level) restoreTop();
     }
 
-    
+
     // Display method
     void display() {
         printf("[");
