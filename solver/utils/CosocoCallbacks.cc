@@ -576,7 +576,7 @@ void CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariabl
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) {
     bool sumboolean = true;
-    if(xc.operandType == INTEGER && xc.op == EQ) {
+    if(xc.operandType == INTEGER && (xc.op == EQ || xc.op == LE || xc.op == GE)) {
         toMyVariables(list);
         for(Variable *x : vars)
             if(x->minimum() != 0 || x->maximum() != 1) {
