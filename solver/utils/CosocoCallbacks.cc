@@ -600,6 +600,18 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
         }
     }
 
+    if(xc.operandType == INTERVAL) {
+        toMyVariables(list);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.min, GE);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.max, LE);
+        return;
+    }
+
+    if(xc.operandType == INTEGER && xc.op != NE && xc.op != EQ && xc.op != IN && xc.op != NOTIN) {
+        toMyVariables(list);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.val, xc.op);
+        return;
+    }
 
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
@@ -738,9 +750,7 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCond
         }
     }
 
-    vector<int> coeffs;
-    coeffs.assign(trees.size(), 1);
-    buildConstraintSum(id, trees, coeffs, cond);
+    buildConstraintSum(id, trees, cond);
 }
 
 

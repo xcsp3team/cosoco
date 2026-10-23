@@ -35,6 +35,7 @@
 #include "Precedence.h"
 #include "Reification.h"
 #include "SumBoolean.h"
+#include "SumLE.h"
 #include "XCSP3Constants.h"
 #include "Xor.h"
 #include "constraints/globals/connection/element/ElementMatrixConstant.h"
@@ -579,6 +580,23 @@ void FactoryConstraints::createConstraintSum(Problem *p, Variable *x, Variable *
 }
 
 
+void FactoryConstraints::createConstraintSumSimple(Problem *p, vec<Variable *> &vars, long l, OrderType order) {
+    if(order == LT) {
+        order = LE;
+        l--;
+    }
+    if(order == GT) {
+        order = GE;
+        l++;
+    }
+    if(order == LE) {
+        p->addConstraint(new SumSimpleLE(*p, vars, l));
+    }
+    if(order == GE) {
+        p->addConstraint(new SumSimpleGE(*p, vars, l));
+    }
+}
+
 void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, vec<Variable *> &coeffs, long l,
                                              OrderType order) {
     if(order == LE) {
@@ -665,16 +683,16 @@ void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, 
 
     switch(order) {
         case OrderType::LE:
-            ctr = new SumGE(*p, vars, coeffs, l);
+            ctr = new SumWeightedGE(*p, vars, coeffs, l);
             break;
         case OrderType::LT:
-            ctr = new SumGE(*p, vars, coeffs, l + 1);
+            ctr = new SumWeightedGE(*p, vars, coeffs, l + 1);
             break;
         case OrderType::GE:
-            ctr = new SumGE(*p, vars, coeffs, l);
+            ctr = new SumWeightedGE(*p, vars, coeffs, l);
             break;
         case OrderType::GT:
-            ctr = new SumGE(*p, vars, coeffs, l + 1);   // TODO
+            ctr = new SumWeightedGE(*p, vars, coeffs, l + 1);   // TODO
             break;
         case OrderType::IN:
             throw runtime_error("This is forbidden to construct a sum with IN operator");
