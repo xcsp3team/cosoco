@@ -90,6 +90,11 @@ class ManageIntension {
 
 
 class CosocoCallbacks : public XCSP3CoreCallbacks {
+   public:
+    void buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<XVariable *> &coefs) override;
+    void buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<XVariable *> &coefs) override;
+
+   private:
     friend class ManageIntension;
 
    protected:
