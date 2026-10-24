@@ -5,7 +5,7 @@
 
 namespace Cosoco {
 
-class SumNE : public Sum {
+class SumNE : public WeightedSum {
    protected:
     int watchedPosition1, watchedPosition2;
 
