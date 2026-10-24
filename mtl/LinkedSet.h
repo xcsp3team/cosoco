@@ -17,57 +17,58 @@ struct Slice {
     int  prevEntry;
 };
 
+const int NOT_STORED = -1;
+/**
+ *prevs
+ * The backward linking of all present elements of the list (from last to first). An array index corresponds to an element. An
+ * array value gives the previous present element of the list or -1 if it does not exist. Hence, <code> prevs[i] == j </code>
+ * means that j is the previous present element in the list before i.
+ */
 
+/**
+ * Next
+ * The forward linking of all present elements of the list (from first to last). An array index corresponds to an element. An
+ * array value gives the next present element of the list or -1 if it does not exist. Hence, <code> nexts[i] == j </code>
+ * means that j is the next present element in the list after i.
+ */
+
+/**
+ * removedLevel
+ * The level at which absent elements have been removed from the list. An array index corresponds to an element. An array
+ * value gives the level at which the corresponding element has been removed from the list. Hence, <code> absentLevels[i] == j
+ * </code> means that j is the removal level of the element i and <code> absentLevels[i] == -1 </code> means that the element
+ * i is present.
+ */
+
+struct LinkedSetNode {
+    int prev, next, removedLevel;
+};
 class LinkedSet {
    protected:
-    int _size;    // The number of elements present
-    int _first;   // The first (present) element of the list.
-    int _last;    // The last (present) element of the list.
+    int  _size;    // The number of elements present
+    int  _first;   // The first (present) element of the list.
+    int  _last;    // The last (present) element of the list.
+    bool isOptimized;
 
-    // Useless but limits the modification in the code, can be usefull if we want to deal with
-    // Different data structures for domains
-    vec<int>  limits;
-    const int NOT_STORED = -1;
+    vec<int> limits;
 
-
-    /**
-     * The backward linking of all present elements of the list (from last to first). An array index corresponds to an element. An
-     * array value gives the previous present element of the list or -1 if it does not exist. Hence, <code> prevs[i] == j </code>
-     * means that j is the previous present element in the list before i.
-     */
-    vec<int> prevs;
+    vec<LinkedSetNode> nodes;
 
     /**
-     * The forward linking of all present elements of the list (from first to last). An array index corresponds to an element. An
-     * array value gives the next present element of the list or -1 if it does not exist. Hence, <code> nexts[i] == j </code>
-     * means that j is the next present element in the list after i.
-     */
-    vec<int> nexts;
-
-
-    /**
+     *removedLevel
      * The stack of removed elements
      */
     vec<int> removed;
-    /**
-     * The level at which absent elements have been removed from the list. An array index corresponds to an element. An array
-     * value gives the level at which the corresponding element has been removed from the list. Hence, <code> absentLevels[i] == j
-     * </code> means that j is the removal level of the element i and <code> absentLevels[i] == -1 </code> means that the element
-     * i is present.
-     */
-    vec<int> removedLevels;
     // ------------------------------------------------------------------------------
     // Structures for the optimized version. No use of subclasses because of cost :(
     // ------------------------------------------------------------------------------
 
-    bool       isOptimized;
     vec<Slice> stackedSlices;
 
     vec<int> prevRemoveds;   //
     vec<int> sliceAt;        //
 
 
-    bool insideBounds(int idv) const { return _first <= idv && idv <= _last; }
     bool isConnex() const { return _last - _first + 1 == _size; }
 
     int newSizeUpto(int a) {
@@ -76,7 +77,7 @@ class LinkedSet {
             return _size - (a - _first + 1);
         // possibly, we can reason from stand-alone removed values if put in a list to compute newSize
         int cnt = 0;
-        for(int b = _first; b != a; b = nexts[b]) cnt++;
+        for(int b = _first; b != a; b = nodes[b].next) cnt++;
         return _size - (cnt + 1);
     }
 
@@ -87,7 +88,7 @@ class LinkedSet {
         // possibly, a) we can reason from stand-alone removed values if put in a list to compute newSize
         // b) one can iterate over the domain at the right or the left of a
         int cnt = 0;
-        for(int b = idv; b != -1; b = nexts[b]) cnt++;
+        for(int b = idv; b != -1; b = nodes[b].next) cnt++;
         return _size - cnt;
     }
 
@@ -95,15 +96,15 @@ class LinkedSet {
         assert(a < maxSize());
 
         // remove from the list of present elements
-        int prev = prevs[a], next = nexts[a];
+        int prev = nodes[a].prev, next = nodes[a].next;
         if(prev == -1)
             _first = next;
         else
-            nexts[prev] = next;
+            nodes[prev].next = next;
         if(next == -1)
             _last = prev;
         else
-            prevs[next] = prev;
+            nodes[next].prev = prev;
         // add to the end of the list of absent elements
         prevRemoveds[a] = lastRemoved();
         removed.push(a);
@@ -113,15 +114,15 @@ class LinkedSet {
     void add() {
         // add to the list the last element removed
         int a    = removed.last();
-        int prev = prevs[a], next = nexts[a];
+        int prev = nodes[a].prev, next = nodes[a].next;
         if(prev == -1)
             _first = a;
         else
-            nexts[prev] = a;
+            nodes[prev].next = a;
         if(next == -1)
             _last = a;
         else
-            prevs[next] = a;
+            nodes[next].prev = a;
         removed.pop();
         _size++;
     }
@@ -143,9 +144,7 @@ class LinkedSet {
         _size  = cap;
         _first = 0;
         _last  = cap - 1;
-        prevs.growTo(cap);
-        nexts.growTo(cap);
-        removedLevels.growTo(cap, -1);
+        nodes.growTo(cap);
         removed.growTo(cap);
         fill();
     }
@@ -153,10 +152,12 @@ class LinkedSet {
     void fill() {
         _first = 0;
         _last  = maxSize() - 1;
-        for(int i = 0; i < prevs.size(); i++) prevs[i] = i - 1;
-        for(int i = 0; i < nexts.size(); i++) nexts[i] = i + 1;
-        nexts.last() = -1;
-        removedLevels.fill(-1);
+        for(int i = 0; i < nodes.size(); i++) {
+            nodes[i].prev         = i - 1;
+            nodes[i].next         = i + 1;
+            nodes[i].removedLevel = -1;
+        }
+        nodes.last().next = -1;
         removed.clear();
         stackedSlices.clear();
         _size = maxSize();
@@ -167,14 +168,14 @@ class LinkedSet {
 
     bool isEmpty() const { return _size == 0; }
     int  size() const { return _size; }
-    int  maxSize() const { return prevs.size(); }
+    int  maxSize() const { return nodes.size(); }
 
 
     // ---------- Del methods
     void del(int a, int level) {   // Return true if level is now recorded
         if(isLimitRecordedAtLevel(level) == false)
             recordLimit(level);
-        removedLevels[a] = level;
+        nodes[a].removedLevel = level;
         del(a);
     }
 
@@ -208,8 +209,8 @@ class LinkedSet {
         int curSize = size(), newSize = newSizeFrom(maxId);
 
 
-        int p          = prevs[maxId];
-        nexts[p]       = -1;   // was a
+        int p          = nodes[maxId].prev;
+        nodes[p].next  = -1;   // was a
         int bnd        = _last;
         _last          = p;
         _size          = newSize;
@@ -235,11 +236,11 @@ class LinkedSet {
         int curSize = size(), newSize = newSizeUpto(minId);
 
 
-        int n    = nexts[minId];
-        prevs[n] = -1;   // was a
-        int bnd  = _first;
-        _first   = n;
-        _size    = newSize;
+        int n         = nodes[minId].next;
+        nodes[n].prev = -1;   // was a
+        int bnd       = _first;
+        _first        = n;
+        _size         = newSize;
 
         int prevEntry  = lastRemoved();
         sliceAt[minId] = stackedSlices.size();
@@ -250,7 +251,7 @@ class LinkedSet {
     // ---------- Access and contains method and iterators
     bool contains(const int k) const {
         assert(k < maxSize());
-        return removedLevels[k] == -1 && insideBounds(k);
+        return (isOptimized == false || (_first <= k && k <= _last)) && nodes[k].removedLevel == -1;
     }
 
     int operator[](const int i) {
@@ -281,13 +282,13 @@ class LinkedSet {
     }
     int prevRemoved(int id) {
         assert(id >= 0 && id < maxSize() && !contains(id));
-        if(removedLevels[id] != -1)   // valeur isolée
+        if(nodes[id].removedLevel != -1)   // valeur isolée
             return prevRemoveds[id];
         // a appartient à une slice
         int idx = sliceAt[id];
         if(idx >= 0 && idx < stackedSlices.size() && stackedSlices[idx].a == id)
-            return stackedSlices[idx].prevEntry;     // fin de chaîne : on passe à l'élément du dessous
-        return id > _last ? prevs[id] : nexts[id];   // slice droite : prevs ; slice gauche : nexts
+            return stackedSlices[idx].prevEntry;               // fin de chaîne : on passe à l'élément du dessous
+        return id > _last ? nodes[id].prev : nodes[id].next;   // slice droite : prevs ; slice gauche : nexts
     }
 
 
@@ -297,30 +298,30 @@ class LinkedSet {
 
     int next(int a) {
         assert(a >= 0 && a < maxSize());
-        if(removedLevels[a] == -1)
-            return nexts[a];
+        if(nodes[a].removedLevel == -1)
+            return nodes[a].next;
         // below a can not be equal to first since a is not present
         if(a < _first)
             return _first;
-        int next = nexts[a];
+        int next = nodes[a].next;
         if(next == -1 || next > _last)
             return -1;
-        while(removedLevels[next] != -1) next = nexts[next];
+        while(nodes[next].removedLevel != -1) next = nodes[next].next;
         return next;
     }
 
 
     int prev(int a) {
         assert(a >= 0 && a < maxSize());
-        if(removedLevels[a] == -1)
-            return prevs[a];
+        if(nodes[a].removedLevel == -1)
+            return nodes[a].prev;
         // below a can not be equal to last since a is not present
         if(a > _last)
             return _last;
-        int prev = prevs[a];
+        int prev = nodes[a].prev;
         if(prev < _first)   // includes prev == -1
             return -1;
-        while(removedLevels[prev] != -1) prev = prevs[prev];
+        while(nodes[prev].removedLevel != -1) prev = nodes[prev].prev;
         return prev;
     }
 
@@ -331,7 +332,7 @@ class LinkedSet {
         int k = removed.last();
         if(k == -1)
             return stackedSlices.last().level;
-        return removedLevels[k];
+        return nodes[k].removedLevel;
     }
 
     void restoreTop() {
@@ -340,17 +341,17 @@ class LinkedSet {
         if(k == -1) {
             Slice &s = stackedSlices.last();
             if(s.leftSide) {
-                prevs[s.idx] = s.a;
-                _first       = s.bound;
+                nodes[s.idx].prev = s.a;
+                _first            = s.bound;
             } else {
-                nexts[s.idx] = s.a;
-                _last        = s.bound;
+                nodes[s.idx].next = s.a;
+                _last             = s.bound;
             }
             _size = s.size;
             stackedSlices.pop();
             removed.pop();
         } else {
-            removedLevels[k] = -1;
+            nodes[k].removedLevel = -1;
             add();   // fait le removed.pop()
         }
     }
@@ -374,11 +375,12 @@ class LinkedSet {
 
         printf("]");
         printf("\nprevs: ");
-        for(int prev : prevs) printf("%d ", prev);
-        printf("\nnext: ");
-        for(int i = 0; i < nexts.size(); i++) printf("%d ", nexts[i]);
-        printf("\nremoved");
-        for(int i = 0; i < removedLevels.size(); i++) printf("%d ", removedLevels[i]);
+        /*        for(auto prev : nodes) printf("%d ", prev.prev);
+                printf("\nnext: ");
+                for(int i = 0; i < nexts.size(); i++) printf("%d ", nexts[i]);
+                printf("\nremoved");
+                for(int i = 0; i < removedLevels.size(); i++) printf("%d ", removedLevels[i]);
+        */
         printf("\n");
     }
 
