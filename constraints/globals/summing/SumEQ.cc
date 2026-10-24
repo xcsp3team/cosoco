@@ -66,8 +66,8 @@ bool SumWeightedEQ::filter(Variable *dummy) {
         if(positionOfLastChange == -1)
             break;
     }
-    if(min == limit)
-        solver->entail(this);
+    // if(min == limit)
+    //     solver->entail(this);
     return true;
 }
 
