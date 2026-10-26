@@ -9,6 +9,8 @@ namespace Cosoco {
 
 class LinkedSetIterator;
 
+const int NOT_STORED = -1;
+
 struct Slice {
     Slice(bool left_side, int idx, int a, int bound, int size, int level, int prevEntry)
         : leftSide(left_side), idx(idx), a(a), bound(bound), size(size), level(level), prevEntry(prevEntry) { }
@@ -17,7 +19,6 @@ struct Slice {
     int  prevEntry;
 };
 
-const int NOT_STORED = -1;
 /**
  *prevs
  * The backward linking of all present elements of the list (from last to first). An array index corresponds to an element. An
@@ -43,12 +44,13 @@ const int NOT_STORED = -1;
 struct LinkedSetNode {
     int prev, next, removedLevel;
 };
+
 class LinkedSet {
    protected:
-    int  _size;    // The number of elements present
-    int  _first;   // The first (present) element of the list.
-    int  _last;    // The last (present) element of the list.
-    bool isOptimized;
+    int        _size;    // The number of elements present
+    int        _first;   // The first (present) element of the list.
+    int        _last;    // The last (present) element of the list.
+    const bool isOptimized;
 
     vec<int> limits;
 
@@ -132,11 +134,6 @@ class LinkedSet {
     LinkedSet(int sz, bool full, bool isoptimized = false) : isOptimized(isoptimized) {
         assert(full);
         setCapacity(sz);
-        // setCapacity :
-        prevRemoveds.growTo(sz, -1);
-        sliceAt.growTo(sz, -1);
-        // fill :
-        sliceAt.fill(-1);
     }
 
 
@@ -146,6 +143,9 @@ class LinkedSet {
         _last  = cap - 1;
         nodes.growTo(cap);
         removed.growTo(cap);
+        prevRemoveds.growTo(cap, -1);
+        if(isOptimized)
+            sliceAt.growTo(cap, -1);
         fill();
     }
 
