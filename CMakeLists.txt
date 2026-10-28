@@ -22,7 +22,7 @@ if (APPLE)
         endif ()
     endforeach ()
 endif ()
-include_directories(/usr/local/opt/libxml2/include/libxml2/)
+
 if (STATIC_BUILD)
     if (APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
         # Governs which macOS versions the binary runs on: the counterpart of
