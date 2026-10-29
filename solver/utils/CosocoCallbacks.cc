@@ -1956,12 +1956,6 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
             po->addObjectiveUB(oc, true);
             return;
         }
-        auto *po = dynamic_cast<OptimizationProblem *>(problem);
-        po->type = Minimize;
-        FactoryConstraints::createConstraintSumSimple(problem, vars, INT_MAX, LE);
-        auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-        po->addObjectiveUB(oc, true);
-        return;
     }
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
@@ -1987,12 +1981,6 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
             po->addObjectiveLB(oc, true);
             return;
         }
-        auto *po = dynamic_cast<OptimizationProblem *>(problem);
-        po->type = Maximize;
-        FactoryConstraints::createConstraintSumSimple(problem, vars, INT_MIN, GE);
-        auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-        po->addObjectiveLB(oc, true);
-        return;
     }
 
     vector<int> coeffs;
@@ -2002,18 +1990,9 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<XV
 
 
 void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
-    auto *po    = static_cast<OptimizationProblem *>(problem);
-    po->type    = Minimize;
-    bool allOne = true;
-    for(int c : origcoeffs)
-        if(c != 1)
-            allOne = false;
-    if(allOne && type == SUM_O) {
-        FactoryConstraints::createConstraintSumSimple(problem, vars, INT_MAX, LE);
-        auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-        po->addObjectiveUB(oc, true);
-        return;
-    }
+    auto *po = static_cast<OptimizationProblem *>(problem);
+    po->type = Minimize;
+
 
     switch(type) {
         case EXPRESSION_O:
@@ -2083,18 +2062,9 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
-    auto *po    = dynamic_cast<OptimizationProblem *>(problem);
-    po->type    = Maximize;
-    bool allOne = true;
-    for(int c : origcoeffs)
-        if(c != 1)
-            allOne = false;
-    if(allOne && type == SUM_O) {
-        FactoryConstraints::createConstraintSumSimple(problem, vars, INT_MIN, GE);
-        auto *oc = dynamic_cast<ObjectiveConstraint *>(problem->constraints.last());
-        po->addObjectiveLB(oc, true);
-        return;
-    }
+    auto *po = dynamic_cast<OptimizationProblem *>(problem);
+    po->type = Maximize;
+
     switch(type) {
         case EXPRESSION_O:
             break;   // useless, want to discard warning

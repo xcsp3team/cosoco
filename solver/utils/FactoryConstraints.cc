@@ -649,7 +649,7 @@ void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, 
     }
 
     // Rearrange coeffs.
-    if(order == OrderType::LE || order == OrderType::LT) {
+    if(order == LE || order == LT) {
         for(int i = 0; i < coeffs.size(); i++) coeffs[i] = -coeffs[i];
         l = -l;
     }
