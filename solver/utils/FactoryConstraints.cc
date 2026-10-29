@@ -581,6 +581,19 @@ void FactoryConstraints::createConstraintSum(Problem *p, Variable *x, Variable *
 
 
 void FactoryConstraints::createConstraintSumSimple(Problem *p, vec<Variable *> &vars, long l, OrderType order) {
+    int multiple = false;
+    for(int i = 0; i < vars.size(); i++) {
+        for(int j = i + 1; j < vars.size(); j++)
+            if(vars[i]->idx == vars[j]->idx) {
+                multiple = true;
+                break;
+            }
+    }
+    if(multiple) {
+        vec<int> coeffs;
+        coeffs.growTo(vars.size(), 1);
+        return createConstraintSum(p, vars, coeffs, l, order);
+    }
     if(order == LT) {
         order = LE;
         l--;
@@ -636,7 +649,7 @@ void FactoryConstraints::createConstraintSum(Problem *p, vec<Variable *> &vars, 
     }
 
     // Rearrange coeffs.
-    if(order == OrderType::LE || order == OrderType::LT) {
+    if(order == LE || order == LT) {
         for(int i = 0; i < coeffs.size(); i++) coeffs[i] = -coeffs[i];
         l = -l;
     }
