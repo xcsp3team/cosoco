@@ -22,7 +22,8 @@ PoolOfHeuristicsValues::PoolOfHeuristicsValues(Solver &s) : HeuristicVal(s) {
 int PoolOfHeuristicsValues::select(Variable *x) { return heuristicForVariable[x->idx]->select(x); }
 
 void PoolOfHeuristicsValues::selectHeuristics() {
-    auto *op = dynamic_cast<OptimizationProblem *>(&(solver.problem));
+    throw std::runtime_error("Not implemented");
+    /*auto *op = dynamic_cast<OptimizationProblem *>(&(solver.problem));
     if(op != nullptr) {
         ObjectiveConstraint *objective = (op->type == Minimize) ? op->objectiveUB : op->objectiveLB;
         auto                 c         = dynamic_cast<Constraint *>(objective);
@@ -63,4 +64,5 @@ void PoolOfHeuristicsValues::selectHeuristics() {
         solver.verbose.log(NORMAL, "c nb first val heuristic: %d\n", nbrandom);
     if(nbasgs != 0)
         solver.verbose.log(NORMAL, "c nb first val heuristic: %d\n", nbasgs);
+*/
 }

@@ -11,30 +11,16 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
-bool SumEQ::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) == limit; }
+bool SumWeightedEQ::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) == limit; }
 
-
-bool Sum::isCorrectlyDefined() {
-    if(scope.size() != coefficients.size())
-        throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum, list and coefficients mus have same size");
-
-    for(int i = 1; i < coefficients.size(); i++) {
-        if(coefficients[i] == 0)
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum, a coefficient is 0");
-        if(coefficients[i - 1] > coefficients[i]) {
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum needs order on coefficients");
-        }
-    }
-    return true;
-}
-
+bool SumSimpleEQ::isSatisfiedBy(vec<int> &tuple) { return sum(tuple) == limit; }
 
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
 
 
-bool SumEQ::filter(Variable *dummy) {
+bool SumWeightedEQ::filter(Variable *dummy) {
     computeBounds();
     if(min > limit || max < limit)
         return false;
@@ -80,8 +66,47 @@ bool SumEQ::filter(Variable *dummy) {
         if(positionOfLastChange == -1)
             break;
     }
-    if(min == limit)
-        solver->entail(this);
+    // if(min == limit)
+    //     solver->entail(this);
+    return true;
+}
+
+bool SumSimpleEQ::filter(Variable *dummy) {
+    computeBounds();
+    if(min > limit || max < limit)
+        return false;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
+
+    int positionOfLastChange = -1;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
+    while(true) {
+        for(int i = 0; i < scope.size(); i++) {
+            if(i == positionOfLastChange) {
+                positionOfLastChange = -1;
+                break;
+            }
+            Variable *x  = scope[i];
+            int       sz = x->size();
+            if(sz == 1)
+                continue;
+            min -= x->minimum();
+            max -= x->maximum();
+            if(solver->delValuesLE(x, limit - max - 1) == false || solver->delValuesGE(x, limit - min + 1) == false)
+                return false;
+            min += x->minimum();
+            max += x->maximum();
+
+            if(sz != x->size())
+                positionOfLastChange = i;
+        }
+        if(positionOfLastChange == -1)
+            break;
+    }
+
     return true;
 }
 
@@ -90,4 +115,8 @@ bool SumEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-SumEQ::SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIncremental(p, vars, coefs, l) { type = "SumEQ"; }
+SumWeightedEQ::SumWeightedEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : WeightedSum(p, vars, coefs, l) {
+    type = "SumWeightedEQ";
+}
+
+SumSimpleEQ::SumSimpleEQ(Problem &p, vec<Variable *> &vars, long l) : SimpleSum(p, vars, l) { type = "SumEQ"; }

@@ -576,7 +576,7 @@ void CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariabl
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) {
     bool sumboolean = true;
-    if(xc.operandType == INTEGER && xc.op == EQ) {
+    if(xc.operandType == INTEGER && (xc.op == EQ || xc.op == LE || xc.op == GE)) {
         toMyVariables(list);
         for(Variable *x : vars)
             if(x->minimum() != 0 || x->maximum() != 1) {
@@ -600,6 +600,18 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
         }
     }
 
+    if(xc.operandType == INTERVAL) {
+        toMyVariables(list);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.min, GE);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.max, LE);
+        return;
+    }
+
+    if(xc.operandType == INTEGER && xc.op != NE && xc.op != IN && xc.op != NOTIN) {
+        toMyVariables(list);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.val, xc.op);
+        return;
+    }
 
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
@@ -737,7 +749,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCond
             return;
         }
     }
-
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);
     buildConstraintSum(id, trees, coeffs, cond);
@@ -1982,6 +1993,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = Minimize;
 
+
     switch(type) {
         case EXPRESSION_O:
             break;   // useless, want to discard warning
@@ -2051,7 +2063,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
     auto *po = dynamic_cast<OptimizationProblem *>(problem);
-    po->type = OptimisationType::Maximize;
+    po->type = Maximize;
 
     switch(type) {
         case EXPRESSION_O:
@@ -2286,5 +2298,13 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
     buildObjectiveMaximize(type, trees, coeffs);
 }
 
+void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<XVariable *> &coefs) {
+    std::cout << "s UNSUPPORTED";
+    exit(1);
+}
 
+void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<XVariable *> &coefs) {
+    std::cout << "s UNSUPPORTED";
+    exit(1);
+}
 void CosocoCallbacks::buildAnnotationDecision(vector<XVariable *> &list) { toMyVariables(list, decisionVariables); }

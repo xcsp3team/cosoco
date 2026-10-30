@@ -11,13 +11,15 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
-bool SumGE::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) >= limit; }
+bool SumWeightedGE::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) >= limit; }
+
+bool SumSimpleGE::isSatisfiedBy(vec<int> &tuple) { return sum(tuple) >= limit; }
 
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
 
-bool SumGE::filter(Variable *dummy) {
+bool SumWeightedGE::filter(Variable *dummy) {
     computeBounds();
     if(min >= limit) {
         solver->entail(this);
@@ -27,106 +29,99 @@ bool SumGE::filter(Variable *dummy) {
         return false;
     if(limit <= max - maxGap)
         return true;
-    
-    for(int posx : unassignedVariablesIdx) {
-        Variable *x     = scope[posx];
-        long      coeff = coefficients[posx];
 
-        int sizeBefore = x->size();
-        if(sizeBefore == 1)
+    for(const int idx : unassignedVariablesIdx) {
+        Variable *x = scope[idx];
+
+        if(x->size() == 1)
             continue;
-        if(coeff > 0) {
-            long maxBase       = max - x->maximum() * coeff;
-            long minimumBefore = x->minimum();
-
-            if(maxBase + x->maximum() * coeff < limit)
+        long coeff = coefficients[idx];
+        if(coeff >= 0) {
+            min -= x->minimum() * coeff;
+            if(delWRTOrder(x, limit - (max - x->maximum() * coeff), static_cast<int>(coeff), XCSP3Core::LT) == false)
                 return false;
-            for(int idv : x->domain) {
-                long v = x->domain.toVal(idv);
-                if(maxBase + v * coeff >= limit)
-                    break;
-                if(solver->delIdv(x, idv) == false)
-                    return false;
-            }
-            if((min += (((long)x->minimum()) - ((long)minimumBefore)) * coeff) >= limit)
-                return true;
+            min += x->minimum() * coeff;
         } else {
-            long maxBase   = max - ((long)x->minimum()) * coeff;
-            long maxBefore = x->maximum();
-            if(maxBase + x->minimum() * coeff < limit)
+            min -= x->maximum() * coeff;
+            if(delWRTOrder(x, limit - (max - x->minimum() * coeff), static_cast<int>(coeff), XCSP3Core::LT) == false)
                 return false;
-
-            for(int idv : reverse(x->domain)) {
-                long v = x->domain.toVal(idv);
-                if(maxBase + v * coeff >= limit)
-                    break;
-                if(maxBase + v * coeff < limit && solver->delIdv(x, idv) == false)
-                    return false;
-            }
-            if(sizeBefore - x->size() > 0) {
-                if((min += (((long)x->maximum()) - maxBefore) * coeff) >= limit)
-                    return true;
-            }
+            min += x->maximum() * coeff;
         }
+        if(min >= limit)
+            return solver->entail(this);
+        if(max < limit)
+            return false;
     }
+
+
     return true;
 }
 
+bool SumSimpleGE::filter(Variable *dummy) {
+    computeBounds();
+    if(min >= limit)
+        return solver->entail(this);
 
-void SumIncremental::computeBounds() {
-    min = fixed;
-    max = fixed;
-    for(int posx : unassignedVariablesIdx) {
-        Variable *x     = scope[posx];
-        long      xmin  = x->minimum();
-        long      xmax  = x->maximum();
-        long      coeff = coefficients[posx];
-        min += coeff * (coeff >= 0 ? xmin : xmax);
-        max += coeff * (coeff >= 0 ? xmax : xmin);
-    }
+    if(max < limit)
+        return false;
+    bool useless = limit <= max - maxGap;
+    if(useless == false)
+        for(const int idx : unassignedVariablesIdx) {
+            Variable *x = scope[idx];
+            if(x->size() == 1)
+                continue;
+            min -= x->minimum();
+            solver->delValuesLE(x, limit - (max - x->maximum()) - 1);
+            min += x->minimum();
+            if(min >= limit)
+                return solver->entail(this);
+        }
+    return true;
 }
+
 //----------------------------------------------
 // Objective constraint
 //----------------------------------------------
 
-void SumGE::updateBound(long bound) { limit = bound; }   // Update the current bound
+void SumWeightedGE::updateBound(long bound) { limit = bound; }   // Update the current bound
 
-long SumGE::maxUpperBound() {
+void SumSimpleGE::updateBound(long bound) { limit = bound; }   // Update the current bound
+
+long SumSimpleGE::maxUpperBound() {
     computeBounds();
     return max;
 }
 
-long SumGE::minLowerBound() {
+long SumWeightedGE::maxUpperBound() {
+    computeBounds();
+    return max;
+}
+
+long SumWeightedGE::minLowerBound() {
     computeBounds();
     return min;
 }
 
+long SumSimpleGE::minLowerBound() {
+    computeBounds();
+    return min;
+}
 
-long SumGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
+long SumWeightedGE::computeScore(vec<int> &solution) { return weightedSum(solution); }
+
+long SumSimpleGE::computeScore(vec<int> &solution) { return sum(solution); }
 
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
 
-SumGE::SumGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : SumIncremental(p, vars, coefs, l) {
+SumWeightedGE::SumWeightedGE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : WeightedSum(p, vars, coefs, l) {
     leftmostPositiveCoefficientPosition = coefficients.size();
     for(int i = coefficients.size() - 1; i >= 0; i--) {
         if(coefficients[i] < 0)
             break;
         leftmostPositiveCoefficientPosition = i;
     }
-    type = "SumGE";
-}
-
-void SumIncremental::assignVariable(Variable *x, int posx) {
-    Constraint::assignVariable(x, posx);
-    long coeff = coefficients[posx];
-    fixed += coeff * x->value();
-}
-
-void SumIncremental::unassignVariable(Variable *x, int posx, int v) {
-    Constraint::unassignVariable(x, posx, v);
-    long coeff = coefficients[posx];
-    fixed -= coeff * v;
+    type = "SumWeightedGE";
 }
