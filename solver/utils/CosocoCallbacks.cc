@@ -881,7 +881,14 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list,
 
 void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) {
     if(values.size() == 1) {
+        bool allLogical = true;
+        for(auto *tree : trees)
+            if(isPredicateOperator(tree->root->type) == false)
+                allLogical = false;
+        if(allLogical && values[0] == 1)
+            return buildConstraintSum(id, trees, xc);
         vector<Tree *> newtrees;
+
         for(auto &tree : trees) {
             string s = "eq(" + tree->toString() + "," + to_string(values[0]) + ")";
             newtrees.push_back(new Tree(s));
