@@ -576,7 +576,7 @@ void CosocoCallbacks::buildConstraintLexMatrix(string id, vector<vector<XVariabl
 
 void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, XCondition &xc) {
     bool sumboolean = true;
-    if(xc.operandType == INTEGER && xc.op == EQ) {
+    if(xc.operandType == INTEGER && (xc.op == EQ || xc.op == LE || xc.op == GE)) {
         toMyVariables(list);
         for(Variable *x : vars)
             if(x->minimum() != 0 || x->maximum() != 1) {
@@ -600,6 +600,18 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<XVariable *> &list, X
         }
     }
 
+    if(xc.operandType == INTERVAL) {
+        toMyVariables(list);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.min, GE);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.max, LE);
+        return;
+    }
+
+    if(xc.operandType == INTEGER && xc.op != NE && xc.op != IN && xc.op != NOTIN) {
+        toMyVariables(list);
+        FactoryConstraints::createConstraintSumSimple(problem, vars, xc.val, xc.op);
+        return;
+    }
 
     vector<int> coeffs;
     coeffs.assign(list.size(), 1);
@@ -737,7 +749,6 @@ void CosocoCallbacks::buildConstraintSum(string id, vector<Tree *> &trees, XCond
             return;
         }
     }
-
     vector<int> coeffs;
     coeffs.assign(trees.size(), 1);
     buildConstraintSum(id, trees, coeffs, cond);
@@ -870,7 +881,14 @@ void CosocoCallbacks::buildConstraintCount(string id, vector<XVariable *> &list,
 
 void CosocoCallbacks::buildConstraintCount(string id, vector<Tree *> &trees, vector<int> &values, XCondition &xc) {
     if(values.size() == 1) {
+        bool allLogical = true;
+        for(auto *tree : trees)
+            if(isPredicateOperator(tree->root->type) == false)
+                allLogical = false;
+        if(allLogical && values[0] == 1)
+            return buildConstraintSum(id, trees, xc);
         vector<Tree *> newtrees;
+
         for(auto &tree : trees) {
             string s = "eq(" + tree->toString() + "," + to_string(values[0]) + ")";
             newtrees.push_back(new Tree(s));
@@ -1997,6 +2015,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vec<Varia
     auto *po = static_cast<OptimizationProblem *>(problem);
     po->type = Minimize;
 
+
     switch(type) {
         case EXPRESSION_O:
             break;   // useless, want to discard warning
@@ -2066,7 +2085,7 @@ void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<XV
 
 void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vec<Variable *> &variables, vector<int> &origcoeffs) {
     auto *po = dynamic_cast<OptimizationProblem *>(problem);
-    po->type = OptimisationType::Maximize;
+    po->type = Maximize;
 
     switch(type) {
         case EXPRESSION_O:
@@ -2301,5 +2320,13 @@ void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tr
     buildObjectiveMaximize(type, trees, coeffs);
 }
 
+void CosocoCallbacks::buildObjectiveMinimize(ExpressionObjective type, vector<Tree *> &trees, vector<XVariable *> &coefs) {
+    std::cout << "s UNSUPPORTED";
+    exit(1);
+}
 
+void CosocoCallbacks::buildObjectiveMaximize(ExpressionObjective type, vector<Tree *> &trees, vector<XVariable *> &coefs) {
+    std::cout << "s UNSUPPORTED";
+    exit(1);
+}
 void CosocoCallbacks::buildAnnotationDecision(vector<XVariable *> &list) { toMyVariables(list, decisionVariables); }

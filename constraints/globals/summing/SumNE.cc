@@ -69,6 +69,6 @@ bool SumNE::filterUniqueNonSingletonVariable(int posx) {
 //----------------------------------------------
 
 SumNE::SumNE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l)
-    : Sum(p, vars, coefs, l), watchedPosition1(-1), watchedPosition2(-1) {
-    type = "SumNE";
+    : WeightedSum(p, vars, coefs, l), watchedPosition1(-1), watchedPosition2(-1) {
+    type = "SumWeightedNE";
 }

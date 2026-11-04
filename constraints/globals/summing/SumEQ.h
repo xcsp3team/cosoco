@@ -4,9 +4,18 @@
 #include "Sum.h"
 namespace Cosoco {
 
-class SumEQ : public SumIncremental {
+class SumWeightedEQ : public WeightedSum {
    public:
-    SumEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
+    SumWeightedEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
+    bool filter(Variable *x) override;
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
+
+class SumSimpleEQ : public SimpleSum {
+   public:
+    SumSimpleEQ(Problem &p, vec<Variable *> &vars, long l);
     bool filter(Variable *x) override;
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;

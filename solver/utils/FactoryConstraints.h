@@ -146,6 +146,7 @@ void createConstraintSumBooleanGE(Problem *p, vec<Variable *> &vars, long value)
 
 void createConstraintSum(Problem *p, Variable *x, Variable *y, Variable *z);
 
+void createConstraintSumSimple(Problem *p, vec<Variable *> &vars, long l, OrderType order);
 
 void createConstraintSum(Problem *p, vec<Variable *> &vars, vec<Variable *> &coeffs, long l, OrderType order);
 
