@@ -106,7 +106,7 @@ void CosocoCallbacks::createArrays(std::vector<Node *> &parameters, vec<Variable
 }
 
 void CosocoCallbacks::beginInstance(InstanceType type) {
-    problem                        = type == CSP ? new Problem("") : new OptimizationProblem("");
+    problem                        = type == CSP ? new Problem() : new OptimizationProblem();
     optimizationProblem            = type == COP;
     invertOptimization             = false;
     nbMDD                          = 0;

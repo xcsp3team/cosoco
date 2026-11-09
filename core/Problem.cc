@@ -8,7 +8,7 @@ using namespace std;
 using namespace Cosoco;
 
 
-Problem::Problem(std::string n) : name(n), isConstructionDone(false), isUnsatisfiable(false) { }
+Problem::Problem() : isConstructionDone(false), isUnsatisfiable(false) { }
 
 
 void Problem::delayedConstruction() {
@@ -35,7 +35,6 @@ void Problem::delayedConstruction() {
     }
     if(error)
         throw std::logic_error("Some constraints are badly defined");
-    isBinary = maximumArity() == 2;
 
     for(Variable *x : variables) {
         if(x->constraints.size() == 0)
@@ -63,6 +62,7 @@ Variable *Problem::createVariable(std::string n, Domain &d, int array) {
     auto *v = new Variable(*this, n, d, nbVariables(), array);
     variables.push(v);
     mapping[v->name()] = v;
+    variablesMetadata.push({array, n, false, 0});
     return v;
 }
 
@@ -72,7 +72,7 @@ bool Problem::checkSolution() {
     vec<int> tuple;
     // All variables must be assigned
     for(Variable *v : variables)
-        if(v->size() != 1 && v->useless == false) {
+        if(v->size() != 1 && variablesMetadata[v->idx].useless == false) {
             fprintf(stderr, "Solution Error : var %s has domain of size %d\n", v->name(), v->size());
             return false;
         }

@@ -2,7 +2,7 @@
 using namespace Cosoco;
 
 
-OptimizationProblem::OptimizationProblem(const std::string &n) : Problem(n), objectiveLB(nullptr), objectiveUB(nullptr) { }
+OptimizationProblem::OptimizationProblem() : Problem(), objectiveLB(nullptr), objectiveUB(nullptr) { }
 
 
 void OptimizationProblem::addObjectiveLB(ObjectiveConstraint *o, bool alreadyAdded) {

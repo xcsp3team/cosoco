@@ -11,6 +11,13 @@ class Problem;
 
 class Constraint;
 
+struct VariableMetadata {
+    const int         array;
+    const std::string _name;     // I do not like _ but... useful for name() function
+    bool              useless;   // Variable with degree0: useless for the search
+    int               fake;      // fake data used for some
+};
+
 class Variable {
    protected:
     unsigned long timestamp;   // Last time the variable was put in queue
@@ -20,23 +27,11 @@ class Variable {
 
     friend class Problem;
 
-    Problem          &problem;   // The associated problem
-    const int         idx;       // The position in problem.variables
-    const int         array;     // the array in which the variable appear (-1 if none)
-    const std::string _name;     // I do not like _ but... useful for name() function
-    Domain           &domain;    // The domain
-
+    const int                         idx;           // The position in problem.variables
+    Domain                           &domain;        // The domain
+    double                            wdeg;          // The wdeg value
     vec<std::pair<Constraint *, int>> constraints;   // Set of constraints where it occurs with the position in the scope
-
-    // Datas used for some algorithms (some heuristics and so on...)
-    double wdeg;   // The wdeg value
-
-
-    // Fake data used in some algorithms. Use must be circumscribed to one call of the algorithm
-    // See for example Constraint/scopeIsOk
-    int fake;
-
-    bool useless;   // Variable with degree0: useless for the search
+    Problem                          &problem;       // The associated problem
 
     // Construction methods
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem
@@ -60,9 +55,6 @@ class Variable {
 
     // Minor methods
     void display(bool allDetails = false);   // displayCurrentBranch
-
-
-    const char *name() { return _name.c_str(); }   // The name
 
 
     // ----------  shortcut methods
