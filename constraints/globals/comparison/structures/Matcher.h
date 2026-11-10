@@ -37,10 +37,10 @@ class Matcher : public ObserverDeleteDecision {
     SparseSet           neighborsOfT, varsOutSCC, valsInSCC;
     int                *numDFS;
     int                *lowLink;
-    int                *dfsNode;   // pile d'appels explicite : nœud
-    int                *dfsEdge;   // pile d'appels explicite : prochaine arête à explorer
-    bool               *onStack;   // remplace stackTarjan.contains
-    long               *sccId;     // identifiant de SCC (jamais remis à zéro)
+    int                *dfsNode;   // explicit stack
+    int                *dfsEdge;   // stack: next edge to explore
+    bool               *onStack;   // replace statcktarjan.contains
+    long               *sccId;     // identifying scc
     long                sccCounter;
 
     int  degree(int node);
@@ -93,3 +93,4 @@ class MatcherCardinality : public Matcher {
 }   // namespace Cosoco
 
 #endif   // COSOCO_MATCHER_H
+œ

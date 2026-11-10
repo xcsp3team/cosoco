@@ -268,7 +268,7 @@ void Matcher::tarjanRemoveValues(int root) {
         while(i < deg) {
             int adj = target(node, i++);
             if(visitTime[adj] != time) {
-                visit(adj);   // on "appelle" adj ; on reprendra node ensuite
+                visit(adj);
                 descended = true;
                 break;
             } else if(onStack[adj])
@@ -277,12 +277,12 @@ void Matcher::tarjanRemoveValues(int root) {
         if(descended)
             continue;
 
-        // toutes les arêtes de node sont explorées
+        // All edges have been explored
         if(lowLink[node] == numDFS[node])
             processSCC(node);
 
         depth--;
-        if(depth > 0) {   // "retour" de l'appel récursif
+        if(depth > 0) {   // go back
             int parent      = dfsNode[depth - 1];
             lowLink[parent] = std::min(lowLink[parent], lowLink[node]);
         }
