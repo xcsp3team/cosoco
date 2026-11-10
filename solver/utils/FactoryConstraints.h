@@ -74,6 +74,8 @@ void createConstraintXeqMinSubY(Problem *p, Variable *x, Variable *y, int k);
 
 void createConstraintMulEQ(Problem *p, Variable *x, Variable *y, Variable *z);
 
+void createConstraintXeqYinSet(Problem *p, Variable *x, Variable *y, vec<int> &values);
+
 void createReification(Problem *p, Variable *x, Variable *y, Variable *z, ExpressionType op);
 
 void createConstraintXor(Problem *p, vec<Variable *> &vars);

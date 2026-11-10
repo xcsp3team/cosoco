@@ -57,6 +57,18 @@ class XeqYneK : public Binary {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
+class XeqYinSet : public Binary {
+    int      sentinelIn, sentinelNotIn;
+    vec<int> values;
+    bool     checkSentinelIn();
+    bool     checkSentinelNotIn();
+
+   public:
+    XeqYinSet(Problem &p, Variable *xx, Variable *yy, vec<int> &_values);
+    bool filter(Variable *x) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
 
 class XeqKleY : public Binary {
    public:

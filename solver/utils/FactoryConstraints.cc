@@ -244,6 +244,9 @@ void FactoryConstraints::createConstraintXeqYeqK(Problem *p, Variable *x, Variab
     p->addConstraint(new XeqYeqK(*p, x, y, k));
 }
 
+void FactoryConstraints::createConstraintXeqYinSet(Problem *p, Variable *x, Variable *y, vec<int> &values) {
+    p->addConstraint(new XeqYinSet(*p, x, y, values));
+}
 void FactoryConstraints::createConstraintXeqYneK(Problem *p, Variable *x, Variable *y, int k) {
     p->addConstraint(new XeqYneK(*p, x, y, k));
 }

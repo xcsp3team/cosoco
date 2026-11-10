@@ -6,6 +6,7 @@
 
 #include "CosocoCallbacks.h"
 #include "constraints/primitives/BasicNodes.h"
+#include "mtl/Sort.h"
 #include "xEqOryk.h"
 using namespace XCSP3Core;
 
@@ -785,6 +786,27 @@ class PBinary11 : public Primitive {   // x=  (3 <= z)
     }
 };
 
+class PBinary12 : public Primitive {   // x=  z in(1, 3, 4)
+   public:
+    explicit PBinary12(CosocoCallbacks &m) : Primitive(m, "eq(in(y,set(8,10,18)),x)", 2) { }
+
+
+    bool post() override {
+        Variable *x       = callbacks.problem->mapping[variables[1]];
+        Variable *y       = callbacks.problem->mapping[variables[0]];
+        auto     *nodeset = dynamic_cast<NodeIn *>(canonized->root->parameters[0]);
+        assert(nodeset != nullptr);
+        vec<int>                   tmp;
+        std::map<std::string, int> tuple;
+
+        auto *nodeSet = dynamic_cast<NodeSet *>(nodeset->parameters[1]);
+        for(unsigned int i = 0; i < nodeSet->parameters.size(); i++) tmp.push(nodeSet->parameters[i]->evaluate(tuple));
+        sort(tmp);
+        FactoryConstraints::createConstraintXeqYinSet(callbacks.problem, x, y, tmp);
+        return true;
+    }
+};
+
 
 // x = (y=k)
 class PTernary1 : public Primitive {   // x = y <op> 3
@@ -1213,6 +1235,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PBinary9(callbacks));
     patterns.push(new PBinary10(callbacks));
     patterns.push(new PBinary11(callbacks));
+    patterns.push(new PBinary12(callbacks));
     patterns.push(new PTernary4(callbacks));
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
