@@ -37,6 +37,15 @@ class Matcher : public ObserverDeleteDecision {
     SparseSet           neighborsOfT, varsOutSCC, valsInSCC;
     int                *numDFS;
     int                *lowLink;
+    int                *dfsNode;   // pile d'appels explicite : nœud
+    int                *dfsEdge;   // pile d'appels explicite : prochaine arête à explorer
+    bool               *onStack;   // remplace stackTarjan.contains
+    long               *sccId;     // identifiant de SCC (jamais remis à zéro)
+    long                sccCounter;
+
+    int  degree(int node);
+    int  target(int node, int i);
+    void processSCC(int node);
 
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
     int normalizedValue(int v) const { return v - minValue; }

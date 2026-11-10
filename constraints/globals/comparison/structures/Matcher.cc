@@ -85,6 +85,13 @@ Matcher::Matcher(Constraint* cc)
     std::fill_n(numDFS, nNodes, 0);
     lowLink = new int[nNodes];
     std::fill_n(lowLink, nNodes, 0);
+    dfsNode = new int[nNodes];
+    dfsEdge = new int[nNodes];
+    onStack = new bool[nNodes];
+    std::fill_n(onStack, nNodes, false);
+    sccId = new long[nNodes];
+    std::fill_n(sccId, nNodes, 0);
+    sccCounter = 0;
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
@@ -218,82 +225,96 @@ void MatcherAllDifferent::computeNeighbors() {
     }
 }
 
+inline int Matcher::degree(int node) {
+    if(node < arity)
+        return 1;   // variable : une seule arête, vers sa valeur appariée
+    if(node < T)
+        return neighborsOfValues[node - arity].size();
+    return neighborsOfT.size();   // T
+}
 
-void Matcher::tarjanRemoveValues(int node) {
-    assert(visitTime[node] < time);
-    visitTime[node] = time;
-    numDFS[node] = lowLink[node] = ++nVisitedNodes;
-    stackTarjan.add(node);
-
-    if(node < arity) {   // node for a variable
-        int adjacentNode = arity + var2val[node];
-        if(visitTime[adjacentNode] != time) {   // This code is repeated 3 times to save stacking (recursive calls)
-            tarjanRemoveValues(adjacentNode);
-            lowLink[node] = std::min(lowLink[node], lowLink[adjacentNode]);
-        } else if(stackTarjan.contains(adjacentNode))
-            lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
-    } else if(node < T) {   // node for a value
-        SparseSet& neighbors = neighborsOfValues[node - arity];
-        for(int i = 0; i < neighbors.size(); i++) {
-            int adjacentNode = neighbors[i] == arity ? T : neighbors[i];
-            if(visitTime[adjacentNode] != time) {
-                tarjanRemoveValues(adjacentNode);
-                lowLink[node] = std::min(lowLink[node], lowLink[adjacentNode]);
-            } else if(stackTarjan.contains(adjacentNode))
-                lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
-        }
-    } else {
-        assert(node == T);   // node for T
-        for(int i = 0; i < neighborsOfT.size(); i++) {
-            int adjacentNode = arity + neighborsOfT[i];
-            if(visitTime[adjacentNode] != time) {
-                tarjanRemoveValues(adjacentNode);
-                lowLink[node] = std::min(lowLink[node], lowLink[adjacentNode]);
-            } else if(stackTarjan.contains(adjacentNode))
-                lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
-        }
+inline int Matcher::target(int node, int i) {
+    if(node < arity)
+        return arity + var2val[node];
+    if(node < T) {
+        int n = neighborsOfValues[node - arity][i];
+        return n == arity ? T : n;   // `arity` code l'arête vers T
     }
-    if(lowLink[node] == numDFS[node]) {   // if node is the root of a SCC
-        splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodes;
-        if(splitSCC) {
-            // first, we compute varsOutSCC and valsInSCC
-            varsOutSCC.resetTo(unfixed);
-            valsInSCC.clear();
-            int nodeSCC = -1;
-            // assert(stackTarjan.contains(node));
-            // stackTarjan.display();
-            // std::cout << "\n";
-            while(nodeSCC != node) {
-                // std::cout << nodeSCC << " " << node << std::endl;
-                assert(stackTarjan.size() > 0);
-                nodeSCC = stackTarjan.pop();
-                if(nodeSCC < arity)
-                    varsOutSCC.del(nodeSCC);
-                else if(nodeSCC < T)
-                    valsInSCC.add(nodeSCC - arity);
-            }
+    return arity + neighborsOfT[i];
+}
 
-            // second, we remove appropriate values (linking values in the CSS with variables outside the SCC)
-            if(varsOutSCC.size() > 0 && valsInSCC.size() > 0) {
-                for(int nv : valsInSCC) {
-                    int        v         = domainValue(nv);
-                    SparseSet& neighbors = neighborsOfValues[nv];
-                    if(neighbors.size() < varsOutSCC.size()) {
-                        for(int idx : neighbors) {
-                            if(idx < arity && varsOutSCC.contains(idx) && var2val[idx] != nv)
-                                constraint->solver->delVal(scope[idx], v);
-                        }
-                    } else
-                        for(int idx : varsOutSCC) {
-                            if(scope[idx]->containsValue(v) && var2val[idx] != nv)
-                                constraint->solver->delVal(scope[idx], v);
-                        }
-                }
-            }
+
+void Matcher::tarjanRemoveValues(int root) {
+    assert(visitTime[root] < time);
+    int depth = 0;
+
+    auto visit = [&](int node) {
+        visitTime[node] = time;
+        numDFS[node] = lowLink[node] = ++nVisitedNodes;
+        stackTarjan.add(node);
+        onStack[node]  = true;
+        dfsNode[depth] = node;
+        dfsEdge[depth] = 0;
+        depth++;
+    };
+
+    visit(root);
+    while(depth > 0) {
+        int       node = dfsNode[depth - 1];
+        int&      i    = dfsEdge[depth - 1];
+        const int deg  = degree(node);
+
+        bool descended = false;
+        while(i < deg) {
+            int adj = target(node, i++);
+            if(visitTime[adj] != time) {
+                visit(adj);   // on "appelle" adj ; on reprendra node ensuite
+                descended = true;
+                break;
+            } else if(onStack[adj])
+                lowLink[node] = std::min(lowLink[node], numDFS[adj]);
+        }
+        if(descended)
+            continue;
+
+        // toutes les arêtes de node sont explorées
+        if(lowLink[node] == numDFS[node])
+            processSCC(node);
+
+        depth--;
+        if(depth > 0) {   // "retour" de l'appel récursif
+            int parent      = dfsNode[depth - 1];
+            lowLink[parent] = std::min(lowLink[parent], lowLink[node]);
         }
     }
 }
 
+void Matcher::processSCC(int node) {
+    splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodes;
+
+    // dépiler la SCC, lui donner un identifiant, et collecter ses valeurs
+    const long id = ++sccCounter;
+    valsInSCC.clear();
+    int n;
+    do {
+        n          = stackTarjan.pop();
+        onStack[n] = false;
+        sccId[n]   = id;
+        if(n >= arity && n < T)
+            valsInSCC.add(n - arity);
+    } while(n != node);
+
+    if(!splitSCC)
+        return;
+
+    // supprimer les arêtes (valeur de la SCC) -> (variable hors SCC) non appariées
+    for(int nv : valsInSCC) {
+        int v = domainValue(nv);
+        for(int idx : neighborsOfValues[nv])
+            if(idx < arity && sccId[idx] != id && var2val[idx] != nv)
+                constraint->solver->delVal(scope[idx], v);
+    }
+}
 
 void MatcherCardinality::handleAugmentingPath(int x, int v) {
     while(predBFS[v] != -1) {
