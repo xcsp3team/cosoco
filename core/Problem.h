@@ -56,8 +56,10 @@ class Problem {
 
 
     // Minor methods
-    void display(bool allDetails = false);
-    bool checkSolution();
+    void        display(bool allDetails = false);
+    bool        checkSolution();
+    std::string variableName(const Variable *x);
+    bool        isUselessVariable(const Variable *x);
 };
 }   // namespace Cosoco
 

@@ -13,9 +13,8 @@ class Constraint;
 
 struct VariableMetadata {
     const int         array;
-    const std::string _name;     // I do not like _ but... useful for name() function
+    const std::string name;      // I do not like _ but... useful for name() function
     bool              useless;   // Variable with degree0: useless for the search
-    int               fake;      // fake data used for some
 };
 
 class Variable {
@@ -31,7 +30,6 @@ class Variable {
     Domain                           &domain;        // The domain
     double                            wdeg;          // The wdeg value
     vec<std::pair<Constraint *, int>> constraints;   // Set of constraints where it occurs with the position in the scope
-    Problem                          &problem;       // The associated problem
 
     // Construction methods
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem

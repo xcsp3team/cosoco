@@ -220,7 +220,7 @@ RESULT Solver::firstCall() {
 
     // Remove useless variables:
     for(Variable *x : problem.variables)
-        if(x->useless) {
+        if(problem.isUselessVariable(x)) {
             unassignedVariables.del(x);
             decisionVariables.del(x);
         }
@@ -364,7 +364,7 @@ bool Solver::manageSolution(int &backtrackLevel) {
         problem.checkSolution();
     lastSolution.clear();   // Store the last solution
 
-    for(Variable *x : problem.variables) lastSolution.push(x->useless ? 0 : x->value());
+    for(Variable *x : problem.variables) lastSolution.push(problem.isUselessVariable(x) ? 0 : x->value());
 
     // When a single solution is asked, the display is left to Main, which emits it after the
     // 's' line as XCSP3 expects. Enumerating needs it here, as solutions are not kept.
