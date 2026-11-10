@@ -218,7 +218,6 @@ bool Mult3EQ::filter(Variable *dummy) {
 
 Mult3EQ::Mult3EQ(Problem &p, Variable *xx, Variable *yy, Variable *zz) : Ternary(p, xx, yy, zz) {
     type = "X * Y = Z";
-    std::cout << xx->_name << " " << yy->_name << " " << zz->_name << "\n";
     rx.growTo(x->domain.maxSize(), 0);
     ry.growTo(y->domain.maxSize(), 0);
     rzx.growTo(z->domain.maxSize(), -1);

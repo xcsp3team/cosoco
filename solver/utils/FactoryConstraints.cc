@@ -342,7 +342,8 @@ void FactoryConstraints::createConstraintMult(Problem *p, Variable *x, Variable 
             scp.push(y);
         if(x != z && y != z)
             scp.push(z);
-        createConstraintIntension(p, new Tree("eq(" + z->_name + ",mul(" + x->_name + "," + y->_name + "))"), scp);
+        createConstraintIntension(
+            p, new Tree("eq(" + p->variableName(z) + ",mul(" + p->variableName(x) + "," + p->variableName(y) + "))"), scp);
     } else
         p->addConstraint(new xTimesyEQz(*p, x, y, z));
 }

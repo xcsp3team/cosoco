@@ -72,7 +72,7 @@ RESULT Optimizer::search() {
     while(status == RUNNING) {
         if(threadsGroup != nullptr && hasSolution() && isBetterBound(bestSolution->originalBound())) {
             best = bestSolution->originalBound();
-            verbose.log(NORMAL, "c core %d: import  best %d\n", core, best);
+            LOG(verbose, NORMAL, "c core %d: import  best %d\n", core, best);
             if(optimtype == Minimize)
                 upper = best - 1;
             else
@@ -104,7 +104,8 @@ RESULT Optimizer::search() {
             //   Store solution in order to avoid a signal
             bestSolution->begin(best);
             for(int i = 0; i < solver->lastSolution.size(); i++)
-                bestSolution->appendTo(i, solver->problem.variables[i]->useless ? STAR : solver->lastSolution[i]);
+                bestSolution->appendTo(
+                    i, solver->problem.isUselessVariable(solver->problem.variables[i]) ? STAR : solver->lastSolution[i]);
             bestSolution->end(options::boolOptions["colors"].value);
 
             if(progressSaving) {

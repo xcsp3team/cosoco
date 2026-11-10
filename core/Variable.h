@@ -2,6 +2,7 @@
 #define VARIABLE_H
 
 #include <string>
+#include <utility>
 
 #include "domain/Domain.h"
 #include "mtl/Vec.h"
@@ -12,9 +13,10 @@ class Problem;
 class Constraint;
 
 struct VariableMetadata {
-    const int         array;
-    const std::string name;      // I do not like _ but... useful for name() function
-    bool              useless;   // Variable with degree0: useless for the search
+    std::string name;   // I do not like _ but... useful for name() function
+    int         array;
+    bool        useless;   // Variable with degree0: useless for the search
+    VariableMetadata(std::string n, int a) : name(std::move(n)), array(a), useless(false) { }
 };
 
 class Variable {
@@ -35,7 +37,7 @@ class Variable {
     void delayedConstruction(int id, int nbVars);   // This function is called at the end of the construction of the problem
     void addConstraint(Constraint *c, int posx);    // This constraint contains the variable at position posx
 
-    Variable(Problem &p, std::string n, Domain &d, int id, int a);   // Do not use it directly (use Problem::createVariable)
+    Variable(Problem &p, Domain &d, int id);   // Do not use it directly (use Problem::createVariable)
 
     // Delete Methods
     void delIdv(int idv, int lvl);      // Do not use directly, use solver's one. Returns true if it has to be added to the trail

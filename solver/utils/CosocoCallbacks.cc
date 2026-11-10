@@ -386,11 +386,10 @@ void CosocoCallbacks::buildConstraintMDD(string id, vector<XVariable *> &list, v
 void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &list, string start, vector<string> &final,
                                              vector<XTransition> &transitions) {
     toMyVariables(list, vars);
-
+    std::set<int> inScope;
     // Some variables can appear multiple times.... We replace by a new variable and an allequal
-    for(Variable *x : vars) x->fake = 0;
     for(int i = 0; i < vars.size(); i++) {
-        if(vars[i]->fake == 1) {
+        if(inScope.find(vars[i]->idx) != inScope.end()) {
             string       auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
             DomainRange *dr     = nullptr;
             if((dr = dynamic_cast<DomainRange *>(&vars[i]->domain)) != nullptr) {
@@ -408,7 +407,7 @@ void CosocoCallbacks::buildConstraintRegular(string id, vector<XVariable *> &lis
             FactoryConstraints::createConstraintAllEqual(problem, tmp);
             vars[i] = problem->variables.last();
         }
-        vars[i]->fake = 1;
+        inScope.insert(vars[i]->idx);
     }
 
     Cosoco::MDD *mdd = nullptr;
@@ -1498,8 +1497,10 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
             Variable *wi = problem->mapping[lengths[i]->id];
             Variable *wj = problem->mapping[lengths[j]->id];
             if((wi->minimum() == 0 || wj->minimum() == 0) && zeroIgnored) {
-                string tmp = "or(eq(" + wi->_name + ",0),eq(" + wj->_name + ",0),le(add(" + xi->_name + "," + wi->_name + ")," +
-                             xj->_name + "),le(add(" + xj->_name + "," + wj->_name + ")," + xi->_name + "))";
+                string tmp = "or(eq(" + problem->variableName(wi) + ",0),eq(" + problem->variableName(wj) + ",0),le(add(" +
+                             problem->variableName(xi) + "," + problem->variableName(wi) + ")," + problem->variableName(xj) +
+                             "),le(add(" + problem->variableName(xj) + "," + problem->variableName(wj) + ")," +
+                             problem->variableName(xi) + "))";
                 manageIntension->intension(id, new Tree(tmp));
             } else {
                 FactoryConstraints::createConstraintDisjunctiveVars(problem, xi, xj, wi, wj);
@@ -1514,9 +1515,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
 
     if(origins[0].size() == 3) {
         struct {
-            string doit(Variable *a, Variable *b, Variable *c) {
-                return "le(add(" + a->_name + "," + b->_name + ")," + c->_name + ")";
-            }
+            string doit(std::string a, std::string b, std::string c) { return "le(add(" + a + "," + b + ")," + c + ")"; }
         } le;
 
         for(unsigned int i = 0; i < origins.size(); i++) {
@@ -1536,11 +1535,25 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
                 Variable *hi = problem->mapping[lengths[i][1]->id];
                 Variable *hj = problem->mapping[lengths[j][1]->id];
 
-                Variable *di = problem->mapping[lengths[i][2]->id];
-                Variable *dj = problem->mapping[lengths[j][2]->id];
+                Variable   *di      = problem->mapping[lengths[i][2]->id];
+                Variable   *dj      = problem->mapping[lengths[j][2]->id];
+                std::string xi_name = problem->variableName(xi);
+                std::string xj_name = problem->variableName(xj);
+                std::string yi_name = problem->variableName(yi);
+                std::string yj_name = problem->variableName(yj);
+                std::string zi_name = problem->variableName(zi);
+                std::string zj_name = problem->variableName(zj);
+                std::string wi_name = problem->variableName(wi);
+                std::string wj_name = problem->variableName(wj);
+                std::string di_name = problem->variableName(di);
+                std::string dj_name = problem->variableName(dj);
+                std::string hi_name = problem->variableName(hi);
+                std::string hj_name = problem->variableName(hj);
 
-                string tmp = "or(" + le.doit(xi, wi, xj) + "," + le.doit(xj, wj, xi) + "," + le.doit(yi, hi, yj) + "," +
-                             le.doit(yj, hj, yi) + "," + le.doit(zi, di, zj) + "," + le.doit(zj, dj, zi) + ")";
+
+                string tmp = "or(" + le.doit(xi_name, wi_name, xj_name) + "," + le.doit(xj_name, wj_name, xi_name) + "," +
+                             le.doit(yi_name, hi_name, yj_name) + "," + le.doit(yj_name, hj_name, yi_name) + "," +
+                             le.doit(zi_name, di_name, zj_name) + "," + le.doit(zj_name, dj_name, zi_name) + ")";
                 buildConstraintIntension(id, new Tree(tmp));
             }
         }
@@ -2154,7 +2167,7 @@ void CosocoCallbacks::createAuxiliaryVariablesAndExpressions(vector<Tree *> &tre
                 std::set<int>         values;
                 std::map<string, int> tuple;
                 for(int idv : x->domain) {
-                    tuple[x->_name] = x->domain.toVal(idv);
+                    tuple[problem->variableName(x)] = x->domain.toVal(idv);
                     values.insert(tree->evaluate(tuple));
                 }
                 std::vector<int> v(values.begin(), values.end());

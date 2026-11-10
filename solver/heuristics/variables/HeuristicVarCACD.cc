@@ -29,7 +29,7 @@ void HeuristicVarCACD::reset() {
 Variable *HeuristicVarCACD::select() {
     if(solver.warmStart && solver.conflicts == 0 && solver.nbSolutions == 0) {
         for(int i = 0; i < solver.decisionVariables.size(); i++)
-            if(solver.decisionVariables[i]->_name.rfind("__av", 0) != 0)
+            if(solver.problem.variableName(solver.decisionVariables[i]).rfind("__av", 0) != 0)
                 return solver.decisionVariables[i];
     }
 

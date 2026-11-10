@@ -36,7 +36,7 @@ NoGoodsEngine::NoGoodsEngine(Solver &s) : solver(s), maxArity(1000), capacity(0)
 }
 
 std::ostream &operator<<(std::ostream &stream, Tuple const &tuple) {
-    stream << tuple.x->_name << (tuple.eq ? "=" : "!=") << tuple.idv << " ";
+    stream << tuple.x->idx << (tuple.eq ? "=" : "!=") << tuple.idv << " ";
     return stream;
 }
 //-----------------------------------------------------------------------
@@ -48,7 +48,7 @@ void NoGoodsEngine::generateNogoodFromSolution() {
     for(Variable *x : solver.problem.variables) {
         if(x->idx >= solver.problem.nbOriginalVars)
             break;
-        if(x->useless == false)
+        if(solver.problem.isUselessVariable(x) == false)
             nogood.push(getNegativeDecisionFor(x, x->domain.toIdv(x->value())));
     }
 

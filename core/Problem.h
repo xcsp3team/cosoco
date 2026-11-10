@@ -17,15 +17,15 @@ class Solver;
 
 class Problem {
    public:
-    vec<Constraint *>        constraints;      // The set of constraints
-    vec<Variable *>          variables;        // The set of variables
+    vec<Constraint *>        constraints;   // The set of constraints
+    vec<Variable *>          variables;     // The set of variables
+    vec<VariableMetadata *>  variablesMetadata;
     std::vector<std::string> arrayNames;       // The name of the variables array
     vec<vec<Variable *> >    variablesArray;   // The different arrays of Variables
     Solver                  *solver;           // The attached solver (initialized to nullptr)
 
-    int                   nbOriginalVars;        // The number of original vars in the model
-    int                   nbExtensionsSharded;   // nb extension constraints shared
-    vec<VariableMetadata> variablesMetadata;
+    int nbOriginalVars;        // The number of original vars in the model
+    int nbExtensionsSharded;   // nb extension constraints shared
     std::map<std::string, Variable *>
          mapping;              // The mapping between the name of the variables and the Variable itself. Useful for parsing
     bool isConstructionDone;   // true if the construction of the problem is done
@@ -37,8 +37,8 @@ class Problem {
     void attachSolver(Solver *s);   // Attach the solver to the problem
 
 
-    Variable *createVariable(std::string n, Domain &d, int array = -1);   // Add a new variable
-    void      addConstraint(Constraint *c);                               // Add a new constraint
+    Variable *createVariable(const std::string &n, Domain &d, int array = -1);   // Add a new variable
+    void      addConstraint(Constraint *c);                                      // Add a new constraint
 
 
     // Problem Statistics

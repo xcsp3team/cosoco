@@ -7,8 +7,7 @@ using namespace Cosoco;
 
 
 // Construction and Initialisation
-Variable::Variable(Problem &p, std::string n, Domain &d, int id, int a)
-    : timestamp(0), problem(p), idx(id), array(a), _name(n), domain(d), wdeg(1), useless(false) { }
+Variable::Variable(Problem &p, Domain &d, int id) : timestamp(0), idx(id), domain(d), wdeg(1) { }
 
 
 void Variable::delayedConstruction(int id, int nbVars) {
@@ -53,7 +52,7 @@ void Variable::assignToVal(int v, int level) { domain.reduceTo(domain.toIdv(v), 
 
 // Display
 void Variable::display(bool allDetails) {
-    printf("Variable %s\n", name());
+    printf("Variable %d\n", idx);
     if(allDetails)
         for(auto &pair : constraints) {
             printf("     ");

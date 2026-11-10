@@ -209,12 +209,12 @@ RESULT Solver::firstCall() {
         return R_UNSAT;
     }
     if(nbSolutions == 0) {
-        verbose.log(NORMAL, "c root propagations     : %-12lld\n", statistics[rootPropagations]);
+        LOG(verbose, NORMAL, "c root propagations     : %-12lld\n", statistics[rootPropagations]);
         if(restart == nullptr)
-            verbose.log(NORMAL, "c restarts disabled, print stats every %d conflicts\n", displayStatsEveryConflicts);
+            LOG(verbose, NORMAL, "c restarts disabled, print stats every %d conflicts\n", displayStatsEveryConflicts);
         else
-            verbose.log(NORMAL, "c restarts enabled, print stats at every restarts\n");
-        verbose.log(NORMAL, "c\nc\n");
+            LOG(verbose, NORMAL, "c restarts enabled, print stats at every restarts\n");
+        LOG(verbose, NORMAL, "c\nc\n");
         displayHeaderCurrentSearchSpace();
     }
 
@@ -400,8 +400,8 @@ void Solver::newDecision(Variable *x, int idv) {
     decisionVariables.del(x);
     trail_lim.push(trail.size());   // a new decision level, store the current trail
     decisionVariablesId.push(idv);
-    verbose.log(DEBUGVERBOSE, "%slvl %d : %s = %d (initial domain= %d) %s\n", KGRN, decisionLevel(), x->name(),
-                x->domain.toVal(idv), x->size(), KNRM);
+    LOG(verbose, DEBUGVERBOSE, "%slvl %d : %s = %d (initial domain= %d) %s\n", KGRN, decisionLevel(),
+        problem.variableName(x).c_str(), x->domain.toVal(idv), x->size(), KNRM);
 
     assignToIdv(x, idv);
     for(auto &pair : x->constraints) pair.first->assignVariable(x, pair.second);
@@ -457,7 +457,7 @@ void Solver::fullBacktrack(bool all) {
 
 void Solver::backtrack(bool isFull) {
     assert(decisionLevel() > 0);
-    verbose.log(DEBUGVERBOSE, "%s--- BACKTRACK %d ---%s\n", KRED, decisionLevel() - 1, KNRM);
+    LOG(verbose, DEBUGVERBOSE, "%s--- BACKTRACK %d ---%s\n", KRED, decisionLevel() - 1, KNRM);
     if(verbose.verbosity == TOTALVERBOSE)
         displayTrail();
     Variable *assigned = decisionVariableAtLevel(decisionLevel());
@@ -688,7 +688,8 @@ bool Solver::delIdv(Variable *x, int idv) {
     propagations++;
     if(decisionLevel() == 0)
         statistics[rootPropagations]++;
-    verbose.log(FULLVERBOSE, "   lvl %d : %s (|d|=%d) -= {%d}\n", decisionLevel(), x->name(), x->size(), x->domain.toVal(idv));
+    LOG(verbose, FULLVERBOSE, "   lvl %d : %s (|d|=%d) -= {%d}\n", decisionLevel(), problem.variableName(x).c_str(), x->size(),
+        x->domain.toVal(idv));
     addToQueue(x);
     return x->size() != 0;
 }
@@ -725,7 +726,7 @@ bool Solver::assignToVal(Variable *x, int v) {
 
     x->assignToIdv(idv, decisionLevel());
     addToQueue(x);
-    verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), v);
+    LOG(verbose, FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), problem.variableName(x).c_str(), v);
     return true;
 }
 
@@ -751,7 +752,7 @@ bool Solver::assignToIdv(Variable *x, int idv) {
 
 
     addToQueue(x);
-    verbose.log(FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), x->name(), x->domain.toVal(idv));
+    LOG(verbose, FULLVERBOSE, "   lvl %d : %s = %d\n", decisionLevel(), problem.variableName(x).c_str(), x->domain.toVal(idv));
     return true;
 }
 //----------------------------------------------
@@ -1056,8 +1057,8 @@ void Solver::displayCurrentSolution(int verbosity) {
     if(verbosity == 1) {
         printf("v ");
         for(Variable *x : problem.variables)
-            if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */) {
-                if(x->useless)
+            if(problem.variableName(x).rfind("__av", 0) != 0 /* && x->array == -1 */) {
+                if(problem.isUselessVariable(x))
                     printf("* ");
                 else
                     printf("%d ", lastSolution[x->idx]);
@@ -1073,8 +1074,8 @@ void Solver::displayCurrentSolution(int verbosity) {
     // for(std::string tmp : problem.arrayNames) std::cout << tmp << " ";
 
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */)
-            printf("%s ", x->name());
+        if(problem.variableName(x).rfind("__av", 0) != 0 /* && x->array == -1 */)
+            printf("%s ", problem.variableName(x).c_str());
     printf("</list>\n");
     printf("v <values> ");
 
@@ -1086,8 +1087,8 @@ void Solver::displayCurrentSolution(int verbosity) {
                 printf("%d ", lastSolution[x->idx]);
 */
     for(Variable *x : problem.variables)
-        if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1 */) {
-            if(x->useless)
+        if(problem.variableName(x).rfind("__av", 0) != 0 /* && x->array == -1 */) {
+            if(problem.isUselessVariable(x))
                 printf("* ");
             else
                 printf("%d ", lastSolution[x->idx]);
@@ -1107,7 +1108,7 @@ void Solver::displayTrail() {   // DEBUG method
             fprintf(stderr, " | ");
             tmp++;
         }
-        fprintf(stderr, "%s", trail[i]->name());
+        fprintf(stderr, "%s", problem.variableName(trail[i]).c_str());
     }
     fprintf(stderr, "\n");
 }

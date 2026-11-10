@@ -188,7 +188,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             Variable                  *x = callbacks.problem->mapping[tree->listOfVariables[0]];
             vec<int>                   values;
             for(int idv : x->domain) {
-                tuple[x->_name] = x->domain.toVal(idv);
+                tuple[callbacks.problem->variableName(x)] = x->domain.toVal(idv);
                 if(tree->evaluate(tuple))
                     values.push(x->domain.toVal(idv));
             }
@@ -211,7 +211,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
             if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
                 int pos = -1;
                 for(int i = 0; i < scope.size(); i++)
-                    if(scope[i]->_name == nv->var)
+                    if(callbacks.problem->variableName(scope[i]) == nv->var)
                         pos = i;
                 Variable *tmp2               = scope[pos];
                 scope[pos]                   = scope.last();
@@ -220,7 +220,7 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 tree->listOfVariables[pos]   = tree->listOfVariables.back();
                 tree->listOfVariables.back() = tmp3;
 
-                assert(scope.last()->_name == nv->var);
+                assert(callbacks.problem->variableName(scope.last()) == nv->var);
             }
         }
 
@@ -252,7 +252,8 @@ void ManageIntension::intension(std::string id, Tree *tree) {
                 Extension *ext = dynamic_cast<Extension *>(callbacks.problem->constraints.last());
                 if(ext != nullptr)
                     std::cout << "[support: " << ext->isSupport << " , tuples: " << ext->nbTuples() << "]" << std::endl;
-                for(Variable *x : scope) std::cout << x->_name << "(" << x->domain.maxSize() << ")" << " ";
+                for(Variable *x : scope)
+                    std::cout << callbacks.problem->variableName(x) << "(" << x->domain.maxSize() << ")" << " ";
                 std::cout << "\n";
             }
             return;
@@ -450,7 +451,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     std::string expr   = tree->toString();
     char        letter = 'a';
     for(Variable *x : scope) {
-        replace_all_occurrences(expr, x->_name, {letter});
+        replace_all_occurrences(expr, callbacks.problem->variableName(x), {letter});
         letter++;
     }
 
@@ -465,10 +466,10 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     // Create extension
     std::vector<std::vector<int>> tuples;
     bool                          isSupport = false;
-    Constraint::toExtensionConstraint(tree, scope, tuples, isSupport);
+    Constraint::toExtensionConstraint(tree, scope, tuples, isSupport, *callbacks.problem);
 
     vec<Variable *> varsCore;
-    for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[tmp->_name]);
+    for(Variable *tmp : scope) varsCore.push(callbacks.problem->mapping[callbacks.problem->variableName(tmp)]);
     callbacks.buildConstraintExtension2(id, varsCore, tuples, isSupport, false);
     cachedExtensions[expr] = callbacks.problem->constraints.last();
 

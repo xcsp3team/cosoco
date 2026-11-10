@@ -105,7 +105,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
         if(verbosity == 1) {
             printf("v ");
             for(int i = 0; i < problem.nbVariables(); i++) {
-                if(problem.variables[i]->_name.rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
+                if(problem.variableName(problem.variables[i]).rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
                     if((*preserved)[i] == STAR)
                         std::cout << "* ";
                     else
@@ -120,8 +120,8 @@ class Solution {   // This class comes from pseudo boolean competition and was p
         // for(std::string tmp2 : problem.arrayNames) std::cout << tmp2 << " ";
 
         for(Variable *x : problem.variables)
-            if(x->_name.rfind("__av", 0) != 0 /* && x->array == -1*/)
-                std::cout << x->_name << " ";
+            if(problem.variableName(x).rfind("__av", 0) != 0 /* && x->array == -1*/)
+                std::cout << problem.variableName(x) << " ";
 
         printf("</list>\n");
 
@@ -135,7 +135,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
             }
         }*/
         for(int i = 0; i < problem.nbVariables(); i++) {
-            if(problem.variables[i]->_name.rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
+            if(problem.variableName(problem.variables[i]).rfind("__av", 0) != 0 /* && problem.variables[i]->array == -1 */) {
                 if((*preserved)[i] == STAR)
                     std::cout << "* ";
                 else

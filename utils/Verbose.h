@@ -21,6 +21,12 @@
 #define KCYN "\x1B[36m"
 #define KWHT "\x1B[37m"
 
+#define LOG(verbose, vb, ...)                 \
+    do {                                      \
+        if((vb) <= (verbose).verbosity)       \
+            (verbose).log((vb), __VA_ARGS__); \
+    } while(0)
+
 
 namespace Cosoco {
 class Verbose {
@@ -31,6 +37,7 @@ class Verbose {
     void log(int vb, const char* format, ...) {
         if(vb > verbosity)
             return;
+
         va_list argptr;
         va_start(argptr, format);
         vfprintf(stderr, format, argptr);

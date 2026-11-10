@@ -43,12 +43,12 @@ void ForceIdvs::notifyFullBacktrack() {
     if(rr && restartWithSolution == 0 && solver.nbSolutions == 1)
         restartWithSolution = nbrestarts + 12;
     if(rr && isDisabled && restartWithSolution > 0 && solver.statistics[restarts] >= restartWithSolution) {
-        solver.verbose.log(NORMAL, "c Enable BS\n");
+        LOG(solver.verbose, NORMAL, "c Enable BS\n");
         isDisabled = false;
     }
     if(rr == 2 && isDisabled == false && restartWithSolution + 100 == nbrestarts) {
         isDisabled = true;
-        solver.verbose.log(NORMAL, "c Disable BS\n");
+        LOG(solver.verbose, NORMAL, "c Disable BS\n");
         restartWithSolution = nbrestarts + 12;
     }
 }

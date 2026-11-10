@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include <set>
 #include <utility>
 
 #include "XCSP3Tree.h"
@@ -28,12 +29,12 @@ bool Constraint::isCorrectlyDefined() { return true; }
 
 
 bool Constraint::scopeIsOk() {
-    for(Variable *x : scope) x->fake = 0;
+    set<int> inScope;
     for(Variable *x : scope) {
-        if(x->fake == 1)
-            throw std::logic_error("Constraint " + std::to_string(idc) + " " + type + " : scope contains variable " + x->name() +
-                                   " many times");
-        x->fake = 1;
+        if(inScope.find(x->idx) != inScope.end())
+            throw std::logic_error("Constraint " + std::to_string(idc) + " " + type + " : scope contains variable " +
+                                   problem.variableName(x) + " many times");
+        inScope.insert(x->idx);
     }
     return true;
 }
@@ -140,12 +141,12 @@ void Constraint::extractConstraintTupleFromInterpretation(const vec<int> &interp
 
 
 void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<vec<int>> &conflicts, vec<vec<int>> &supports,
-                  std::map<string, int> &tuple) {
+                  std::map<string, int> &tuple, Problem &problem) {
     Variable *x = scope[posx];
 
 
     for(int i = 0; i < x->domain.maxSize(); i++) {
-        tuple[x->_name] = x->domain.toVal(i);
+        tuple[problem.variableName(x)] = x->domain.toVal(i);
         if(posx == scope.size() - 2 && tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR) {
             auto *nv = dynamic_cast<NodeVariable *>(tree->root->parameters[1]);
             if(nodeContainsVar(tree->root->parameters[0], nv->var) == false) {
@@ -154,9 +155,9 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
                 int eval = tree->root->parameters[0]->evaluate(tuple);
                 if(scope.last()->containsValue(eval)) {
                     supports.push();
-                    tuple[scope.last()->_name] = eval;
+                    tuple[problem.variableName(scope.last())] = eval;
                     assert(static_cast<int>(tuple.size()) == scope.size());
-                    for(auto &x : scope) supports.last().push(tuple[x->_name]);
+                    for(auto &x : scope) supports.last().push(tuple[problem.variableName(x)]);
                 }
                 continue;
             }
@@ -165,19 +166,19 @@ void createTuples(int posx, vec<Variable *> &scope, XCSP3Core::Tree *tree, vec<v
             vec<vec<int>> &putInside = tree->evaluate(tuple) ? supports : conflicts;
             putInside.push();
             for(auto &x : scope) {
-                putInside.last().push(tuple[x->_name]);
+                putInside.last().push(tuple[problem.variableName(x)]);
             }
         } else
-            createTuples(posx + 1, scope, tree, conflicts, supports, tuple);
+            createTuples(posx + 1, scope, tree, conflicts, supports, tuple, problem);
     }
 }
 
 
 void Constraint::toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int>> &tuples,
-                                       bool &isSupport) {   //
+                                       bool &isSupport, Problem &problem) {   //
     vec<vec<int>>         conflicts, supports;
     std::map<string, int> tuple;
-    createTuples(0, scope, tree, conflicts, supports, tuple);
+    createTuples(0, scope, tree, conflicts, supports, tuple, problem);
 
     // std::cout << conflicts.size() << "  " << supports.size() << std::endl;
     vec<vec<int>> &toCopy =
@@ -195,7 +196,7 @@ void Constraint::toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &s
 // Display
 void Constraint::display(bool allDetails) {
     printf("Constraint %d (%s) : [", idc, (typeid(*this).name()) + 9);   // 9 to remove namespace...
-    for(int i = 0; i < scope.size(); i++) printf(" %s ", scope[i]->name());
+    for(int i = 0; i < scope.size(); i++) printf(" %s ", problem.variableName(scope[i]).c_str());
     printf("]\n");
 }
 

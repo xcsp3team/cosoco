@@ -40,7 +40,7 @@ void HeuristicValOccs::updateOccurrences(int array) {
 
 int HeuristicValOccs::select(Variable *x) {
     // Special case
-    if(x->size() == 1)
+    /*if(x->size() == 1)
         return x->domain.firstId();
     if(x->array == -1)
         return x->domain.firstId();
@@ -56,6 +56,7 @@ int HeuristicValOccs::select(Variable *x) {
             ok = true;
             v  = v2;
         }
-    }
-    return x->domain.toIdv(v);
+    }*/
+    throw std::logic_error("HeuristicValOccs::select");
+    // return x->domain.toIdv(v);
 }

@@ -306,7 +306,7 @@ void CompactTable::displaySupports() {
     for(int i = 0; i < scope.size(); i++) {
         std::cout << "--------\n";
         for(int j = 0; j < scope[i]->domain.maxSize(); j++) {
-            std::cout << "support for " << scope[i]->_name << "=" << scope[i]->domain.toVal(j) << "\n";
+            std::cout << "support for " << scope[i]->idx << "=" << scope[i]->domain.toVal(j) << "\n";
             for(int k = 0; k < nWords; k++) std::cout << std::bitset<SIZEW>(masks[i][j][k]) << "\n";
         }
     }

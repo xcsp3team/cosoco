@@ -96,7 +96,8 @@ class Constraint {
     virtual void display(bool allDetails = false);
     virtual void attachSolver(Solver *s);
     static void  toExtensionConstraint(XCSP3Core::Tree *tree, vec<Variable *> &scope, std::vector<std::vector<int> > &tuples,
-                                       bool &isSupport);   // Extract Extensional . Return nullptr if too many tuples
+                                       bool    &isSupport,
+                                       Problem &problem);   // Extract Extensional . Return nullptr if too many tuples
 
    protected:
     // All this part simplify scope initialisation

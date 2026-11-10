@@ -38,7 +38,7 @@ void Problem::delayedConstruction() {
 
     for(Variable *x : variables) {
         if(x->constraints.size() == 0)
-            variablesMetadata[x->idx].useless = true;
+            variablesMetadata[x->idx]->useless = true;
     }
 }
 
@@ -56,13 +56,13 @@ void Problem::addConstraint(Constraint *c) {
 }
 
 
-Variable *Problem::createVariable(std::string n, Domain &d, int array) {
+Variable *Problem::createVariable(const std::string &n, Domain &d, int array) {
     if(isConstructionDone)
         throw std::logic_error("Construction of the problem is already done! You can not add variables");
-    auto *x = new Variable(*this, n, d, nbVariables(), array);
+    auto *x = new Variable(*this, d, nbVariables());
     variables.push(x);
-    mapping[variableName(x->idx)] = x;
-    variablesMetadata.push({array, n, false});
+    variablesMetadata.push(new VariableMetadata(n, array));
+    mapping[n] = x;
     return x;
 }
 
@@ -72,8 +72,8 @@ bool Problem::checkSolution() {
     vec<int> tuple;
     // All variables must be assigned
     for(Variable *x : variables)
-        if(x->size() != 1 && variablesMetadata[x->idx].useless == false) {
-            fprintf(stderr, "Solution Error : var %s has domain of size %d\n", variableName(x->idx), x->size());
+        if(x->size() != 1 && variablesMetadata[x->idx]->useless == false) {
+            fprintf(stderr, "Solution Error : var %s has domain of size %d\n", variableName(x).c_str(), x->size());
             return false;
         }
 
@@ -83,7 +83,7 @@ bool Problem::checkSolution() {
 
         if(c->isSatisfiedBy(tuple) == false) {
             for(Variable *x : c->scope)
-                std::cout << variableName(x->idx) << " " << x->value() << " " << x->domain.toVal(x->domain[0]) << endl;
+                std::cout << variableName(x) << " " << x->value() << " " << x->domain.toVal(x->domain[0]) << endl;
             c->display();
             fprintf(stderr, "Solution Error : (core %d) constraint number %d (name %s) is not valid\n", solver->core, c->idc,
                     c->type.c_str());
@@ -201,5 +201,5 @@ void Problem::display(bool alldetails) {
     }
 }
 
-std::string Problem::variableName(const Variable *x) { return variablesMetadata[x->idx].name; }
-bool        Problem::isUselessVariable(const Variable *x) { return variablesMetadata[x->idx].useless; }
+std::string Problem::variableName(const Variable *x) { return variablesMetadata[x->idx]->name; }
+bool        Problem::isUselessVariable(const Variable *x) { return variablesMetadata[x->idx]->useless; }

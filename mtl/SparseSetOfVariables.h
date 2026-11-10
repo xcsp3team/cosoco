@@ -96,12 +96,12 @@ class SparseSetOfVariables {
     // Display method
     void display() {
         printf("[");
-        for(int i = 0; i < size(); i++) printf(" %s  ", elements[i]->name());
+        for(int i = 0; i < size(); i++) printf(" %d  ", elements[i]->idx);
         printf("]");
 
         printf(" // [");
         for(int i = size(); i < maxSize(); i++) {
-            printf("%s %s %s ", KRED, elements[i]->name(), KNRM);
+            printf("%s %d %s ", KRED, elements[i]->idx, KNRM);
         }
         printf("]");
     }
