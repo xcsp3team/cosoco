@@ -8,8 +8,6 @@
 #include <ObserverDecision.h>
 #include <SparseSetMultiLevel.h>
 
-#include <queue>
-
 #include "Constraint.h"
 
 namespace Cosoco {
@@ -66,10 +64,12 @@ class Matcher : public ObserverDeleteDecision {
 class MatcherAllDifferent : public Matcher {
     int *val2var;
 
+   protected:
+    void computeNeighbors() override;
+
    public:
     explicit MatcherAllDifferent(Constraint *c);
     bool findMaximumMatching() override;
-    void computeNeighbors() override;
     bool findMatchingFor(int x);
 };
 
@@ -80,19 +80,20 @@ class MatcherCardinality : public Matcher {
     int           *predValue;
     vec<SparseSet> possibleVars;
     SparseSet      queueBFS;
-    int           *fixedOcc;                 // fixedOcc[u] = nombre de variables fixées à la valeur u
-    vec<int>       trailLevel, trailValue;   // trail pour restaurer fixedOcc au backtrack
+    int           *fixedOcc;                 // fixedOcc[v] = number of variables fixed with value v
+    vec<int>       trailLevel, trailValue;   // trail used to restore data on backtrack
     vec<int>       justSaturated;
 
     void handleAugmentingPath(int x, int v);
     bool findMatchingForValue(int u);
     bool findMatchingForVariable(int x);
 
+   protected:
+    void computeNeighbors() override;
+
    public:
     explicit MatcherCardinality(Constraint *c, vec<int> &_keys, vec<int> &_minOccs, vec<int> &_maxOccs);
     bool findMaximumMatching() override;
-    void computeNeighbors() override;
-    bool findMatchingFor(int x);
     void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 };
 }   // namespace Cosoco
