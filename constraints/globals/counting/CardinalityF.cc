@@ -169,3 +169,8 @@ CardinalityM::CardinalityM(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<i
     v.copyTo(values);
     isPostponable = true;
 }
+
+void CardinalityM::attachSolver(Solver *solver) {
+    Constraint::attachSolver(solver);
+    solver->addObserverDeleteDecision(&matcher);   // We need to restore tuples.
+}

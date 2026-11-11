@@ -42,6 +42,8 @@ class Matcher : public ObserverDeleteDecision {
     bool               *onStack;   // replace statcktarjan.contains
     long               *sccId;     // identifying scc
     long                sccCounter;
+    int                 nNodesInGraph;   // nombre de nœuds réellement présents dans le graphe courant
+    SparseSet           activeValues;    // valeurs pouvant être visitées (sert à calculer nNodesInGraph)
 
     int  degree(int node);
     int  target(int node, int i);
@@ -78,7 +80,9 @@ class MatcherCardinality : public Matcher {
     int           *predValue;
     vec<SparseSet> possibleVars;
     SparseSet      queueBFS;
-
+    int           *fixedOcc;                 // fixedOcc[u] = nombre de variables fixées à la valeur u
+    vec<int>       trailLevel, trailValue;   // trail pour restaurer fixedOcc au backtrack
+    vec<int>       justSaturated;
 
     void handleAugmentingPath(int x, int v);
     bool findMatchingForValue(int u);
@@ -89,8 +93,8 @@ class MatcherCardinality : public Matcher {
     bool findMaximumMatching() override;
     void computeNeighbors() override;
     bool findMatchingFor(int x);
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 };
 }   // namespace Cosoco
 
 #endif   // COSOCO_MATCHER_H
-œ

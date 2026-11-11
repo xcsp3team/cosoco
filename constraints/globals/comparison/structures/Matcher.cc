@@ -47,6 +47,8 @@ MatcherCardinality::MatcherCardinality(Constraint* c, vec<int>& _keys, vec<int>&
 
     val2var.growTo(interval);
     for(int i = 0; i < interval; i++) val2var[i].setCapacity(arity, false);
+    fixedOcc = new int[interval];
+    std::fill_n(fixedOcc, interval, 0);
 }
 
 
@@ -91,12 +93,23 @@ Matcher::Matcher(Constraint* cc)
     std::fill_n(onStack, nNodes, false);
     sccId = new long[nNodes];
     std::fill_n(sccId, nNodes, 0);
-    sccCounter = 0;
+    sccCounter    = 0;
+    nNodesInGraph = nNodes;
+    activeValues.setCapacity(interval, false);
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
     unfixed.restoreLimit(s.decisionLevel() + 1);
     fixedVars.restoreLimit(s.decisionLevel() + 1);
+}
+
+void MatcherCardinality::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
+    Matcher::notifyDeleteDecision(x, v, s, isFull);   // restaure unfixed et fixedVars
+    while(trailLevel.size() > 0 && trailLevel.last() > s.decisionLevel()) {
+        fixedOcc[trailValue.last()]--;
+        trailLevel.pop();
+        trailValue.pop();
+    }
 }
 
 
@@ -290,7 +303,7 @@ void Matcher::tarjanRemoveValues(int root) {
 }
 
 void Matcher::processSCC(int node) {
-    splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodes;
+    splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodesInGraph;
 
     // dépiler la SCC, lui donner un identifiant, et collecter ses valeurs
     const long id = ++sccCounter;
@@ -401,23 +414,70 @@ bool MatcherCardinality::findMatchingForVariable(int x) {
 }
 
 void MatcherCardinality::computeNeighbors() {
+    const int level = constraint->solver->decisionLevel();
+
+    // 1. Enregistrer les variables nouvellement fixées
+    justSaturated.clear();
+    for(int idx = 0; idx < arity; idx++) {
+        if(fixedVars.contains(idx) || scope[idx]->size() != 1)
+            continue;
+        int nv = normalizedValue(scope[idx]->value());
+        fixedVars.add(idx, level);
+        if(unfixed.contains(idx))
+            unfixed.del(idx, level);
+        fixedOcc[nv]++;
+        trailLevel.push(level);
+        trailValue.push(nv);
+        if(fixedOcc[nv] == maxOccs[nv])   // la valeur vient d'être saturée par des variables fixées
+            justSaturated.push(nv);
+    }
+
+    // 2. Une valeur saturée par des variables fixées est retirée des autres variables
+    for(int nv : justSaturated) {
+        int v = domainValue(nv);
+        for(int idx = 0; idx < arity; idx++)
+            if(!fixedVars.contains(idx) && scope[idx]->containsValue(v))
+                constraint->solver->delVal(scope[idx], v);
+    }
+
+    // 3. Construction du graphe, uniquement sur les variables non fixées
     for(auto& set : neighborsOfValues) set.clear();
-    for(int u = 0; u < interval; u++) {
-        if(val2var[u].size() < maxOccs[u])
-            neighborsOfT.add(u);
-        else
-            neighborsOfT.del(u);
-        if(val2var[u].size() > minOccs[u])
-            neighborsOfValues[u].add(arity);
-        else
-            neighborsOfValues[u].del(arity);
-        for(int posx : possibleVars[u]) {
-            if(scope[posx]->containsValue(domainValue(u)) && var2val[posx] != u)
-                neighborsOfValues[u].add(posx);
-            else
-                neighborsOfValues[u].del(posx);
+    neighborsOfT.clear();
+    activeValues.clear();
+    auto markActive = [&](int u) {
+        if(!activeValues.contains(u))
+            activeValues.add(u);
+    };
+
+    int nbVars = 0;
+    for(int idx = 0; idx < arity; idx++) {
+        if(fixedVars.contains(idx))
+            continue;
+        nbVars++;
+        Variable* x       = scope[idx];
+        int       matched = var2val[idx];
+        if(matched != -1)
+            markActive(matched);
+        for(int idv : x->domain) {   // domaine courant, pas possibleVars
+            int nv = normalizedValue(x->domain.toVal(idv));
+            if(nv != matched)
+                neighborsOfValues[nv].add(idx);
         }
     }
+
+    for(int u = 0; u < interval; u++) {
+        int sz = val2var[u].size();
+        if(sz < maxOccs[u]) {
+            neighborsOfT.add(u);
+            markActive(u);
+        }
+        if(sz > minOccs[u])
+            neighborsOfValues[u].add(arity);   // arête u -> T
+    }
+
+    // un nœud valeur n'est atteint que depuis sa variable appariée ou depuis T,
+    // donc ce compte majore le nombre de nœuds visitables
+    nNodesInGraph = nbVars + activeValues.size() + 1;
 }
 
 bool MatcherCardinality::findMaximumMatching() {

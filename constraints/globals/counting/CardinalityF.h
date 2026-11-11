@@ -43,7 +43,7 @@ class CardinalityM : public GlobalConstraint {
    public:
     // A weak cardinality filtering used when list is too big
     CardinalityM(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max);
-
+    void attachSolver(Solver *s) override;
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
