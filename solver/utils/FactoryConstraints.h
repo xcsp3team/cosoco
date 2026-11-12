@@ -190,6 +190,8 @@ void createConstraintCardinality(Cosoco::Problem *p, vec<Cosoco::Variable *> &va
 
 void createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<Occurs> &occurs);
 
+void createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<int> &min, vec<int> &max);
+
 void createConstraintOrdered(Problem *p, vec<Variable *> &vars, vector<int> &lengths, OrderType op);
 
 void createConstraintOrdered(Problem *p, vec<Variable *> &vars, vec<Variable *> &lengths, OrderType op);
