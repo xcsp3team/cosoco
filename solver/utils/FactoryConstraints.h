@@ -205,6 +205,8 @@ void createConstraintChannel(Problem *p, vec<Variable *> &vars, int index);
 
 //-----------------------------------------------------------------------
 
+void createConstraintNoOverlap1D(Problem *p, vec<Variable *> &vars, vec<int> &lengths);
+
 void createConstraintDisjunctive(Problem *p, Variable *x1, Variable *x2, int w1, int w2, Variable *aux);
 
 void createConstraintDisjunctiveVars(Problem *p, Variable *x1, Variable *x2, Variable *w1, Variable *w2);

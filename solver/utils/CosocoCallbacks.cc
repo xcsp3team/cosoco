@@ -1479,6 +1479,10 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
     if(!zeroIgnored)
         throw runtime_error("Nooverlap with zeroIgnored not yet supported");
     toMyVariables(origins);
+    vector2vec(lengths);
+    return FactoryConstraints::createConstraintNoOverlap1D(problem, vars, vals);
+
+
     for(int i = 0; i < vars.size(); i++)
         for(int j = i + 1; j < vars.size(); j++) {
             if(vars[i]->maximum() + lengths[i] <= vars[j]->minimum() || vars[j]->maximum() + lengths[j] <= vars[i]->minimum())

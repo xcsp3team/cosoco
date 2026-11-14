@@ -31,6 +31,7 @@
 #include "MinimumConstantEQ.h"
 #include "Mult.h"
 #include "NValuesGEK.h"
+#include "NoOverlap1D.h"
 #include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
@@ -919,6 +920,11 @@ void FactoryConstraints::createConstraintChannel(Problem *p, vec<Variable *> &va
 }
 
 //-----------------------------------------------------------------------
+
+void FactoryConstraints::createConstraintNoOverlap1D(Problem *p, vec<Variable *> &vars, vec<int> &lengths) {
+    p->addConstraint(new NoOverlap1D(*p, vars, lengths));
+}
+
 
 void FactoryConstraints::createConstraintDisjunctive(Problem *p, Variable *x1, Variable *x2, int w1, int w2, Variable *aux) {
     p->addConstraint(new Disjunctive(*p, x1, x2, w1, w2, aux));
