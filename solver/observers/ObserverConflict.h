@@ -11,4 +11,4 @@ class ObserverConflict {
 };
 }   // namespace Cosoco
 
-#endif /* OBSERVERSCONFLICT_H */
+#endif /* OBSERVERCONFLICT_H */

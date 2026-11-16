@@ -7,14 +7,12 @@ using namespace XCSP3Core;
 namespace Cosoco {
 class Intension : public Constraint, public ObjectiveConstraint {
    protected:
-    Tree *                     evaluator;
+    Tree                      *evaluator;
     std::map<std::string, int> tuple;
 
    public:
     // Constructors
-    Intension(Problem &p, std::string n, Tree *tree, vec<Variable *> &scope) : Constraint(p, n, scope), evaluator(tree) {
-        type = "Intension";
-    }
+    Intension(Problem &p, Tree *tree, vec<Variable *> &scope) : Constraint(p, scope), evaluator(tree) { type = "Intension"; }
 
 
     // filtering

@@ -35,8 +35,8 @@ bool ExactlyK::filter(Variable *dummy) {
         for(int posx : unassignedVariablesIdx)
             if(solver->delVal(scope[posx], value) == false)
                 return false;
-        done = true;
-        return true;
+
+        return solver->entail(this);
     }
 
     int i = 0;
@@ -86,17 +86,11 @@ bool ExactlyK::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-ExactlyK::ExactlyK(Problem &p, std::string n, vec<Variable *> &vars, int kk, int val)
-    : GlobalConstraint(p, n, "Exactly K", vars), k(kk), value(val), done(false) {
+ExactlyK::ExactlyK(Problem &p, vec<Variable *> &vars, int kk, int val)
+    : GlobalConstraint(p, "Exactly K", vars), k(kk), value(val) {
     valueToidv.growTo(scope.size(), -1);
     for(int i = 0; i < scope.size(); i++) {
         if(scope[i]->containsValue(value))
             valueToidv[i] = scope[i]->domain.toIdv(value);
     }
 }
-
-
-State ExactlyK::status() { return  done ? CONSISTENT : UNDEF; }
-
-
-void ExactlyK::reinitialize() { done = false; }

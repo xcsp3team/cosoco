@@ -17,7 +17,7 @@ class Among : public GlobalConstraint {
     std::set<int> values;
 
 
-    Among(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &values, int k);
+    Among(Problem &p, vec<Variable *> &vars, vec<int> &values, int k);
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
 

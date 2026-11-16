@@ -9,6 +9,7 @@ class BinaryExtension : public Extension {
     vec<int>  resx;    // residue for x
     vec<int>  resy;    // residue for y
     Variable *x, *y;   // Do not want to extends Binary
+    vec<int> *existingX, *existingY;
 
     int           maxConflictsx, maxConflictsy;
     int           nbtuples;
@@ -16,11 +17,13 @@ class BinaryExtension : public Extension {
 
    public:
     // Constructors and initialisation
-    BinaryExtension(Problem &p, std::string n, bool support, Variable *x, Variable *y);
-    BinaryExtension(Problem &p, std::string n, bool support, Variable *x, Variable *y, BinaryExtension *hasSameTuples);
+    BinaryExtension(Problem &p, bool support, Variable *x, Variable *y);
+    BinaryExtension(Problem &p, bool support, Variable *x, Variable *y, BinaryExtension *hasSameTuples);
 
     // filtering
     bool filter(Variable *x) override;
+    bool filterSupport(Variable *x);
+    bool filterConflict(Variable *x);
 
     // checking
     bool isSatisfiedBy(vec<int> &tuple) override;

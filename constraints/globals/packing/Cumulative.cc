@@ -13,7 +13,7 @@ using namespace Cosoco;
 
 
 bool Cumulative::isSatisfiedBy(vec<int> &tuple) {
-    int min = horizon;
+    int min = INT_MAX;
     int max = -1;
     for(int i = 0; i < tuple.size(); i++) {
         if(tuple[i] < min)
@@ -104,9 +104,7 @@ void TimeTableReasoner::updateRelevantTasks() {
         int i = relevantTasks[j];
         if(cumulative.starts[i]->size() == 1 &&
            (cumulative.starts[i]->maximum() + cumulative.maxWidth(i) <= smin || emax <= cumulative.starts[i]->minimum())) {
-            if(relevantTasks.isLimitRecordedAtLevel(level) == false)
-                relevantTasks.recordLimit(level);
-            relevantTasks.del(j);
+            relevantTasks.del(j, level);
         }
     }
 }
@@ -144,18 +142,16 @@ TimeTableReasoner::TimeTableReasoner(Cumulative &c) : cumulative(c), nSlots(0) {
 int Cumulative::maxWidth(int posx) { return wwidths[posx]; }
 
 bool Cumulative::filter(Variable *dummy) {
+    long margin = _horizon() * limit - taskVolume();
+    if(margin < 0)
+        return false;
+
     int b = timetableReasoner.buildSlots();
     if(b == 0)
         return false;   // seems better than x.dom.fail()
     if(b == 1)
         return true;
 
-    /*b = energeticReasoner.filter();
-    if (b == Boolean.FALSE)
-        return false; // seems better than x.dom.fail()
-    if (b == Boolean.TRUE)
-        return true;
-*/
     return timetableReasoner.filter();
 }
 
@@ -164,9 +160,8 @@ bool Cumulative::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    if(timetableReasoner.relevantTasks.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
+void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    timetableReasoner.relevantTasks.restoreLimit(s.decisionLevel() + 1);
 }
 
 
@@ -174,20 +169,26 @@ void Cumulative::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 // Construction and initialisation
 //----------------------------------------------
 
-int Cumulative::_horizon(Cosoco::vec<Cosoco::Variable *> &vars) {
-    int h = -1;
-    for(int i = 0; i < vars.size(); i++)
-        if(vars[i]->maximum() + maxWidth(i) > h)
-            h = vars[i]->maximum() + maxWidth(i);
-    h++;
-    return h;
+long Cumulative::_horizon() {
+    int min = INT_MAX, max = INT_MIN;
+    for(int i = 0; i < starts.size(); i++) {
+        min = std::min(min, starts[i]->minimum());
+        max = std::max(max, starts[i]->maximum() + maxWidth(i));
+    }
+    return max - min;
+}
+
+long Cumulative::taskVolume() {
+    long sum = 0;
+    for(int i = 0; i < starts.size(); i++)
+        sum += wwidths[i] * wheights[i];   // correct because we always store the minimal values in these arrays
+    return sum;
 }
 
 
-Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int lm)
-    : GlobalConstraint(p, n, "Cumulative", scope), timetableReasoner(*this) {
-    limit = lm;
-
+Cumulative::Cumulative(Problem &p, vec<Variable *> &vars, vec<Variable *> &scope, vec<int> &l, vec<int> &h, int lm)
+    : GlobalConstraint(p, "Cumulative", scope), timetableReasoner(*this) {
+    limit         = lm;
     isPostponable = true;
     vars.copyTo(starts);
 
@@ -198,10 +199,13 @@ Cumulative::Cumulative(Problem &p, std::string n, vec<Variable *> &vars, vec<Var
 
 void Cumulative::attachSolver(Solver *s) {
     // Init timetableReasoner here..
-    horizon = _horizon(starts);
-    timetableReasoner.offsets.growTo(horizon);
-    timetableReasoner.slots.growTo(horizon);
-    timetableReasoner.ticks.setCapacity(horizon, false);
+    int timeline = INT_MIN;
+    for(int i = 0; i < starts.size(); i++) timeline = std::max(timeline, starts[i]->maximum() + maxWidth(i));
+    timeline++;
+
+    timetableReasoner.offsets.growTo(timeline);
+    timetableReasoner.slots.growTo(timeline);
+    timetableReasoner.ticks.setCapacity(timeline, false);
     timetableReasoner.relevantTasks.setCapacity(starts.size(), true);
 
     Constraint::attachSolver(s);
@@ -226,7 +230,7 @@ void Cumulative::filterHeightVariables(vec<Variable *> &heightVariables) {
                 if(surplus <= 0)
                     break;
                 if(!(me <= slot.start || slot.end <= ms))   // if overlapping
-                    solver->delValuesGreaterOrEqualThan(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
+                    solver->delValuesGE(heightVariables[posx], heightVariables[posx]->maximum() - surplus + 1);
             }
         }
     }
@@ -250,7 +254,7 @@ void Cumulative::filterWidthVariables(vec<Variable *> &widthVariables) {
                     break;                                    // because we can no more find a conflict
                 if(!(me2 <= slot.start || slot.end <= ms2))   // if overlapping
                     // widths[i].dom.removeValue(widths[i].dom.lastValue());
-                    solver->delValuesGreaterOrEqualThan(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
+                    solver->delValuesGE(widthVariables[i], widthVariables[i]->maximum() - (me2 - slot.start) + 1);
                 // no possible conflict
             }
         }

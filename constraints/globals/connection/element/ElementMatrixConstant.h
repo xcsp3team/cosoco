@@ -11,7 +11,7 @@ class ElementMatrixConstant : public ElementMatrix {
     vec<int> csentinels;
 
    public:
-    ElementMatrixConstant(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, int v);
+    ElementMatrixConstant(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci, int v);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

@@ -21,7 +21,7 @@ class ElementVariable : public Element {
     vec<int> valueSentinels;
 
    public:
-    ElementVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *i, Variable *r, bool one = false);
+    ElementVariable(Problem &p, vec<Variable *> &vars, Variable *i, Variable *r, bool one = false);
 
 
     bool isCorrectlyDefined() override;

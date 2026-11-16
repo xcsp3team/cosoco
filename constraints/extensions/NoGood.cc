@@ -13,13 +13,12 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool NoGood::isSatisfiedBy(vec<int> &t) {
-    int nb = 0;
+    return true;
     for(int i = 0; i < tuple.size(); i++) {
-        if(tuple[i] != t[i])
-            break;
-        nb++;
+        if(scope[i]->domain.toVal(tuple[i]) != t[i])
+            return true;
     }
-    return nb != scope.size();
+    return false;
 }
 
 
@@ -68,7 +67,7 @@ bool NoGood::filter(Variable *x) {
 // Constructors and initialisation
 //----------------------------------------------
 
-NoGood::NoGood(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &t) : Constraint(p, n, vars) {
+NoGood::NoGood(Problem &p, vec<Variable *> &vars, vec<int> &t) : Constraint(p, vars) {
     type = "NoGood";
     t.copyTo(tuple);
 }

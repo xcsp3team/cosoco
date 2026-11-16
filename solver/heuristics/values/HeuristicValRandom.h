@@ -9,9 +9,9 @@ class HeuristicValRandom : public HeuristicVal {
     HeuristicValRandom(Solver &s);
 
 
-    virtual int select(Variable *x) override;
+    int select(Variable *x) override;
 };
 }   // namespace Cosoco
 
 
-#endif /* HEURISTICVARFIRST_H */
+#endif /* HEURISTICVALRANDOM_H */

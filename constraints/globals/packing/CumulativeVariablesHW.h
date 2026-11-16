@@ -12,7 +12,7 @@ class CumulativeVariablesHW : public Cumulative {
     vec<Variable *> widthVariables, heightVariables;
 
    public:
-    CumulativeVariablesHW(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &, vec<Variable *> &, int limit);
+    CumulativeVariablesHW(Problem &p, vec<Variable *> &vars, vec<Variable *> &, vec<Variable *> &, int limit);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

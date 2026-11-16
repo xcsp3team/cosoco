@@ -9,11 +9,9 @@ class MinimumConstantGE : public MinimumConstant {
    protected:
     bool done;   // TODO transform and use entail...
    public:
-    MinimumConstantGE(Problem &p, std::string n, vec<Variable *> &vars, int kk) : MinimumConstant(p, n, vars, kk), done(false) { }
+    MinimumConstantGE(Problem &p, vec<Variable *> &vars, int kk) : MinimumConstant(p, vars, kk), done(false) { }
 
-    State status() override;
-    void  reinitialize() override;
-
+    
     bool filter(Variable *dummy) override;
     bool isSatisfiedBy(vec<int> &tuple) override;
 };

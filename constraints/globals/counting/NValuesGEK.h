@@ -15,7 +15,7 @@ class NValuesGEK : public GlobalConstraint, public ObjectiveConstraint {
     unsigned int  k;
     std::set<int> fixedValues;
     std::set<int> unfixedVariables;
-    NValuesGEK(Problem &p, std::string n, vec<Variable *> &vars, int k);
+    NValuesGEK(Problem &p, vec<Variable *> &vars, int k);
 
     bool filter(Variable *x) override;
     void initializeSets();

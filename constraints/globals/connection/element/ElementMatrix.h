@@ -9,8 +9,8 @@
 namespace Cosoco {
 class ElementMatrix : public GlobalConstraint {
    public:
-    ElementMatrix(Problem &p, std::string n, vec<vec<Variable *> > &m, Variable *ri, Variable *ci);
-    ElementMatrix(Problem &p, std::string n);
+    ElementMatrix(Problem &p, vec<vec<Variable *> > &m, Variable *ri, Variable *ci);
+    ElementMatrix(Problem &p);
 
    protected:
     vec<vec<Variable *> > matrix;

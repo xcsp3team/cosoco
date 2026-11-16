@@ -9,6 +9,7 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
+#define OFFSET(i) ((i) - offset)
 
 bool CardinalityF::isSatisfiedBy(vec<int> &tuple) {
     /*clear();
@@ -26,6 +27,11 @@ bool CardinalityF::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
+bool CardinalityM::isCorrectlyDefined() { return true; }
+
+bool CardinalityM::isSatisfiedBy(vec<int> &tuple) { return true; }
+
+
 bool CardinalityF::isCorrectlyDefined() { return true; }
 
 void CardinalityF::init() {
@@ -39,18 +45,14 @@ void CardinalityF::init() {
     for(int i = 0; i < vars.size(); i++) {
         Variable *x = vars[i];
         if(x->size() == 1) {
-            auto it = values2indexes.find(x->value());
-            if(it != values2indexes.end()) {
-                int j = it->second;
+            int j = values2indexes[OFFSET(x->value())];
+            if(j != -1)
                 mandatories[j].add(i);
-            }
         } else {
             for(int idv : x->domain) {
-                auto it = values2indexes.find(x->domain.toVal(idv));
-                if(it != values2indexes.end()) {
-                    int j = it->second;
+                int j = values2indexes[OFFSET(x->domain.toVal(idv))];
+                if(j != -1)
                     possibles[j].add(i);
-                }
             }
         }
     }
@@ -61,6 +63,8 @@ void CardinalityF::init() {
 //----------------------------------------------
 
 bool CardinalityF::filter(Variable *dummy) {
+    init();
+
     while(true) {
         int status = doFiltering();
         if(status == -1)
@@ -68,11 +72,11 @@ bool CardinalityF::filter(Variable *dummy) {
         if(status == 0)
             break;
         for(int v : valueToCompute) {
-            for(int posx : reverse(possibles[v])) {
-                if(vars[posx]->containsValue(v) == false) {
+            for(int posx : possibles[v]) {
+                if(vars[posx]->containsValue(values[v]) == false) {
                     possibles[v].del(posx);
 
-                } else if(vars[posx]->isAssigned()) {
+                } else if(vars[posx]->size() == 1) {
                     possibles[v].del(posx);
                     mandatories[v].add(posx);
                 }
@@ -83,16 +87,15 @@ bool CardinalityF::filter(Variable *dummy) {
 }
 
 int CardinalityF::doFiltering() {
-    init();
     bool again = false;
     for(int i : reverse(valueToCompute)) {
         int szBefore = occurs[i]->size();
-        if(solver->delValuesLowerOrEqualThan(occurs[i], mandatories[i].size() - 1) == false)
+        if(solver->delValuesLE(occurs[i], mandatories[i].size() - 1) == false)
             return -1;
         again |= (occurs[i]->size() < szBefore);
 
         szBefore = occurs[i]->size();
-        if(solver->delValuesGreaterOrEqualThan(occurs[i], mandatories[i].size() + possibles[i].size() + 1) == false)
+        if(solver->delValuesGE(occurs[i], mandatories[i].size() + possibles[i].size() + 1) == false)
             return -1;
         again |= (occurs[i]->size() < szBefore);
 
@@ -122,19 +125,22 @@ int CardinalityF::doFiltering() {
     return again;
 }
 
-
+bool CardinalityM::filter(Variable *dummy) {
+    if(matcher.findMaximumMatching() == false)
+        return false;
+    matcher.removeInconsistentValues();
+    return true;
+}
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
 
-CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
-    : GlobalConstraint(p, n, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
+CardinalityF::CardinalityF(Problem &p, vec<Variable *> &_vars, vec<int> &v, vec<Variable *> &o)
+    : GlobalConstraint(p, "Cardinality F", Constraint::createScopeVec(&_vars, &o)) {
     isPostponable = true;
     _vars.copyTo(vars);
     o.copyTo(occurs);
     v.copyTo(values);
-    int idx = 0;
-    for(int v1 : values) values2indexes[v1] = idx++;
     valueToCompute.setCapacity(values.size(), false);
     possibles.growTo(values.size());
     mandatories.growTo(values.size());
@@ -142,4 +148,29 @@ CardinalityF::CardinalityF(Problem &p, std::string n, vec<Variable *> &_vars, ve
         mandatories[i].setCapacity(vars.size(), false);
         possibles[i].setCapacity(vars.size(), false);
     }
+    int max = vars[0]->domain.maxSize();
+    int min = vars[0]->domain.maxSize();
+    for(Variable *x : vars) {
+        if(x->maximum() > max)
+            max = x->maximum();
+        if(x->minimum() < min)
+            min = x->minimum();
+    }
+    values2indexes.growTo(max - min + 1, -1);
+    offset  = min;
+    int idx = 0;
+    for(int v1 : values) values2indexes[OFFSET(v1)] = idx++;
+}
+
+CardinalityM::CardinalityM(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max)
+    : GlobalConstraint(p, "Cardinality M", vars), matcher(this, v, min, max) {
+    min.copyTo(minOccs);
+    max.copyTo(maxOccs);
+    v.copyTo(values);
+    isPostponable = true;
+}
+
+void CardinalityM::attachSolver(Solver *solver) {
+    Constraint::attachSolver(solver);
+    solver->addObserverDeleteDecision(&matcher);   // We need to restore tuples.
 }

@@ -10,16 +10,18 @@ class BinaryExtensionSupport : public Extension {
     int           nbtuples;
     vec<vec<int>> supportsForX;
     vec<vec<int>> supportsForY;
+    vec<int>      limitX, limitY;
+    vec<int>      resx;   // residue for x
+    vec<int>      resy;   // residue for y
+    uint64_t      lastConflict;
 
-    vec<int> resx;   // residue for x
-    vec<int> resy;   // residue for y
-
+    bool filterOn(Variable *x, Variable *y, vec<vec<int>> &supportForXX, vec<vec<int>> &supportForYY, vec<int> &resXX,
+                  vec<int> &resYY);
 
    public:
     // Constructors and initialisation
-    BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *x, Variable *y);
-    BinaryExtensionSupport(Problem &p, std::string n, bool support, Variable *x, Variable *y,
-                           BinaryExtensionSupport *hasSameTuples);
+    BinaryExtensionSupport(Problem &p, bool support, Variable *x, Variable *y);
+    BinaryExtensionSupport(Problem &p, bool support, Variable *x, Variable *y, BinaryExtensionSupport *hasSameTuples);
 
     // filtering
     bool filter(Variable *x) override;

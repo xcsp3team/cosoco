@@ -10,7 +10,7 @@ class EQ : public Binary {
    public:
     // Constructors
     int k;
-    EQ(Problem &p, std::string n, Variable *xx, Variable *yy, int _k = 0);
+    EQ(Problem &p, Variable *xx, Variable *yy, int _k = 0);
 
     // filtering
     bool filter(Variable *x) override;

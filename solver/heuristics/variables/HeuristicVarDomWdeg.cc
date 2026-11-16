@@ -32,15 +32,26 @@ Variable *HeuristicVarDomWdeg::select() {
     }
 
 
+    if(lazy && secondBest != nullptr && solver.unassignedVariables.contains(secondBest)) {
+        Variable *tmp = secondBest;
+        secondBest    = nullptr;
+        return tmp;
+    }
+
+
     Variable *x = solver.decisionVariables[0];
     if(mode == V2004 || mode == ABSCON) {
-        double bestV = ((double)x->size()) / x->wdeg;
+        double bestV = static_cast<double>(x->size()) / x->wdeg;
 
         for(int i = 1; i < solver.decisionVariables.size(); i++) {
             Variable *y = solver.decisionVariables[i];
-            if(((double)y->size()) / y->wdeg < bestV) {
-                bestV = ((double)y->size()) / y->wdeg;
-                x     = y;
+            if(static_cast<double>(y->size()) / y->wdeg < bestV) {
+                bestV      = static_cast<double>(y->size()) / y->wdeg;
+                secondBest = x;
+                x          = y;
+            } else {
+                if(static_cast<double>(y->size()) / y->wdeg == bestV)
+                    secondBest = y;
             }
         }
         assert(x != nullptr);
@@ -54,8 +65,12 @@ Variable *HeuristicVarDomWdeg::select() {
         for(int i = 1; i < solver.decisionVariables.size(); i++) {
             Variable *y = solver.decisionVariables[i];
             if(y->wdeg > bestV) {
-                bestV = y->wdeg;
-                x     = y;
+                bestV      = y->wdeg;
+                secondBest = nullptr;
+                x          = y;
+            } else {
+                if(y->wdeg == bestV)
+                    secondBest = y;
             }
         }
         return x;
@@ -67,8 +82,12 @@ Variable *HeuristicVarDomWdeg::select() {
     for(int i = 1; i < solver.decisionVariables.size(); i++) {
         Variable *y = solver.decisionVariables[i];
         if(y->wdeg > bestV || (y->wdeg == bestV && y->size() < x->size())) {
-            bestV = y->wdeg;
-            x     = y;
+            bestV      = y->wdeg;
+            secondBest = nullptr;
+            x          = y;
+        } else {
+            if(y->wdeg == bestV)
+                secondBest = y;
         }
     }
 
@@ -78,6 +97,7 @@ Variable *HeuristicVarDomWdeg::select() {
 
 
 void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
+    secondBest = nullptr;
     if(freezed)
         return;
     int notThisposition = NOTINSCOPE;
@@ -112,17 +132,19 @@ void HeuristicVarDomWdeg::notifyConflict(Constraint *c, int level) {
 void HeuristicVarDomWdeg::notifyNewDecision(Variable *x, Solver &s) {
     if(freezed)
         return;
-    for(Constraint *c : x->constraints) {
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 1)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg -= c->wdeg[c->unassignedVariablesIdx[0]];
     }
 }
 
 
-void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
+void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
     if(freezed)
         return;
-    for(Constraint *c : x->constraints) {
+    for(auto &pair : x->constraints) {
+        Constraint *c = pair.first;
         if(c->unassignedVariablesIdx.size() == 2)
             c->scope[c->unassignedVariablesIdx[0]]->wdeg += c->wdeg[c->unassignedVariablesIdx[0]];
     }
@@ -130,6 +152,7 @@ void HeuristicVarDomWdeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
 
 
 void HeuristicVarDomWdeg::notifyFullBacktrack() {
+    secondBest = nullptr;
     if(freezed)
         return;
     if(options::boolOptions["rw"].value == false)

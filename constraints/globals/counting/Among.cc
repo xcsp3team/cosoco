@@ -83,7 +83,7 @@ bool Among::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------
 
-Among::Among(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &_values, int kk)
-    : GlobalConstraint(p, n, "Among", vars), mixedVariables(vars.size(), false), k(kk) {
+Among::Among(Problem &p, vec<Variable *> &vars, vec<int> &_values, int kk)
+    : GlobalConstraint(p, "Among", vars), mixedVariables(vars.size(), false), k(kk) {
     for(int v : _values) values.insert(v);
 }

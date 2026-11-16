@@ -52,12 +52,11 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
     }
 
     // filtering the domain of the Min variable
-    if(solver->delValuesGreaterOrEqualThan(value, minLast + 1) == false ||
-       solver->delValuesLowerOrEqualThan(value, minFirst - 1) == false)
+    if(solver->delValuesGE(value, minLast + 1) == false || solver->delValuesLE(value, minFirst - 1) == false)
         return false;
 
 
-    for(int idv : reverse(value->domain)) {
+    for(int idv : value->domain) {
         int v = value->domain.toVal(idv);
         if(sentinels[idv] == nullptr || sentinels[idv]->containsValue(v) == false) {
             Variable *s = findNewSentinelFor(v, nullptr);
@@ -71,7 +70,7 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
     // Filtering the domains of variables in the vector
     int min = value->minimum();
     for(Variable *x : list) {
-        if(solver->delValuesLowerOrEqualThan(x, min - 1) == false)
+        if(solver->delValuesLE(x, min - 1) == false)
             return false;
     }
 
@@ -97,8 +96,8 @@ bool MinimumVariableEQ::filter(Variable *dummy) {
 // Constructor and initialisation methods
 //----------------------------------------------
 
-MinimumVariableEQ::MinimumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *v)
-    : GlobalConstraint(p, n, "Minimum Variable", Constraint::createScopeVec(&vars, v)) {
+MinimumVariableEQ::MinimumVariableEQ(Problem &p, vec<Variable *> &vars, Variable *v)
+    : GlobalConstraint(p, "Minimum Variable", Constraint::createScopeVec(&vars, v)) {
     value = v;
     vars.copyTo(list);
     sentinels.growTo(value->domain.maxSize());

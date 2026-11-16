@@ -1,5 +1,6 @@
 #ifndef COSOCO_CARDINALITYF_H
 #define COSOCO_CARDINALITYF_H
+#include "Matcher.h"
 #include "constraints/globals/GlobalConstraint.h"
 
 
@@ -8,19 +9,20 @@ namespace Cosoco {
 
 class CardinalityF : public GlobalConstraint {
    protected:
-    std::map<int, int> values2indexes;
-    vec<Variable *>    vars;
-    vec<Variable *>    occurs;
-    vec<int>           values;
-    vec<SparseSet>     possibles;
-    vec<SparseSet>     mandatories;
-    SparseSet          valueToCompute;
+    int             offset;
+    vec<int>        values2indexes;
+    vec<Variable *> vars;
+    vec<Variable *> occurs;
+    vec<int>        values;
+    vec<SparseSet>  possibles;
+    vec<SparseSet>  mandatories;
+    SparseSet       valueToCompute;
 
     int doFiltering();   // 0 finish, 1 perform again, -1 fail
 
    public:
     // A weak cardinality filtering used when list is too big
-    CardinalityF(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<Variable *> &o);
+    CardinalityF(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<Variable *> &o);
 
 
     // Filtering method, return false if a conflict occurs
@@ -31,5 +33,23 @@ class CardinalityF : public GlobalConstraint {
     bool isCorrectlyDefined() override;
 };
 
+
+class CardinalityM : public GlobalConstraint {
+   protected:
+    vec<int>           minOccs, maxOccs;
+    vec<int>           values;
+    MatcherCardinality matcher;
+
+   public:
+    // A weak cardinality filtering used when list is too big
+    CardinalityM(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<int> &min, vec<int> &max);
+    void attachSolver(Solver *s) override;
+
+    // Filtering method, return false if a conflict occurs
+    bool filter(Variable *x) override;
+    // Checking
+    bool isSatisfiedBy(vec<int> &tuple) override;
+    bool isCorrectlyDefined() override;
+};
 }   // namespace Cosoco
 #endif   // COSOCO_CARDINALITYWEAK_H

@@ -27,7 +27,7 @@ struct pair {
     int nb;
 };
 
-class CompactTable : public Extension, ObserverDeleteDecision {
+class CompactTable : public Extension, public ObserverDeleteDecision {
    protected:
     vec<int>  SVal;
     vec<int>  SSup;
@@ -51,6 +51,7 @@ class CompactTable : public Extension, ObserverDeleteDecision {
     vec<vec<int>>       residues;   // residues[x][a] is the index of the word where a support was found the last time for (x,a)
     uint64_t            lastTimestamps;   // last time it was called
 
+    VariablePositionInConstraint variablePosition;
     // Bitset methods
     void fillTo1(BITSET *bitset) const {
         for(int i = 0; i < nWords; i++) bitset[i] = BIT_ALL_ONE;
@@ -72,6 +73,10 @@ class CompactTable : public Extension, ObserverDeleteDecision {
 
     void make_or(BITSET *target, const BITSET *m) {
         for(int idx : nonZeros) target[idx] |= m[idx];
+    }
+
+    void inverse(BITSET *inout) {
+        for(int i : nonZeros) inout[i] = ~inout[i];
     }
 
     void addInverseToMask(const BITSET *m) {
@@ -103,8 +108,8 @@ class CompactTable : public Extension, ObserverDeleteDecision {
 
    public:
     // Constructors
-    CompactTable(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples);
-    CompactTable(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
+    CompactTable(Problem &p, vec<Variable *> &vars, size_t max_n_tuples);
+    CompactTable(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint);
     void delayedConstruction(int id) override;
     bool onFirstCall();
 
@@ -114,7 +119,8 @@ class CompactTable : public Extension, ObserverDeleteDecision {
     bool isSatisfiedBy(vec<int> &tuple) override;
 
     // Notifications : restore validTuples when backtrack is performed
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
+    void notifyFullBacktrack() override;
     void attachSolver(Solver *s) override;
 
 

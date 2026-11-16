@@ -13,6 +13,7 @@ void Profiling::initialize() {
     for(Constraint *c : solver->problem.constraints)
         if(constraintsData.find(c->type) == constraintsData.end())
             constraintsData.insert(make_pair(c->type, ConstraintData()));
+    constraintsData.insert(std::make_pair("nogoods", ConstraintData()));
 }
 
 bool Profiling::beforeConstraintCall(Constraint *c) {
@@ -21,9 +22,10 @@ bool Profiling::beforeConstraintCall(Constraint *c) {
 }
 
 bool Profiling::afterConstraintCall(Constraint *c, int nbDeletedVariables) {
-    constraintsData[c->type].totalTime += (realTime() - currentTime);
-    constraintsData[c->type].nbCalls++;
-    constraintsData[c->type].uselessCalls += (nbDeletedVariables > 0) ? 0 : 1;
+    std::string ct = c == nullptr ? "nogoods" : c->type;
+    constraintsData[ct].totalTime += (realTime() - currentTime);
+    constraintsData[ct].nbCalls++;
+    constraintsData[ct].uselessCalls += (nbDeletedVariables > 0) ? 0 : 1;
     return true;
 }
 
@@ -33,7 +35,8 @@ void Profiling::display() {
     std::cout << "c                       ";
     std::cout << "  Time";
     std::cout << "                Calls";
-    std::cout << "               Useless\n";
+    std::cout << "               perCalls";
+    std::cout << "            Useless\n";
 
 
     for(auto &pair : constraintsData) {
@@ -41,6 +44,8 @@ void Profiling::display() {
         std::cout << std::left << std::setw(22) << std::setfill(' ') << pair.first << ": ";
         std::cout << std::left << std::setw(20) << std::setfill(' ') << pair.second.totalTime;
         std::cout << std::left << std::setw(20) << std::setfill(' ') << pair.second.nbCalls;
+        std::cout << std::left << std::setw(20) << std::setfill(' ')
+                  << (static_cast<double>(pair.second.totalTime) / static_cast<double>(pair.second.nbCalls));
         std::cout << std::left << std::setw(20) << std::setfill(' ')
                   << (1.0 * pair.second.uselessCalls / pair.second.nbCalls) * 100;
         std::cout << "\n";

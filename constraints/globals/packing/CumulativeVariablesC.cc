@@ -41,8 +41,7 @@ bool CumulativeVariablesC::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeVariablesC::CumulativeVariablesC(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &l, vec<int> &h,
-                                           Variable *_limit)
-    : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, _limit), l, h, 0) {
+CumulativeVariablesC::CumulativeVariablesC(Problem &p, vec<Variable *> &vars, vec<int> &l, vec<int> &h, Variable *_limit)
+    : Cumulative(p, vars, Constraint::createScopeVec(&vars, _limit), l, h, 0) {
     limitVariable = _limit;
 }

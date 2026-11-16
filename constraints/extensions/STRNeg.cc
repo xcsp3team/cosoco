@@ -79,7 +79,7 @@ bool STRNeg::filter(Variable *dummy) {
     for(int posx : unassignedVariablesIdx) {
         Variable *x                     = scope[posx];
         long      nbValidTuplesOfValues = nbTotalValidTuples / x->size();
-        for(int idv : reverse(x->domain))
+        for(int idv : x->domain)
             if(nbConflicts[posx][idv] == nbValidTuplesOfValues &&
                solver->delIdv(scope[posx], idv) == false)   // All possible values are in valid conflict tuples
                 return false;
@@ -135,14 +135,13 @@ bool STRNeg::isValidTuple(int *tuple) {
 //----------------------------------------------
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples)
-    : Extension(p, n, vars, max_n_tuples, false) {
+STRNeg::STRNeg(Problem &p, vec<Variable *> &vars, size_t max_n_tuples) : Extension(p, vars, max_n_tuples, false) {
     type = "Extension - Neg";
 }
 
 
-STRNeg::STRNeg(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
-    : Extension(p, n, vars, false, tuplesFromOtherConstraint) {
+STRNeg::STRNeg(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
+    : Extension(p, vars, false, tuplesFromOtherConstraint) {
     type = "Extension - Neg";
 }
 
@@ -151,7 +150,6 @@ void STRNeg::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
     if(tuples->nrows() == 0)   // the constrain is always satisfied. Can occcur: see StillLife-wastage-8-8.xml
         return;
-
 
     validTuples.setCapacity(tuples->nrows(), true);
 
@@ -169,17 +167,10 @@ void STRNeg::delayedConstruction(int id) {
 //----------------------------------------------
 
 
-void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        validTuples.restoreLimit(s.decisionLevel() + 1);
-}
+void STRNeg::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) { validTuples.restoreLimit(s.decisionLevel() + 1); }
 
 
-void STRNeg::delTuple(int position, int level) {
-    if(validTuples.isLimitRecordedAtLevel(level) == false)
-        validTuples.recordLimit(level);
-    validTuples.del(position);
-}
+void STRNeg::delTuple(int position, int level) { validTuples.del(position, level); }
 
 
 void STRNeg::attachSolver(Solver *s) {

@@ -5,8 +5,6 @@
 #ifndef COSOCO_NOGOODSENGINE_H
 #define COSOCO_NOGOODSENGINE_H
 
-#include <map>
-
 #include "AbstractSolver.h"
 #include "ObserverDecision.h"
 #include "Tuple.h"
@@ -19,19 +17,19 @@ namespace Cosoco {
 class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
     Solver &solver;
     // vec<vec<Lit>>      nogoods;        // list of all nogoods
-    std::map<Lit, int>     watcherPosition;   // the position pos in th watchers vector of this tuple x!=idv
+    vec<int>               watcherPosition;   // flat array indexed by watcherIndex(ng); -1 = not watched yet
     vec<vec<unsigned int>> watchers;          // watchers[pos] provides all nogoods watcherd by the tuple ix!=idv
     vec<Lit>               nogoodsOfSize1;    // Store nogoods of size 1 before enqueue
                                               // them in the solver propagation queue
     vec<Lit>     currentBranch;               // The current branch of the search tree
     unsigned int OFFSET;                      //
-    double       totalTime;                   // Total time spent in nogood propagator
     int          maxArity;                    // Maximum arity of nogoods stored
 
     Lit         *nogoods;          // Nogoods are stored in a 1-dim array
     unsigned int capacity, last;   // The capacity of the array, the position of last nogood stored
     unsigned int insertNoGood(vec<Lit> &nogood);
     void         enlargeNogoodStructure(unsigned int new_capacity = 0);
+    unsigned int watcherIndex(Lit ng) const;   // maps a negative decision literal to its slot in watcherPosition
 
    public:
     static Constraint *fake;
@@ -49,7 +47,7 @@ class NoGoodsEngine : public ObserverNewDecision, ObserverDeleteDecision {
 
     // Callbacks to store and delete the current branch
     void notifyNewDecision(Variable *x, Solver &s) override;
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void notifyFullBacktrack() override;
 
 

@@ -13,7 +13,7 @@ class MinimumVariableEQ : public GlobalConstraint {
     Variable       *value;
     vec<Variable *> list;
 
-    MinimumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *x);
+    MinimumVariableEQ(Problem &p, vec<Variable *> &vars, Variable *x);
 
 
     bool filter(Variable *dummy) override;

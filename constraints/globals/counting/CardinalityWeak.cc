@@ -64,8 +64,8 @@ bool CardinalityWeak::filter(Variable *x) {
 // Construction and initialisation
 //----------------------------------------------
 
-CardinalityWeak::CardinalityWeak(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &v, vec<int> &o)
-    : GlobalConstraint(p, n, "Cardinality Weak", vars) {
+CardinalityWeak::CardinalityWeak(Problem &p, vec<Variable *> &vars, vec<int> &v, vec<int> &o)
+    : GlobalConstraint(p, "Cardinality Weak", vars) {
     for(int i = 0; i < v.size(); i++) {
         CardData tmp = {o[i], 0};
         data.insert(std::make_pair(v[i], tmp));

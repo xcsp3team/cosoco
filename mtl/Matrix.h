@@ -20,10 +20,10 @@ class Matrix {
 
    public:
     bool starred;
-    Matrix() : data(nullptr) { }
+    Matrix() : data(nullptr), starred(false) { }
 
     Matrix(size_t rows, size_t columns)
-        : _nrows {rows}, _ncolumns {columns}, _maxrows(0), data {std::make_unique<T[]>(rows * columns)} { }
+        : _nrows {rows}, _ncolumns {columns}, _maxrows(0), data {std::make_unique<T[]>(rows * columns)}, starred(false) { }
 
     void initialize(size_t rows, size_t columns) {
         _nrows    = rows;

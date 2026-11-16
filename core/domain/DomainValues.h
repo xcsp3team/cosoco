@@ -1,7 +1,9 @@
 #ifndef DOMAINVALUE_H
 #define DOMAINVALUE_H
 
+#include <algorithm>
 #include <map>
+#include <vector>
 
 #include "Domain.h"
 #include "mtl/SparseSetMultiLevel.h"
@@ -11,22 +13,25 @@ namespace Cosoco {
 // TODO limit for toIdvs and to Val
 class DomainValue : public Domain {
    protected:
-    vec<int>           values;
-    std::map<int, int> map;
-
+    vec<int>                         values;
+    std::vector<std::pair<int, int>> sorted;   // (valeu, index), sorted by value
    public:
     // Constructors
     explicit DomainValue(const vec<int> &vals) : Domain(vals.size()) {
         for(int i = 0; i < vals.size(); i++) {
             values.push(vals[i]);
-            map[vals[i]] = i;
+            sorted.push_back({vals[i], i});
         }
+        std::sort(sorted.begin(), sorted.end());
         nAssignments.growTo(vals.size(), 0);
     }
 
 
     // Virtual Method conversion id to value
-    int toIdv(int v) override { return map.find(v) == map.end() ? -1 : map[v]; }
+    int toIdv(int v) override {
+        auto it = std::lower_bound(sorted.begin(), sorted.end(), std::make_pair(v, 0));
+        return (it != sorted.end() && it->first == v) ? it->second : -1;
+    }
 
 
     int toVal(int idv) override { return values[idv]; }

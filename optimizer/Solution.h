@@ -115,7 +115,7 @@ class Solution {   // This class comes from pseudo boolean competition and was p
             printf("\n");
             return;
         }
-        printf("\nv <instantiation type='solution' cost='%ld'>\n", bestBound());
+        printf("c\nv <instantiation type='solution' cost='%ld'>\n", bestBound());
         printf("v <list> ");
         // for(std::string tmp2 : problem.arrayNames) std::cout << tmp2 << " ";
 

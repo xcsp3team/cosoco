@@ -25,20 +25,21 @@ class ParallelSolver : public AbstractSolver {
     void setSolvers(vec<AbstractSolver *> &s);
 
 
-    virtual bool hasSolution() override;
+    bool hasSolution() override;
 
 
-    virtual void printFinalStats() override;   // The final stats to print
+    void printFinalStats() override;   // The final stats to print
 
 
-    virtual void displayCurrentSolution(int verbosity) override;   // display the current solution
+    void displayCurrentSolution(int verbosity) override;   // display the current solution
 };
 
 
 class PortofolioSolver : public ParallelSolver {
    public:
     PortofolioSolver(Problem &p, bool optimize);
-    virtual int solve(vec<RootPropagation> &assumps) override;
+    RESULT firstCall() override;
+    RESULT search() override;
 
 
     void diversifySolvers();

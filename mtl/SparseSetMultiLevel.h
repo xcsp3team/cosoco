@@ -13,18 +13,8 @@ class SparseSetMultiLevel : public SparseSet {
     vec<int>  limits;
     const int NOT_STORED = -1;
 
-   public:
-    SparseSetMultiLevel(int size, bool full = false) : SparseSet(size, full) { }
-
-
-    SparseSetMultiLevel(SparseSetMultiLevel const &copy) : SparseSet(copy) { }
-
-
-    SparseSetMultiLevel() { }
-
 
     bool isLimitRecordedAtLevel(int level) { return level < limits.size() && limits[level] != NOT_STORED; }
-
 
     void recordLimit(int level) {
         if(level >= limits.size())
@@ -33,11 +23,38 @@ class SparseSetMultiLevel : public SparseSet {
         limits[level] = limit;
     }
 
+   public:
+    explicit SparseSetMultiLevel(int size, bool full = false) : SparseSet(size, full) { }
+
+
+    SparseSetMultiLevel(SparseSetMultiLevel const &copy) : SparseSet(copy) { }
+
+
+    SparseSetMultiLevel() { }
+
 
     void restoreLimit(int level) {
-        assert(limits[level] != NOT_STORED);
+        if(isLimitRecordedAtLevel(level) == false)
+            return;
         limit         = limits[level];
         limits[level] = NOT_STORED;
+    }
+
+    void del(const int k, int level) {
+        if(isLimitRecordedAtLevel(level) == false)
+            recordLimit(level);
+        SparseSet::del(k);
+    }
+
+    void add(const int k, int level) {
+        if(isLimitRecordedAtLevel(level) == false)
+            recordLimit(level);
+        SparseSet::add(k);
+    }
+
+    void clear() override {
+        SparseSet::clear();
+        limits.fill(NOT_STORED);
     }
 };
 };   // namespace Cosoco

@@ -5,7 +5,7 @@
 
 namespace Cosoco {
 
-class SumNE : public Sum {
+class SumNE : public WeightedSum {
    protected:
     int watchedPosition1, watchedPosition2;
 
@@ -14,7 +14,7 @@ class SumNE : public Sum {
     bool filterUniqueNonSingletonVariable(int posx);
 
    public:
-    SumNE(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l);
+    SumNE(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l);
 
     bool filter(Variable *x) override;
 

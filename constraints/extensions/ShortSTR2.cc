@@ -38,9 +38,10 @@ bool ShortSTR2::filter(Variable *dummy) {
     Ssup.clear();
     Sval.clear();
     int posLast = NOTINSCOPE;
-    if(solver->decisionLevel() > 0) {
-        Variable *last = solver->decisionVariableAtLevel(solver->decisionLevel());
-        posLast        = toScopePosition(last->idx);
+    int level   = solver->decisionLevel();
+    if(level > 0) {
+        Variable *last = solver->decisionVariableAtLevel(level);
+        posLast        = variablePosition.toScopePosition(last->idx);
         if(posLast != NOTINSCOPE)
             Sval.add(posLast);
     }
@@ -71,7 +72,7 @@ bool ShortSTR2::filter(Variable *dummy) {
                 }
             }
         } else
-            delTuple(tupidx, solver->decisionLevel());
+            delTuple(tupidx, level);
     }
     if(validTuples.size() == 0)
         return false;
@@ -100,37 +101,36 @@ bool ShortSTR2::isValidTuple(int *tupleIdvs) {
 }
 
 
-void ShortSTR2::delTuple(int position, int level) {
-    if(validTuples.isLimitRecordedAtLevel(level) == false)
-        validTuples.recordLimit(level);
-    validTuples.del(position);
-}
+void ShortSTR2::delTuple(int position, int level) { validTuples.del(position, level); }
 
 //----------------------------------------------
 // Observers methods
 //----------------------------------------------
 
 
-void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s) {
-    if(validTuples.isLimitRecordedAtLevel(s.decisionLevel() + 1))
-        validTuples.restoreLimit(s.decisionLevel() + 1);
-    for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
+void ShortSTR2::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    validTuples.restoreLimit(s.decisionLevel() + 1);
+    if(isFull == false)
+        for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
 }
 
+void ShortSTR2::notifyFullBacktrack() {
+    for(int i = 0; i < scope.size(); i++) lastSize[i] = UNKNOWN;
+}
 
 //----------------------------------------------
 // Constructors and initialisation
 //----------------------------------------------
 
-ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, size_t max_n_tuples)
-    : Extension(p, n, vars, max_n_tuples, true), Sval(vars.size()), Ssup(vars.size()), validTuples() {
+ShortSTR2::ShortSTR2(Problem &p, vec<Variable *> &vars, size_t max_n_tuples)
+    : Extension(p, vars, max_n_tuples, true), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
     type = "Extension - STR2";
 }
 
 
-ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
-    : Extension(p, n, vars, true, tuplesFromOtherConstraint), Sval(vars.size()), Ssup(vars.size()), validTuples() {
+ShortSTR2::ShortSTR2(Problem &p, vec<Variable *> &vars, Matrix<int> *tuplesFromOtherConstraint)
+    : Extension(p, vars, true, tuplesFromOtherConstraint), Sval(vars.size()), Ssup(vars.size()), validTuples() {
     lastSize.growTo(vars.size(), UNKNOWN);
     type = "Extension - STR2";
 }
@@ -138,6 +138,8 @@ ShortSTR2::ShortSTR2(Problem &p, std::string n, vec<Variable *> &vars, Matrix<in
 
 void ShortSTR2::delayedConstruction(int id) {
     Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
+
     for(Variable *x : scope) gacIdValues.push(new SparseSet(x->domain.maxSize()));
     validTuples.setCapacity(tuples->nrows(), true);
 }

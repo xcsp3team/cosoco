@@ -16,14 +16,6 @@ bool ExactlyKVariable::isSatisfiedBy(vec<int> &tuple) {
 }
 
 
-bool ExactlyKVariable::isCorrectlyDefined() {
-    for(Variable *x : list)   // k is in the last position of scope
-        if(x->containsValue(value) == false)
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": ExactlyKVariable, all variables must contain value");
-    return true;
-}
-
-
 //----------------------------------------------------------
 // Filtering
 //----------------------------------------------------------
@@ -48,7 +40,7 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
         if(positionOfKInList != -1) {
             if(k->containsValue(value)) {
                 bool deleted = false;
-                for(int idk : reverse(k->domain)) {   // Reverse traversal because of deletion
+                for(int idk : k->domain) {
                     int v = k->domain.toVal(idk);
                     if(v == value) {
                         if(value < nbGuaranteedOccurrences + 1 ||
@@ -68,12 +60,12 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
                 if(deleted)
                     nbPossibleOccurrences--;
             } else {
-                if(solver->delValuesLowerOrEqualThan(k, nbGuaranteedOccurrences - 1) == false ||
-                   solver->delValuesGreaterOrEqualThan(k, nbPossibleOccurrences + 1) == false)
+                if(solver->delValuesLE(k, nbGuaranteedOccurrences - 1) == false ||
+                   solver->delValuesGE(k, nbPossibleOccurrences + 1) == false)
                     return false;
             }
-        } else if(solver->delValuesLowerOrEqualThan(k, nbGuaranteedOccurrences - 1) == false ||
-                  solver->delValuesGreaterOrEqualThan(k, nbPossibleOccurrences + 1) == false)
+        } else if(solver->delValuesLE(k, nbGuaranteedOccurrences - 1) == false ||
+                  solver->delValuesGE(k, nbPossibleOccurrences + 1) == false)
             return false;
     }
 
@@ -101,8 +93,8 @@ bool ExactlyKVariable::filter(Cosoco::Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-ExactlyKVariable::ExactlyKVariable(Problem &p, std::string n, vec<Variable *> &vars, Variable *kk, int val)
-    : GlobalConstraint(p, n, "Exactly K variable", Constraint::createScopeVec(&vars, kk)), k(kk), value(val) {
+ExactlyKVariable::ExactlyKVariable(Problem &p, vec<Variable *> &vars, Variable *kk, int val)
+    : GlobalConstraint(p, "Exactly K variable", Constraint::createScopeVec(&vars, kk)), k(kk), value(val) {
     positionOfKInList = vars.firstOccurrenceOf(k);
     vars.copyTo(list);
 }

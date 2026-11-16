@@ -11,46 +11,23 @@ using namespace Cosoco;
 // Check validity and correct definition
 //----------------------------------------------
 
-bool SumEQ::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) == limit; }
+bool SumWeightedEQ::isSatisfiedBy(vec<int> &tuple) { return weightedSum(tuple) == limit; }
 
-
-bool Sum::isCorrectlyDefined() {
-    if(scope.size() != coefficients.size())
-        throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum, list and coefficients mus have same size");
-
-    for(int i = 1; i < coefficients.size(); i++) {
-        if(coefficients[i] == 0)
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum, a coefficient is 0");
-        if(coefficients[i - 1] > coefficients[i]) {
-            throw std::logic_error("Constraint " + std::to_string(idc) + ": Sum needs order on coefficients");
-        }
-    }
-    return true;
-}
-
+bool SumSimpleEQ::isSatisfiedBy(vec<int> &tuple) { return sum(tuple) == limit; }
 
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
 
 
-bool SumEQ::filter(Variable *dummy) {
-    long min = 0, max = 0;
-    for(int i = 0; i < scope.size(); i++) {
-        long c    = coefficients[i];
-        int  vmin = scope[i]->minimum();
-        int  vmax = scope[i]->maximum();
-        if(c >= 0) {
-            min += vmin * c;
-            max += vmax * c;
-        } else {
-            min += vmax * c;
-            max += vmin * c;
-        }
-    }
+bool SumWeightedEQ::filter(Variable *dummy) {
+    computeBounds();
     if(min > limit || max < limit)
         return false;
     int positionOfLastChange = -1;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
     while(true) {
         for(int i = 0; i < scope.size(); i++) {
             if(i == positionOfLastChange) {
@@ -69,7 +46,7 @@ bool SumEQ::filter(Variable *dummy) {
                 min -= x->maximum() * c;
                 max -= x->minimum() * c;
             }
-            for(int idv : reverse(x->domain)) {
+            for(int idv : x->domain) {
                 int v = x->domain.toVal(idv);
                 if(max + v * c < limit && solver->delIdv(x, idv) == false)
                     return false;
@@ -89,6 +66,46 @@ bool SumEQ::filter(Variable *dummy) {
         if(positionOfLastChange == -1)
             break;
     }
+    // if(min == limit)
+    //     solver->entail(this);
+    return true;
+}
+
+bool SumSimpleEQ::filter(Variable *dummy) {
+    computeBounds();
+    if(min > limit || max < limit)
+        return false;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
+
+    int positionOfLastChange = -1;
+    if(min + maxGap <= limit && limit <= max - maxGap)
+        return true;
+
+    while(true) {
+        for(int i = 0; i < scope.size(); i++) {
+            if(i == positionOfLastChange) {
+                positionOfLastChange = -1;
+                break;
+            }
+            Variable *x  = scope[i];
+            int       sz = x->size();
+            if(sz == 1)
+                continue;
+            min -= x->minimum();
+            max -= x->maximum();
+            if(solver->delValuesLE(x, limit - max - 1) == false || solver->delValuesGE(x, limit - min + 1) == false)
+                return false;
+            min += x->minimum();
+            max += x->maximum();
+
+            if(sz != x->size())
+                positionOfLastChange = i;
+        }
+        if(positionOfLastChange == -1)
+            break;
+    }
 
     return true;
 }
@@ -98,4 +115,8 @@ bool SumEQ::filter(Variable *dummy) {
 //----------------------------------------------
 
 
-SumEQ::SumEQ(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &coefs, long l) : Sum(p, n, vars, coefs, l) { }
+SumWeightedEQ::SumWeightedEQ(Problem &p, vec<Variable *> &vars, vec<int> &coefs, long l) : WeightedSum(p, vars, coefs, l) {
+    type = "SumWeightedEQ";
+}
+
+SumSimpleEQ::SumSimpleEQ(Problem &p, vec<Variable *> &vars, long l) : SimpleSum(p, vars, l) { type = "SumEQ"; }

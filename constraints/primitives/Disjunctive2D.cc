@@ -67,9 +67,9 @@ bool Disjunctive2D::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-Disjunctive2D::Disjunctive2D(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2, int ww1,
-                             int ww2, int hh1, int hh2, Variable *zz)
-    : GlobalConstraint(p, n, "Disjunctive2D", Constraint::createScopeVec(xx1, xx2, yy1, yy2, zz)) {
+Disjunctive2D::Disjunctive2D(Problem &p, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2, int ww1, int ww2, int hh1,
+                             int hh2, Variable *zz)
+    : GlobalConstraint(p, "Disjunctive2D", Constraint::createScopeVec(xx1, xx2, yy1, yy2, zz)) {
     x1 = xx1;
     x2 = xx2;
     y1 = yy1;

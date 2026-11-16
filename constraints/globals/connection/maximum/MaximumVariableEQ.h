@@ -13,7 +13,7 @@ class MaximumVariableEQ : public MaximumVariable {
     Variable       *value;
     vec<Variable *> list;
 
-    MaximumVariableEQ(Problem &p, std::string n, vec<Variable *> &vars, Variable *x);
+    MaximumVariableEQ(Problem &p, vec<Variable *> &vars, Variable *x);
 
 
     bool filter(Variable *dummy) override;

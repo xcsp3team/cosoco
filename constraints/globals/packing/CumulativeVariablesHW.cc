@@ -52,9 +52,8 @@ int CumulativeVariablesHW::maxWidth(int posx) { return widthVariables[posx]->max
 //----------------------------------------------
 
 
-CumulativeVariablesHW::CumulativeVariablesHW(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &w,
-                                             vec<Variable *> &h, int limit)
-    : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &w, &h), wwidths, wheights, limit) {
+CumulativeVariablesHW::CumulativeVariablesHW(Problem &p, vec<Variable *> &vars, vec<Variable *> &w, vec<Variable *> &h, int limit)
+    : Cumulative(p, vars, Constraint::createScopeVec(&vars, &w, &h), wwidths, wheights, limit) {
     h.copyTo(heightVariables);
     w.copyTo(widthVariables);
     wwidths.growTo(w.size(), 0);

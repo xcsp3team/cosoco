@@ -82,9 +82,9 @@ bool Disjunctive2DVar::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-Disjunctive2DVar::Disjunctive2DVar(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2,
-                                   Variable *ww1, Variable *ww2, Variable *hh1, Variable *hh2, Variable *zz)
-    : GlobalConstraint(p, n, "Disjunctive2DVar", Constraint::createScopeVec(xx1, xx2, yy1, yy2, ww1, ww2, hh1, hh2, zz)) {
+Disjunctive2DVar::Disjunctive2DVar(Problem &p, Variable *xx1, Variable *xx2, Variable *yy1, Variable *yy2, Variable *ww1,
+                                   Variable *ww2, Variable *hh1, Variable *hh2, Variable *zz)
+    : GlobalConstraint(p, "Disjunctive2DVar", Constraint::createScopeVec(xx1, xx2, yy1, yy2, ww1, ww2, hh1, hh2, zz)) {
     x1 = xx1;
     x2 = xx2;
     y1 = yy1;

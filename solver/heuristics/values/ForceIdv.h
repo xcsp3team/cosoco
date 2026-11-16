@@ -3,23 +3,26 @@
 #include <solver/observers/ObserverConflict.h>
 
 #include "HeuristicVal.h"
+#include "ObserverDecision.h"
 
 
 namespace Cosoco {
 // Try to assign value
-class ForceIdvs : public HeuristicVal, ObserverConflict {
+class ForceIdvs : public HeuristicVal, ObserverDeleteDecision {
    protected:
     vec<int>      idvs;
     HeuristicVal *hv;
-    bool          conflictAlreadySeen;
-    bool          onlyOnce;
+
+    bool     isDisabled          = false;
+    uint64_t restartWithSolution = -1;
+    int      rr                  = false;
 
    public:
     ForceIdvs(Solver &s, HeuristicVal *h, bool oo = true, vec<int> *values = nullptr);
     int select(Variable *x) override;
 
-    void notifyConflict(Constraint *c, int level) override;
     void setIdValues(vec<int> &v);
+    void notifyFullBacktrack() override;
 };
 }   // namespace Cosoco
 

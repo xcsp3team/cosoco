@@ -211,7 +211,7 @@ bool Circuit::filter(Variable *dummy) {
 // Construction and initialisation
 //----------------------------------------------
 
-Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferentAC(p, n, vars) {
+Circuit::Circuit(Problem &p, vec<Variable *> &vars) : AllDifferentAC(p, vars) {
     type = "Circuit";
     set.setCapacity(vars.size(), false);
     tmp.growTo(scope.size());
@@ -219,7 +219,7 @@ Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferen
     heads.setCapacity(vars.size(), false);
     pheads.setCapacity(vars.size(), false);
 }
-/*Circuit::Circuit(Problem &p, std::string n, vec<Variable *> &vars) : AllDifferentAC(p, n, vars) {
+/*Circuit::Circuit(Problem &p, vec<Variable *> &vars) : AllDifferentAC(p, vars) {
     type = "Circuit";
     set.setCapacity(vars.size(), false);
     tmp.growTo(scope.size());

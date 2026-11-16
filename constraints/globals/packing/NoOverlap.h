@@ -19,14 +19,14 @@ class NoOverlap : public GlobalConstraint {
     vec<Variable *> ys;
     vec<int>        heights;
     int             half;
-    std::set<int>   overlappings;
+    SparseSet       overlappings;
 
     vec<vec<int> > residues1;
     vec<vec<int> > residues2;
 
 
    public:
-    NoOverlap(Problem &pb, std::string &n, vec<Variable *> &xs, vec<int> &widths, vec<Variable *> &ys, vec<int> &heights);
+    NoOverlap(Problem &pb, vec<Variable *> &xs, vec<int> &widths, vec<Variable *> &ys, vec<int> &heights);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;

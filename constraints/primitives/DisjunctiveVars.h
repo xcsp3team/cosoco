@@ -11,8 +11,8 @@ namespace Cosoco {
 class DisjunctiveVars : public GlobalConstraint {
    public:
     Variable *x1, *x2, *w1, *w2;
-    DisjunctiveVars(Problem &p, std::string n, Variable *xx1, Variable *xx2, Variable *ww1, Variable *ww2);
-
+    DisjunctiveVars(Problem &p, Variable *xx1, Variable *xx2, Variable *ww1, Variable *ww2);
+    bool isCorrectlyDefined() override;
     // filtering
     bool filter(Variable *x) override;
 

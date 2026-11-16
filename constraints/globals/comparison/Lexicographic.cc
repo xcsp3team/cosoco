@@ -14,11 +14,11 @@ bool Lexicographic::isSatisfiedBy(vec<int> &tuple) {
     tupleX.growTo(X.size());
     tupleY.growTo(Y.size());
     for(int i = 0; i < X.size(); i++) {
-        int posX  = toScopePosition(X[i]->idx);
+        int posX  = variablePosition.toScopePosition(X[i]->idx);
         tupleX[i] = tuple[posX];
     }
     for(int i = 0; i < Y.size(); i++) {
-        int posY  = toScopePosition(Y[i]->idx);
+        int posY  = variablePosition.toScopePosition(Y[i]->idx);
         tupleY[i] = tuple[posY];
     }
 
@@ -79,11 +79,11 @@ bool Lexicographic::filter(Variable *dummy) {
 
 bool Lexicographic::establishAC(Variable *x, Variable *y) {
     int maxY = y->maximum();
-    if(x->maximum() > maxY && solver->delValuesGreaterOrEqualThan(x, maxY + 1) == false)
+    if(x->maximum() > maxY && solver->delValuesGE(x, maxY + 1) == false)
         return false;
 
     int minX = x->minimum();
-    if(y->minimum() < minX && solver->delValuesLowerOrEqualThan(y, minX - 1) == false)
+    if(y->minimum() < minX && solver->delValuesLE(y, minX - 1) == false)
         return false;
 
     return true;
@@ -95,12 +95,12 @@ bool Lexicographic::isConsistentPair(int alpha, int v) {
     int       sz = X.size();
     Variable *x = X[alpha], *y = Y[alpha];
 
-    setTime(toScopePosition(x->idx), v);
-    setTime(toScopePosition(y->idx), v);
+    setTime(variablePosition.toScopePosition(x->idx), v);
+    setTime(variablePosition.toScopePosition(y->idx), v);
 
     for(int i = alpha + 1; i < sz; i++) {
-        int posx = toScopePosition(X[i]->idx);
-        int posy = toScopePosition(Y[i]->idx);
+        int posx = variablePosition.toScopePosition(X[i]->idx);
+        int posy = variablePosition.toScopePosition(Y[i]->idx);
         int minx = times[posx] == time ? vals[posx] : X[i]->minimum();
         int maxy = times[posy] == time ? vals[posy] : Y[i]->maximum();
         if(minx < maxy)
@@ -127,10 +127,15 @@ void Lexicographic::setTime(int posx, int v) {
 //----------------------------------------------
 
 
-Lexicographic::Lexicographic(Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY, bool st)
-    : GlobalConstraint(p, n, "Lex", Constraint::createScopeVec(&XX, &YY)), strict(st), time(0) {
+Lexicographic::Lexicographic(Problem &p, vec<Variable *> &XX, vec<Variable *> &YY, bool st)
+    : GlobalConstraint(p, "Lex", Constraint::createScopeVec(&XX, &YY)), strict(st), time(0) {
     XX.copyTo(X);
     YY.copyTo(Y);
     times.growTo(scope.size(), 0);
     vals.growTo(scope.size(), 0);
+}
+
+void Lexicographic::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
 }

@@ -43,9 +43,9 @@ int CumulativeVariablesW::maxWidth(int posx) { return widthVariables[posx]->maxi
 // Construction and initialisation
 //----------------------------------------------
 
-CumulativeVariablesW::CumulativeVariablesW(Problem &p, std::string n, vec<Variable *> &vars, vec<Variable *> &widths,
-                                           vec<int> &heights, int limit)
-    : Cumulative(p, n, vars, Constraint::createScopeVec(&vars, &widths), heights, heights, limit) {
+CumulativeVariablesW::CumulativeVariablesW(Problem &p, vec<Variable *> &vars, vec<Variable *> &widths, vec<int> &heights,
+                                           int limit)
+    : Cumulative(p, vars, Constraint::createScopeVec(&vars, &widths), heights, heights, limit) {
     widths.copyTo(widthVariables);
     wwidths.growTo(widths.size(), 0);
 }

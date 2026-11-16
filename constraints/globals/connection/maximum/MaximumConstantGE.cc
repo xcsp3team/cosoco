@@ -33,7 +33,7 @@ bool MaximumConstantGE::filter(Variable *dummy) {
             if(scope[sentinel2]->maximum() < k)
                 return false;
 
-            solver->delValuesLowerOrEqualThan(scope[sentinel2], k - 1);
+            solver->delValuesLE(scope[sentinel2], k - 1);
             solver->entail(this);
             return true;
         }
@@ -47,7 +47,7 @@ bool MaximumConstantGE::filter(Variable *dummy) {
             sentinel2 = i;
         else {
             assert(scope[sentinel1]->maximum() >= k);
-            solver->delValuesLowerOrEqualThan(scope[sentinel1], k - 1);   // necessarily true returned
+            solver->delValuesLE(scope[sentinel1], k - 1);   // necessarily true returned
             solver->entail(this);
             return true;
         }

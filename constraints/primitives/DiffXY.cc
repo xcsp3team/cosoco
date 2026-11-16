@@ -33,4 +33,4 @@ bool DiffXY::filter(Variable *xx) {
 // Construction and initialisation
 //----------------------------------------------
 
-DiffXY::DiffXY(Problem &p, std::string n, Variable *xx, Variable *yy) : Binary(p, n, xx, yy) { type = "(X != Y)"; }
+DiffXY::DiffXY(Problem &p, Variable *xx, Variable *yy) : Binary(p, xx, yy) { type = "(X != Y)"; }

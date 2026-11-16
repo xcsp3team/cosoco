@@ -13,11 +13,11 @@ bool DistinctVectors::isSatisfiedBy(Cosoco::vec<int> &tuple) {
     tupleX.growTo(size);
     tupleY.growTo(size);
     for(int i = 0; i < size; i++) {
-        int posX  = toScopePosition(X[i]->idx);
+        int posX  = variablePosition.toScopePosition(X[i]->idx);
         tupleX[i] = tuple[posX];
     }
     for(int i = 0; i < size; i++) {
-        int posY  = toScopePosition(Y[i]->idx);
+        int posY  = variablePosition.toScopePosition(Y[i]->idx);
         tupleY[i] = tuple[posY];
     }
     for(int i = 0; i < size; i++)
@@ -33,6 +33,35 @@ bool DistinctVectors::isCorrectlyDefined() {
     return true;
 }
 
+bool DistinctVectorsK::isCorrectlyDefined() {
+    for(int i = 0; i < lists.size(); i++) {
+        for(int j = i + 1; j < lists.size(); j++)
+            if(lists[i].size() != lists[j].size())
+                throw std::logic_error("Constraint " + std::to_string(idc) +
+                                       ": DistinctVector K: Two lists have different sizes");
+    }
+    if(scope.size() != n_rows * n_cols)
+        throw std::logic_error("Constraint " + std::to_string(idc) + ": DistinctVector K: all variables must be different");
+
+
+    return true;
+}
+
+bool DistinctVectorsK::areDifferent(int start1, int start2, vec<int> &tuple) const {
+    for(int j = 0; j < n_cols; j++)
+        if(tuple[start1 + j] != tuple[start2 + j])
+            return true;
+    return false;
+}
+
+
+bool DistinctVectorsK::isSatisfiedBy(Cosoco::vec<int> &tuple) {
+    for(int i = 0; i < n_rows; i++)
+        for(int ii = i + 1; ii < n_rows; ii++)
+            if(areDifferent(i * n_cols, ii * n_cols, tuple) == false)
+                return false;
+    return true;
+}
 
 //----------------------------------------------------------
 // Filtering
@@ -102,13 +131,76 @@ void DistinctVectors::handlePossibleInferenceFor(int sentinel) {
 }
 
 
+int DistinctVectorsK::isSentinelFor(int i, int ii, int j) {
+    Variable *x = lists[i][j];
+    Variable *y = lists[ii][j];
+    if(x->size() == 1 && y->size() == 1)
+        return x->value() == y->value() ? 0 : 1;
+
+    sentinels[i][ii] = j;
+    sentinels[ii][i] = j;
+    return -1;
+}
+
+int DistinctVectorsK::findSentinel(int i, int ii, int jToIgnore) {
+    int j = sentinels[i][ii];
+    if(j != jToIgnore) {
+        int b = isSentinelFor(i, ii, j);
+        if(b != 0)
+            return b;
+    }
+    for(j = 0; j < n_cols; j++) {
+        if(j == jToIgnore)
+            continue;
+        int b = isSentinelFor(i, ii, j);
+        if(b != 0)
+            return b;
+    }
+    return 0;
+}
+
+bool DistinctVectorsK::filter(Variable *x) {
+    if(x->size() != 1)
+        return true;
+    int level = solver->decisionLevel();
+    int v     = x->value();
+    int p     = variablePosition.toScopePosition(x->idx);
+    int i = rows[p], j = cols[p];
+    for(int ii = 0; ii < n_rows; ii++) {
+        if(ii == i)
+            continue;
+        int k = offsets[std::min(i, ii)] + std::abs(ii - i) - 1;
+
+        if(set.contains(k) == false)
+            continue;
+
+        Variable *y = lists[ii][j];
+        if(y->containsValue(v) == false) {
+            set.del(k, level);
+            continue;
+        }
+        int b = findSentinel(i, ii, j);
+        if(b == 0) {   // no other sentinel
+            if(solver->delVal(y, v) == false)
+                return false;
+            set.del(k, level);
+        } else if(b == 1) {   // strong sentinel
+            set.del(k, level);
+        }
+    }
+    return true;
+}
+
 //----------------------------------------------------------
 // Construction and initialisation
 //----------------------------------------------------------
+void DistinctVectorsK::notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) {
+    set.restoreLimit(s.decisionLevel() + 1);
+}
 
 
-DistinctVectors::DistinctVectors(Cosoco::Problem &p, std::string n, vec<Variable *> &XX, vec<Variable *> &YY)
-    : GlobalConstraint(p, n, "Distinct Vectors", Constraint::createScopeVec(&XX, &YY)) {
+DistinctVectors::DistinctVectors(Cosoco::Problem &p, vec<Variable *> &XX, vec<Variable *> &YY)
+    : GlobalConstraint(p, "Distinct Vectors", Constraint::createScopeVec(&XX, &YY)) {
     XX.copyTo(X);
     YY.copyTo(Y);
     size      = X.size();
@@ -124,4 +216,49 @@ DistinctVectors::DistinctVectors(Cosoco::Problem &p, std::string n, vec<Variable
             sentinel2 = 0;
     }
     assert(sentinel1 != sentinel2);
+}
+
+DistinctVectorsK::DistinctVectorsK(Problem &p, vec<vec<Variable *>> &XX) : GlobalConstraint(p, "Distinct Vectors K", 0) {
+    lists.growTo(XX.size());
+    int i = 0;
+    for(auto &list : XX) list.copyTo(lists[i++]);
+    n_rows = lists.size();
+    n_cols = lists[0].size();
+
+    for(auto &list : lists) addToScope(list);
+}
+
+
+void DistinctVectors::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
+}
+
+
+void DistinctVectorsK::attachSolver(Solver *s) {
+    Constraint::attachSolver(s);
+    s->addObserverDeleteDecision(this);   // We need to restore validTuples.
+}
+
+void DistinctVectorsK::delayedConstruction(int id) {
+    Constraint::delayedConstruction(id);
+    variablePosition.makeDelayedConstruction(this);
+
+    rows = new int[scope.size()];
+    cols = new int[scope.size()];
+    for(int i = 0; i < n_rows; i++)
+        for(int j = 0; j < n_cols; j++) {
+            int p   = variablePosition.toScopePosition(lists[i][j]->idx);
+            rows[p] = i;
+            cols[p] = j;
+        }
+    offsets    = new int[n_rows - 1];
+    offsets[0] = 0;
+    for(int i = 1; i < n_rows - 1; i++) offsets[i] = offsets[i - 1] + (n_rows - i);
+    sentinels = new int *[n_rows];
+    for(int i = 0; i < n_rows; i++) {
+        sentinels[i] = new int[n_rows];
+        std::fill_n(sentinels[i], n_rows, 0);
+    }
+    set.setCapacity((n_rows * (n_rows - 1)) / 2, true);   // TODO
 }

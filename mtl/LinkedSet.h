@@ -1,47 +1,32 @@
 #ifndef COSOCO_LINKEDSET_H
 #define COSOCO_LINKEDSET_H
 
+#include <iostream>
+#include <ostream>
+
 #include "Vec.h"
 
 namespace Cosoco {
 
 class LinkedSetIterator;
+const int NOT_STORED = -1;
+
+struct LinkedSetNode {
+    int prev, next, prevRemoved;
+};
 
 class LinkedSet {
    protected:
-    int _size;    // The number of elements present
-    int _first;   // The first (present) element of the list.
-    int _last;    // The last (present) element of the list.
+    int _size;          // The number of elements present
+    int _first;         // The first (present) element of the list.
+    int _last;          // The last (present) element of the list.
+    int _lastRemoved;   // The last dropped element of the list.
 
     // Useless but limits the modification in the code, can be usefull if we want to deal with
     // Different data structures for domains
-    vec<int>  limits;
-    const int NOT_STORED = -1;
+    vec<int>           limits;
+    vec<LinkedSetNode> nodes;
 
-
-    /**
-     * The backward linking of all present elements of the list (from last to first). An array index corresponds to an element. An
-     * array value gives the previous present element of the list or -1 if it does not exist. Hence, <code> prevs[i] == j </code>
-     * means that j is the previous present element in the list before i.
-     */
-    vec<int> prevs;
-
-    /**
-     * The forward linking of all present elements of the list (from first to last). An array index corresponds to an element. An
-     * array value gives the next present element of the list or -1 if it does not exist. Hence, <code> nexts[i] == j </code>
-     * means that j is the next present element in the list after i.
-     */
-    vec<int> nexts;
-
-
-    int _lastRemoved;   // The last dropped element of the list.
-
-    /**
-     * The backward linking of all absent elements of the list (from last to first). An array index corresponds to an element. An
-     * array value gives the previous absent element of the list or -1 if it does not exist. Hence, <code> prevsDel[i] == j
-     * </code> means that j is the previously deleted element of the list before i.
-     */
-    vec<int> _prevRemoved;
 
     /**
      * The level at which absent elements have been removed from the list. An array index corresponds to an element. An array
@@ -54,158 +39,152 @@ class LinkedSet {
     int nbLevels;
 
 
-    inline void del(const int a) {
+    void del(const int a) {
         assert(a < maxSize());
         // if(!contains(a))
         //    return;
 
         // remove from the list of present elements
-        int prev = prevs[a], next = nexts[a];
+        int prev = nodes[a].prev, next = nodes[a].next;
         if(prev == -1)
             _first = next;
         else
-            nexts[prev] = next;
+            nodes[prev].next = next;
         if(next == -1)
             _last = prev;
         else
-            prevs[next] = prev;
+            nodes[next].prev = prev;
         // add to the end of the list of absent elements
-        _prevRemoved[a] = _lastRemoved;
-        _lastRemoved    = a;
+        nodes[a].prevRemoved = _lastRemoved;
+        _lastRemoved         = a;
     }
 
-    inline void add(const int a) {
+    void add(const int a) {
         assert(_lastRemoved == a);
         // add to the list of present elements (works only if elements are managed as in a stack)
-        int prev = prevs[a], next = nexts[a];
+        int prev = nodes[a].prev, next = nodes[a].next;
         if(prev == -1)
             _first = a;
         else
-            nexts[prev] = a;
+            nodes[prev].next = a;
         if(next == -1)
             _last = a;
         else
-            prevs[next] = a;
+            nodes[next].prev = a;
         // remove from the list of absent elements
-        _lastRemoved = _prevRemoved[a];
+        _lastRemoved = nodes[a].prevRemoved;
     }
 
    public:
-    // Constructors
+    // ---------- Create, initialize and fill
     LinkedSet(int sz, bool full) {
         assert(full);
         setCapacity(sz);
     }
 
-
     void setCapacity(int cap) {
         _size  = cap;
         _first = 0;
         _last  = cap - 1;
-        prevs.growTo(cap);
-        nexts.growTo(cap);
-        _prevRemoved.growTo(cap, -1);
+        nodes.growTo(cap);
         removedLevels.growTo(cap, -1);
         fill();
     }
 
-
-    // Fill and clear methods
-    // inline void clear() { limit = 0;}
-    inline void fill() {
+    void fill() {
         _first = 0;
         _last  = maxSize() - 1;
-        for(int i = 0; i < prevs.size(); i++) prevs[i] = i - 1;
-        for(int i = 0; i < nexts.size(); i++) nexts[i] = i + 1;
-        nexts.last() = -1;
-        _lastRemoved = -1;
-        _prevRemoved.fill(-1);
+        for(int i = 0; i < nodes.size(); i++) {
+            nodes[i].prev        = i - 1;
+            nodes[i].next        = i + 1;
+            nodes[i].prevRemoved = -1;
+        }
+        nodes.last().next = -1;
+        _lastRemoved      = -1;
         removedLevels.fill(-1);
     }
 
 
-    // Questions about size methods
-    inline bool isEmpty() const { return _size == 0; }
+    // ----------  Questions about size methods
 
+    bool isEmpty() const { return _size == 0; }
+    int  size() const { return _size; }
+    int  maxSize() const { return nodes.size(); }
 
-    inline int size() const { return _size; }
+    // ---------- Del methods
+    void del(int a, int level) {   // Return true if level is now recorded
+        if(isLimitRecordedAtLevel(level) == false)
+            recordLimit(level);
 
-
-    inline int maxSize() const { return prevs.size(); }
-
-
-    void del(int a, int level) {
         removedLevels[a] = level;
         _size--;
         del(a);
     }
 
 
-    int reduceTo(int a, int level) {
-        int sizeBefore = _size;
+    void reduceTo(int a, int level) {
+        if(isLimitRecordedAtLevel(level) == false)
+            recordLimit(level);
         for(int b = _first; b != -1; b = next(b))
             if(b != a)
                 del(b, level);
-        return sizeBefore - _size;
     }
 
+    void delValuesGE(int maxId, int level) {
+        for(int idv = last(); idv != -1; idv = prev(idv)) {   // Reverse traversal because of deletion
+            if(idv < maxId)
+                return;
+            del(idv, level);
+        }
+        display();
+    }
 
-    // Access and contains method
-    inline bool contains(const int k) const {
+    void delValuesLE(int minId, int level) {
+        for(int idv = first(); idv != -1; idv = next(idv)) {
+            if(idv > minId)
+                return;
+            del(idv, level);
+        }
+    }
+    // ---------- Access and contains method and iterators
+    bool contains(const int k) const {
         assert(k < maxSize());
         return removedLevels[k] == -1;
     }
 
-
-    inline int operator[](const int i) {
+    int operator[](const int i) {
         assert(0 <= i && i < size());
         int e = first();
         for(int cnt = 0; cnt < i; cnt++) e = next(e);
         return e;
     }
 
-
-    // using const_iterator = LinkedSetIterator;
-    using iterator = LinkedSetIterator;
-    // using const_reverse_iterator = LinkedSetIterator;
+    using iterator         = LinkedSetIterator;
     using reverse_iterator = LinkedSetIterator;
 
-
-    // begin/end functions to use for each aka c++
-    // const_iterator cbegin() const;
-    // const_iterator cend() const;
-    iterator begin();
-    iterator end();
-
-
-    // const_reverse_iterator crbegin() const;
-    // const_reverse_iterator crend() const;
+    iterator         begin();
+    iterator         end();
     reverse_iterator rbegin();
     reverse_iterator rend();
 
+    int lastRemoved() const { return _lastRemoved; }
+    int prevRemoved(int id) { return nodes[id].prevRemoved; }
 
-    // iterate over elements
 
     int first() { return _first; }
-
-
     int last() { return _last; }
-
-    int lastRemoved() const { return _lastRemoved; }
-
-    int prevRemoved(int id) { return _prevRemoved[id]; }
 
     int next(int a) {
         assert(a >= 0 && a < maxSize());
         if(removedLevels[a] == -1)
-            return nexts[a];
+            return nodes[a].next;
         // below a can not be equal to first since a is not present
         if(a < _first)
             return _first;
-        int next = nexts[a];
+        int next = nodes[a].next;
         if(next == -1 || next > _last)
             return -1;
-        while(removedLevels[next] != -1) next = nexts[next];
+        while(removedLevels[next] != -1) next = nodes[next].next;
         return next;
     }
 
@@ -213,28 +192,18 @@ class LinkedSet {
     int prev(int a) {
         assert(a >= 0 && a < maxSize());
         if(removedLevels[a] == -1)
-            return prevs[a];
+            return nodes[a].prev;
         // below a can not be equal to last since a is not present
         if(a > _last)
             return _last;
-        int prev = prevs[a];
+        int prev = nodes[a].prev;
         if(prev < _first)   // includes prev == -1
             return -1;
-        while(removedLevels[prev] != -1) prev = prevs[prev];
+        while(removedLevels[prev] != -1) prev = nodes[prev].prev;
         return prev;
     }
 
     int lastRemovedLevel() { return _lastRemoved == -1 ? -1 : removedLevels[_lastRemoved]; }
-
-    bool isLimitRecordedAtLevel(int level) { return level < limits.size() && limits[level] != NOT_STORED; }
-
-
-    void recordLimit(int level) {
-        if(level >= limits.size())
-            limits.growTo(level + 1, NOT_STORED);
-        assert(limits[level] == NOT_STORED);
-        limits[level] = _size;
-    }
 
     void restoreLastDropped() {
         assert(_lastRemoved != -1 && !contains(_lastRemoved));
@@ -242,7 +211,6 @@ class LinkedSet {
         _size++;
         add(_lastRemoved);
     }
-
 
     void restoreLimit(int level) {
         assert(_lastRemoved == -1 || removedLevels[_lastRemoved] <= level);
@@ -263,12 +231,23 @@ class LinkedSet {
 
         printf("]");
         printf("\nprevs: ");
-        for(int prev : prevs) printf("%d ", prev);
+        for(auto &prev : nodes) printf("%d ", prev.prev);
         printf("\nnext: ");
-        for(int i = 0; i < nexts.size(); i++) printf("%d ", nexts[i]);
+        for(auto &n : nodes) printf("%d ", n.next);
         printf("\nremoved");
         for(int i = 0; i < removedLevels.size(); i++) printf("%d ", removedLevels[i]);
         printf("\n");
+    }
+
+   protected:
+    // Related to levels.
+    bool isLimitRecordedAtLevel(int level) { return level < limits.size() && limits[level] != NOT_STORED; }
+
+    void recordLimit(int level) {
+        if(level >= limits.size())
+            limits.growTo(level + 1, NOT_STORED);
+        assert(limits[level] == NOT_STORED);
+        limits[level] = _size;
     }
 };
 }   // namespace Cosoco

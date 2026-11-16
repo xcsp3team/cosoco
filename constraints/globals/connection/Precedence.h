@@ -31,11 +31,11 @@ class Precedence : public GlobalConstraint, ObserverDeleteDecision {
     vec<int> values;
 
    public:
-    Precedence(Problem &p, std::string n, vec<Variable *> &vars, vec<int> &vs, bool covered);
+    Precedence(Problem &p, vec<Variable *> &vars, vec<int> &vs, bool covered);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
-    void notifyDeleteDecision(Variable *x, int v, Solver &s) override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 
     // Checking
     bool isSatisfiedBy(vec<int> &tuple) override;

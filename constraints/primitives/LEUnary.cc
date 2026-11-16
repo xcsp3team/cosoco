@@ -16,7 +16,7 @@ bool LEUnary::isSatisfiedBy(vec<int> &tuple) { return tuple[0] <= k; }
 //----------------------------------------------
 
 bool LEUnary::filter(Variable *x) {
-    if(solver->delValuesGreaterOrEqualThan(x, k + 1) == false)
+    if(solver->delValuesGE(x, k + 1) == false)
         return false;
     solver->entail(this);
     return true;
@@ -39,7 +39,7 @@ long LEUnary::computeScore(vec<int> &solution) { return solution[0]; }
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
-LEUnary::LEUnary(Problem &p, std::string n, Variable *xx, int kk) : Constraint(p, n), k(kk) {
+LEUnary::LEUnary(Problem &p, Variable *xx, int kk) : Constraint(p), k(kk) {
     addToScope(xx);
     type = "X <= k";
 }
