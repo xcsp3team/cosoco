@@ -29,21 +29,19 @@ class Graph {
     }
 };
 
-#define CONFLICT -1
+#define CONFLICT (-1)
 #define USELESS  0
 #define PROP     1
 
 class NoOverlap2D : public GlobalConstraint {
-    vec<Variable *> x, y;
-    vec<Variable *> dx, dy;
-    int             n;
-    vec<int>        boxesToCompute, pruneList;
-    Graph           overlappingBoxes;
+    int               n;
+    bool              firstCall = true;
+    std::vector<int>  toCompute, neighbors;
+    std::vector<char> inQueue;
 
 
    public:
-    NoOverlap2D(Problem &pb, std::string &n, vec<Variable *> &_x, vec<Variable *> &_y, vec<Variable *> &_dx,
-                vec<Variable *> &_dy);
+    NoOverlap2D(Problem &pb, vec<Variable *> &_x, vec<Variable *> &_y, vec<Variable *> &_dx, vec<Variable *> &_dy);
 
     // Filtering method, return false if a conflict occurs
     bool filter(Variable *x) override;
@@ -59,8 +57,10 @@ class NoOverlap2D : public GlobalConstraint {
     bool doOverlap(int i, int j, bool hori);
     int  prune(int j);
     int  doFiltering(int i, int j, bool hori);
-    void prop(int idx);
     bool energyCheck(int i);
+    void mark(int v);
+    void collectNeighbors(int i);
+    bool fail();
 };
 }   // namespace Cosoco
 
