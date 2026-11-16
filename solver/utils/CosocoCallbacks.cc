@@ -1479,6 +1479,13 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<XVariable *> &o
     if(!zeroIgnored)
         throw runtime_error("Nooverlap with zeroIgnored not yet supported");
     toMyVariables(origins);
+    /*
+     * Can be used instead.... to be checked
+     *vec<int> tmp;
+    tmp.growTo(lengths.size(), 1);
+
+    FactoryConstraints::createConstraintCumulative(problem, id, vars, vector2vec(lengths), tmp, 1);
+    */
     for(int i = 0; i < vars.size(); i++)
         for(int j = i + 1; j < vars.size(); j++) {
             if(vars[i]->maximum() + lengths[i] <= vars[j]->minimum() || vars[j]->maximum() + lengths[j] <= vars[i]->minimum())
@@ -1561,8 +1568,16 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         }
         return;
     }
-
-
+    vec<Variable *> x, y, dx, dy;
+    assert(origins[0].size() == 2);
+    for(unsigned int i = 0; i < origins.size(); i++) {
+        x.push(problem->mapping[origins[i][0]->id]);
+        y.push(problem->mapping[origins[i][1]->id]);
+        dx.push(problem->mapping[lengths[i][0]->id]);
+        dy.push(problem->mapping[lengths[i][1]->id]);
+    }
+    FactoryConstraints::createConstraintNoOverlap(problem, id, x, y, dx, dy);
+    return;
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
@@ -1605,7 +1620,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         }
         FactoryConstraints::createConstraintNoOverlap(problem, X, w, Y, h);
     }
-    for(unsigned int i = 0; i < origins.size(); i++) {
+    /*for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
             Variable *x1 = problem->mapping[origins[i][0]->id];
             Variable *x2 = problem->mapping[origins[j][0]->id];
@@ -1624,7 +1639,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             FactoryConstraints::createConstraintDisjunctive2D(problem, x1, x2, y1, y2, lengths[i][0], lengths[j][0],
                                                               lengths[i][1], lengths[j][1], aux);
         }
-    }
+    }*/
     // Add redundant constraint
     vector<XVariable *> ox, oy;
     vector<int>         lx, ly;

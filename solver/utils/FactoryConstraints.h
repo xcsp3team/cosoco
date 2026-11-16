@@ -258,6 +258,10 @@ void createConstraintCumulativeHeightAndWidthAndConditionVariables(Problem *p, v
 void createConstraintNoOverlap(Problem *p, vec<Variable *> &X, vec<int> &width, vec<Variable *> &Y, vec<int> &heights);
 
 void createConstraintPrecedence(Problem *p, vec<Variable *> &vars, vec<int> &values, bool covered);
+void createConstraintNoOverlap(Problem *p, std::string name, vec<Variable *> &X, vec<Variable *> &Y, vec<Variable *> &dx,
+                               vec<Variable *> &dy);
+
+void createConstraintPrecedence(Problem *p, std::string name, vec<Variable *> &vars, vec<int> &values, bool covered);
 
 void createConstraintBinPacking(Problem *p, vec<Variable *> &vars, vec<int> &sizes, vec<int> &limits);
 
