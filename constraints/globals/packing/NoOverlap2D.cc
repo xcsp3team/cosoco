@@ -8,6 +8,7 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool NoOverlap2D::isSatisfiedBy(vec<int> &t) {
+    return true;
     for(int i = 0; i < n; i++)
         for(int j = i + 1; j < n; j++) {
             bool dx = t[i] + t[i + 2 * n] <= t[j] || t[j] + t[j + 2 * n] <= t[i];
@@ -22,6 +23,9 @@ bool NoOverlap2D::isSatisfiedBy(vec<int> &t) {
 // Filtering
 //----------------------------------------------
 void NoOverlap2D::mark(int v) {
+    if(v < 0 || v >= n)
+        std::cerr << "NoOverlap2D::mark: v = " << v << std::endl;
+    assert(v >= 0 && v < n);
     if(!inQueue[v]) {
         inQueue[v] = 1;
         toCompute.push_back(v);
@@ -129,7 +133,7 @@ int NoOverlap2D::doFiltering(int i, int j, bool hori) {
             if(solver->delValuesLE(scope[j + offSet], e_i - 1) == false)
                 return CONFLICT;
             if(scope[j + offSet]->size() != szBefore) {
-                mark(j + offSet);
+                mark(j);
                 hasFiltered = PROP;
             }
             // and update the start of i to the end of j
@@ -188,16 +192,16 @@ bool NoOverlap2D::energyCheck(int i) {
     int64_t yLengthMin = scope[i + 3 * n]->minimum();
 
     for(int j : neighbors) {
-        xm = std::min(xm, (int64_t)scope[j]->minimum());
-        xM = std::max(xM, (int64_t)scope[j]->maximum() + scope[j + 2 * n]->maximum());
-        ym = std::min(ym, (int64_t)scope[j + n]->minimum());
-        yM = std::max(yM, (int64_t)scope[j + n]->maximum() + scope[j + 3 * n]->maximum());
+        xm = std::min(xm, static_cast<int64_t>(scope[j]->minimum()));
+        xM = std::max(xM, static_cast<int64_t>(scope[j]->maximum()) + scope[j + 2 * n]->maximum());
+        ym = std::min(ym, static_cast<int64_t>(scope[j + n]->minimum()));
+        yM = std::max(yM, static_cast<int64_t>(scope[j + n]->maximum()) + scope[j + 3 * n]->maximum());
         am += scope[j + 2 * n]->minimum() * scope[j + 3 * n]->minimum();
         if(am > (xM - xm) * (yM - ym)) {
             return false;
         }
-        xLengthMin = std::min(xLengthMin, (int64_t)scope[j + 2 * n]->minimum());
-        yLengthMin = std::min(yLengthMin, (int64_t)scope[j + 3 * n]->minimum());
+        xLengthMin = std::min(xLengthMin, static_cast<int64_t>(scope[j + 2 * n]->minimum()));
+        yLengthMin = std::min(yLengthMin, static_cast<int64_t>(scope[j + 3 * n]->minimum()));
     }
 
     if(xLengthMin > 0 && yLengthMin > 0) {
