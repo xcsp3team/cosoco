@@ -1565,8 +1565,16 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
         }
         return;
     }
-
-
+    vec<Variable *> x, y, dx, dy;
+    assert(origins[0].size() == 2);
+    for(unsigned int i = 0; i < origins.size(); i++) {
+        x.push(problem->mapping[origins[i][0]->id]);
+        y.push(problem->mapping[origins[i][1]->id]);
+        dx.push(problem->mapping[lengths[i][0]->id]);
+        dy.push(problem->mapping[lengths[i][1]->id]);
+    }
+    FactoryConstraints::createConstraintNoOverlap(problem, x, y, dx, dy);
+    return;
     for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
             string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
@@ -1593,7 +1601,25 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
     if(!zeroIgnored)
         throw runtime_error("K dim Nooverlap with zeroIgnored not yet supported");
     assert(origins.size() == lengths.size() && origins[0].size() == 2);
+
     if(true) {
+        vars.clear();
+        vec<Variable *> X, Y, dX, dY;
+        for(unsigned int i = 0; i < origins.size(); i++) {
+            X.push(problem->mapping[origins[i][0]->id]);
+            Y.push(problem->mapping[origins[i][1]->id]);
+        }
+        for(unsigned int i = 0; i < lengths.size(); i++) {
+            string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            buildVariableInteger(auxVar, lengths[i][0], lengths[i][0]);
+            dX.push(problem->mapping[auxVar]);
+            auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+            buildVariableInteger(auxVar, lengths[i][1], lengths[i][1]);
+            dY.push(problem->mapping[auxVar]);
+        }
+        return FactoryConstraints::createConstraintNoOverlap(problem, X, Y, dX, dY);
+    }
+    /*if(true) {
         vars.clear();
         vec<int>        w, h;
         vec<Variable *> X, Y;
@@ -1608,8 +1634,8 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             Y.push(problem->mapping[origins[i][1]->id]);
         }
         FactoryConstraints::createConstraintNoOverlap(problem, X, w, Y, h);
-    }
-    for(unsigned int i = 0; i < origins.size(); i++) {
+    }*/
+    /*for(unsigned int i = 0; i < origins.size(); i++) {
         for(unsigned int j = i + 1; j < origins.size(); j++) {
             Variable *x1 = problem->mapping[origins[i][0]->id];
             Variable *x2 = problem->mapping[origins[j][0]->id];
@@ -1628,7 +1654,7 @@ void CosocoCallbacks::buildConstraintNoOverlap(string id, vector<vector<XVariabl
             FactoryConstraints::createConstraintDisjunctive2D(problem, x1, x2, y1, y2, lengths[i][0], lengths[j][0],
                                                               lengths[i][1], lengths[j][1], aux);
         }
-    }
+    }*/
     // Add redundant constraint
     vector<XVariable *> ox, oy;
     vector<int>         lx, ly;

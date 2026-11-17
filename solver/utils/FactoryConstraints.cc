@@ -1051,6 +1051,10 @@ void FactoryConstraints::createConstraintNoOverlap(Problem *p, vec<Variable *> &
     p->addConstraint(new NoOverlap(*p, X, width, Y, heights));
 }
 
+void FactoryConstraints::createConstraintNoOverlap(Problem *p, vec<Variable *> &X, vec<Variable *> &Y, vec<Variable *> &dx,
+                                                   vec<Variable *> &dy) {
+    p->addConstraint(new NoOverlap2D(*p, X, Y, dx, dy));
+}
 
 void FactoryConstraints::createConstraintPrecedence(Problem *p, vec<Variable *> &vars, vec<int> &values, bool covered) {
     p->addConstraint(new Precedence(*p, vars, values, covered));
