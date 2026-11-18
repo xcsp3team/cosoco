@@ -22,6 +22,7 @@ bool Cosoco::NoOverlap1D::isSatisfiedBy(vec<int> &tuple) {
 bool Cosoco::NoOverlap1D::isCorrectlyDefined() {
     if(scope.size() != lengths.size())
         return false;
+    return true;
 }
 
 //----------------------------------------------

@@ -32,6 +32,7 @@
 #include "Mult.h"
 #include "NValuesGEK.h"
 #include "NoOverlap1D.h"
+#include "NoOverlap2D.h"
 #include "Options.h"
 #include "Precedence.h"
 #include "Reification.h"
