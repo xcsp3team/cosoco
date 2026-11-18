@@ -41,6 +41,17 @@ class ReifNE : public Ternary {
     bool isSatisfiedBy(vec<int> &tuple) override;
 };
 
+class ReifIfk : public Ternary {
+    int  k;
+    bool hasCommonValue();
+
+   public:
+    ReifIfk(Problem &p, Variable *x, Variable *y, Variable *z, int k);
+
+    bool filter(Variable *dummy) override;
+    bool isSatisfiedBy(vec<int> &tuple) override;
+};
+
 class XeqYeqK : public Binary {
    public:
     int k;

@@ -360,6 +360,11 @@ void FactoryConstraints::createConstraintUnaryGE(Problem *p, Variable *x, int k)
 
 
 void FactoryConstraints::createConstraintUnaryLE(Problem *p, Variable *x, int k) { p->addConstraint(new LEUnary(*p, x, k)); }
+
+void FactoryConstraints::createConstraintXeqIfk(Problem *p, Variable *x, Variable *y, Variable *z, int k) {
+    p->addConstraint(new ReifIfk(*p, x, y, z, k));
+}
+
 //--------------------------------------------------------------------------------------
 // Language constraints
 //--------------------------------------------------------------------------------------

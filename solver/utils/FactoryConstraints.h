@@ -91,6 +91,8 @@ void createConstraintUnaryGE(Problem *p, Variable *x, int k);
 
 
 void createConstraintUnaryLE(Problem *p, Variable *x, int k);
+
+void createConstraintXeqIfk(Problem *p, Variable *x, Variable *y, Variable *z, int k);
 //--------------------------------------------------------------------------------------
 // Language constraints
 //--------------------------------------------------------------------------------------

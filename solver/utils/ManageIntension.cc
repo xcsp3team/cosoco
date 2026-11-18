@@ -930,6 +930,19 @@ class PTernary4 : public Primitive {   // x * y = z
     }
 };
 
+class PTernary5 : public Primitive {   // x = if(y,k,z)
+   public:
+    explicit PTernary5(CosocoCallbacks &m) : Primitive(m, "eq(if(y,0,z),x)", 3) { }
+
+
+    bool post() override {
+        FactoryConstraints::createConstraintXeqIfk(callbacks.problem, callbacks.problem->mapping[variables[2]],
+                                                   callbacks.problem->mapping[variables[0]],
+                                                   callbacks.problem->mapping[variables[1]], constants[0]);
+        return true;
+    }
+};
+
 class PQuater1 : public Primitive {
    public:
     explicit PQuater1(CosocoCallbacks &m) : Primitive(m, "eq(if(x,y,z),w)", 4) { }
@@ -1240,6 +1253,7 @@ void ManageIntension::createPrimitives() {
     patterns.push(new PTernary1(callbacks));
     patterns.push(new PTernary2(callbacks));
     patterns.push(new PTernary3(callbacks));
+    patterns.push(new PTernary5(callbacks));
     patterns.push(new PQuater1(callbacks));
     patterns.push(new PQuater2(callbacks));
     patterns.push(new PQuater3(callbacks));

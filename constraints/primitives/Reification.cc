@@ -40,6 +40,9 @@ bool XeqMinSubkYY::isSatisfiedBy(vec<int> &tuple) {
     int nb = std::min(k - tuple[1], tuple[1]);
     return tuple[0] == nb;
 }
+
+bool ReifIfk::isSatisfiedBy(vec<int> &tuple) { return tuple[0] == (tuple[1] == 1 ? k : tuple[2]); }
+
 //----------------------------------------------
 // Filtering
 //----------------------------------------------
@@ -223,8 +226,9 @@ bool XeqYinSet::checkSentinelNotIn() {
         return true;
     if(sentinelNotIn != -1 && y->containsValue(sentinelNotIn))
         return true;
-    int j = 0;
-    /*for(int idv = 0; idv < y->domain.size(); idv++) {
+
+    /*int j = 0;
+     for(int idv = 0; idv < y->domain.size(); idv++) {
         int v = y->domain.toVal(idv);
         while(j < values.size() && values[j] < v) j++;
         if(j == values.size() || values[j] != v) {
@@ -445,6 +449,58 @@ bool XeqMinSubkYY::filter(Cosoco::Variable *dummy) {
     }
     return true;
 }
+
+
+bool ReifIfk::hasCommonValue() {
+    for(int idv : x->domain)
+        if(z->containsValue(x->domain.toVal(idv)))
+            return true;
+    return false;
+}
+
+bool ReifIfk::filter(Variable *dummy) {
+    bool thenOk = y->containsValue(1) && x->containsValue(k);
+    bool elseOk = y->containsValue(0) && hasCommonValue();
+
+
+    if(thenOk == false && elseOk == false)
+        return false;
+
+
+    if(thenOk == false) {
+        if(solver->delVal(y, 1) == false)
+            return false;
+
+
+        // Force X = Z
+        for(int idv : x->domain)
+            if(z->containsValue(x->domain.toVal(idv)) == false && solver->delIdv(x, idv) == false)
+                return false;
+
+        for(int idv : z->domain)
+            if(x->containsValue(z->domain.toVal(idv)) == false && solver->delIdv(z, idv) == false)
+                return false;
+        return true;
+    }
+
+
+    if(elseOk == false) {   // X = k
+        if(solver->delVal(y, 0) == false)
+            return false;
+        if(solver->assignToVal(x, k) == false)
+            return false;
+        return solver->entail(this);
+    }
+
+
+    // Filter only on X   v is supported  if v == k (Y=1) or  v ∈ dom(Z) (Y=0)
+    for(int idv : x->domain) {
+        int v = x->domain.toVal(idv);
+        if(v != k && z->containsValue(v) == false && solver->delIdv(x, idv) == false)
+            return false;
+    }
+    return true;
+}
 //----------------------------------------------
 // Construction and initialisation
 //----------------------------------------------
@@ -495,10 +551,10 @@ XeqYinSet::XeqYinSet(Problem &p, Variable *xx, Variable *yy, vec<int> &_values) 
     sentinelIn    = -1;
     sentinelNotIn = -1;
     _values.copyTo(values);
-    std::cout << "ici\n";
-    for(int v : values) {
-        std::cout << v << " ";
-    }
-    std::cout << std::endl;
     type = "X eq Y in {..}";
+}
+
+ReifIfk::ReifIfk(Problem &p, Variable *x, Variable *y, Variable *z, int kk) : Ternary(p, x, y, z) {
+    k    = kk;
+    type = "X = If(Y,K,Z)";
 }
