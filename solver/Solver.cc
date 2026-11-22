@@ -53,7 +53,8 @@ Solver::Solver(Problem &p)
     nogoodsFromRestarts = false;
     firstPropagations   = false;
     currentNbValues     = problem.nbValues();
-
+    smallest_in_queue   = INT_MAX;
+        
     displaySolution = options::intOptions["model"].value;
 
     if(options::boolOptions["profile"].value)

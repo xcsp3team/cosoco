@@ -244,6 +244,9 @@ void FactoryConstraints::createConstraintXeqYeqK(Problem *p, Variable *x, Variab
     p->addConstraint(new XeqYeqK(*p, x, y, k));
 }
 
+void FactoryConstraints::createConstraintXeqYinSet(Problem *p, Variable *x, Variable *y, vec<int> &values) {
+    p->addConstraint(new XeqYinSet(*p, x, y, values));
+}
 void FactoryConstraints::createConstraintXeqYneK(Problem *p, Variable *x, Variable *y, int k) {
     p->addConstraint(new XeqYneK(*p, x, y, k));
 }
@@ -357,6 +360,11 @@ void FactoryConstraints::createConstraintUnaryGE(Problem *p, Variable *x, int k)
 
 
 void FactoryConstraints::createConstraintUnaryLE(Problem *p, Variable *x, int k) { p->addConstraint(new LEUnary(*p, x, k)); }
+
+void FactoryConstraints::createConstraintXeqIfk(Problem *p, Variable *x, Variable *y, Variable *z, int k) {
+    p->addConstraint(new ReifIfk(*p, x, y, z, k));
+}
+
 //--------------------------------------------------------------------------------------
 // Language constraints
 //--------------------------------------------------------------------------------------
@@ -823,6 +831,11 @@ void FactoryConstraints::createConstraintCardinality(Cosoco::Problem *p, vec<Cos
     p->addConstraint(new CardinalityF(*p, vars, values, occurs));
 }
 
+
+void FactoryConstraints::createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<int> &min,
+                                                     vec<int> &max) {
+    p->addConstraint(new CardinalityM(*p, vars, values, min, max));
+}
 
 void FactoryConstraints::createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<Occurs> &occurs) {
     verbose.log(DEBUGVERBOSE, "c Create Cardinality(vars,values,occurs) constraint using %d Exactly/AtMost.. constraint \nc\n",

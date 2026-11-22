@@ -59,12 +59,12 @@ AllDifferent::AllDifferent(Problem &p, vec<Variable *> &vars) : GlobalConstraint
 
 AllDifferentWeak::AllDifferentWeak(Problem &p, vec<Variable *> &vars) : AllDifferent(p, vars) {
     type    = "All Different Weak";
-    matcher = new Matcher(this);
+    matcher = new MatcherAllDifferent(this);
 }
 
 AllDifferentAC::AllDifferentAC(Problem &p, vec<Variable *> &vars) : AllDifferent(p, vars) {
     type          = "All Different AC";
-    matcher       = new Matcher(this);
+    matcher       = new MatcherAllDifferent(this);
     isPostponable = true;
 }
 

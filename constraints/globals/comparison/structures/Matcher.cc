@@ -11,16 +11,57 @@
 
 using namespace Cosoco;
 
+MatcherAllDifferent::MatcherAllDifferent(Constraint* c) : Matcher(c) {
+    val2var = new int[interval];
+    std::fill_n(val2var, interval, -1);
+    predBFS = new int[arity];
+    std::fill_n(predBFS, arity, -1);
+}
+
+MatcherCardinality::MatcherCardinality(Constraint* c, vec<int>& _keys, vec<int>& _minOccs, vec<int>& _maxOccs) : Matcher(c) {
+    _keys.copyTo(keys);
+
+    predBFS = new int[std::max(arity, interval)];
+    std::fill_n(predBFS, std::max(arity, interval), -1);
+    queueBFS.setCapacity(std::max(interval, arity), false);
+
+    minOccs = new int[interval];
+    maxOccs = new int[interval];
+    std::fill_n(maxOccs, interval, INT_MAX);
+    std::fill_n(minOccs, interval, 0);
+    for(int i = 0; i < keys.size(); i++) {
+        minOccs[normalizedValue(keys[i])] = _minOccs[i];
+        maxOccs[normalizedValue(keys[i])] = _maxOccs[i];
+    }
+
+    predValue = new int[interval];
+    std::fill_n(predValue, interval, -1);
+
+    possibleVars.growTo(interval);
+    for(int u = 0; u < interval; u++) {
+        possibleVars[u].setCapacity(arity, false);
+        for(int posx = 0; posx < arity; posx++)
+            if(scope[posx]->containsValue(domainValue(u)))
+                possibleVars[u].add(posx);
+    }
+
+    val2var.growTo(interval);
+    for(int i = 0; i < interval; i++) val2var[i].setCapacity(arity, false);
+    fixedOcc = new int[interval];
+    std::fill_n(fixedOcc, interval, 0);
+}
+
+
 Matcher::Matcher(Constraint* cc)
     : constraint(cc), scope(cc->scope), unfixed(cc->scope.size(), true), fixedVars(cc->scope.size()) {
     arity    = constraint->scope.size();
     minValue = constraint->scope[0]->minimum();
     maxValue = constraint->scope[0]->maximum();
-    for(Variable* c : constraint->scope) {
-        if(minValue > c->minimum())
-            minValue = c->minimum();
-        if(maxValue < c->maximum())
-            maxValue = c->maximum();
+    for(Variable* x : constraint->scope) {
+        if(minValue > x->minimum())
+            minValue = x->minimum();
+        if(maxValue < x->maximum())
+            maxValue = x->maximum();
     }
     interval      = maxValue - minValue + 1;
     nNodes        = arity + interval + 1;
@@ -36,12 +77,9 @@ Matcher::Matcher(Constraint* cc)
     for(auto& tmp : neighborsOfValues) tmp.setCapacity(arity + 1, false);
 
     var2val = new int[arity];
-    val2var = new int[interval];
     std::fill_n(var2val, arity, -1);
-    std::fill_n(val2var, interval, -1);
 
-    predBFS = new int[arity];
-    std::fill_n(predBFS, arity, -1);
+
     time      = 1;
     visitTime = new long[nNodes];
     std::fill_n(visitTime, nNodes, -1);
@@ -49,6 +87,15 @@ Matcher::Matcher(Constraint* cc)
     std::fill_n(numDFS, nNodes, 0);
     lowLink = new int[nNodes];
     std::fill_n(lowLink, nNodes, 0);
+    dfsNode = new int[nNodes];
+    dfsEdge = new int[nNodes];
+    onStack = new bool[nNodes];
+    std::fill_n(onStack, nNodes, false);
+    sccId = new long[nNodes];
+    std::fill_n(sccId, nNodes, 0);
+    sccCounter    = 0;
+    nNodesInGraph = nNodes;
+    activeValues.setCapacity(interval, false);
 }
 
 void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
@@ -56,8 +103,17 @@ void Matcher::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
     fixedVars.restoreLimit(s.decisionLevel() + 1);
 }
 
+void MatcherCardinality::notifyDeleteDecision(Variable* x, int v, Solver& s, bool isFull) {
+    Matcher::notifyDeleteDecision(x, v, s, isFull);   // restaure unfixed et fixedVars
+    while(trailLevel.size() > 0 && trailLevel.last() > s.decisionLevel()) {
+        fixedOcc[trailValue.last()]--;
+        trailLevel.pop();
+        trailValue.pop();
+    }
+}
 
-bool Matcher::findMatchingFor(int x) {
+
+bool MatcherAllDifferent::findMatchingFor(int x) {
     stack.clear();
     time++;
     predBFS[x] = -1;
@@ -94,7 +150,7 @@ bool Matcher::findMatchingFor(int x) {
     return false;
 }
 
-bool Matcher::findMaximumMatching() {
+bool MatcherAllDifferent::findMaximumMatching() {
     unmatched.clear();
     int level = constraint->solver->decisionLevel();
     for(int idx = 0; idx < arity; idx++) {   // Find unmatched variables
@@ -148,7 +204,7 @@ void Matcher::removeInconsistentValues() {
 }
 
 
-void Matcher::computeNeighbors() {
+void MatcherAllDifferent::computeNeighbors() {
     int level = constraint->solver->decisionLevel();
     for(SparseSet& set : neighborsOfValues) set.clear();
     neighborsOfT.clear();
@@ -182,78 +238,304 @@ void Matcher::computeNeighbors() {
     }
 }
 
+inline int Matcher::degree(int node) {
+    if(node < arity)
+        return 1;   // variable : une seule arête, vers sa valeur appariée
+    if(node < T)
+        return neighborsOfValues[node - arity].size();
+    return neighborsOfT.size();   // T
+}
 
-void Matcher::tarjanRemoveValues(int node) {
-    assert(visitTime[node] < time);
-    visitTime[node] = time;
-    numDFS[node] = lowLink[node] = ++nVisitedNodes;
-    stackTarjan.add(node);
+inline int Matcher::target(int node, int i) {
+    if(node < arity)
+        return arity + var2val[node];
+    if(node < T) {
+        int n = neighborsOfValues[node - arity][i];
+        return n == arity ? T : n;   // `arity` code l'arête vers T
+    }
+    return arity + neighborsOfT[i];
+}
 
-    if(node < arity) {   // node for a variable
-        int adjacentNode = arity + var2val[node];
-        if(visitTime[adjacentNode] != time) {   // This code is repeated 3 times to save stacking (recursive calls)
-            tarjanRemoveValues(adjacentNode);
-            lowLink[node] = std::min(lowLink[node], lowLink[adjacentNode]);
-        } else if(stackTarjan.contains(adjacentNode))
-            lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
-    } else if(node < T) {   // node for a value
-        SparseSet& neighbors = neighborsOfValues[node - arity];
-        for(int i = 0; i < neighbors.size(); i++) {
-            int adjacentNode = neighbors[i] == arity ? T : neighbors[i];
-            if(visitTime[adjacentNode] != time) {
-                tarjanRemoveValues(adjacentNode);
-                lowLink[node] = std::min(lowLink[node], lowLink[adjacentNode]);
-            } else if(stackTarjan.contains(adjacentNode))
-                lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
+
+void Matcher::tarjanRemoveValues(int root) {
+    assert(visitTime[root] < time);
+    int depth = 0;
+
+    auto visit = [&](int node) {
+        visitTime[node] = time;
+        numDFS[node] = lowLink[node] = ++nVisitedNodes;
+        stackTarjan.add(node);
+        onStack[node]  = true;
+        dfsNode[depth] = node;
+        dfsEdge[depth] = 0;
+        depth++;
+    };
+
+    visit(root);
+    while(depth > 0) {
+        int       node = dfsNode[depth - 1];
+        int&      i    = dfsEdge[depth - 1];
+        const int deg  = degree(node);
+
+        bool descended = false;
+        while(i < deg) {
+            int adj = target(node, i++);
+            if(visitTime[adj] != time) {
+                visit(adj);
+                descended = true;
+                break;
+            } else if(onStack[adj])
+                lowLink[node] = std::min(lowLink[node], numDFS[adj]);
         }
-    } else {
-        assert(node == T);   // node for T
-        for(int i = 0; i < neighborsOfT.size(); i++) {
-            int adjacentNode = arity + neighborsOfT[i];
-            if(visitTime[adjacentNode] != time) {
-                tarjanRemoveValues(adjacentNode);
-                lowLink[node] = std::min(lowLink[node], lowLink[adjacentNode]);
-            } else if(stackTarjan.contains(adjacentNode))
-                lowLink[node] = std::min(lowLink[node], numDFS[adjacentNode]);
+        if(descended)
+            continue;
+
+        // All edges have been explored
+        if(lowLink[node] == numDFS[node])
+            processSCC(node);
+
+        depth--;
+        if(depth > 0) {   // go back
+            int parent      = dfsNode[depth - 1];
+            lowLink[parent] = std::min(lowLink[parent], lowLink[node]);
         }
     }
-    if(lowLink[node] == numDFS[node]) {   // if node is the root of a SCC
-        splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodes;
-        if(splitSCC) {
-            // first, we compute varsOutSCC and valsInSCC
-            varsOutSCC.resetTo(unfixed);
-            valsInSCC.clear();
-            int nodeSCC = -1;
-            // assert(stackTarjan.contains(node));
-            // stackTarjan.display();
-            // std::cout << "\n";
-            while(nodeSCC != node) {
-                // std::cout << nodeSCC << " " << node << std::endl;
-                assert(stackTarjan.size() > 0);
-                nodeSCC = stackTarjan.pop();
-                if(nodeSCC < arity)
-                    varsOutSCC.del(nodeSCC);
-                else if(nodeSCC < T)
-                    valsInSCC.add(nodeSCC - arity);
-            }
+}
 
-            // second, we remove appropriate values (linking values in the CSS with variables outside the SCC)
-            if(varsOutSCC.size() > 0 && valsInSCC.size() > 0) {
-                for(int nv : valsInSCC) {
-                    int        v         = domainValue(nv);
-                    SparseSet& neighbors = neighborsOfValues[nv];
-                    if(neighbors.size() < varsOutSCC.size()) {
-                        for(int idx : neighbors) {
-                            if(idx < arity && varsOutSCC.contains(idx) && var2val[idx] != nv)
-                                constraint->solver->delVal(scope[idx], v);
-                        }
-                    } else
-                        for(int idx : varsOutSCC) {
-                            if(scope[idx]->containsValue(v) && var2val[idx] != nv)
-                                constraint->solver->delVal(scope[idx], v);
-                        }
+void Matcher::processSCC(int node) {
+    splitSCC = splitSCC || lowLink[node] > 1 || nVisitedNodes < nNodesInGraph;
+
+    // dépiler la SCC, lui donner un identifiant, et collecter ses valeurs
+    const long id = ++sccCounter;
+    valsInSCC.clear();
+    int n;
+    do {
+        n          = stackTarjan.pop();
+        onStack[n] = false;
+        sccId[n]   = id;
+        if(n >= arity && n < T)
+            valsInSCC.add(n - arity);
+    } while(n != node);
+
+    if(!splitSCC)
+        return;
+
+    // supprimer les arêtes (valeur de la SCC) -> (variable hors SCC) non appariées
+    for(int nv : valsInSCC) {
+        int v = domainValue(nv);
+        for(int idx : neighborsOfValues[nv])
+            if(idx < arity && sccId[idx] != id && var2val[idx] != nv)
+                constraint->solver->delVal(scope[idx], v);
+    }
+}
+
+void MatcherCardinality::handleAugmentingPath(int x, int v) {
+    while(predBFS[v] != -1) {
+        int y      = predBFS[v];
+        var2val[x] = v;
+        val2var[v].add(x);
+        val2var[v].del(y);
+        x = y;
+        v = predValue[v];
+    }
+    var2val[x] = v;
+    val2var[v].add(x);
+}
+
+bool MatcherCardinality::findMatchingForValue(int u) {
+    time++;
+    queueBFS.clear();
+    queueBFS.add(u);
+    predBFS[u]   = -1;
+    visitTime[u] = time;
+    while(!queueBFS.isEmpty()) {
+        int v = queueBFS.shift();
+        for(int posx : possibleVars[v]) {
+            if(scope[posx]->containsValue(domainValue(v))) {
+                int w = var2val[posx];
+                if(w == -1) {
+                    handleAugmentingPath(posx, v);
+                    return true;
+                } else if(w != v) {
+                    assert(posx >= 0 && posx <= constraint->scope.size());
+                    if(val2var[w].size() > minOccs[w] && var2val[posx] == w) {
+                        val2var[w].del(posx);
+                        handleAugmentingPath(posx, v);
+                        return true;
+                    } else if(visitTime[w] < time) {
+                        visitTime[w] = time;
+                        queueBFS.add(w);
+                        predBFS[w]   = posx;
+                        predValue[w] = v;
+                    }
                 }
             }
         }
     }
+    return false;
+}
+
+bool MatcherCardinality::findMatchingForVariable(int x) {
+    time++;
+    queueBFS.clear();
+    queueBFS.add(x);
+
+    predBFS[x]   = -1;
+    visitTime[x] = time;
+    while(!queueBFS.isEmpty()) {
+        int y = queueBFS.shift();
+
+        for(int idv : scope[y]->domain) {
+            int u = normalizedValue(scope[y]->domain.toVal(idv));
+            if(val2var[u].size() < maxOccs[u]) {
+                while(predBFS[y] != -1) {
+                    int v      = var2val[y];   // previous value
+                    var2val[y] = u;
+                    val2var[u].add(y);
+                    val2var[v].del(y);
+                    y = predBFS[y];
+                    u = v;
+                }
+                var2val[y] = u;
+                val2var[u].add(y);
+                return true;
+            }
+            for(int z : val2var[u]) {
+                assert(var2val[z] == u);
+                if(visitTime[z] < time) {
+                    visitTime[z] = time;
+                    predBFS[z]   = y;
+                    queueBFS.add(z);
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void MatcherCardinality::computeNeighbors() {
+    const int level = constraint->solver->decisionLevel();
+
+    // 1. Enregistrer les variables nouvellement fixées
+    justSaturated.clear();
+    for(int idx = 0; idx < arity; idx++) {
+        if(fixedVars.contains(idx) || scope[idx]->size() != 1)
+            continue;
+        int nv = normalizedValue(scope[idx]->value());
+        fixedVars.add(idx, level);
+        if(unfixed.contains(idx))
+            unfixed.del(idx, level);
+        fixedOcc[nv]++;
+        trailLevel.push(level);
+        trailValue.push(nv);
+        if(fixedOcc[nv] == maxOccs[nv])   // la valeur vient d'être saturée par des variables fixées
+            justSaturated.push(nv);
+    }
+
+    // 2. Une valeur saturée par des variables fixées est retirée des autres variables
+    for(int nv : justSaturated) {
+        int v = domainValue(nv);
+        for(int idx = 0; idx < arity; idx++)
+            if(!fixedVars.contains(idx) && scope[idx]->containsValue(v))
+                constraint->solver->delVal(scope[idx], v);
+    }
+
+    // 3. Construction du graphe, uniquement sur les variables non fixées
+    for(auto& set : neighborsOfValues) set.clear();
+    neighborsOfT.clear();
+    activeValues.clear();
+    auto markActive = [&](int u) {
+        if(!activeValues.contains(u))
+            activeValues.add(u);
+    };
+
+    int nbVars = 0;
+    for(int idx = 0; idx < arity; idx++) {
+        if(fixedVars.contains(idx))
+            continue;
+        nbVars++;
+        Variable* x       = scope[idx];
+        int       matched = var2val[idx];
+        if(matched != -1)
+            markActive(matched);
+        for(int idv : x->domain) {   // domaine courant, pas possibleVars
+            int nv = normalizedValue(x->domain.toVal(idv));
+            if(nv != matched)
+                neighborsOfValues[nv].add(idx);
+        }
+    }
+
+    for(int u = 0; u < interval; u++) {
+        int sz = val2var[u].size();
+        if(sz < maxOccs[u]) {
+            neighborsOfT.add(u);
+            markActive(u);
+        }
+        if(sz > minOccs[u])
+            neighborsOfValues[u].add(arity);   // arête u -> T
+    }
+
+    // un nœud valeur n'est atteint que depuis sa variable appariée ou depuis T,
+    // donc ce compte majore le nombre de nœuds visitables
+    nNodesInGraph = nbVars + activeValues.size() + 1;
+}
+
+bool MatcherCardinality::findMaximumMatching() {
+    // Make sure each variable is not matched with a value that is not in its domain anymore
+    for(int posx = 0; posx < arity; posx++) {
+        int u = var2val[posx];
+        if(u == -1 || scope[posx]->containsValue(domainValue(u)) == false) {
+            if(scope[posx]->size() == 1) {
+                int v = normalizedValue(scope[posx]->value());
+                if(u != -1)
+                    val2var[u].del(posx);
+                if(maxOccs[v] == val2var[v].size()) {
+                    var2val[posx] = -1;
+                } else {
+                    var2val[posx] = v;
+                    val2var[v].add(posx);
+                }
+            } else if(u != -1) {
+                val2var[u].del(posx);
+                var2val[posx] = -1;
+            }
+        }
+    }
+
+
+    // Generate a feasible flow (part of the matching)
+    for(int i = 0; i < keys.size(); i++) {
+        int u = normalizedValue(keys[i]);
+        while(val2var[u].size() < minOccs[u])
+            if(findMatchingForValue(u) == false) {
+                return false;
+            }
+    }
+    /*    for(int i = 0; i < arity; i++) std::cout << var2val[i] << " ";
+        std::cout << std::endl;
+
+        for(auto& s : val2var) {
+            s.display();
+            std::cout << "\n";
+        }
+    */
+
+    int level = constraint->solver->decisionLevel();
+    unmatched.clear();
+    for(int x = 0; x < arity; x++) {
+        if(var2val[x] == -1)
+            unmatched.push(x);
+        else if(scope[x]->size() == 1 && unfixed.contains(x)) {
+            unfixed.del(x, level);
+        }
+    }
+    while(unmatched.size() > 0) {
+        int idx = unmatched.last();
+        unmatched.pop();
+        if(findMatchingForVariable(idx) == false) {
+            //      std::cout << "BBB\n";
+            return false;
+        }
+    }
+    return true;
 }

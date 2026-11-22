@@ -74,6 +74,8 @@ void createConstraintXeqMinSubY(Problem *p, Variable *x, Variable *y, int k);
 
 void createConstraintMulEQ(Problem *p, Variable *x, Variable *y, Variable *z);
 
+void createConstraintXeqYinSet(Problem *p, Variable *x, Variable *y, vec<int> &values);
+
 void createReification(Problem *p, Variable *x, Variable *y, Variable *z, ExpressionType op);
 
 void createConstraintXor(Problem *p, vec<Variable *> &vars);
@@ -89,6 +91,8 @@ void createConstraintUnaryGE(Problem *p, Variable *x, int k);
 
 
 void createConstraintUnaryLE(Problem *p, Variable *x, int k);
+
+void createConstraintXeqIfk(Problem *p, Variable *x, Variable *y, Variable *z, int k);
 //--------------------------------------------------------------------------------------
 // Language constraints
 //--------------------------------------------------------------------------------------
@@ -187,6 +191,8 @@ void createConstraintElementMatrix(Problem *p, vec<vec<Variable *>> &matrix, Var
 void createConstraintCardinality(Cosoco::Problem *p, vec<Cosoco::Variable *> &vars, vec<int> &values, vec<Variable *> &occurs);
 
 void createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<Occurs> &occurs);
+
+void createConstraintCardinality(Problem *p, vec<Variable *> &vars, vec<int> &values, vec<int> &min, vec<int> &max);
 
 void createConstraintOrdered(Problem *p, vec<Variable *> &vars, vector<int> &lengths, OrderType op);
 

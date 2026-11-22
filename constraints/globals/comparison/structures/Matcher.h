@@ -8,8 +8,6 @@
 #include <ObserverDecision.h>
 #include <SparseSetMultiLevel.h>
 
-#include <queue>
-
 #include "Constraint.h"
 
 namespace Cosoco {
@@ -18,7 +16,7 @@ class Matcher : public ObserverDeleteDecision {
     Constraint         *constraint;   // The associated constraint
     vec<Variable *>    &scope;
     int                 minValue, maxValue, interval, nNodes, T;   // min, max and interval
-    int                *val2var, *var2val;
+    int                *var2val;
     int                 arity;
     vec<int>            unmatched;
     vec<int>            stack;
@@ -37,20 +35,66 @@ class Matcher : public ObserverDeleteDecision {
     SparseSet           neighborsOfT, varsOutSCC, valsInSCC;
     int                *numDFS;
     int                *lowLink;
+    int                *dfsNode;   // explicit stack
+    int                *dfsEdge;   // stack: next edge to explore
+    bool               *onStack;   // replace statcktarjan.contains
+    long               *sccId;     // identifying scc
+    long                sccCounter;
+    int                 nNodesInGraph;   // nombre de nœuds réellement présents dans le graphe courant
+    SparseSet           activeValues;    // valeurs pouvant être visitées (sert à calculer nNodesInGraph)
+
+    int  degree(int node);
+    int  target(int node, int i);
+    void processSCC(int node);
 
     int domainValue(int normalizedValue) const { return normalizedValue + minValue; }
     int normalizedValue(int v) const { return v - minValue; }
 
-    bool findMatchingFor(int x);
-    void computeNeighbors();
+    virtual void computeNeighbors() = 0;
 
    public:
     explicit Matcher(Constraint *c);
-    bool findMaximumMatching();
+    virtual bool findMaximumMatching() = 0;
 
     void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
     void removeInconsistentValues();
     void tarjanRemoveValues(int node);
+};
+
+class MatcherAllDifferent : public Matcher {
+    int *val2var;
+
+   protected:
+    void computeNeighbors() override;
+
+   public:
+    explicit MatcherAllDifferent(Constraint *c);
+    bool findMaximumMatching() override;
+    bool findMatchingFor(int x);
+};
+
+class MatcherCardinality : public Matcher {
+    vec<SparseSet> val2var;
+    vec<int>       keys;
+    int           *minOccs, *maxOccs;
+    int           *predValue;
+    vec<SparseSet> possibleVars;
+    SparseSet      queueBFS;
+    int           *fixedOcc;                 // fixedOcc[v] = number of variables fixed with value v
+    vec<int>       trailLevel, trailValue;   // trail used to restore data on backtrack
+    vec<int>       justSaturated;
+
+    void handleAugmentingPath(int x, int v);
+    bool findMatchingForValue(int u);
+    bool findMatchingForVariable(int x);
+
+   protected:
+    void computeNeighbors() override;
+
+   public:
+    explicit MatcherCardinality(Constraint *c, vec<int> &_keys, vec<int> &_minOccs, vec<int> &_maxOccs);
+    bool findMaximumMatching() override;
+    void notifyDeleteDecision(Variable *x, int v, Solver &s, bool isFull) override;
 };
 }   // namespace Cosoco
 

@@ -8,6 +8,11 @@
 namespace Cosoco {
 
 class LinkedSetIterator;
+const int NOT_STORED = -1;
+
+struct LinkedSetNode {
+    int prev, next, prevRemoved;
+};
 
 const int NOT_STORED = -1;
 
