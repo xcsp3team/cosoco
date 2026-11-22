@@ -8,11 +8,6 @@
 namespace Cosoco {
 
 class LinkedSetIterator;
-const int NOT_STORED = -1;
-
-struct LinkedSetNode {
-    int prev, next, prevRemoved;
-};
 
 const int NOT_STORED = -1;
 
@@ -186,7 +181,7 @@ class LinkedSet {
 
 
     void reduceTo(int a, int level) {
-        if(isOptimized) {
+        if(isOptimized && size() > 10) {
             if(a + 1 <= _last)
                 delValuesGE(a + 1, level);
             if(a - 1 >= _first)
