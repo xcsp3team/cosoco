@@ -1467,6 +1467,14 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
         i++;
         buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
     }
+    if(value->domain->minimum() < 0) {
+        string tmp = "ge(" + value->id + ",0)";
+        buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
+    }
+    if(value->domain->maximum() >= list.size()) {
+        string tmp = "lt(" + value->id + "," + std::to_string(list.size()) + ")";
+        buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
+    }
 }
 
 
