@@ -917,9 +917,9 @@ void FactoryConstraints::createContraintChannelXY(Problem *p, vec<Variable *> &X
 
 void FactoryConstraints::createConstraintChannel(Problem *p, vec<Variable *> &vars, int index) {
     assert(index == 0);
-    FactoryConstraints::createConstraintAllDiff(p, vars);
+    createConstraintAllDiff(p, vars);
     for(int i = 0; i < vars.size(); i++) {
-        FactoryConstraints::createConstraintElementConstant(p, vars, vars[i], 0, i);
+        createConstraintElementConstant(p, vars, vars[i], 0, i);
     }
 }
 

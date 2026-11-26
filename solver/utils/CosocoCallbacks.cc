@@ -1442,7 +1442,17 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
         throw runtime_error("Channel is not implemented with index != 0");
     toMyVariables(list);
     FactoryConstraints::createConstraintChannel(problem, vars, 0);
-    buildConstraintAlldifferent(id, list);
+    // buildConstraintAlldifferent(id, list);
+    for(int i = 0; i < vars.size(); i++) {
+        if(vars[i]->minimum() < 0) {
+            string tmp = "ge(" + vars[i]->_name + ",0)";
+            buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
+        }
+        if(vars[i]->maximum() >= list.size()) {
+            string tmp = "lt(" + vars[i]->_name + "," + std::to_string(list.size()) + ")";
+            buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
+        }
+    }
 }
 
 void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &list1, int startIndex1, vector<XVariable *> &list2,
