@@ -427,6 +427,7 @@ bool ManageIntension::toExtension(std::string id, XCSP3Core::Tree *tree, vec<Var
     double nbTuples = 1;
 
     // Compute cartesian product
+    std::cout << tree->listOfVariables[1] << std::endl;
     for(Variable *x : scope) nbTuples *= x->domain.maxSize();
     if(tree->root->type == OEQ && tree->root->parameters[1]->type == OVAR)   // Easy to compute
         nbTuples = nbTuples / scope.last()->domain.maxSize();

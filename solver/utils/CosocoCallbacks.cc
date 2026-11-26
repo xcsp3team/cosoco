@@ -1296,10 +1296,13 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<vector<int>> &mat
 void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &list, XVariable *index, int startIndex,
                                              XCondition &xc) {
     if(xc.op == IN) {
-        assert(xc.operandType == SET);
-        string           auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
-        std::vector<int> tmp(xc.set.begin(), xc.set.end());
-        buildVariableInteger(auxVar, tmp);
+        string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
+        if(xc.operandType == SET) {
+            std::vector<int> tmp(xc.set.begin(), xc.set.end());
+            buildVariableInteger(auxVar, tmp);
+        } else
+            buildVariableInteger(auxVar, xc.min, xc.max);
+
         xc.op          = EQ;
         xc.operandType = VARIABLE;
         xc.var         = auxVar;
@@ -1322,9 +1325,6 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
     }
     insideGroup = false;
     string exp;
-    if(xc.operandType == INTERVAL)
-        throw runtime_error("Element with condition and interval not yet  implemented");
-
 
     Variable *v   = problem->mapping[list[0]->id];
     int       min = v->minimum();
@@ -1334,21 +1334,49 @@ void CosocoCallbacks::buildConstraintElement(string id, vector<XVariable *> &lis
         min = min > v->minimum() ? v->minimum() : min;
         max = max < v->maximum() ? v->maximum() : max;
     }
-
     string auxVar = "__av" + std::to_string(auxiliaryIdx++) + "__";
     buildVariableInteger(auxVar, min, max);
     string tmp = "";
-    if(xc.op == LE)
-        tmp = "le(";
-    if(xc.op == LT)
-        tmp = "lt(";
-    if(xc.op == GE)
-        tmp = "ge(";
-    if(xc.op == GT)
-        tmp = "gt(";
-    if(xc.op == NE)
-        tmp = "ne(";
-    tmp     = tmp + auxVar + "," + (xc.operandType == VARIABLE ? xc.var : std::to_string(xc.val)) + ")";
+    if(xc.op == IN || xc.op == NOTIN) {
+        tmp = xc.op == IN ? "in(" : "notin(";
+        tmp += auxVar + ",";
+        bool first = true;
+        if(xc.operandType == SET) {
+            tmp += "set(";
+            for(auto value : xc.set) {
+                if(first == false)
+                    tmp += ",";
+                tmp += std::to_string(value);
+                first = false;
+            }
+            tmp += ")";
+        } else {
+            assert(xc.operandType == INTERVAL);
+            bool first = true;
+            tmp += "set(";
+            for(int value = xc.min; value <= xc.max; value++) {
+                if(first == false)
+                    tmp += ",";
+                tmp += std::to_string(value);
+                first = false;
+            }
+            tmp += ")";
+        }
+        tmp += ")";
+    } else {
+        if(xc.op == LE)
+            tmp = "le(";
+        if(xc.op == LT)
+            tmp = "lt(";
+        if(xc.op == GE)
+            tmp = "ge(";
+        if(xc.op == GT)
+            tmp = "gt(";
+        if(xc.op == NE)
+            tmp = "ne(";
+        tmp = tmp + auxVar + "," + (xc.operandType == VARIABLE ? xc.var : std::to_string(xc.val)) + ")";
+    }
+    std::cout << tmp << std::endl;
     auto *x = new XVariable(auxVar, nullptr);
     buildConstraintIntension(id, new Tree(tmp));
     buildConstraintElement(id, list, startIndex, index, ANY, x);
