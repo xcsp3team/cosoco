@@ -8,23 +8,24 @@ namespace Cosoco {
 
 class Element : public GlobalConstraint {
    protected:
-    Variable *index;
-    int       posIndex;   // position of the index in the list (-1 if absent)
-    bool      startAtOne;
-    int       szVector;   // original size without index
+    vec<Variable *> list;
+    Variable       *index;
+    int             posIndex;   // position of the index in the list (-1 if absent)
+    bool            startAtOne;
+
    public:
     Element(Problem &p, std::string t, vec<Variable *> &scp, Variable *i, bool one = false)
         : GlobalConstraint(p, t, scp), index(i), startAtOne(one) { }
 
 
-    inline Variable *getVariableFor(int posx) { return scope[posx - (startAtOne ? 1 : 0)]; }
+    inline Variable *getVariableFor(int posx) { return list[posx - (startAtOne ? 1 : 0)]; }
 
 
     bool isCorrectlyDefined() override {
-        for(int i = 0; i < szVector; i++) {
+        for(int i = 0; i < list.size(); i++) {
             // if(scope[i] == index)
             //    throw std::logic_error("Constraint " + std::to_string(idc) + ": Element has index inside list");
-            for(int j = i + 1; j < szVector; j++)
+            for(int j = i + 1; j < list.size(); j++)
                 if(scope[i] == scope[j])
                     throw std::logic_error("Constraint " + std::to_string(idc) +
                                            ": Element has contains the same variable twice inside list");
@@ -32,7 +33,7 @@ class Element : public GlobalConstraint {
 
         if(index->domain.minimum() != (startAtOne ? 1 : 0))
             return false;
-        if(index->domain.maximum() != szVector - (startAtOne ? 0 : 1))
+        if(index->domain.maximum() != list.size() - (startAtOne ? 0 : 1))
             return false;
         return true;
     }

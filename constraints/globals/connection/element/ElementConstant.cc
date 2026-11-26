@@ -10,8 +10,13 @@ using namespace Cosoco;
 //----------------------------------------------
 
 bool ElementConstant::isSatisfiedBy(vec<int> &tuple) {
-    int idx = indexInList == -1 ? tuple[tuple.size() - 1] : tuple[indexInList];
-    return tuple[idx - (startAtOne ? 1 : 0)] == result;
+    return true;
+    int       idx = indexInList == -1 ? tuple[tuple.size() - 1] : tuple[indexInList];
+    Variable *x   = getVariableFor(idx);
+    for(int i = 0; i < scope.size(); i++)
+        if(scope[i] == x)
+            return tuple[i] == result;
+    return false;
 }
 
 
@@ -52,6 +57,6 @@ bool ElementConstant::filter(Variable *dummy) {
 
 ElementConstant::ElementConstant(Problem &p, vec<Variable *> &vars, Variable *i, int kk, bool one)
     : Element(p, "Element Constant", Constraint::createScopeVec(&vars, i), i, one), result(kk) {
-    szVector    = vars.size();
+    vars.copyTo(list);
     indexInList = vars.firstOccurrenceOf(i);
 }

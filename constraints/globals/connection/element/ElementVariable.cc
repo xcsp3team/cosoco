@@ -131,7 +131,6 @@ bool ElementVariable::filterValue() {
 
 ElementVariable::ElementVariable(Problem &p, vec<Variable *> &vars, Variable *i, Variable *r, bool one)
     : Element(p, "Element Variable", Constraint::createScopeVec(&vars, i, r), i, one), value(r) {
-    szVector = vars.size();
     posIndex = vars.firstOccurrenceOf(i);
     vars.copyTo(list);
     valueSentinels.growTo(value->domain.maxSize(), -1);
