@@ -912,7 +912,7 @@ void FactoryConstraints::createConstraintLex(Problem *p, vec<Variable *> &vars1,
 
 void FactoryConstraints::createContraintChannelXY(Problem *p, vec<Variable *> &X, vec<Variable *> &Y, int startX, int startY) {
     verbose.log(NORMAL, "c Create channel(X,Y) constraint using %d element constraint \n", X.size());
-    for(int i = 0; i < X.size(); i++) createConstraintElementConstant(p, Y, X[i], startY, i);
+    for(int i = 0; i < X.size(); i++) createConstraintElementConstant(p, Y, X[i], startY, i + startX);
 }
 
 void FactoryConstraints::createConstraintChannel(Problem *p, vec<Variable *> &vars, int index) {

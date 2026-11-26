@@ -1463,7 +1463,7 @@ void CosocoCallbacks::buildConstraintChannel(string id, vector<XVariable *> &lis
     //  return forall(range(list.length), i -> intension(iff(list[i], eq(value, i))));
     int i = 0;
     for(XVariable *x : list) {
-        string tmp = "iff(" + x->id + "," + "eq(" + value->id + "," + std::to_string(i) + "))";
+        string tmp = "iff(" + x->id + "," + "eq(" + value->id + "," + std::to_string(i + startIndex) + "))";
         i++;
         buildConstraintIntension(id, new XCSP3Core::Tree(tmp));
     }
